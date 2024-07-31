@@ -1,0 +1,53 @@
+.navBar {
+  width: 100%;
+  background-color: #bb1313;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navContainer {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.logo {
+  width: 48px;
+  flex-shrink: 0;
+  padding: 10px 0px 10px 10px;
+}
+
+.toggler {
+  margin-left: auto;
+  margin-right: 10px;
+  box-shadow: none;
+}
+
+.toggler:focus {
+  box-shadow: none;
+}
+
+.toggler.toggled {
+  border: 3px solid black;
+}
+
+.navLinks {
+  display: flex;
+  align-items: flex-end;
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: black;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 1em;
+  margin-right: 10px;
+}
+
+.navLinks a:hover {
+  color: #bb1313;
+  background-color: #f0f0f0;
+  box-shadow: 0 4px 8px rgb(0, 0, 0, 0.5);
+}
