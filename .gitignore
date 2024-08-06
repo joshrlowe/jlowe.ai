@@ -2,6 +2,7 @@
 
 .env
 scripts/
+data/
 
 # dependencies
 /node_modules
