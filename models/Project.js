@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-const techStackSchema = require("./TechStack");
+import mongoose from "mongoose";
+const Schema = mongoose.Schema;
+import techStackSchema from "./TechStack.js";
 
 const ProjectSchema = new Schema({
   title: {
@@ -11,24 +11,19 @@ const ProjectSchema = new Schema({
     {
       name: { type: String, required: true },
       role: { type: String },
-      email: { type: String },
+      email: { type: String, required: true, match: /.+\@.+\..+/ },
     },
   ],
-  techStack: {
-    type: techStackSchema,
-  },
-  repositoryLink: {
-    type: String,
-  },
+  techStack: techStackSchema,
+  repositoryLink: String,
   startDate: {
     type: Date,
+    required: true,
   },
-  releaseDate: {
-    type: Date,
-  },
+  releaseDate: Date,
   createdAt: {
     type: Date,
-    default: new Date(2000, 0, 1),
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
@@ -36,9 +31,15 @@ const ProjectSchema = new Schema({
   },
 });
 
+// Middleware to update the `updatedAt` field
 ProjectSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-module.exports = mongoose.model("Project", ProjectSchema);
+// Check if the model already exists before defining it
+const Project =
+  mongoose.models.Project ||
+  mongoose.model("Project", ProjectSchema, "projects");
+
+export default Project;

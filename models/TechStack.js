@@ -1,13 +1,17 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const techStackSchema = new Schema({
+  fullStackFrameWork: {
+    type: String,
+    enum: ["Next.js"],
+  },
   backendFramework: {
     type: String,
     enum: [
       "Flask",
       "Django",
-      "Express",
+      "Express.js",
       "Spring",
       "Rails",
       "Laravel",
@@ -17,7 +21,15 @@ const techStackSchema = new Schema({
   },
   frontendFramework: {
     type: String,
-    enum: ["React", "Angular", "Vue", "Svelte", "Ember", "Backbone", "Other"],
+    enum: [
+      "React.js",
+      "Angular.js",
+      "Vue.js",
+      "Svelte",
+      "Ember",
+      "Backbone",
+      "Other",
+    ],
   },
   database: {
     type: String,
@@ -43,7 +55,7 @@ const techStackSchema = new Schema({
   ],
   operatingSystem: {
     type: String,
-    enum: ["Ubuntu", "CentOS", "Debian", "Windows", "macOS", "Other"],
+    enum: ["Ubuntu", "CentOS", "Debian", "Windows", "macOS", "Linux", "Other"],
   },
   webServer: {
     type: String,
@@ -76,4 +88,4 @@ techStackSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = techStackSchema;
+export default techStackSchema;

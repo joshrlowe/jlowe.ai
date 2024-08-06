@@ -1,28 +1,25 @@
-import clientPromise from "../../../lib/mongodb";
-import { ObjectId } from "mongodb";
+import db from "../../../lib/mongodb.js";
+import Project from "../../../models/Project.js";
+import mongoose from "mongoose";
 
-export default async function handler(req, res) {
+export default async (req, res) => {
   try {
-    const client = await clientPromise;
-    const db = client.db("jloweai");
+    const id = req.query.id;
+    await db;
 
-    const { id } = req.query;
-
-    if (!ObjectId.isValid(id)) {
-      res.status(400).json({ error: "Invalid ID" });
-      return;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid project ID" });
     }
 
-    const collection = db.collection("projects");
-    const data = await collection.findOne({ _id: new ObjectId(id) });
+    const project = await Project.findById(id).exec();
 
-    if (!data) {
-      res.status(404).json({ error: "Project not found" });
-      return;
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
     }
 
-    res.status(200).json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch data" });
+    res.json(project);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
