@@ -1,0 +1,157 @@
+/* General Text Styles */
+.pageTitle {
+  font-size: 3rem;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+.paragraphText {
+  font-size: 1.1rem;
+  font-weight: 300;
+  line-height: 1.5;
+  margin: 0;
+  margin-bottom: 1rem;
+  padding: 0;
+}
+
+.redText {
+  color: red;
+}
+
+.oswald {
+  font-family: "Oswald", sans-serif;
+}
+
+/* Backgrounds and Borders */
+.lightGrayBg {
+  background-color: rgb(85, 83, 83);
+  border: 1px solid black;
+  color: white;
+}
+
+/* Links */
+.link {
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.link:hover,
+.emailLink:hover {
+  text-decoration: underline;
+}
+
+.emailLink {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+/* Lists and List Items */
+.projectListItem {
+  cursor: pointer;
+}
+
+.teamList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.teamMember {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  padding: 10px 0;
+}
+
+.memberName {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+/* Headings */
+.teamHeader {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.teamContainer {
+  margin-top: 20px;
+}
+
+/* Emphasis */
+.emphasisText {
+  font-weight: bold;
+}
+
+/* Animations */
+@keyframes slideFadeInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes flyInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInQuickly {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.slideFadeInRight {
+  animation: slideFadeInRight 0.5s ease-out forwards;
+}
+
+.fadeOut {
+  animation: fadeOut 0.5s ease-out forwards;
+  position: absolute;
+  width: 100%;
+}
+
+.flyInLeft {
+  animation: flyInLeft 0.5s ease-out forwards;
+  opacity: 0;
+  /* Initially hide the element */
+}
+
+.staggered {
+  animation-delay: var(--animation-delay);
+}
+
+.fadeInQuickly {
+  animation: fadeInQuickly 0.3s ease-out forwards;
+  opacity: 0;
+  /* Initially hide the element */
+}

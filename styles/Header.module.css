@@ -47,7 +47,9 @@
 }
 
 .navLinks a:hover {
-  color: #bb1313;
-  background-color: #f0f0f0;
-  box-shadow: 0 4px 8px rgb(0, 0, 0, 0.5);
+  color: black;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.7),
+    0 0 20px rgba(255, 255, 255, 0.5),
+    0 0 30px rgba(255, 255, 255, 0.3);
 }

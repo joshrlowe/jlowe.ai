@@ -10,10 +10,10 @@ const ProjectSchema = new Schema({
   team: [
     {
       name: { type: String, required: true },
-      role: { type: String },
       email: { type: String, required: true, match: /.+\@.+\..+/ },
     },
   ],
+  description: String,
   techStack: techStackSchema,
   repositoryLink: String,
   startDate: {
@@ -21,6 +21,21 @@ const ProjectSchema = new Schema({
     required: true,
   },
   releaseDate: Date,
+  status: {
+    type: String,
+    enum: [
+      "Planned",
+      "In Progress",
+      "In Development",
+      "In Testing",
+      "Completed",
+      "In Production",
+      "Maintenance",
+      "On Hold",
+      "Deprecated",
+      "Sunsetted",
+    ],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

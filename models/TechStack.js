@@ -43,6 +43,7 @@ const techStackSchema = new Schema({
       "Other",
     ],
   },
+  languages: [String],
   versionControl: {
     type: String,
     enum: ["Git", "SVN", "Mercurial", "Other"],
@@ -57,10 +58,7 @@ const techStackSchema = new Schema({
     type: String,
     enum: ["Ubuntu", "CentOS", "Debian", "Windows", "macOS", "Linux", "Other"],
   },
-  webServer: {
-    type: String,
-    enum: ["NGINX", "Apache", "IIS", "Caddy", "Other"],
-  },
+  webServers: [String],
   deploymentTools: [
     {
       name: { type: String },
@@ -73,14 +71,6 @@ const techStackSchema = new Schema({
       description: { type: String },
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
 });
 
 techStackSchema.pre("save", function (next) {

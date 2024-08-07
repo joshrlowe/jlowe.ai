@@ -29,8 +29,18 @@ const handleGetRequest = async (req, res) => {
 
 const handlePostRequest = async (req, res) => {
   try {
-    const { title, team, techStack, repositoryLink, startDate, releaseDate } =
-      req.body;
+    const {
+      title,
+      team,
+      description,
+      techStack,
+      repositoryLink,
+      startDate,
+      releaseDate,
+      status,
+      createdAt,
+      updatedAt,
+    } = req.body;
 
     // Validate the data
     if (!title || !Array.isArray(team) || !repositoryLink || !startDate) {
@@ -41,10 +51,14 @@ const handlePostRequest = async (req, res) => {
     const newProject = new Project({
       title,
       team,
+      description,
       techStack,
       repositoryLink,
       startDate: new Date(startDate),
       releaseDate: releaseDate ? new Date(releaseDate) : null,
+      status,
+      createdAt: createdAt ? new Date(createdAt) : new Date(),
+      updatedAt: new Date(),
     });
 
     // Save the project to the database
