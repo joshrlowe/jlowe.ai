@@ -1,0 +1,87 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Source+Code+Pro&display=swap");
+
+.fixedWidth {
+  width: 80vw;
+  margin: 0 auto;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.centeredLower {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.lowerContent {
+  margin-top: 20vh;
+}
+
+.fadeIn {
+  opacity: 0;
+  animation: fadeInAnimation ease 1s;
+  animation-fill-mode: forwards;
+}
+
+.introText {
+  font-family: "Source Code Pro", monospace;
+  font-size: 2rem;
+  color: #bb1313;
+}
+
+.name {
+  font-family: "Oswald", sans-serif;
+  font-size: 6rem;
+  font-weight: 600;
+  color: #bb1313;
+}
+
+.callToAction {
+  font-family: "Oswald", sans-serif;
+  font-weight: 400;
+  font-size: 2rem;
+  color: white;
+  margin-top: 2rem;
+}
+
+.bio {
+  width: 70%;
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: white;
+  margin-top: 4rem;
+  line-height: 1.75;
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .lowerContent {
+    margin-top: 10vh;
+  }
+
+  .fixedWidth {
+    width: 70vw;
+  }
+}
+
+@media (max-width: 576px) {
+  .lowerContent {
+    margin-top: 5vh;
+  }
+
+  .fixedWidth {
+    width: 90vw;
+  }
+}

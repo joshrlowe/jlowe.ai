@@ -12,7 +12,6 @@ const ProjectsPage = () => {
     loadProjects();
   }, []);
 
-
   if (projects.length === 0) {
     return <div>Loading projects...</div>;
   }
