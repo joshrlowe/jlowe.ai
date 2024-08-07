@@ -3,9 +3,10 @@ import styles from "@/styles/ProjectsPage.module.css";
 
 const techStackToString = (techStack) => {
   const stack = [];
+  console.log(techStack.fullStackFramework);
 
-  if (techStack.fullStackFrameWork)
-    stack.push(`${techStack.fullStackFrameWork}`);
+  if (techStack.fullStackFramework)
+    stack.push(`${techStack.fullStackFramework}`);
   if (techStack.backendFramework) stack.push(`${techStack.backendFramework}`);
   if (techStack.frontendFramework) stack.push(`${techStack.frontendFramework}`);
   if (techStack.database) stack.push(`${techStack.database}`);

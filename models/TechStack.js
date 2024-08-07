@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const techStackSchema = new Schema({
-  fullStackFrameWork: {
+  fullStackFramework: {
     type: String,
     enum: ["Next.js"],
   },

@@ -13,7 +13,10 @@ export default function ProjectTeam({ team }) {
             <li key={index} className={styles.teamMember}>
               <span className={styles.memberName}>{member.name}</span>
               {member.email && (
-                <a href={`mailto:${member.email}`} className={styles.emailLink}>
+                <a
+                  href={`mailto:${member.email}`}
+                  className={`${styles.link} ${styles.redText}`}
+                >
                   Email
                 </a>
               )}
