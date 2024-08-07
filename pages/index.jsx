@@ -8,6 +8,7 @@ const Welcome = () => {
   const [showName, setShowName] = useState(false);
   const [showCallToAction, setShowCallToAction] = useState(false);
   const [showBio, setShowBio] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
@@ -30,11 +31,17 @@ const Welcome = () => {
       <Row className={`${styles.fixedWidth} ${styles.lowerContent}`}>
         <Col>
           <p className={styles.introText}>
-            <ReactTyped
-              strings={["Hi, my name is..."]}
-              typeSpeed={100}
-              onComplete={fetchData}
-            />
+            {showCursor && (
+              <ReactTyped
+                strings={["Hi, my name is..."]}
+                typeSpeed={100}
+                onComplete={() => {
+                  setTimeout(() => setShowCursor(false), 1500);
+                  fetchData();
+                }}
+              />
+            )}
+            {!showCursor && "Hi, my name is..."}
           </p>
           {showName ? (
             <h1 className={`${styles.name} ${styles.fadeIn}`}>{data.name}</h1>
