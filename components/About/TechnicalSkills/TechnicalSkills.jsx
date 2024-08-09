@@ -35,14 +35,14 @@ export default function TechnicalSkills({ skills }) {
         <h2>Technical Skills</h2>
         <div className={styles.skillsGrid}>
           {Object.keys(categorizedSkills).map((category, item) => (
-            <Fragment key={item}>
+            <div key={item} className={styles.skillsItem}>
               <h3>{category}</h3>
               <div className={styles.skillsList}>
                 {categorizedSkills[category].map((skillName, skillIndex) => (
                   <span key={skillIndex}>{skillName}</span>
                 ))}
               </div>
-            </Fragment>
+            </div>
           ))}
         </div>
       </section>

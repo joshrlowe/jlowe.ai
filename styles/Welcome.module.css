@@ -86,14 +86,19 @@
   }
 
   .introText {
+    margin-top: 1.5rem;
     font-size: 1.5rem;
   }
 
   .name {
-    font-size: 4rem;
+    font-size: 5rem;
   }
 
   .callToAction {
     font-size: 1.5rem;
+  }
+
+  .bio {
+    margin-top: 1.5rem;
   }
 }

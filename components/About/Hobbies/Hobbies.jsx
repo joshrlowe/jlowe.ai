@@ -5,7 +5,7 @@ import styles from "./Hobbies.module.css";
 export default function Hobbies({ hobbies }) {
   const { ref, inView } = useInView({
     triggerOnce: true,
-    threshold: 0.25,
+    threshold: 0.35,
   });
 
   return (

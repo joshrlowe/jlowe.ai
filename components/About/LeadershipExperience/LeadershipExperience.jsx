@@ -5,7 +5,7 @@ import styles from "./LeadershipExperience.module.css";
 export default function LeadershipExperience({ experience }) {
   const { ref, inView } = useInView({
     triggerOnce: true,
-    threshold: 0.15,
+    threshold: 0.1,
   });
 
   return (

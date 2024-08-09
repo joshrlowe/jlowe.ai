@@ -7,7 +7,7 @@ import styles from "./TechnicalCertifications.module.css";
 export default function TechnicalCertifications({ certifications }) {
   const { ref, inView } = useInView({
     triggerOnce: true,
-    threshold: 0.15,
+    threshold: 0.1,
   });
 
   certifications.sort((a, b) => a.name.localeCompare(b.name));

@@ -11,8 +11,17 @@ export default function Header() {
     setToggled((t) => !t);
   }
 
+  function handleClick() {
+    setToggled((prev) => false);
+  }
+
   return (
-    <Navbar expand="lg" className={`py-0 ${styles.navBar}`} collapseOnSelect>
+    <Navbar
+      expand="lg"
+      className={`py-0 ${styles.navBar}`}
+      collapseOnSelect
+      expanded={toggled}
+    >
       <Container fluid className={`mx-0 px-0 ${styles.navContainer}`}>
         <Navbar.Brand href="/">
           <img src="/images/logo.png" alt="logo" className={styles.logo} />
@@ -24,11 +33,21 @@ export default function Header() {
         />
         <Navbar.Collapse>
           <Nav className={styles.navLinks}>
-            <Link href="/">Home</Link>
-            <Link href="/about">About</Link>
-            <Link href="/projects">Projects</Link>
-            <Link href="/resources">Resources</Link>
-            <Link href="/contact">Contact</Link>
+            <Link href="/" onClick={handleClick}>
+              Home
+            </Link>
+            <Link href="/about" onClick={handleClick}>
+              About
+            </Link>
+            <Link href="/projects" onClick={handleClick}>
+              Projects
+            </Link>
+            <Link href="/resources" onClick={handleClick}>
+              Resources
+            </Link>
+            <Link href="/contact" onClick={handleClick}>
+              Contact
+            </Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

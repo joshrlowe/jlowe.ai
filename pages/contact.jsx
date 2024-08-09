@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { ReactTyped } from "react-typed";
 import { Container, Spinner } from "react-bootstrap";
 
-import Link from "next/link";
-
 import styles from "@/styles/ContactPage.module.css";
 
 const ContactPage = () => {
@@ -77,24 +75,6 @@ const ContactPage = () => {
               <p>
                 <em>Best reached via phone or LinkedIn message.</em>
               </p>
-            </div>
-            <div className={styles.socialLinks}>
-              <Link href={`mailto:${contactData.emailAddress}`} target="_blank">
-                <img src="/images/email-logo.png" alt="Email Logo" />
-              </Link>
-              <Link
-                href={contactData.socialMediaLinks.linkedIn}
-                target="_blank"
-              >
-                <img src="/images/linkedin-logo.png" alt="LinkedIn Logo" />
-              </Link>
-              <Link href={contactData.socialMediaLinks.github} target="_blank">
-                <img src="/images/github-logo.png" alt="GitHub Logo" />
-              </Link>
-              <Link href={contactData.socialMediaLinks.X} target="_blank">
-                <div></div>
-                <img src="/images/x-logo.png" alt="X Logo" />
-              </Link>
             </div>
           </div>
         </>
