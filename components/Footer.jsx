@@ -22,11 +22,7 @@ export default function Footer() {
   }, []);
 
   if (!contactData) {
-    return (
-      <div className="text-center my-5">
-        <Spinner animation="border" />
-      </div>
-    );
+    return <div></div>;
   }
 
   return (
