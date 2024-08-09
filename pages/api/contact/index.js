@@ -37,12 +37,10 @@ const handlePostRequest = async (req, res) => {
       location,
       availability,
       additionalContactMethods,
-      callToAction,
-      professionalPhoto,
     } = req.body;
 
     // Validate the data
-    if (!emailAddress || !callToAction) {
+    if (!name || !emailAddress || !location || !availability) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -58,8 +56,6 @@ const handlePostRequest = async (req, res) => {
       location,
       availability,
       additionalContactMethods,
-      callToAction,
-      professionalPhoto,
     });
 
     // Save the new contact document to the database

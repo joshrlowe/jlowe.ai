@@ -14,13 +14,14 @@ const ContactSchema = new Schema({
   },
   socialMediaLinks: {
     linkedIn: String,
+    X: String,
     github: String,
     other: [String],
   },
   location: {
     city: String,
-    region: String,
-    mapEmbedLink: String, // URL to an embedded Google Map
+    state: String,
+    country: String,
   },
   availability: {
     workingHours: String,
@@ -33,13 +34,6 @@ const ContactSchema = new Schema({
       handle: String,
     },
   ],
-  callToAction: {
-    type: String,
-    required: true,
-  },
-  professionalPhoto: {
-    type: String, // URL to the photo
-  },
 });
 
 const Contact =
