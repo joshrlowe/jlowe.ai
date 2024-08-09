@@ -1,0 +1,33 @@
+.leadershipExperience {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  margin: 4rem 0;
+}
+
+.leadershipExperience h2 {
+  font-size: 2rem;
+  color: rgba(232, 25, 25, 0.9);
+}
+
+.leadershipExperience h3 {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 0;
+}
+
+.leadershipExperience p {
+  font-size: 1rem;
+  font-weight: 1;
+  line-height: 1.75;
+  margin-bottom: 0.25rem;
+}
+
+.leadershipExperience li {
+  font-size: 1rem;
+  font-weight: 1;
+  line-height: 1.75;
+}
+
+.fadeIn {
+  opacity: 1;
+}

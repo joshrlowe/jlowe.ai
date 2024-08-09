@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { ReactTyped } from "react-typed";
 import styles from "@/styles/Welcome.module.css";

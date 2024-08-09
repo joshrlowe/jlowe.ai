@@ -8,8 +8,27 @@ const AboutSchema = new Schema({
   },
   technicalSkills: [
     {
-      type: String,
-      required: true,
+      category: String,
+      skillName: {
+        type: String,
+        required: true,
+      },
+      expertiseLevel: {
+        type: Number,
+        required: true,
+      },
+      projects: [
+        {
+          name: {
+            type: String,
+            required: true,
+          },
+          repositoryLink: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
     },
   ],
   professionalExperience: [
@@ -20,7 +39,6 @@ const AboutSchema = new Schema({
       startDate: Date,
       endDate: Date,
       achievements: [String],
-      projectLinks: [String],
     },
   ],
   education: [
@@ -28,56 +46,30 @@ const AboutSchema = new Schema({
       institution: String,
       degree: String,
       fieldOfStudy: String,
+      relevantCoursework: [String],
       startDate: Date,
       endDate: Date,
     },
   ],
-  certifications: [
+  technicalCertifications: [
     {
+      organization: String,
       name: String,
-      issuingOrganization: String,
       issueDate: Date,
       expirationDate: Date,
-      credentialId: String,
       credentialUrl: String,
     },
   ],
-  personalProjects: [
+  leadershipExperience: [
     {
-      name: String,
-      description: String,
-      link: String,
-      githubRepo: String,
+      organization: String,
+      role: String,
+      startDate: Date,
+      endDate: Date,
+      achievements: [String],
     },
   ],
-  contactInformation: {
-    email: {
-      type: String,
-      required: true,
-    },
-    socialLinks: {
-      linkedIn: String,
-      github: String,
-      twitter: String,
-      other: [String],
-    },
-  },
-  personalTouch: {
-    interests: [String],
-    volunteerWork: [
-      {
-        organization: String,
-        role: String,
-        description: String,
-        startDate: Date,
-        endDate: Date,
-      },
-    ],
-  },
-  professionalPhoto: {
-    type: String,
-    required: true,
-  },
+  hobbies: [String],
 });
 
 const About =

@@ -1,14 +1,28 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { ReactTyped } from "react-typed";
+import { Container, Spinner } from "react-bootstrap";
+
+import ProfessionalSummary from "@/components/About/ProfessionalSummary/ProfessionalSummary";
+import TechnicalSkills from "@/components/About/TechnicalSkills/TechnicalSkills";
+import ProfessionalExperience from "@/components/About/ProfessionalExperience/ProfessionalExperience";
+import Education from "@/components/About/Education/Education";
+import TechnicalCertifications from "@/components/About/TechnicalCertifications/TechnicalCertifications";
+import LeadershipExperience from "@/components/About/LeadershipExperience/LeadershipExperience";
+import Hobbies from "@/components/About/Hobbies/Hobbies";
+
+import styles from "@/styles/AboutPage.module.css";
 
 const AboutPage = () => {
-  const [data, setData] = useState(null);
+  const [aboutData, setAboutData] = useState(null);
+  const [showCursor, setShowCursor] = useState(true);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch("/api/about");
-        const aboutData = await response.json();
-        setData(aboutData);
+        const data = await response.json();
+        setAboutData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -17,164 +31,49 @@ const AboutPage = () => {
     fetchData();
   }, []);
 
-  if (!data) {
-    return <div>Loading...</div>;
+  if (!aboutData) {
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1>About</h1>
-
-      <section>
-        <h2>Professional Summary</h2>
-        <p>{data.professionalSummary}</p>
-      </section>
-
-      <section>
-        <h2>Technical Skills</h2>
-        <ul>
-          {data.technicalSkills.map((skill, index) => (
-            <li key={index}>{skill}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h2>Professional Experience</h2>
-        {data.professionalExperience.map((experience, index) => (
-          <div key={index}>
-            <h3>
-              {experience.role} at {experience.company}
-            </h3>
-            <p>{experience.description}</p>
-            <p>
-              From: {new Date(experience.startDate).toLocaleDateString()} To:{" "}
-              {new Date(experience.endDate).toLocaleDateString()}
-            </p>
-            <ul>
-              {experience.achievements.map((achievement, i) => (
-                <li key={i}>{achievement}</li>
-              ))}
-            </ul>
-            <div>
-              <h4>Project Links</h4>
-              <ul>
-                {experience.projectLinks.map((link, i) => (
-                  <li key={i}>
-                    <a href={link}>{link}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+    <Container className="my-5">
+      <div className="mb-5">
+        <h1 className={styles.pageTitle}>
+          {showCursor && (
+            <ReactTyped
+              strings={["About Me"]}
+              typeSpeed={25}
+              onComplete={() => {
+                setTimeout(() => setShowCursor(false), 1500);
+                setTimeout(() => setShowContent(true), 250);
+              }}
+            />
+          )}
+          {!showCursor && "About Me"}
+        </h1>
+        {showContent && (
+          <div>
+            <ProfessionalSummary>
+              {aboutData.professionalSummary}
+            </ProfessionalSummary>
+            <TechnicalSkills skills={aboutData.technicalSkills} />
+            <ProfessionalExperience
+              experience={aboutData.professionalExperience}
+            />
+            <Education education={aboutData.education} />
+            <TechnicalCertifications
+              certifications={aboutData.technicalCertifications}
+            />
+            <LeadershipExperience experience={aboutData.leadershipExperience} />
+            <Hobbies hobbies={aboutData.hobbies} />
           </div>
-        ))}
-      </section>
-
-      <section>
-        <h2>Education</h2>
-        {data.education.map((edu, index) => (
-          <div key={index}>
-            <h3>
-              {edu.degree} in {edu.fieldOfStudy}
-            </h3>
-            <p>{edu.institution}</p>
-            <p>
-              From: {new Date(edu.startDate).toLocaleDateString()} To:{" "}
-              {new Date(edu.endDate).toLocaleDateString()}
-            </p>
-          </div>
-        ))}
-      </section>
-
-      <section>
-        <h2>Certifications</h2>
-        {data.certifications.map((certification, index) => (
-          <div key={index}>
-            <h3>{certification.name}</h3>
-            <p>Issued by: {certification.issuingOrganization}</p>
-            <p>
-              Issue Date:{" "}
-              {new Date(certification.issueDate).toLocaleDateString()}
-            </p>
-            <p>
-              Expiration Date:{" "}
-              {new Date(certification.expirationDate).toLocaleDateString()}
-            </p>
-            <p>Credential ID: {certification.credentialId}</p>
-            <a href={certification.credentialUrl}>Credential URL</a>
-          </div>
-        ))}
-      </section>
-
-      <section>
-        <h2>Personal Projects</h2>
-        {data.personalProjects.map((project, index) => (
-          <div key={index}>
-            <h3>{project.name}</h3>
-            <p>{project.description}</p>
-            <a href={project.link}>Project Link</a>
-            <br />
-            <a href={project.githubRepo}>GitHub Repo</a>
-          </div>
-        ))}
-      </section>
-
-      <section>
-        <h2>Contact Information</h2>
-        <p>Email: {data.contactInformation.email}</p>
-        <div>
-          <h3>Social Links</h3>
-          {Object.keys(data.contactInformation.socialLinks).map((key) => (
-            <p key={key}>
-              {key}:{" "}
-              {Array.isArray(data.contactInformation.socialLinks[key]) ? (
-                data.contactInformation.socialLinks[key].map((link, i) => (
-                  <a key={i} href={link}>
-                    {link}
-                  </a>
-                ))
-              ) : (
-                <a href={data.contactInformation.socialLinks[key]}>
-                  {data.contactInformation.socialLinks[key]}
-                </a>
-              )}
-            </p>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2>Personal Touch</h2>
-        <div>
-          <h3>Interests</h3>
-          <ul>
-            {data.personalTouch.interests.map((interest, index) => (
-              <li key={index}>{interest}</li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3>Volunteer Work</h3>
-          {data.personalTouch.volunteerWork.map((work, index) => (
-            <div key={index}>
-              <h4>
-                {work.role} at {work.organization}
-              </h4>
-              <p>{work.description}</p>
-              <p>
-                From: {new Date(work.startDate).toLocaleDateString()} To:{" "}
-                {new Date(work.endDate).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2>Professional Photo</h2>
-        <img src={data.professionalPhoto} alt="Professional" />
-      </section>
-    </div>
+        )}
+      </div>
+    </Container>
   );
 };
 

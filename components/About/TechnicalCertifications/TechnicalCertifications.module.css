@@ -1,0 +1,27 @@
+.technicalCertifications {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  margin: 4rem 0;
+}
+
+.technicalCertifications h2 {
+  font-size: 2rem;
+  color: rgba(232, 25, 25, 0.9);
+}
+
+.certificationGrid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 1.5rem;
+}
+
+.fadeIn {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .certificationGrid {
+    grid-template-columns: auto auto;
+  }
+}

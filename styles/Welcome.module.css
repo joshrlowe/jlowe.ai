@@ -84,4 +84,16 @@
   .fixedWidth {
     width: 90vw;
   }
+
+  .introText {
+    font-size: 1.5rem;
+  }
+
+  .name {
+    font-size: 4rem;
+  }
+
+  .callToAction {
+    font-size: 1.5rem;
+  }
 }

@@ -1,0 +1,59 @@
+.education {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  margin: 4rem 0;
+}
+
+.education h2 {
+  font-size: 2rem;
+  color: rgba(232, 25, 25, 0.9);
+}
+
+.education h3 {
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: 0;
+}
+
+.degree {
+  font-size: 1.1rem;
+  color: rgba(232, 25, 25, 0.9);
+  margin-bottom: 0;
+}
+
+.date {
+  font-size: 1rem;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.courseworkTitle {
+  margin-bottom: 0;
+}
+
+.educationGrid {
+  display: grid;
+  grid-template-columns: auto auto;
+  margin-top: 1rem;
+}
+
+.fadeIn {
+  opacity: 1;
+}
+
+.courseworkFlex {
+  display: flex;
+  flex-direction: column;
+}
+
+.courseworkItem {
+  font-size: 1rem;
+  font-weight: 1;
+}
+
+@media (max-width: 768px) {
+  .educationGrid {
+    grid-template-columns: auto;
+    row-gap: 1rem;
+  }
+}

@@ -3,7 +3,6 @@ import styles from "@/styles/ProjectsPage.module.css";
 
 const techStackToString = (techStack) => {
   const stack = [];
-  console.log(techStack.fullStackFramework);
 
   if (techStack.fullStackFramework)
     stack.push(`${techStack.fullStackFramework}`);

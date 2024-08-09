@@ -1,0 +1,28 @@
+.hobbies {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  margin-top: 4rem;
+}
+
+.hobbies h2 {
+  font-size: 2rem;
+  color: rgba(232, 25, 25, 0.9);
+}
+
+.hobbies ul {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  padding-left: 0;
+}
+
+.hobbies li {
+  font-size: 1rem;
+  font-weight: 1;
+  line-height: 1.75;
+  list-style: none;
+}
+
+.fadeIn {
+  opacity: 1;
+}
