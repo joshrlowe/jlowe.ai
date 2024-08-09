@@ -77,10 +77,12 @@ export default function ProjectTechStack({ techStack }) {
           {namesToString(techStack.additionalTools)}
         </p>
       )}
-      <p className={styles.paragraphText}>
-        <span className={styles.emphasisText}>Operating System:</span>{" "}
-        {techStack.operatingSystem}
-      </p>
+      {techStack.operatingSystem && (
+        <p className={styles.paragraphText}>
+          <span className={styles.emphasisText}>Operating System:</span>{" "}
+          {techStack.operatingSystem}
+        </p>
+      )}
     </>
   );
 }
