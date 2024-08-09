@@ -26,3 +26,22 @@
 .fadeIn {
   opacity: 1;
 }
+
+@media (max-width: 768px) {
+  .hobbies {
+    margin-top: 2rem;
+  }
+
+  .hobbies h2 {
+    font-size: 1.5rem;
+  }
+
+  .hobbies ul {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hobbies li {
+    font-size: 1rem;
+  }
+}

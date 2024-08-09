@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ReactTyped } from "react-typed";
+import { Container, Spinner } from "react-bootstrap";
 
 import Project from "@/components/Project/Project";
 import styles from "@/styles/ProjectsPage.module.css";
@@ -29,8 +30,12 @@ const ProjectsPage = () => {
     }
   }, [prevProject]);
 
-  if (projects.length === 0) {
-    return <div></div>;
+  if (!projects) {
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" />
+      </div>
+    );
   }
 
   function handleProjectClick(project) {

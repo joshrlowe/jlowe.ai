@@ -11,6 +11,7 @@
   justify-content: flex-start;
   margin-top: 1rem;
   gap: 1rem;
+  margin-top: 2rem;
 }
 
 .socialLinks img {
@@ -70,5 +71,15 @@
 
   100% {
     opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 2.5rem;
+  }
+
+  .socialLinks {
+    justify-content: center;
   }
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { marked } from "marked"; // Import the marked library
+import { Container, Spinner } from "react-bootstrap";
 import Link from "next/link";
 
 const ResourcePage = () => {
@@ -20,18 +21,23 @@ const ResourcePage = () => {
   }, []);
 
   if (!resources) {
-    return <div>Loading...</div>;
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" />
+      </div>
+    );
   }
 
   return (
-    <div>
+    <Container className="my-5">
       <h1>Resources</h1>
-      {resources.map((resource, index) => (
+      <p>Welcome to the Resources Page</p>
+      {/* {resources.map((resource, index) => (
         <Link href={`/resources/${resource}`}>
           <p key={index}>{resource}</p>
         </Link>
-      ))}
-    </div>
+      ))} */}
+    </Container>
   );
 };
 

@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { Container, Row, Col } from "react-bootstrap";
+import { useCallback, useEffect, useState } from "react";
+import { Container, Row, Col, Spinner } from "react-bootstrap";
 import { ReactTyped } from "react-typed";
 import styles from "@/styles/Welcome.module.css";
 
@@ -10,18 +10,27 @@ const Welcome = () => {
   const [showBio, setShowBio] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const response = await fetch("/api/welcome");
-      const welcomeData = await response.json();
-      setData(welcomeData);
-      setTimeout(() => setShowName(true), 500);
-      setTimeout(() => setShowCallToAction(true), 1250);
-      setTimeout(() => setShowBio(true), 2000);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/welcome");
+        const welcomeData = await response.json();
+        setData(welcomeData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (!data) {
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" />
+      </div>
+    );
+  }
 
   return (
     <Container
@@ -37,7 +46,9 @@ const Welcome = () => {
                 typeSpeed={100}
                 onComplete={() => {
                   setTimeout(() => setShowCursor(false), 1500);
-                  fetchData();
+                  setTimeout(() => setShowName(true), 500);
+                  setTimeout(() => setShowCallToAction(true), 1250);
+                  setTimeout(() => setShowBio(true), 2000);
                 }}
               />
             )}
