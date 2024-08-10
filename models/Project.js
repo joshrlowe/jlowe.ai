@@ -10,7 +10,7 @@ const ProjectSchema = new Schema({
   team: [
     {
       name: { type: String, required: true },
-      email: { type: String, required: true, match: /.+\@.+\..+/ },
+      email: { type: String, match: /.+\@.+\..+/ },
     },
   ],
   description: String,

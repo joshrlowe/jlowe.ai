@@ -17,13 +17,20 @@ const namesToString = (objects) => {
   return objects.map((obj) => obj.name).join(", ");
 };
 
+
+
 export default function ProjectTechStack({ techStack }) {
+  const highLevelTechStack = techStackToString(techStack);
+
   return (
     <>
-      <p className={styles.paragraphText}>
-        <span className={styles.emphasisText}>Technology Stack:</span>{" "}
-        {techStackToString(techStack)}
-      </p>
+      {highLevelTechStack && (
+        <p className={styles.paragraphText}>
+          <span className={styles.emphasisText}>Technology Stack:</span>{" "}
+          {highLevelTechStack}
+        </p>
+      )}
+
       {techStack.languages && techStack.languages.length > 0 && (
         <p className={styles.paragraphText}>
           <span className={styles.emphasisText}>

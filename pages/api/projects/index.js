@@ -43,7 +43,7 @@ const handlePostRequest = async (req, res) => {
     } = req.body;
 
     // Validate the data
-    if (!title || !Array.isArray(team) || !repositoryLink || !startDate) {
+    if (!title || !Array.isArray(team) || !startDate) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
