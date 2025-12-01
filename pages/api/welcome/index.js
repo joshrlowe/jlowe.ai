@@ -1,9 +1,6 @@
-import db from "../../../lib/mongodb.js";
-import Welcome from "../../../models/Welcome.js";
+import prisma from "../../../lib/prisma.js";
 
 export default async (req, res) => {
-  await db;
-
   switch (req.method) {
     case "GET":
       await handleGetRequest(req, res);
@@ -19,7 +16,7 @@ export default async (req, res) => {
 
 const handleGetRequest = async (req, res) => {
   try {
-    const welcomeData = await Welcome.findOne({}).exec();
+    const welcomeData = await prisma.welcome.findFirst();
     res.json(welcomeData);
   } catch (e) {
     console.error(e);
@@ -32,23 +29,22 @@ const handlePostRequest = async (req, res) => {
     const { name, briefBio, callToAction } = req.body;
 
     // Validate request body data
-    if (!name || !briefBio || !callToAction) {
+    if (!name || !briefBio) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     // Delete all existing records
     // There should only be one record in the welcome collection at all times
-    await Welcome.deleteMany({});
+    await prisma.welcome.deleteMany();
 
-    // Create a new welcome document to add to the collection
-    const newWelcome = new Welcome({
-      name,
-      briefBio,
-      callToAction,
+    // Create a new welcome document
+    const savedWelcome = await prisma.welcome.create({
+      data: {
+        name,
+        briefBio,
+        callToAction: callToAction || null,
+      },
     });
-
-    // Save the new welcome document to the database
-    const savedWelcome = await newWelcome.save();
 
     res.status(201).json(savedWelcome);
   } catch (e) {

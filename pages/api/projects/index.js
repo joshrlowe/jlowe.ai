@@ -1,9 +1,6 @@
-import db from "../../../lib/mongodb.js";
-import Project from "../../../models/Project.js";
+import prisma from "../../../lib/prisma.js";
 
 export default async (req, res) => {
-  await db;
-
   switch (req.method) {
     case "GET":
       await handleGetRequest(req, res);
@@ -19,7 +16,15 @@ export default async (req, res) => {
 
 const handleGetRequest = async (req, res) => {
   try {
-    const projects = await Project.find({}).sort({ startDate: -1 }).exec();
+    const projects = await prisma.project.findMany({
+      include: {
+        team: true,
+        techStack: true,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
     res.json(projects);
   } catch (e) {
     console.error(e);
@@ -38,8 +43,6 @@ const handlePostRequest = async (req, res) => {
       startDate,
       releaseDate,
       status,
-      createdAt,
-      updatedAt,
     } = req.body;
 
     // Validate the data
@@ -47,22 +50,59 @@ const handlePostRequest = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Create a new project
-    const newProject = new Project({
-      title,
-      team,
-      description,
-      techStack,
-      repositoryLink,
-      startDate: new Date(startDate),
-      releaseDate: releaseDate ? new Date(releaseDate) : null,
-      status,
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
-      updatedAt: new Date(),
-    });
+    // Map status to enum value if needed
+    const statusMap = {
+      'Planned': 'PLANNED',
+      'In Progress': 'IN_PROGRESS',
+      'In Development': 'IN_DEVELOPMENT',
+      'In Testing': 'IN_TESTING',
+      'Completed': 'COMPLETED',
+      'In Production': 'IN_PRODUCTION',
+      'Maintenance': 'MAINTENANCE',
+      'On Hold': 'ON_HOLD',
+      'Deprecated': 'DEPRECATED',
+      'Sunsetted': 'SUNSETTED',
+    };
+    const mappedStatus = statusMap[status] || status || 'PLANNED';
 
-    // Save the project to the database
-    const savedProject = await newProject.save();
+    // Create a new project with relations
+    const savedProject = await prisma.project.create({
+      data: {
+        title,
+        description,
+        repositoryLink,
+        status: mappedStatus,
+        startDate: new Date(startDate),
+        releaseDate: releaseDate ? new Date(releaseDate) : null,
+        team: {
+          create: team.map((member) => ({
+            name: member.name,
+            email: member.email || null,
+          })),
+        },
+        techStack: techStack
+          ? {
+              create: {
+                fullStackFramework: techStack.fullStackFramework || null,
+                backendFramework: techStack.backendFramework || null,
+                frontendFramework: techStack.frontendFramework || null,
+                database: techStack.database || null,
+                languages: techStack.languages || [],
+                versionControl: techStack.versionControl || null,
+                operatingSystem: techStack.operatingSystem || null,
+                webServers: techStack.webServers || [],
+                apiIntegrations: techStack.apiIntegrations || null,
+                deploymentTools: techStack.deploymentTools || null,
+                additionalTools: techStack.additionalTools || null,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        team: true,
+        techStack: true,
+      },
+    });
 
     res.status(201).json(savedProject);
   } catch (e) {

@@ -1,9 +1,6 @@
-import db from "../../../lib/mongodb.js";
-import Contact from "../../../models/Contact.js";
+import prisma from "../../../lib/prisma.js";
 
 export default async (req, res) => {
-  await db;
-
   switch (req.method) {
     case "GET":
       await handleGetRequest(req, res);
@@ -19,8 +16,42 @@ export default async (req, res) => {
 
 const handleGetRequest = async (req, res) => {
   try {
-    const contacts = await Contact.findOne({}).exec();
-    res.json(contacts);
+    const contactData = await prisma.contact.findFirst();
+
+    // Transform data to match old MongoDB structure for compatibility
+    if (contactData) {
+      const transformed = {
+        ...contactData,
+        emailAddress: contactData.email,
+        socialMediaLinks: contactData.socialMedia,
+        location: {
+          city: contactData.city,
+          state: contactData.state,
+          country: contactData.country,
+        },
+        availability: {
+          workingHours: contactData.workingHours,
+          preferredContactTimes: contactData.preferredContactTimes,
+          additionalInstructions: contactData.availabilityNotes,
+        },
+        additionalContactMethods: contactData.additionalMethods,
+      };
+
+      // Remove the new field names
+      delete transformed.email;
+      delete transformed.socialMedia;
+      delete transformed.city;
+      delete transformed.state;
+      delete transformed.country;
+      delete transformed.workingHours;
+      delete transformed.preferredContactTimes;
+      delete transformed.availabilityNotes;
+      delete transformed.additionalMethods;
+
+      res.json(transformed);
+    } else {
+      res.json(null);
+    }
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Internal Server Error" });
@@ -40,26 +71,29 @@ const handlePostRequest = async (req, res) => {
     } = req.body;
 
     // Validate the data
-    if (!name || !emailAddress || !location || !availability) {
+    if (!emailAddress) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     // Delete all existing records
-    await Contact.deleteMany({});
+    await prisma.contact.deleteMany();
 
     // Create a new contact document
-    const newContact = new Contact({
-      name,
-      emailAddress,
-      phoneNumber,
-      socialMediaLinks,
-      location,
-      availability,
-      additionalContactMethods,
+    const savedContact = await prisma.contact.create({
+      data: {
+        name: name || null,
+        email: emailAddress,
+        phoneNumber: phoneNumber || null,
+        socialMedia: socialMediaLinks || null,
+        city: location?.city || null,
+        state: location?.state || null,
+        country: location?.country || null,
+        workingHours: availability?.workingHours || null,
+        preferredContactTimes: availability?.preferredContactTimes || null,
+        availabilityNotes: availability?.additionalInstructions || null,
+        additionalMethods: additionalContactMethods || null,
+      },
     });
-
-    // Save the new contact document to the database
-    const savedContact = await newContact.save();
 
     res.status(201).json(savedContact);
   } catch (e) {
