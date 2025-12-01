@@ -1,0 +1,419 @@
+// Prisma Schema for jlowe.ai Portfolio Website
+// This schema is optimized for PostgreSQL and includes:
+// - Existing portfolio content (Welcome, About, Projects, Contact)
+// - New blog system with comments, likes, and subscriptions
+// - User authentication with role-based access control
+// - Proper relational design with normalized data
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================================================
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  name              String?
+  password          String // hashed password
+  role              UserRole            @default(USER)
+  emailVerified     DateTime?
+  image             String? // profile picture URL
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  blogPosts         BlogPost[]
+  comments          Comment[]
+  likes             Like[]
+  emailSubscription EmailSubscription?
+
+  @@index([email])
+  @@index([role])
+}
+
+// ============================================================================
+// BLOG SYSTEM (replaces Resources)
+// ============================================================================
+
+enum ContentType {
+  ARTICLE
+  VIDEO
+}
+
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model BlogPost {
+  id            String          @id @default(cuid())
+  title         String
+  slug          String          @unique
+  description   String
+  content       String?         @db.Text // Markdown content for articles
+  contentType   ContentType
+  url           String? // External URL for videos
+  status        BlogPostStatus  @default(DRAFT)
+  publishedAt   DateTime?
+
+  // Author relation
+  authorId      String
+  author        User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  tags          Tag[]
+  topic         String
+  featured      Boolean         @default(false)
+  viewCount     Int             @default(0)
+
+  // SEO
+  metaTitle     String?
+  metaDescription String?
+
+  // Timestamps
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  comments      Comment[]
+  likes         Like[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([topic])
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  blogPosts BlogPost[]
+
+  @@index([slug])
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  content     String    @db.Text
+
+  // Relations
+  blogPostId  String
+  blogPost    BlogPost  @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Nested comments (replies)
+  parentId    String?
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[] @relation("CommentReplies")
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([blogPostId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model Like {
+  id         String   @id @default(cuid())
+
+  // Relations
+  blogPostId String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  // Ensure a user can only like a post once
+  @@unique([blogPostId, userId])
+  @@index([blogPostId])
+  @@index([userId])
+}
+
+model EmailSubscription {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  isActive        Boolean  @default(true)
+  frequency       String   @default("immediate") // immediate, daily, weekly
+
+  // Relations
+  userId          String?  @unique
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  subscribedAt    DateTime @default(now())
+  unsubscribedAt  DateTime?
+  lastEmailSentAt DateTime?
+
+  @@index([email])
+  @@index([isActive])
+}
+
+// ============================================================================
+// PORTFOLIO CONTENT
+// ============================================================================
+
+// Welcome/Home Page (Singleton)
+model Welcome {
+  id           String  @id @default(cuid())
+  name         String
+  briefBio     String  @db.Text
+  callToAction String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// About Page (Singleton)
+model About {
+  id                  String                 @id @default(cuid())
+  professionalSummary String                 @db.Text
+  hobbies             String[]
+
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  // Normalized relations
+  technicalSkills     TechnicalSkill[]
+  experiences         ProfessionalExperience[]
+  education           Education[]
+  certifications      Certification[]
+  leadership          LeadershipExperience[]
+}
+
+// Technical Skills (normalized)
+model TechnicalSkill {
+  id             String   @id @default(cuid())
+  category       String?
+  skillName      String
+  expertiseLevel Int // 1-10 scale
+
+  aboutId        String
+  about          About    @relation(fields: [aboutId], references: [id], onDelete: Cascade)
+
+  // Related projects
+  projects       SkillProject[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([aboutId])
+  @@index([category])
+}
+
+model SkillProject {
+  id             String         @id @default(cuid())
+  name           String
+  repositoryLink String
+
+  skillId        String
+  skill          TechnicalSkill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([skillId])
+}
+
+// Professional Experience (normalized)
+model ProfessionalExperience {
+  id           String    @id @default(cuid())
+  company      String
+  role         String
+  description  String?   @db.Text
+  achievements String[]
+  startDate    DateTime
+  endDate      DateTime?
+
+  aboutId      String
+  about        About     @relation(fields: [aboutId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([aboutId])
+  @@index([startDate])
+}
+
+// Education (normalized)
+model Education {
+  id                 String   @id @default(cuid())
+  institution        String
+  degree             String
+  fieldOfStudy       String
+  relevantCoursework String[]
+  startDate          DateTime
+  endDate            DateTime?
+
+  aboutId            String
+  about              About    @relation(fields: [aboutId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([aboutId])
+  @@index([endDate])
+}
+
+// Certifications (normalized)
+model Certification {
+  id             String    @id @default(cuid())
+  organization   String
+  name           String
+  issueDate      DateTime
+  expirationDate DateTime?
+  credentialUrl  String?
+
+  aboutId        String
+  about          About     @relation(fields: [aboutId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([aboutId])
+  @@index([issueDate])
+}
+
+// Leadership Experience (normalized)
+model LeadershipExperience {
+  id           String    @id @default(cuid())
+  organization String
+  role         String
+  achievements String[]
+  startDate    DateTime
+  endDate      DateTime?
+
+  aboutId      String
+  about        About     @relation(fields: [aboutId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([aboutId])
+  @@index([startDate])
+}
+
+// ============================================================================
+// PROJECTS
+// ============================================================================
+
+enum ProjectStatus {
+  PLANNED
+  IN_PROGRESS
+  IN_DEVELOPMENT
+  IN_TESTING
+  COMPLETED
+  IN_PRODUCTION
+  MAINTENANCE
+  ON_HOLD
+  DEPRECATED
+  SUNSETTED
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  title          String
+  description    String?       @db.Text
+  repositoryLink String?
+  status         ProjectStatus @default(PLANNED)
+  startDate      DateTime
+  releaseDate    DateTime?
+  featured       Boolean       @default(false)
+
+  // Team members
+  team           TeamMember[]
+
+  // Tech stack (embedded as JSON for flexibility)
+  techStack      TechStack?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status])
+  @@index([startDate])
+  @@index([featured])
+}
+
+model TeamMember {
+  id        String  @id @default(cuid())
+  name      String
+  email     String?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// Tech Stack - denormalized for flexibility
+model TechStack {
+  id                 String   @id @default(cuid())
+  fullStackFramework String?
+  backendFramework   String?
+  frontendFramework  String?
+  database           String?
+  languages          String[]
+  versionControl     String?
+  operatingSystem    String?
+  webServers         String[]
+
+  // Stored as JSON for complex nested data
+  apiIntegrations    Json?
+  deploymentTools    Json?
+  additionalTools    Json?
+
+  projectId          String   @unique
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// ============================================================================
+// CONTACT INFORMATION
+// ============================================================================
+
+model Contact {
+  id          String   @id @default(cuid())
+  name        String?
+  email       String
+  phoneNumber String?
+
+  // Social media links (stored as JSON)
+  socialMedia Json?
+
+  // Location
+  city        String?
+  state       String?
+  country     String?
+
+  // Availability
+  workingHours          String?
+  preferredContactTimes String?
+  availabilityNotes     String?
+
+  // Additional contact methods (stored as JSON)
+  additionalMethods Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
