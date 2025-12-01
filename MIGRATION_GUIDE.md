@@ -134,13 +134,30 @@ NODE_ENV=development
 
 ### Step 1: Install Dependencies
 
-Prisma is already installed. Verify:
+Prisma and required adapters are already installed. Verify:
 
 ```bash
-npm list prisma @prisma/client
+npm list prisma @prisma/client @prisma/adapter-pg pg
 ```
 
-### Step 2: Generate Prisma Client
+**Note:** This project uses **Prisma 7**, which has the following requirements:
+- Database URL is set via environment variable (`DATABASE_URL`)
+- PostgreSQL adapter packages: `@prisma/adapter-pg` and `pg`
+- Connection is configured in `lib/prisma.js` instead of the schema file
+
+### Step 2: Configure Environment Variables
+
+Create a `.env` file in the root directory (use `.env.example` as a template):
+
+```env
+# MongoDB (keep during migration)
+MONGODB_URI=mongodb://localhost:27017/jloweai
+
+# PostgreSQL (your Supabase/Railway/Neon connection string)
+DATABASE_URL=postgresql://username:password@host:5432/database?schema=public
+```
+
+### Step 3: Generate Prisma Client
 
 ```bash
 npx prisma generate
@@ -148,7 +165,7 @@ npx prisma generate
 
 This generates the Prisma Client with TypeScript types based on your schema.
 
-### Step 3: Create Database Migration
+### Step 4: Create Database Migration
 
 ```bash
 npx prisma migrate dev --name initial_migration
@@ -159,7 +176,7 @@ This will:
 - Generate migration files in `prisma/migrations/`
 - Apply the migration to your database
 
-### Step 4: Run Data Migration Script
+### Step 5: Run Data Migration Script
 
 ```bash
 node scripts/migrate-mongodb-to-postgres.js
@@ -176,7 +193,7 @@ This script will:
 
 **Important:** If an admin user is created with default credentials, **change the password immediately**!
 
-### Step 5: Verify Migration
+### Step 6: Verify Migration
 
 Use Prisma Studio to browse your data:
 
@@ -191,7 +208,7 @@ Check:
 - ✅ Data has been migrated correctly
 - ✅ Relationships are properly connected
 
-### Step 6: Update API Routes
+### Step 7: Update API Routes
 
 You'll need to update your API routes to use Prisma instead of Mongoose.
 
@@ -221,7 +238,7 @@ export default async function handler(req, res) {
 
 See the [API Routes Update Guide](#api-routes-update-guide) below for all routes.
 
-### Step 7: Test Your Application
+### Step 8: Test Your Application
 
 ```bash
 npm run dev
@@ -234,7 +251,7 @@ Visit your pages and verify:
 - ✅ Contact page loads
 - ✅ Resources/Blog page loads
 
-### Step 8: Clean Up (Optional)
+### Step 9: Clean Up (Optional)
 
 Once everything is working:
 

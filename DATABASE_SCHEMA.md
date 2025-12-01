@@ -2,7 +2,12 @@
 
 ## Overview
 
-This document provides a comprehensive overview of the PostgreSQL database schema for jlowe.ai, designed with Prisma ORM.
+This document provides a comprehensive overview of the PostgreSQL database schema for jlowe.ai, designed with **Prisma ORM v7**.
+
+> **Note:** This project uses Prisma 7, which requires:
+> - Database connection configured in `lib/prisma.js` (not in schema.prisma)
+> - PostgreSQL adapter packages: `@prisma/adapter-pg` and `pg`
+> - `DATABASE_URL` environment variable for connection string
 
 ## Architecture Principles
 
