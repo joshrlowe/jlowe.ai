@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ReactTyped } from "react-typed";
 import { Container, Spinner } from "react-bootstrap";
-
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import styles from "@/styles/ContactPage.module.css";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const ContactPage = () => {
   const [contactData, setContactData] = useState(null);
   const [showCursor, setShowCursor] = useState(true);
   const [showContent, setShowContent] = useState(false);
+  const contactCardRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,6 +26,18 @@ const ContactPage = () => {
 
     fetchData();
   }, []);
+
+  // GSAP animation for contact card
+  useEffect(() => {
+    if (showContent && contactCardRef.current) {
+      gsap.from(contactCardRef.current, {
+        opacity: 0,
+        y: 30,
+        duration: 0.8,
+        ease: "power2.out"
+      });
+    }
+  }, [showContent]);
 
   if (!contactData) {
     return (
@@ -48,30 +64,35 @@ const ContactPage = () => {
       </h1>
       {showContent && (
         <>
-          <div class={`${styles.contactCard}  ${styles.fadeIn}`}>
-            <div class={styles.contactItem}>
+          <div ref={contactCardRef} className={styles.contactCard}>
+            <div className={styles.contactItem}>
               <h2>Name</h2>
               <p>Josh Lowe</p>
             </div>
-            <div class={styles.contactItem}>
+            <div className={styles.contactItem}>
               <h2>Email</h2>
               <p>
                 <a href="mailto:joshlowe.cs@gmail.com">joshlowe.cs@gmail.com</a>
               </p>
             </div>
-            <div class={styles.contactItem}>
+            <div className={styles.contactItem}>
               <h2>Phone</h2>
               <p>
                 <a href="tel:+12676448659">+1 (267) 644-8659</a>
               </p>
             </div>
-            <div class={styles.contactItem}>
+            <div className={styles.contactItem}>
               <h2>Location</h2>
               <p>Hatfield, PA, US</p>
             </div>
-            <div class={styles.contactItem}>
+            <div className={styles.contactItem}>
               <h2>Availability</h2>
-              <p>{contactData.availability.workingHours}</p>
+              <p>
+                {contactData.availability &&
+                typeof contactData.availability === "object"
+                  ? contactData.availability.workingHours
+                  : ""}
+              </p>
               <p>
                 <em>Best reached via phone or LinkedIn message.</em>
               </p>

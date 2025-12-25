@@ -1,69 +1,34 @@
-import db from "../../../lib/mongodb.js";
-import Contact from "../../../models/Contact.js";
+import prisma from "../../../lib/prisma.js";
+import { createApiHandler, createGetLatestHandler, createUpsertHandler } from "../../../lib/utils/apiRouteHandler.js";
+import { validateRequiredFields } from "../../../lib/utils/validators.js";
 
-export default async (req, res) => {
-  await db;
+// Refactored: Extract Method - Common GET pattern extracted to reusable handler
+const handleGetRequest = createGetLatestHandler(
+  () => prisma.contact.findFirst({
+    orderBy: { createdAt: "desc" },
+  }),
+  "Contact data not found"
+);
 
-  switch (req.method) {
-    case "GET":
-      await handleGetRequest(req, res);
-      break;
-    case "POST":
-      await handlePostRequest(req, res);
-      break;
-    default:
-      res.status(405).json({ message: "Method Not Allowed" });
-      break;
-  }
-};
+// Refactored: Extract Method - Common POST pattern extracted to reusable handler
+const handlePostRequest = createUpsertHandler(
+  () => prisma.contact.deleteMany({}),
+  (body) => prisma.contact.create({
+    data: {
+      name: body.name,
+      emailAddress: body.emailAddress,
+      phoneNumber: body.phoneNumber || null,
+      socialMediaLinks: body.socialMediaLinks || null,
+      location: body.location || null,
+      availability: body.availability || null,
+      additionalContactMethods: body.additionalContactMethods || null,
+    },
+  }),
+  (body) => validateRequiredFields(body, ["name", "emailAddress", "location", "availability"])
+);
 
-const handleGetRequest = async (req, res) => {
-  try {
-    const contacts = await Contact.findOne({}).exec();
-    res.json(contacts);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-const handlePostRequest = async (req, res) => {
-  try {
-    const {
-      name,
-      emailAddress,
-      phoneNumber,
-      socialMediaLinks,
-      location,
-      availability,
-      additionalContactMethods,
-    } = req.body;
-
-    // Validate the data
-    if (!name || !emailAddress || !location || !availability) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Delete all existing records
-    await Contact.deleteMany({});
-
-    // Create a new contact document
-    const newContact = new Contact({
-      name,
-      emailAddress,
-      phoneNumber,
-      socialMediaLinks,
-      location,
-      availability,
-      additionalContactMethods,
-    });
-
-    // Save the new contact document to the database
-    const savedContact = await newContact.save();
-
-    res.status(201).json(savedContact);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+// Refactored: Extract Method - Method routing extracted to reusable handler
+export default createApiHandler({
+  GET: handleGetRequest,
+  POST: handlePostRequest,
+});

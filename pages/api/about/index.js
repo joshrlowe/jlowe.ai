@@ -1,77 +1,49 @@
-import db from "../../../lib/mongodb.js";
-import About from "../../../models/About.js";
+import prisma from "../../../lib/prisma.js";
+import { createApiHandler, createGetLatestHandler, createUpsertHandler } from "../../../lib/utils/apiRouteHandler.js";
+import { validateRequiredFields, validateArrayFields, combineValidations } from "../../../lib/utils/validators.js";
 
-export default async (req, res) => {
-  await db;
+// Refactored: Extract Method - Common GET pattern extracted to reusable handler
+const handleGetRequest = createGetLatestHandler(
+  () => prisma.about.findFirst({
+    orderBy: { createdAt: "desc" },
+  }),
+  "About data not found"
+);
 
-  switch (req.method) {
-    case "GET":
-      await handleGetRequest(req, res);
-      break;
-    case "POST":
-      await handlePostRequest(req, res);
-      break;
-    default:
-      res.status(405).json({ message: "Method Not Allowed" });
-      break;
-  }
-};
+// Refactored: Extract Method - Validation logic extracted to function
+function validateAboutData(body) {
+  const requiredFieldsValidation = validateRequiredFields(body, ["professionalSummary"]);
+  const arrayFieldsValidation = validateArrayFields(body, [
+    "technicalSkills",
+    "professionalExperience",
+    "leadershipExperience",
+    "education",
+    "technicalCertifications",
+    "hobbies",
+  ]);
 
-const handleGetRequest = async (req, res) => {
-  try {
-    const aboutData = await About.findOne({}).exec();
-    res.json(aboutData);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+  return combineValidations(requiredFieldsValidation, arrayFieldsValidation);
+}
 
-const handlePostRequest = async (req, res) => {
-  try {
-    const {
-      professionalSummary,
-      technicalSkills,
-      professionalExperience,
-      leadershipExperience,
-      education,
-      technicalCertifications,
-      hobbies,
-    } = req.body;
+// Refactored: Extract Method - Common POST pattern extracted to reusable handler
+const handlePostRequest = createUpsertHandler(
+  () => prisma.about.deleteMany({}),
+  (body) => prisma.about.create({
+    data: {
+      professionalSummary: body.professionalSummary,
+      technicalSkills: body.technicalSkills,
+      professionalExperience: body.professionalExperience,
+      education: body.education,
+      technicalCertifications: body.technicalCertifications,
+      leadershipExperience: body.leadershipExperience,
+      hobbies: body.hobbies,
+    },
+  }),
+  validateAboutData
+);
 
-    // Validate the data
-    if (
-      !professionalSummary ||
-      !Array.isArray(technicalSkills) ||
-      !Array.isArray(professionalExperience) ||
-      !Array.isArray(leadershipExperience) ||
-      !Array.isArray(education) ||
-      !Array.isArray(technicalCertifications) ||
-      !Array.isArray(hobbies)
-    ) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Delete all existing records
-    await About.deleteMany({});
-
-    // Create a new about document
-    const newAbout = new About({
-      professionalSummary,
-      technicalSkills,
-      professionalExperience,
-      leadershipExperience,
-      education,
-      technicalCertifications,
-      hobbies,
-    });
-
-    // Save the new about document to the database
-    const savedAbout = await newAbout.save();
-
-    res.status(201).json(savedAbout);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+// Refactored: Extract Method - Method routing extracted to reusable handler
+export default createApiHandler({
+  GET: handleGetRequest,
+  POST: handlePostRequest,
+});

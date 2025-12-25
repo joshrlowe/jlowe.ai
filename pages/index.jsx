@@ -1,80 +1,152 @@
-import { useCallback, useEffect, useState } from "react";
-import { Container, Row, Col, Spinner } from "react-bootstrap";
-import { ReactTyped } from "react-typed";
-import styles from "@/styles/Welcome.module.css";
+import dynamic from "next/dynamic";
+import prisma from "../lib/prisma.js";
+import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
+import SEO from "@/components/SEO";
+import Welcome from "@/components/Welcome";
+import AnimatedBackground from "@/components/AnimatedBackground";
 
-const Welcome = () => {
-  const [data, setData] = useState(null);
-  const [showName, setShowName] = useState(false);
-  const [showCallToAction, setShowCallToAction] = useState(false);
-  const [showBio, setShowBio] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
+// Dynamically import components that use GSAP ScrollTrigger (client-side only)
+const FeaturedProjectsDynamic = dynamic(() => import("@/components/FeaturedProjects"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
 
-  useEffect(() => {
-    const fetchData = async () => {
+const QuickStatsDynamic = dynamic(() => import("@/components/QuickStats"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
+
+const TechStackShowcaseDynamic = dynamic(() => import("@/components/TechStackShowcase"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
+
+const RecentResourcesDynamic = dynamic(() => import("@/components/RecentResources"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
+
+const GitHubActivityDynamic = dynamic(() => import("@/components/GitHubActivity"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
+
+const SkillsTimelineDynamic = dynamic(() => import("@/components/SkillsTimeline"), {
+  ssr: false,
+  loading: () => <div style={{ minHeight: '200px' }} />,
+});
+
+export default function Home({ welcomeData, projects, aboutData, contactData, resources }) {
+  const githubUrl = contactData?.socialMediaLinks?.github || null;
+  
+  // Ensure arrays are always arrays to prevent errors
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const safeResources = Array.isArray(resources) ? resources : [];
+
+  return (
+    <>
+      <SEO
+        title="Josh Lowe - Full Stack Developer"
+        description={welcomeData?.briefBio || "Full stack developer specializing in modern web technologies."}
+      />
+      <AnimatedBackground />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Welcome data={welcomeData} contactData={contactData} />
+        <FeaturedProjectsDynamic projects={safeProjects} />
+        <QuickStatsDynamic projects={safeProjects} aboutData={aboutData} />
+        <TechStackShowcaseDynamic projects={safeProjects} />
+        <RecentResourcesDynamic resources={safeResources} />
+        {githubUrl && <GitHubActivityDynamic githubUrl={githubUrl} />}
+        <SkillsTimelineDynamic projects={safeProjects} />
+      </div>
+    </>
+  );
+}
+
+export async function getStaticProps() {
+  try {
+    // Fetch welcome data
+    const welcomeData = await prisma.welcome.findFirst({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Fetch projects (we'll filter featured on the client side, but we can optimize later)
+    const projectsRaw = await prisma.project.findMany({
+      where: {
+        status: "Published",
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+      include: {
+        teamMembers: true,
+      },
+      take: 20, // Limit to recent 20 projects for performance
+    });
+
+    // Transform projects to match API format
+    const projects = transformProjectsToApiFormat(projectsRaw);
+
+    // Fetch about data for stats
+    const aboutData = await prisma.about.findFirst({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Fetch contact data for social links
+    const contactData = await prisma.contact.findFirst({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Fetch recent posts (previously called resources)
+    const resources = await prisma.post.findMany({
+      where: {
+        status: "Published",
+      },
+      orderBy: {
+        datePublished: "desc",
+      },
+      take: 5,
+    });
+
+    // Serialize all data to remove Date objects and make it JSON-safe
+    // Use try-catch to handle any serialization errors
+    const serialize = (data) => {
       try {
-        const response = await fetch("/api/welcome");
-        const welcomeData = await response.json();
-        setData(welcomeData);
+        return JSON.parse(JSON.stringify(data));
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Serialization error:", error);
+        return data;
       }
     };
 
-    fetchData();
-  }, []);
-
-  if (!data) {
-    return (
-      <div className="text-center my-5">
-        <Spinner animation="border" />
-      </div>
-    );
+    return {
+      props: {
+        welcomeData: welcomeData ? serialize(welcomeData) : null,
+        projects: serialize(projects || []),
+        aboutData: aboutData ? serialize(aboutData) : null,
+        contactData: contactData ? serialize(contactData) : null,
+        resources: serialize(resources || []),
+      },
+      // Revalidate every 60 seconds for ISR
+      revalidate: 60,
+    };
+  } catch (error) {
+    console.error("Error in getStaticProps:", error);
+    return {
+      props: {
+        welcomeData: null,
+        projects: [],
+        aboutData: null,
+        contactData: null,
+        resources: [],
+      },
+      revalidate: 60,
+    };
   }
-
-  return (
-    <Container
-      fluid
-      className={`d-flex justify-content-center vh-100 ${styles.centeredLower} ${styles.darkBackground}`}
-    >
-      <Row className={`${styles.fixedWidth} ${styles.lowerContent}`}>
-        <Col>
-          <p className={styles.introText}>
-            {showCursor && (
-              <ReactTyped
-                strings={["Hi, my name is..."]}
-                typeSpeed={100}
-                onComplete={() => {
-                  setTimeout(() => setShowCursor(false), 1500);
-                  setTimeout(() => setShowName(true), 500);
-                  setTimeout(() => setShowCallToAction(true), 1250);
-                  setTimeout(() => setShowBio(true), 2000);
-                }}
-              />
-            )}
-            {!showCursor && "Hi, my name is..."}
-          </p>
-          {showName ? (
-            <h1 className={`${styles.name} ${styles.fadeIn}`}>{data.name}</h1>
-          ) : (
-            <div></div>
-          )}
-          {showCallToAction ? (
-            <h3 className={`${styles.callToAction} ${styles.fadeIn}`}>
-              {data.callToAction}
-            </h3>
-          ) : (
-            <div></div>
-          )}
-          {showBio ? (
-            <p className={`${styles.bio} ${styles.fadeIn}`}>{data.briefBio}</p>
-          ) : (
-            <div></div>
-          )}
-        </Col>
-      </Row>
-    </Container>
-  );
-};
-
-export default Welcome;
+}

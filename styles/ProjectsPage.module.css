@@ -1,54 +1,75 @@
 /* General Text Styles */
 .pageTitle {
-  font-size: 3rem;
-  font-weight: 500;
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-medium);
   margin: 0;
   padding: 0;
+  color: var(--color-primary);
+  font-family: var(--font-family-display);
 }
 
 .paragraphText {
-  font-size: 1.1rem;
-  font-weight: 300;
-  line-height: 1.5;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-normal);
   margin: 0;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   padding: 0;
+  color: var(--color-text-primary);
 }
 
 .redText {
-  color: #e81919;
+  color: var(--color-primary);
 }
 
 .oswald {
-  font-family: "Oswald", sans-serif;
+  font-family: var(--font-family-display);
 }
 
 /* Backgrounds and Borders */
 .lightGrayBg {
-  background-color: rgb(85, 83, 83);
-  border: 1px solid black;
-  color: white;
+  background-color: var(--color-bg-dark);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  transition: all var(--transition-base);
 }
 
 /* Links */
 .link {
   text-decoration: none;
-  font-size: 1.2rem;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+  transition: color var(--transition-base), transform var(--transition-base);
 }
 
 .link:hover,
 .emailLink:hover {
+  color: var(--color-primary);
+  transform: translateX(4px);
   text-decoration: underline;
 }
 
 .emailLink {
-  color: #0056b3;
+  color: var(--color-accent);
   text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.emailLink:hover {
+  color: var(--color-accent-hover);
 }
 
 /* Lists and List Items */
 .projectListItem {
   cursor: pointer;
+  transition: all var(--transition-base);
+  will-change: transform, background-color;
+}
+
+.projectListItem:hover {
+  background-color: rgba(187, 19, 19, 0.2);
+  transform: translateX(8px);
+  border-color: var(--color-primary);
 }
 
 .teamList {
@@ -143,7 +164,7 @@
 .flyInLeft {
   animation: flyInLeft 0.5s ease-out forwards;
   opacity: 0;
-  /* Initially hide the element */
+  will-change: opacity, transform;
 }
 
 .staggered {
@@ -153,5 +174,5 @@
 .fadeInQuickly {
   animation: fadeInQuickly 0.3s ease-out forwards;
   opacity: 0;
-  /* Initially hide the element */
+  will-change: opacity;
 }

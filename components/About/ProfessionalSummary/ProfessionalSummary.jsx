@@ -7,6 +7,15 @@ export default function ProfessionalSummary({ children }) {
     threshold: 0.25,
   });
 
+  // Safety check
+  if (!children || (typeof children === 'string' && children.trim() === '')) {
+    return (
+      <div className={styles.aboutMe}>
+        <p>No professional summary available.</p>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={ref}

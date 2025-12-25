@@ -20,9 +20,7 @@ export default function ProjectHeader({ title, repositoryLink }) {
             Source code not available - Contact me for a demo.
           </p>
         </>
-
       )}
-
     </>
   );
 }

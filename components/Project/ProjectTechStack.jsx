@@ -17,8 +17,6 @@ const namesToString = (objects) => {
   return objects.map((obj) => obj.name).join(", ");
 };
 
-
-
 export default function ProjectTechStack({ techStack }) {
   const highLevelTechStack = techStackToString(techStack);
 

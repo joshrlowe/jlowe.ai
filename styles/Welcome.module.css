@@ -27,33 +27,41 @@
 }
 
 .introText {
-  font-family: "Source Code Pro", monospace;
-  font-size: 2rem;
-  color: #bb1313;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-3xl);
+  color: var(--color-primary);
+  will-change: opacity, transform;
 }
 
 .name {
-  font-family: "Oswald", sans-serif;
-  font-size: 6rem;
-  font-weight: 600;
-  color: #bb1313;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-8xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  will-change: opacity, transform, scale;
+  line-height: var(--line-height-tight);
+  transition: transform var(--transition-base), text-shadow var(--transition-base);
+  cursor: default;
+  display: inline-block;
 }
 
 .callToAction {
-  font-family: "Oswald", sans-serif;
-  font-weight: 400;
-  font-size: 2rem;
-  color: white;
-  margin-top: 2rem;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-3xl);
+  color: var(--color-text-primary);
+  margin-top: var(--spacing-xl);
+  will-change: opacity, transform;
 }
 
 .bio {
   width: 100%;
-  font-size: 1rem;
-  font-weight: 300;
-  color: white;
-  margin-top: 4rem;
-  line-height: 1.75;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-primary);
+  margin-top: var(--spacing-3xl);
+  line-height: var(--line-height-relaxed);
+  will-change: opacity, transform;
 }
 
 @keyframes fadeInAnimation {
@@ -74,6 +82,18 @@
   .fixedWidth {
     width: 70vw;
   }
+
+  .introText {
+    font-size: var(--font-size-2xl);
+  }
+
+  .name {
+    font-size: var(--font-size-7xl);
+  }
+
+  .callToAction {
+    font-size: var(--font-size-2xl);
+  }
 }
 
 @media (max-width: 576px) {
@@ -86,19 +106,19 @@
   }
 
   .introText {
-    margin-top: 1.5rem;
-    font-size: 1.5rem;
+    margin-top: var(--spacing-xl);
+    font-size: var(--font-size-xl);
   }
 
   .name {
-    font-size: 5rem;
+    font-size: var(--font-size-6xl);
   }
 
   .callToAction {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
   }
 
   .bio {
-    margin-top: 1.5rem;
+    margin-top: var(--spacing-xl);
   }
 }

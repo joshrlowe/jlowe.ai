@@ -1,7 +1,5 @@
 import { useInView } from "react-intersection-observer";
-
 import CertificationCard from "../CertificationCard/CertificationCard";
-
 import styles from "./TechnicalCertifications.module.css";
 
 export default function TechnicalCertifications({ certifications }) {
@@ -10,7 +8,27 @@ export default function TechnicalCertifications({ certifications }) {
     threshold: 0.1,
   });
 
-  certifications.sort((a, b) => a.name.localeCompare(b.name));
+  // Sort certifications by issue date (most recent first)
+  const sortedCertifications = [...certifications].sort((a, b) => {
+    const dateA = new Date(a.issueDate || 0);
+    const dateB = new Date(b.issueDate || 0);
+    return dateB - dateA;
+  });
+
+  const isExpired = (certification) => {
+    if (!certification.expirationDate) return false;
+    const expiration = new Date(certification.expirationDate);
+    return expiration < new Date();
+  };
+
+  const isExpiringSoon = (certification) => {
+    if (!certification.expirationDate) return false;
+    const expiration = new Date(certification.expirationDate);
+    const daysUntilExpiration = Math.ceil(
+      (expiration - new Date()) / (1000 * 60 * 60 * 24)
+    );
+    return daysUntilExpiration > 0 && daysUntilExpiration <= 90;
+  };
 
   return (
     <>
@@ -21,16 +39,25 @@ export default function TechnicalCertifications({ certifications }) {
       >
         <h2>Technical Certifications</h2>
         <div className={styles.certificationGrid}>
-          {certifications.map((certification, index) => (
-            <CertificationCard
-              key={index}
-              name={certification.name}
-              credentialUrl={certification.credentialUrl}
-              organization={certification.organization}
-              organizationUrl={certification.organizationUrl}
-              issueDate={certification.issueDate}
-            />
-          ))}
+          {sortedCertifications.map((certification, index) => {
+            const expired = isExpired(certification);
+            const expiringSoon = isExpiringSoon(certification);
+
+            return (
+              <div key={index} className={styles.certificationWrapper}>
+                <CertificationCard
+                  name={certification.name}
+                  credentialUrl={certification.credentialUrl}
+                  organization={certification.organization}
+                  organizationUrl={certification.organizationUrl}
+                  issueDate={certification.issueDate}
+                  expirationDate={certification.expirationDate}
+                  expired={expired}
+                  expiringSoon={expiringSoon}
+                />
+              </div>
+            );
+          })}
         </div>
       </section>
     </>

@@ -1,0 +1,301 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Can also use PRISMA_DATABASE_URL, set DATABASE_URL to match
+}
+
+model Welcome {
+  id            String   @id @default(cuid())
+  name          String
+  briefBio      String
+  callToAction  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("welcome")
+}
+
+model About {
+  id                     String   @id @default(cuid())
+  professionalSummary    String
+  technicalSkills        Json     // Array of { category, skillName, expertiseLevel, projects: [{ name, repositoryLink }] }
+  professionalExperience Json     // Array of { company, role, description, startDate, endDate, achievements: [String] }
+  education              Json     // Array of { institution, degree, fieldOfStudy, relevantCoursework: [String], startDate, endDate }
+  technicalCertifications Json    // Array of { organization, name, issueDate, expirationDate, credentialUrl }
+  leadershipExperience   Json     // Array of { organization, role, startDate, endDate, achievements: [String] }
+  hobbies                Json     // Array of String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("about")
+}
+
+model Contact {
+  id                      String   @id @default(cuid())
+  name                    String?
+  emailAddress            String
+  phoneNumber             String?
+  socialMediaLinks        Json?    // { linkedIn, X, github, other: [String] }
+  location                Json?    // { city, state, country }
+  availability            Json?    // { workingHours, preferredContactTimes, additionalInstructions }
+  additionalContactMethods Json?   // Array of { method, handle }
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("contact")
+}
+
+model Project {
+  id               String            @id @default(cuid())
+  title            String
+  slug             String?           @unique
+  description      String?           // Legacy: short description
+  shortDescription String?
+  longDescription  String?           // Markdown content
+  repositoryLink   String?
+  startDate        DateTime
+  releaseDate      DateTime?
+  status           ProjectStatus?
+  techStack        Json?             // { fullStackFramework, backendFramework, frontendFramework, database, languages, versionControl, apiIntegrations, operatingSystem, webServers, deploymentTools, additionalTools } OR array format for new projects
+  tags             Json?             // Array of strings
+  links            Json?             // { github?, live? }
+  images           Json?             // Array of image URLs or objects
+  featured         Boolean           @default(false)
+  // SEO fields
+  metaTitle        String?
+  metaDescription  String?
+  ogImage          String?
+  teamMembers      ProjectTeamMember[]
+  activityLogs     ActivityLog[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([status])
+  @@index([featured])
+  @@index([startDate])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model ProjectTeamMember {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+
+  @@index([projectId])
+  @@map("project_team_members")
+}
+
+enum ProjectStatus {
+  Planned
+  InProgress
+  InDevelopment
+  InTesting
+  Completed
+  InProduction
+  Maintenance
+  OnHold
+  Deprecated
+  Sunsetted
+  Draft
+  Published
+
+  @@map("project_status")
+}
+
+model Post {
+  id            String      @id @default(cuid())
+  title         String
+  description   String      // Short description/excerpt
+  postType      PostType    // Article or Video
+  url           String?     // For video posts
+  content       String?     // Markdown content for articles
+  tags          String[]
+  topic         String      // Category/topic
+  slug          String      @unique
+  author        String
+  status        PostStatus  @default(Draft)
+  
+  // Media
+  coverImage    String?     // Optional cover image URL
+  
+  // SEO
+  metaTitle     String?
+  metaDescription String?
+  ogImage       String?
+  
+  // Analytics & Engagement
+  readingTime   Int?        // Reading time in minutes (calculated)
+  viewCount     Int         @default(0)
+  
+  // Dates
+  datePublished DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  comments      Comment[]
+  likes         Like[]
+  playlistPosts PlaylistPost[]
+
+  @@index([topic])
+  @@index([slug])
+  @@index([status])
+  @@index([datePublished])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+enum PostType {
+  Article
+  Video
+
+  @@map("post_type")
+}
+
+enum PostStatus {
+  Draft
+  Published
+
+  @@map("post_status")
+}
+
+model Playlist {
+  id            String        @id @default(cuid())
+  title         String
+  description   String?
+  slug          String        @unique
+  coverImage    String?       // Optional playlist cover image
+  featured      Boolean       @default(false)
+  order         Int           @default(0) // For manual ordering
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  playlistPosts PlaylistPost[]
+
+  @@index([slug])
+  @@index([featured])
+  @@index([order])
+  @@map("playlists")
+}
+
+model PlaylistPost {
+  id         String   @id @default(cuid())
+  playlistId String
+  postId     String
+  order      Int      @default(0) // Order within playlist
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([playlistId, postId])
+  @@index([playlistId])
+  @@index([postId])
+  @@map("playlist_posts")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorName String
+  authorEmail String?
+  content   String
+  approved  Boolean  @default(false) // For moderation
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([approved])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userIP    String   // Track by IP for anonymous likes (required for uniqueness)
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userIP]) // Prevent duplicate likes from same IP
+  @@index([postId])
+  @@map("likes")
+}
+
+model NewsletterSubscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([email])
+  @@map("newsletter_subscriptions")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+model SiteSettings {
+  id          String   @id @default(cuid())
+  siteName    String   @default("jlowe.ai")
+  navLinks    Json?    // Array: [{label: String, href: String, order: Number}]
+  footerText  String?
+  socials     Json?    // { twitter?, github?, linkedin?, instagram?, email? }
+  seoDefaults Json?    // { title?, description?, ogImage? }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model PageContent {
+  id        String   @id @default(cuid())
+  pageKey   String   @unique // "home" | "about" | "contact"
+  content   Json     // Structured object per page type
+  updatedAt DateTime @updatedAt
+
+  @@map("page_content")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?  // Admin user ID
+  entityType  String   // "Project" | "About" | "Contact" | "Post" | "Playlist" | etc.
+  entityId    String
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  action      String   // "create" | "update" | "delete" | "status_change" | etc.
+  field       String?  // Specific field that changed
+  oldValue    Json?    // Previous value
+  newValue    Json?    // New value
+  description String?  // Human-readable description
+  metadata    Json?    // Additional context
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+

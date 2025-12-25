@@ -1,47 +1,80 @@
 .hobbies {
-  opacity: 0;
+  opacity: 1; /* Make visible by default */
   transition: opacity 1s ease-out;
-  margin-top: 4rem;
-}
-
-.hobbies h2 {
-  font-size: 2rem;
-  color: rgba(232, 25, 25, 0.9);
-}
-
-.hobbies ul {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1.5rem;
-  padding-left: 0;
-}
-
-.hobbies li {
-  font-size: 1rem;
-  font-weight: 1;
-  line-height: 1.75;
-  list-style: none;
+  padding: var(--spacing-2xl) 0;
 }
 
 .fadeIn {
   opacity: 1;
 }
 
+.hobbies h2 {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-2xl);
+  color: var(--color-primary);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-medium);
+}
+
+.hobbiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.hobbyCard {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  transition: all var(--transition-base);
+  cursor: default;
+  text-align: center;
+  min-height: 140px;
+}
+
+.hobbyCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.hobbyIcon {
+  font-size: 3rem;
+  transition: transform var(--transition-base);
+}
+
+.hobbyCard:hover .hobbyIcon {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.hobbyName {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
 @media (max-width: 768px) {
-  .hobbies {
-    margin-top: 2rem;
+  .hobbiesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--spacing-md);
   }
 
-  .hobbies h2 {
-    font-size: 1.5rem;
+  .hobbyCard {
+    padding: var(--spacing-md);
+    min-height: 120px;
   }
 
-  .hobbies ul {
-    flex-direction: column;
-    gap: 0.5rem;
+  .hobbyIcon {
+    font-size: 2.5rem;
   }
 
-  .hobbies li {
-    font-size: 1rem;
+  .hobbyName {
+    font-size: var(--font-size-sm);
   }
 }

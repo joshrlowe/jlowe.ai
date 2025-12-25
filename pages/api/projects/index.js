@@ -1,32 +1,30 @@
-import db from "../../../lib/mongodb.js";
-import Project from "../../../models/Project.js";
+import prisma from "../../../lib/prisma.js";
+import { createApiHandler } from "../../../lib/utils/apiRouteHandler.js";
+import { mapProjectStatus } from "../../../lib/utils/projectStatusMapper.js";
+import {
+  transformProjectsToApiFormat,
+  transformProjectToApiFormat,
+  transformTeamToTeamMembers,
+} from "../../../lib/utils/projectTransformer.js";
+import { validateProjectData, validateTeamMembers } from "../../../lib/utils/projectValidators.js";
+import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
 
-export default async (req, res) => {
-  await db;
-
-  switch (req.method) {
-    case "GET":
-      await handleGetRequest(req, res);
-      break;
-    case "POST":
-      await handlePostRequest(req, res);
-      break;
-    default:
-      res.status(405).json({ message: "Method Not Allowed" });
-      break;
-  }
-};
-
+// Refactored: Extract Method - GET handler extracted with clear intent
 const handleGetRequest = async (req, res) => {
   try {
-    const projects = await Project.find({}).sort({ startDate: -1 }).exec();
-    res.json(projects);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
+    const projects = await prisma.project.findMany({
+      orderBy: { startDate: "desc" },
+      include: { teamMembers: true },
+    });
+
+    const transformedProjects = transformProjectsToApiFormat(projects);
+    res.json(transformedProjects);
+  } catch (error) {
+    handleApiError(error, res);
   }
 };
 
+// Refactored: Extract Method - POST handler with extracted utilities
 const handlePostRequest = async (req, res) => {
   try {
     const {
@@ -38,35 +36,49 @@ const handlePostRequest = async (req, res) => {
       startDate,
       releaseDate,
       status,
-      createdAt,
-      updatedAt,
     } = req.body;
 
-    // Validate the data
-    if (!title || !Array.isArray(team) || !startDate) {
-      return res.status(400).json({ message: "Missing required fields" });
+    // Refactored: Extract Method - Validation logic extracted
+    const projectValidation = validateProjectData({ title, startDate });
+    const teamValidation = validateTeamMembers(team);
+    
+    if (!projectValidation.isValid) {
+      return res.status(400).json({ message: projectValidation.message || "Missing required fields" });
+    }
+    
+    if (!teamValidation.isValid) {
+      return res.status(400).json({ message: teamValidation.message || "Invalid team data" });
     }
 
-    // Create a new project
-    const newProject = new Project({
-      title,
-      team,
-      description,
-      techStack,
-      repositoryLink,
-      startDate: new Date(startDate),
-      releaseDate: releaseDate ? new Date(releaseDate) : null,
-      status,
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
-      updatedAt: new Date(),
+    const mappedStatus = mapProjectStatus(status);
+
+    // Refactored: Extract Method - Team transformation extracted to utility
+    const savedProject = await prisma.project.create({
+      data: {
+        title,
+        description: description || null,
+        repositoryLink: repositoryLink || null,
+        startDate: new Date(startDate),
+        releaseDate: releaseDate ? new Date(releaseDate) : null,
+        status: mappedStatus,
+        techStack: techStack || null,
+        teamMembers: {
+          create: transformTeamToTeamMembers(team),
+        },
+      },
+      include: { teamMembers: true },
     });
 
-    // Save the project to the database
-    const savedProject = await newProject.save();
-
-    res.status(201).json(savedProject);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
+    const transformedProject = transformProjectToApiFormat(savedProject);
+    res.status(201).json(transformedProject);
+  } catch (error) {
+    handleApiError(error, res);
   }
 };
+
+// Refactored: Extract Method - Method routing extracted to reusable handler
+export default createApiHandler({
+  GET: handleGetRequest,
+  POST: handlePostRequest,
+});
+

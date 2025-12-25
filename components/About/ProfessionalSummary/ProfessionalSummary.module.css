@@ -6,7 +6,7 @@
   padding-bottom: 0rem;
   border-radius: 1em;
   margin-bottom: 4rem;
-  opacity: 0;
+  opacity: 1; /* Make visible by default */
   transition: opacity 1s ease-out;
 }
 
