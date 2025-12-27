@@ -51,9 +51,10 @@ async function migrateResourcesToPosts() {
         }
 
         // Map contentType to postType
-        const postType = resource.contentType === "Article" || resource.contentType === "Video"
-          ? resource.contentType
-          : "Article"; // Default to Article
+        const postType =
+          resource.contentType === "Article" || resource.contentType === "Video"
+            ? resource.contentType
+            : "Article"; // Default to Article
 
         await prisma.post.create({
           data: {
@@ -79,10 +80,15 @@ async function migrateResourcesToPosts() {
       } catch (createError) {
         // Skip duplicates (if slug already exists)
         if (createError.code === "P2002") {
-          console.log(`  ⚠️  Skipped duplicate: ${resource.title} (slug already exists)`);
+          console.log(
+            `  ⚠️  Skipped duplicate: ${resource.title} (slug already exists)`,
+          );
           skipped++;
         } else {
-          console.error(`  ❌ Error migrating: ${resource.title}`, createError.message);
+          console.error(
+            `  ❌ Error migrating: ${resource.title}`,
+            createError.message,
+          );
           errors++;
         }
       }
@@ -110,4 +116,3 @@ migrateResourcesToPosts()
     console.error("\n❌ Migration script failed:", error);
     process.exit(1);
   });
-

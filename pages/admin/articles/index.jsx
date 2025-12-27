@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Container, Table, Button, Badge, Spinner, Alert } from "react-bootstrap";
 import { requireAuth } from "@/lib/auth.js";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import styles from "@/styles/AdminArticles.module.css";
 
 export async function getServerSideProps(context) {
   return requireAuth(context);
 }
 
 export default function AdminArticles() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,9 +45,7 @@ export default function AdminArticles() {
     try {
       const response = await fetch(`/api/admin/posts/${postId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -68,9 +64,7 @@ export default function AdminArticles() {
   };
 
   const handleDelete = async (postId) => {
-    if (!confirm("Are you sure you want to delete this post?")) {
-      return;
-    }
+    if (!confirm("Are you sure you want to delete this post?")) return;
 
     try {
       const response = await fetch(`/api/admin/posts/${postId}`, {
@@ -92,8 +86,7 @@ export default function AdminArticles() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "Not published";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -103,8 +96,8 @@ export default function AdminArticles() {
   if (status === "loading" || loading) {
     return (
       <AdminLayout>
-        <div className={styles.loadingContainer}>
-          <Spinner animation="border" variant="primary" />
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </AdminLayout>
     );
@@ -113,83 +106,129 @@ export default function AdminArticles() {
   return (
     <AdminLayout title="Articles Management">
       {error && (
-        <Alert variant="danger" dismissible onClose={() => setError("")}>
-          {error}
-        </Alert>
+        <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="hover:text-red-300">
+            ✕
+          </button>
+        </div>
       )}
 
-      <div className={styles.header}>
-        <h1>Articles</h1>
-        <Link href="/admin/articles/new">
-          <Button variant="primary">Create New Post</Button>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+          Articles
+        </h2>
+        <Link
+          href="/admin/articles/new"
+          className="px-6 py-2 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] transition-colors"
+        >
+          Create New Post
         </Link>
       </div>
 
-      <Table striped bordered hover className={styles.table}>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Topic</th>
-            <th>Status</th>
-            <th>Published</th>
-            <th>Views</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {posts.length === 0 ? (
-            <tr>
-              <td colSpan={6} className={styles.emptyState}>
-                No posts found. <Link href="/admin/articles/new">Create your first post</Link>
-              </td>
-            </tr>
-          ) : (
-            posts.map((post) => (
-              <tr key={post.id}>
-                <td>
-                  <Link href={`/admin/articles/${post.id}/edit`} className={styles.postTitle}>
-                    {post.title}
-                  </Link>
-                </td>
-                <td>
-                  <Badge bg="secondary">{post.topic}</Badge>
-                </td>
-                <td>
-                  <Badge bg={post.status === "Published" ? "success" : "warning"}>
-                    {post.status}
-                  </Badge>
-                </td>
-                <td>{formatDate(post.datePublished)}</td>
-                <td>{post.viewCount || 0}</td>
-                <td>
-                  <div className={styles.actions}>
-                    <Link href={`/admin/articles/${post.id}/edit`}>
-                      <Button variant="outline-primary" size="sm">
-                        Edit
-                      </Button>
-                    </Link>
-                    <Button
-                      variant={post.status === "Published" ? "outline-warning" : "outline-success"}
-                      size="sm"
-                      onClick={() => handleStatusToggle(post.id, post.status)}
-                    >
-                      {post.status === "Published" ? "Unpublish" : "Publish"}
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(post.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </td>
+      {posts.length === 0 ? (
+        <div className="text-center py-12 text-[var(--color-text-muted)]">
+          <p>No posts found.</p>
+          <Link
+            href="/admin/articles/new"
+            className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]"
+          >
+            Create your first post
+          </Link>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                  Title
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                  Topic
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                  Status
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                  Published
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                  Views
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                  Actions
+                </th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </Table>
+            </thead>
+            <tbody>
+              {posts.map((post) => (
+                <tr
+                  key={post.id}
+                  className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg-darker)]"
+                >
+                  <td className="py-3 px-4">
+                    <Link
+                      href={`/admin/articles/${post.id}/edit`}
+                      className="text-[var(--color-text-primary)] hover:text-[var(--color-primary)] font-medium"
+                    >
+                      {post.title}
+                    </Link>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-1 text-xs rounded bg-[var(--color-bg-card)] text-[var(--color-text-muted)]">
+                      {post.topic}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span
+                      className={`px-2 py-1 text-xs rounded ${
+                        post.status === "Published"
+                          ? "bg-green-500/10 text-green-400"
+                          : "bg-yellow-500/10 text-yellow-400"
+                      }`}
+                    >
+                      {post.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
+                    {formatDate(post.datePublished)}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
+                    {post.viewCount || 0}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/articles/${post.id}/edit`}
+                        className="px-3 py-1 text-sm rounded border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => handleStatusToggle(post.id, post.status)}
+                        className={`px-3 py-1 text-sm rounded border transition-colors ${
+                          post.status === "Published"
+                            ? "border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                            : "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                        }`}
+                      >
+                        {post.status === "Published" ? "Unpublish" : "Publish"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(post.id)}
+                        className="px-3 py-1 text-sm rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </AdminLayout>
   );
 }
-

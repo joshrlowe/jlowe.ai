@@ -242,7 +242,9 @@ async function migrateResources() {
     }
 
     // Import reading time calculator
-    const { calculateReadingTime } = await import("../lib/utils/readingTime.js");
+    const { calculateReadingTime } = await import(
+      "../lib/utils/readingTime.js"
+    );
 
     // Delete existing posts that might have been migrated before
     // (This is optional - you might want to skip this if you have existing posts)
@@ -281,9 +283,14 @@ async function migrateResources() {
       } catch (createError) {
         // Skip duplicates (if slug already exists)
         if (createError.code === "P2002") {
-          console.log(`  ⚠️  Skipped duplicate: ${resourceData.title} (slug already exists)`);
+          console.log(
+            `  ⚠️  Skipped duplicate: ${resourceData.title} (slug already exists)`,
+          );
         } else {
-          console.error(`  ❌ Error migrating resource: ${resourceData.title}`, createError);
+          console.error(
+            `  ❌ Error migrating resource: ${resourceData.title}`,
+            createError,
+          );
         }
       }
     }

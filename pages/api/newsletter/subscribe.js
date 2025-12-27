@@ -44,4 +44,3 @@ export default async (req, res) => {
     handleApiError(error, res);
   }
 };
-

@@ -15,7 +15,9 @@ function createHandler() {
   const NextAuth = requireLocal("next-auth").default;
   const bcrypt = requireLocal("bcryptjs");
   const prisma = requireLocal("../../../lib/prisma.js").default;
-  const CredentialsProvider = requireLocal("../../../lib/credentials-provider.cjs");
+  const CredentialsProvider = requireLocal(
+    "../../../lib/credentials-provider.cjs",
+  );
 
   const handler = NextAuth({
     providers: [
@@ -40,7 +42,7 @@ function createHandler() {
 
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
-            user.passwordHash
+            user.passwordHash,
           );
 
           if (!isPasswordValid) {

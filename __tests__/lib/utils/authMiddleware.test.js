@@ -85,4 +85,3 @@ describe("authMiddleware utilities", () => {
     });
   });
 });
-

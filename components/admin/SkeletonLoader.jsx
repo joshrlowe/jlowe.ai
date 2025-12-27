@@ -1,36 +1,36 @@
-export default function SkeletonLoader({ width = "100%", height = "20px", className = "" }) {
+export function TableRowSkeleton({ colCount = 6 }) {
   return (
-    <div
-      className={`skeleton-loader ${className}`}
-      style={{
-        width,
-        height,
-        backgroundColor: "var(--color-bg-dark-alt)",
-        borderRadius: "var(--radius-md)",
-        animation: "pulse 1.5s ease-in-out infinite",
-      }}
-    />
-  );
-}
-
-export function TableRowSkeleton({ colCount = 4 }) {
-  return (
-    <tr>
+    <tr className="animate-pulse">
       {Array.from({ length: colCount }).map((_, i) => (
-        <td key={i}>
-          <SkeletonLoader height="20px" />
+        <td key={i} className="py-3 px-4">
+          <div className="h-4 bg-[var(--color-bg-darker)] rounded"></div>
         </td>
       ))}
     </tr>
   );
 }
 
-export function FormFieldSkeleton() {
+export function CardSkeleton() {
   return (
-    <div className="mb-3">
-      <SkeletonLoader width="30%" height="16px" className="mb-2" />
-      <SkeletonLoader width="100%" height="40px" />
+    <div className="p-4 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] animate-pulse">
+      <div className="h-4 w-3/4 bg-[var(--color-bg-darker)] rounded mb-2"></div>
+      <div className="h-4 w-1/2 bg-[var(--color-bg-darker)] rounded"></div>
     </div>
   );
 }
 
+export default function SkeletonLoader({ type = "card", count = 3 }) {
+  if (type === "table") {
+    return Array.from({ length: count }).map((_, i) => (
+      <TableRowSkeleton key={i} />
+    ));
+  }
+
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <CardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}

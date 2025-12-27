@@ -34,7 +34,9 @@ export default async function handler(req, res) {
   } else if (req.method === "PUT") {
     try {
       // Get existing project to compare changes
-      const existingProject = await prisma.project.findUnique({ where: { id } });
+      const existingProject = await prisma.project.findUnique({
+        where: { id },
+      });
       if (!existingProject) {
         return res.status(404).json({ message: "Project not found" });
       }
@@ -68,17 +70,21 @@ export default async function handler(req, res) {
         updateData.shortDescription = shortDescription;
         updateData.description = shortDescription; // Legacy field
       }
-      if (longDescription !== undefined) updateData.longDescription = longDescription;
+      if (longDescription !== undefined)
+        updateData.longDescription = longDescription;
       if (tags !== undefined) updateData.tags = tags;
       if (techStack !== undefined) updateData.techStack = techStack;
       if (links !== undefined) updateData.links = links;
       if (images !== undefined) updateData.images = images;
       if (featured !== undefined) updateData.featured = featured;
       if (mappedStatus !== undefined) updateData.status = mappedStatus;
-      if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : new Date();
-      if (releaseDate !== undefined) updateData.releaseDate = releaseDate ? new Date(releaseDate) : null;
+      if (startDate !== undefined)
+        updateData.startDate = startDate ? new Date(startDate) : new Date();
+      if (releaseDate !== undefined)
+        updateData.releaseDate = releaseDate ? new Date(releaseDate) : null;
       if (metaTitle !== undefined) updateData.metaTitle = metaTitle || null;
-      if (metaDescription !== undefined) updateData.metaDescription = metaDescription || null;
+      if (metaDescription !== undefined)
+        updateData.metaDescription = metaDescription || null;
       if (ogImage !== undefined) updateData.ogImage = ogImage || null;
 
       const project = await prisma.project.update({
@@ -121,7 +127,9 @@ export default async function handler(req, res) {
       res.json(updatedProject);
     } catch (error) {
       if (error.code === "P2002") {
-        return res.status(400).json({ message: "A project with this slug already exists" });
+        return res
+          .status(400)
+          .json({ message: "A project with this slug already exists" });
       }
       handleApiError(error, res);
     }
@@ -155,4 +163,3 @@ export default async function handler(req, res) {
     res.status(405).json({ message: "Method Not Allowed" });
   }
 }
-

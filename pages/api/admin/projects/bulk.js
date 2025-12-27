@@ -43,7 +43,9 @@ export default async function handler(req, res) {
             description: "Bulk deleted project",
           });
         }
-        return res.json({ message: `${projectIds.length} project(s) deleted successfully` });
+        return res.json({
+          message: `${projectIds.length} project(s) deleted successfully`,
+        });
 
       case "updateStatus":
         if (!data?.status) {
@@ -67,11 +69,15 @@ export default async function handler(req, res) {
             description: `Bulk status changed to ${data.status}`,
           });
         }
-        return res.json({ message: `${projectIds.length} project(s) updated successfully` });
+        return res.json({
+          message: `${projectIds.length} project(s) updated successfully`,
+        });
 
       case "updateFeatured":
         if (data?.featured === undefined) {
-          return res.status(400).json({ message: "Featured value is required" });
+          return res
+            .status(400)
+            .json({ message: "Featured value is required" });
         }
         await prisma.project.updateMany({
           where: { id: { in: projectIds } },
@@ -90,7 +96,9 @@ export default async function handler(req, res) {
             description: `Bulk featured set to ${data.featured}`,
           });
         }
-        return res.json({ message: `${projectIds.length} project(s) updated successfully` });
+        return res.json({
+          message: `${projectIds.length} project(s) updated successfully`,
+        });
 
       default:
         return res.status(400).json({ message: "Invalid action" });
@@ -99,4 +107,3 @@ export default async function handler(req, res) {
     handleApiError(error, res);
   }
 }
-

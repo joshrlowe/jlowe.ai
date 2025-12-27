@@ -58,7 +58,9 @@ const handlePutRequest = async (req, res) => {
 
     // Calculate reading time if content is being updated
     if (updateData.content !== undefined) {
-      const { calculateReadingTime } = await import("../../../../lib/utils/readingTime.js");
+      const { calculateReadingTime } = await import(
+        "../../../../lib/utils/readingTime.js"
+      );
       updateData.readingTime = calculateReadingTime(updateData.content);
     }
 
@@ -96,4 +98,3 @@ const handleDeleteRequest = async (req, res) => {
     handleApiError(error, res);
   }
 };
-

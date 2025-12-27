@@ -1,5 +1,8 @@
 import prisma from "../../../lib/prisma.js";
-import { createApiHandler, createGetLatestHandler } from "../../../lib/utils/apiRouteHandler.js";
+import {
+  createApiHandler,
+  createGetLatestHandler,
+} from "../../../lib/utils/apiRouteHandler.js";
 import { transformProjectToApiFormat } from "../../../lib/utils/projectTransformer.js";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
 

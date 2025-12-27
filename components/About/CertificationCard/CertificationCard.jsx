@@ -1,101 +1,43 @@
-import Link from "next/link";
-import styles from "./CertificationCard.module.css";
-
-export default function CertificationCard({
-  name,
-  credentialUrl,
-  organization,
-  organizationUrl,
-  issueDate,
-  expirationDate,
-  expired = false,
-  expiringSoon = false,
-}) {
-  const formatDate = (dateString) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC",
-    });
-  };
-
-  const getStatusBadge = () => {
-    if (expired) {
-      return <span className={styles.badgeExpired}>Expired</span>;
-    }
-    if (expiringSoon) {
-      return <span className={styles.badgeExpiring}>Expiring Soon</span>;
-    }
-    if (expirationDate) {
-      return <span className={styles.badgeValid}>Valid</span>;
-    }
-    return null;
-  };
+export default function CertificationCard({ certification }) {
+  if (!certification) return null;
 
   return (
-    <Link
-      href={credentialUrl || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`${styles.certificationCard} ${expired ? styles.expired : ""}`}
-    >
-      <div className={styles.cardHeader}>
-        <div className={styles.badgeContainer}>{getStatusBadge()}</div>
-      </div>
-
-      <h3 className={styles.certName}>{name}</h3>
-
-      {organizationUrl ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            window.open(organizationUrl, "_blank", "noopener,noreferrer");
-          }}
-          className={styles.organization}
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            font: "inherit",
-            cursor: "pointer",
-            textDecoration: "underline",
-          }}
-        >
-          {organization}
-        </button>
-      ) : (
-        <p className={styles.organization}>{organization}</p>
-      )}
-
-      <div className={styles.cardDates}>
-        <div className={styles.dateRow}>
-          <span className={styles.dateLabel}>Issued:</span>
-          <span className={styles.dateValue}>{formatDate(issueDate) || "N/A"}</span>
+    <div className="p-4 rounded-lg bg-[var(--color-bg-darker)] hover:border-[var(--color-primary)] transition-all duration-300 border border-transparent">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0">
+          <span className="text-xl font-bold text-[var(--color-primary)]">
+            {(certification.name || certification.title || "C").charAt(0)}
+          </span>
         </div>
-        {expirationDate && (
-          <div className={styles.dateRow}>
-            <span className={styles.dateLabel}>Expires:</span>
-            <span
-              className={`${styles.dateValue} ${
-                expired || expiringSoon ? styles.dateWarning : ""
-              }`}
-            >
-              {formatDate(expirationDate)}
-            </span>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] truncate">
+            {certification.name || certification.title}
+          </h3>
+          <div className="text-sm text-[var(--color-primary)]">
+            {certification.issuer || certification.organization}
           </div>
-        )}
-      </div>
-
-      {credentialUrl && (
-        <div className={styles.viewCredential}>
-          <span className={styles.viewCredentialText}>View Credential</span>
-          <span className={styles.viewCredentialIcon}>→</span>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">
+            {certification.dateObtained || certification.date}
+            {certification.expirationDate &&
+              ` - ${certification.expirationDate}`}
+          </div>
+          {certification.credentialId && (
+            <div className="text-xs text-[var(--color-text-muted)] mt-1">
+              ID: {certification.credentialId}
+            </div>
+          )}
         </div>
+      </div>
+      {certification.url && (
+        <a
+          href={certification.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block mt-3 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] transition-colors"
+        >
+          View Credential →
+        </a>
       )}
-    </Link>
+    </div>
   );
 }

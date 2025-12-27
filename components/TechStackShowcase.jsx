@@ -1,16 +1,57 @@
+/**
+ * TechStackShowcase.jsx
+ *
+ * SUPERNOVA v2.0 - Technology Showcase
+ *
+ * Features:
+ * - Space Grotesk typography
+ * - Refined ember color palette with cool accent
+ * - GSAP animations
+ */
+
 import { useEffect, useRef, useState } from "react";
-import { Container } from "react-bootstrap";
 import { gsap } from "gsap";
-import styles from "@/styles/TechStackShowcase.module.css";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Badge } from "@/components/ui";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+// Tech categories with refined colors
+const techCategories = {
+  "AI/ML": {
+    color: "primary",
+    techs: [
+      "Python",
+      "TensorFlow",
+      "PyTorch",
+      "Scikit-learn",
+      "OpenAI",
+      "LangChain",
+    ],
+  },
+  Frontend: {
+    color: "cool",
+    techs: ["React", "Next.js", "TypeScript", "Tailwind", "Vue"],
+  },
+  Backend: {
+    color: "fuchsia",
+    techs: ["Node.js", "FastAPI", "PostgreSQL", "Redis", "GraphQL"],
+  },
+  Cloud: {
+    color: "accent",
+    techs: ["AWS", "GCP", "Docker", "Kubernetes", "Terraform"],
+  },
+};
 
 export default function TechStackShowcase({ projects = [] }) {
   const sectionRef = useRef(null);
+  const titleRef = useRef(null);
   const [techStack, setTechStack] = useState([]);
-  const [selectedTech, setSelectedTech] = useState(null);
   const iconsRef = useRef([]);
 
   useEffect(() => {
-    // Extract unique technologies from projects
     const parseJsonField = (field, defaultValue = []) => {
       if (!field) return defaultValue;
       if (typeof field === "string") {
@@ -24,7 +65,7 @@ export default function TechStackShowcase({ projects = [] }) {
     };
 
     const techMap = new Map();
-    
+
     projects.forEach((project) => {
       const techs = parseJsonField(project.techStack, []);
       techs.forEach((tech) => {
@@ -37,10 +78,26 @@ export default function TechStackShowcase({ projects = [] }) {
       });
     });
 
+    // Determine category for each tech
+    const categorizedTech = (techName) => {
+      for (const [category, data] of Object.entries(techCategories)) {
+        if (
+          data.techs.some((t) => t.toLowerCase() === techName.toLowerCase())
+        ) {
+          return data.color;
+        }
+      }
+      return "primary";
+    };
+
     const techArray = Array.from(techMap.entries())
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => ({
+        name,
+        count,
+        color: categorizedTech(name),
+      }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 12); // Show top 12 technologies
+      .slice(0, 12);
 
     setTechStack(techArray);
   }, [projects]);
@@ -48,84 +105,193 @@ export default function TechStackShowcase({ projects = [] }) {
   useEffect(() => {
     if (!sectionRef.current || techStack.length === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry, index) => {
-          if (entry.isIntersecting) {
-            const icon = iconsRef.current[index];
-            if (icon) {
-              gsap.fromTo(
-                icon,
-                { opacity: 0, scale: 0, rotation: -180 },
-                {
-                  opacity: 1,
-                  scale: 1,
-                  rotation: 0,
-                  duration: 0.6,
-                  delay: index * 0.05,
-                  ease: "back.out(1.7)",
-                }
-              );
-            }
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) return;
 
-    iconsRef.current.forEach((icon) => {
-      if (icon) observer.observe(icon);
+    // Animate title
+    if (titleRef.current) {
+      gsap.fromTo(
+        titleRef.current,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: titleRef.current,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        },
+      );
+    }
+
+    iconsRef.current.forEach((icon, index) => {
+      if (!icon) return;
+
+      gsap.fromTo(
+        icon,
+        { opacity: 0, scale: 0, rotation: -180 },
+        {
+          opacity: 1,
+          scale: 1,
+          rotation: 0,
+          duration: 0.7,
+          ease: "back.out(1.7)",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+          delay: index * 0.07,
+        },
+      );
     });
 
     return () => {
-      iconsRef.current.forEach((icon) => {
-        if (icon) observer.unobserve(icon);
-      });
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, [techStack]);
 
-  if (techStack.length === 0) {
-    return null;
-  }
+  // Refined color map
+  const colorMap = {
+    primary: {
+      bg: "rgba(232, 93, 4, 0.12)",
+      border: "rgba(232, 93, 4, 0.25)",
+      text: "#E85D04",
+      glow: "0 0 25px rgba(232, 93, 4, 0.35)",
+    },
+    cool: {
+      bg: "rgba(76, 201, 240, 0.12)",
+      border: "rgba(76, 201, 240, 0.25)",
+      text: "#4CC9F0",
+      glow: "0 0 25px rgba(76, 201, 240, 0.35)",
+    },
+    accent: {
+      bg: "rgba(250, 163, 7, 0.12)",
+      border: "rgba(250, 163, 7, 0.25)",
+      text: "#FAA307",
+      glow: "0 0 25px rgba(250, 163, 7, 0.35)",
+    },
+    fuchsia: {
+      bg: "rgba(247, 37, 133, 0.12)",
+      border: "rgba(247, 37, 133, 0.25)",
+      text: "#F72585",
+      glow: "0 0 25px rgba(247, 37, 133, 0.35)",
+    },
+  };
+
+  if (techStack.length === 0) return null;
 
   return (
-    <section ref={sectionRef} className={styles.techSection} aria-label="Technology stack">
-      <Container>
-        <h2 className={styles.sectionTitle}>Technologies I Work With</h2>
-        <div className={styles.techGrid}>
-          {techStack.map((tech, index) => (
-            <div
-              key={tech.name}
-              ref={(el) => (iconsRef.current[index] = el)}
-              className={styles.techItem}
-              onClick={() => setSelectedTech(selectedTech === tech.name ? null : tech.name)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setSelectedTech(selectedTech === tech.name ? null : tech.name);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={`${tech.name} - used in ${tech.count} project${tech.count !== 1 ? "s" : ""}`}
-            >
-              <div className={styles.techIcon}>
-                <span className={styles.techInitial}>{tech.name.charAt(0).toUpperCase()}</span>
-              </div>
-              <div className={styles.techInfo}>
-                <div className={styles.techName}>{tech.name}</div>
-                <div className={styles.techCount}>{tech.count} project{tech.count !== 1 ? "s" : ""}</div>
-              </div>
-              {selectedTech === tech.name && (
-                <div className={styles.techTooltip} role="tooltip">
-                  Used in {tech.count} project{tech.count !== 1 ? "s" : ""}
-                </div>
-              )}
-            </div>
-          ))}
+    <section
+      ref={sectionRef}
+      className="py-28 relative z-10"
+      style={{ background: "rgba(4, 4, 4, 0.6)" }}
+      aria-label="Technology stack"
+    >
+      <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-20" ref={titleRef}>
+          {/* Badge */}
+          <Badge variant="accent" size="lg" className="mb-8">
+            Tech Stack
+          </Badge>
+
+          {/* Title - Premium typography */}
+          <h2
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 tracking-tight"
+            style={{
+              fontFamily: "var(--font-family-heading)",
+              background:
+                "linear-gradient(135deg, #FAFAFA 0%, #E85D04 60%, #9D0208 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Technologies I Work With
+          </h2>
+
+          <p
+            className="text-lg sm:text-xl mx-auto leading-relaxed"
+            style={{
+              color: "var(--color-text-secondary)",
+              fontFamily: "var(--font-family-base)",
+              maxWidth: "80%",
+            }}
+          >
+            Modern tools and frameworks for building intelligent, scalable
+            systems.
+          </p>
         </div>
-      </Container>
+
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-5">
+          {techStack.map((tech, index) => {
+            const colors = colorMap[tech.color];
+            return (
+              <div
+                key={tech.name}
+                ref={(el) => (iconsRef.current[index] = el)}
+                className="group relative flex flex-col items-center justify-center p-5 rounded-xl cursor-pointer transition-all duration-300 hover:-translate-y-2"
+                style={{
+                  background: "rgba(12, 12, 12, 0.85)",
+                  border: `1px solid ${colors.border}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = colors.glow;
+                  e.currentTarget.style.borderColor = colors.text;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.borderColor = colors.border;
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${tech.name} - used in ${tech.count} project${tech.count !== 1 ? "s" : ""}`}
+              >
+                {/* Icon placeholder */}
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110"
+                  style={{
+                    background: colors.bg,
+                    border: `1px solid ${colors.border}`,
+                    color: colors.text,
+                  }}
+                >
+                  <span
+                    className="text-xl font-bold"
+                    style={{ fontFamily: "var(--font-family-heading)" }}
+                  >
+                    {tech.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Name */}
+                <div
+                  className="text-sm font-medium text-center truncate w-full"
+                  style={{
+                    color: "var(--color-text-primary)",
+                    fontFamily: "var(--font-family-base)",
+                  }}
+                >
+                  {tech.name}
+                </div>
+
+                {/* Count */}
+                <div
+                  className="text-xs mt-1"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {tech.count} project{tech.count !== 1 ? "s" : ""}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }
-

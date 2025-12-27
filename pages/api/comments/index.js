@@ -30,6 +30,7 @@ const handleGetRequest = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
+      take: 100, // Add reasonable limit to prevent memory issues
     });
 
     res.json(comments);
@@ -42,7 +43,11 @@ const handlePostRequest = async (req, res) => {
   try {
     const { postId, authorName, authorEmail, content } = req.body;
 
-    const validation = validateRequiredFields(req.body, ["postId", "authorName", "content"]);
+    const validation = validateRequiredFields(req.body, [
+      "postId",
+      "authorName",
+      "content",
+    ]);
     if (!validation.isValid) {
       return res.status(400).json({ message: validation.message });
     }
@@ -71,4 +76,3 @@ const handlePostRequest = async (req, res) => {
     handleApiError(error, res);
   }
 };
-

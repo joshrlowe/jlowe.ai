@@ -1,6 +1,9 @@
 import prisma from "../../../lib/prisma.js";
 import { createApiHandler } from "../../../lib/utils/apiRouteHandler.js";
-import { withAuth, getUserIdFromToken } from "../../../lib/utils/authMiddleware.js";
+import {
+  withAuth,
+  getUserIdFromToken,
+} from "../../../lib/utils/authMiddleware.js";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
 import { mapProjectStatus } from "../../../lib/utils/projectStatusMapper.js";
 import { logActivity } from "../../../lib/utils/activityLogger.js";
@@ -18,7 +21,10 @@ const handleGetRequest = async (req, res) => {
       includeTeam: true,
     });
 
-    const projects = await prisma.project.findMany(query);
+    const projects = await prisma.project.findMany({
+      ...query,
+      take: query.take || 100, // Add reasonable limit to prevent memory issues
+    });
     res.json(projects);
   } catch (error) {
     handleApiError(error, res);
@@ -31,7 +37,9 @@ const handlePostRequest = async (req, res, token) => {
     // Refactored: Extract Method - Validation extracted
     const validation = validateAdminProjectData(req.body);
     if (!validation.isValid) {
-      return res.status(400).json({ message: validation.message || "Title and slug are required" });
+      return res
+        .status(400)
+        .json({ message: validation.message || "Title and slug are required" });
     }
 
     const {
@@ -106,7 +114,9 @@ const handlePostRequest = async (req, res, token) => {
     res.status(201).json(createdProject);
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(400).json({ message: "A project with this slug already exists" });
+      return res
+        .status(400)
+        .json({ message: "A project with this slug already exists" });
     }
     handleApiError(error, res);
   }
@@ -117,6 +127,5 @@ export default withAuth(
   createApiHandler({
     GET: handleGetRequest,
     POST: handlePostRequest,
-  })
+  }),
 );
-

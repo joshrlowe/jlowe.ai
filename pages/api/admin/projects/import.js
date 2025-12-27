@@ -50,7 +50,10 @@ export default async function handler(req, res) {
         } = projectData;
 
         if (!title || !slug) {
-          results.failed.push({ project: projectData, error: "Title and slug are required" });
+          results.failed.push({
+            project: projectData,
+            error: "Title and slug are required",
+          });
           continue;
         }
 
@@ -94,4 +97,3 @@ export default async function handler(req, res) {
     handleApiError(error, res);
   }
 }
-

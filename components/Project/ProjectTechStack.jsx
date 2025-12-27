@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import styles from "@/styles/ProjectsPage.module.css";
 
@@ -17,7 +18,7 @@ const namesToString = (objects) => {
   return objects.map((obj) => obj.name).join(", ");
 };
 
-export default function ProjectTechStack({ techStack }) {
+function ProjectTechStack({ techStack }) {
   const highLevelTechStack = techStackToString(techStack);
 
   return (
@@ -91,3 +92,5 @@ export default function ProjectTechStack({ techStack }) {
     </>
   );
 }
+
+export default React.memo(ProjectTechStack);

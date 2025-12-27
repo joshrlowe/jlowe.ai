@@ -10,18 +10,27 @@ export function useFormValidation(rules = {}) {
       if (!rule) return null;
 
       // Required check
-      if (rule.required && (!value || (typeof value === "string" && !value.trim()))) {
+      if (
+        rule.required &&
+        (!value || (typeof value === "string" && !value.trim()))
+      ) {
         return rule.required;
       }
 
       // Min length check
       if (rule.minLength && value && value.length < rule.minLength) {
-        return rule.minLengthMessage || `Must be at least ${rule.minLength} characters`;
+        return (
+          rule.minLengthMessage ||
+          `Must be at least ${rule.minLength} characters`
+        );
       }
 
       // Max length check
       if (rule.maxLength && value && value.length > rule.maxLength) {
-        return rule.maxLengthMessage || `Must be less than ${rule.maxLength} characters`;
+        return (
+          rule.maxLengthMessage ||
+          `Must be less than ${rule.maxLength} characters`
+        );
       }
 
       // Pattern check
@@ -37,7 +46,7 @@ export function useFormValidation(rules = {}) {
 
       return null;
     },
-    [rules]
+    [rules],
   );
 
   const validateField = useCallback(
@@ -46,7 +55,7 @@ export function useFormValidation(rules = {}) {
       setErrors((prev) => ({ ...prev, [fieldName]: error }));
       return !error;
     },
-    [validate]
+    [validate],
   );
 
   const validateAll = useCallback(
@@ -65,7 +74,7 @@ export function useFormValidation(rules = {}) {
       setErrors(newErrors);
       return isValid;
     },
-    [rules, validate]
+    [rules, validate],
   );
 
   const setFieldTouched = useCallback((fieldName) => {
@@ -81,7 +90,7 @@ export function useFormValidation(rules = {}) {
     (fieldName) => {
       return touched[fieldName] ? errors[fieldName] : null;
     },
-    [errors, touched]
+    [errors, touched],
   );
 
   return {
@@ -92,7 +101,8 @@ export function useFormValidation(rules = {}) {
     setFieldTouched,
     clearErrors,
     getFieldError,
-    isValid: Object.keys(errors).length === 0 || Object.values(errors).every((e) => !e),
+    isValid:
+      Object.keys(errors).length === 0 ||
+      Object.values(errors).every((e) => !e),
   };
 }
-

@@ -1,6 +1,6 @@
 /**
  * Tests for apiRouteHandler utility functions
- * 
+ *
  * Following TDD: Tests written before refactoring to ensure behavior preservation
  */
 
@@ -51,7 +51,9 @@ describe("apiRouteHandler utilities", () => {
       await handler(mockReq, mockRes);
 
       expect(mockRes.status).toHaveBeenCalledWith(405);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Method Not Allowed" });
+      expect(mockRes.json).toHaveBeenCalledWith({
+        message: "Method Not Allowed",
+      });
     });
 
     it("should handle errors with handleApiError", async () => {
@@ -82,12 +84,17 @@ describe("apiRouteHandler utilities", () => {
 
     it("should return 404 when data not found", async () => {
       const findLatestFn = jest.fn().mockResolvedValue(null);
-      const handler = createGetLatestHandler(findLatestFn, "Custom not found message");
+      const handler = createGetLatestHandler(
+        findLatestFn,
+        "Custom not found message",
+      );
 
       await handler(mockReq, mockRes);
 
       expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Custom not found message" });
+      expect(mockRes.json).toHaveBeenCalledWith({
+        message: "Custom not found message",
+      });
     });
 
     it("should handle errors", async () => {
@@ -134,7 +141,9 @@ describe("apiRouteHandler utilities", () => {
       expect(deleteAllFn).not.toHaveBeenCalled();
       expect(createFn).not.toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Missing required fields" });
+      expect(mockRes.json).toHaveBeenCalledWith({
+        message: "Missing required fields",
+      });
     });
 
     it("should work without validation function", async () => {
@@ -164,4 +173,3 @@ describe("apiRouteHandler utilities", () => {
     });
   });
 });
-

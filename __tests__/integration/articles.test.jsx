@@ -97,4 +97,3 @@ describe("Article Detail Page Integration", () => {
     expect(mockPost._count.likes).toBe(10);
   });
 });
-

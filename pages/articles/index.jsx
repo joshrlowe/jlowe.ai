@@ -1,16 +1,23 @@
 import { useState, useMemo } from "react";
-import { Container, Row, Col, Form } from "react-bootstrap";
 import prisma from "../../lib/prisma";
 import SEO from "@/components/SEO";
 import Link from "next/link";
 import Image from "next/image";
 import NewsletterSubscription from "@/components/Articles/NewsletterSubscription";
-import { filterAndSortPosts, paginate, calculateTotalPages } from "@/lib/utils/postFilters";
+import {
+  filterAndSortPosts,
+  paginate,
+  calculateTotalPages,
+} from "@/lib/utils/postFilters";
 import { formatArticleDate } from "@/lib/utils/dateUtils";
-import { POSTS_PER_PAGE, PLAYLISTS_PER_PAGE, SORT_OPTIONS } from "@/lib/utils/constants";
-import styles from "@/styles/ArticlesPage.module.css";
+import { POSTS_PER_PAGE, PLAYLISTS_PER_PAGE } from "@/lib/utils/constants";
 
-export default function ArticlesPage({ recentPosts, playlists, allTopics, allTags }) {
+export default function ArticlesPage({
+  recentPosts,
+  playlists,
+  allTopics,
+  allTags,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -19,7 +26,6 @@ export default function ArticlesPage({ recentPosts, playlists, allTopics, allTag
   const [currentPage, setCurrentPage] = useState(1);
   const [playlistPage, setPlaylistPage] = useState(1);
 
-  // Filter and sort posts (Refactored: Extract Method)
   const filteredPosts = useMemo(() => {
     return filterAndSortPosts(recentPosts, {
       searchQuery,
@@ -30,18 +36,19 @@ export default function ArticlesPage({ recentPosts, playlists, allTopics, allTag
     });
   }, [recentPosts, searchQuery, selectedTopic, selectedTag, sortBy, sortOrder]);
 
-  // Paginate posts (Refactored: Extract Method)
   const paginatedPosts = useMemo(() => {
     return paginate(filteredPosts, currentPage, POSTS_PER_PAGE);
   }, [filteredPosts, currentPage]);
 
-  // Paginate playlists (Refactored: Extract Method)
   const paginatedPlaylists = useMemo(() => {
     return paginate(playlists, playlistPage, PLAYLISTS_PER_PAGE);
   }, [playlists, playlistPage]);
 
   const totalPages = calculateTotalPages(filteredPosts.length, POSTS_PER_PAGE);
-  const totalPlaylistPages = calculateTotalPages(playlists.length, PLAYLISTS_PER_PAGE);
+  const totalPlaylistPages = calculateTotalPages(
+    playlists.length,
+    PLAYLISTS_PER_PAGE,
+  );
 
   return (
     <>
@@ -50,17 +57,24 @@ export default function ArticlesPage({ recentPosts, playlists, allTopics, allTag
         description="Read my latest articles on web development, full-stack engineering, and technology insights."
         url="https://jlowe.ai/articles"
       />
-      <Container className={styles.articlesContainer}>
-        <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Articles</h1>
-          <p className={styles.pageDescription}>
-            Latest articles, tutorials, and insights on web development and technology.
-          </p>
-        </div>
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-6xl">
+          {/* Page Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl sm:text-5xl font-bold text-[var(--color-primary)] mb-4 font-[family-name:var(--font-oswald)]">
+              Articles
+            </h1>
+            <p
+              className="text-lg text-[var(--color-text-secondary)] mx-auto"
+              style={{ maxWidth: "80%" }}
+            >
+              Latest articles, tutorials, and insights on web development and
+              technology.
+            </p>
+          </div>
 
-        {/* Search and Filters */}
-        <div className={styles.filtersSection}>
-          <div className={styles.searchBox}>
+          {/* Search and Filters */}
+          <div className="mb-8">
             <input
               type="text"
               placeholder="Search articles..."
@@ -69,204 +83,238 @@ export default function ArticlesPage({ recentPosts, playlists, allTopics, allTag
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className={styles.searchInput}
+              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
             />
-          </div>
 
-          <div className={styles.filterRow}>
-            <Form.Select
-              value={selectedTopic}
-              onChange={(e) => {
-                setSelectedTopic(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={styles.filterSelect}
-            >
-              <option value="all">All Topics</option>
-              {allTopics.map((topic) => (
-                <option key={topic} value={topic}>
-                  {topic}
-                </option>
-              ))}
-            </Form.Select>
-
-            <Form.Select
-              value={selectedTag}
-              onChange={(e) => {
-                setSelectedTag(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={styles.filterSelect}
-            >
-              <option value="all">All Tags</option>
-              {allTags.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </Form.Select>
-
-            <Form.Select
-              value={`${sortBy}-${sortOrder}`}
-              onChange={(e) => {
-                const [sort, order] = e.target.value.split("-");
-                setSortBy(sort);
-                setSortOrder(order);
-                setCurrentPage(1);
-              }}
-              className={styles.filterSelect}
-            >
-              <option value="datePublished-desc">Newest First</option>
-              <option value="datePublished-asc">Oldest First</option>
-              <option value="title-asc">Title A-Z</option>
-              <option value="title-desc">Title Z-A</option>
-              <option value="viewCount-desc">Most Views</option>
-            </Form.Select>
-          </div>
-        </div>
-
-        {/* Top 10 Recent Posts */}
-        <section className={styles.recentPostsSection}>
-          <h2 className={styles.sectionTitle}>Latest Articles</h2>
-          <div className={styles.postsList}>
-            {paginatedPosts.length === 0 ? (
-              <p className={styles.emptyState}>No articles found.</p>
-            ) : (
-              paginatedPosts.map((post) => (
-                <article key={post.id} className={styles.postCard}>
-                  <Link href={`/articles/${post.topic}/${post.slug}`} className={styles.postLink}>
-                    {post.coverImage && (
-                      <div className={styles.postImage}>
-                        <Image
-                          src={post.coverImage}
-                          alt={post.title}
-                          width={200}
-                          height={120}
-                          className={styles.coverImage}
-                        />
-                      </div>
-                    )}
-                    <div className={styles.postContent}>
-                      <div className={styles.postMeta}>
-                        <span className={styles.postTopic}>{post.topic}</span>
-                        <span className={styles.postDate}>{formatArticleDate(post.datePublished)}</span>
-                        {post.readingTime && (
-                          <span className={styles.readingTime}>{post.readingTime} min read</span>
-                        )}
-                      </div>
-                      <h3 className={styles.postTitle}>{post.title}</h3>
-                      <p className={styles.postDescription}>{post.description}</p>
-                      <div className={styles.postTags}>
-                        {post.tags?.slice(0, 3).map((tag, index) => (
-                          <span key={index} className={styles.tag}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </Link>
-                </article>
-              ))
-            )}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className={styles.pagination}>
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className={styles.paginationButton}
+            <div className="flex flex-wrap gap-4">
+              <select
+                value={selectedTopic}
+                onChange={(e) => {
+                  setSelectedTopic(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
               >
-                Previous
-              </button>
-              <span className={styles.paginationInfo}>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className={styles.paginationButton}
+                <option value="all">All Topics</option>
+                {allTopics.map((topic) => (
+                  <option key={topic} value={topic}>
+                    {topic}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedTag}
+                onChange={(e) => {
+                  setSelectedTag(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
               >
-                Next
-              </button>
+                <option value="all">All Tags</option>
+                {allTags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [sort, order] = e.target.value.split("-");
+                  setSortBy(sort);
+                  setSortOrder(order);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+              >
+                <option value="datePublished-desc">Newest First</option>
+                <option value="datePublished-asc">Oldest First</option>
+                <option value="title-asc">Title A-Z</option>
+                <option value="title-desc">Title Z-A</option>
+                <option value="viewCount-desc">Most Views</option>
+              </select>
             </div>
-          )}
-        </section>
+          </div>
 
-        {/* Playlists Grid */}
-        <section className={styles.playlistsSection}>
-          <h2 className={styles.sectionTitle}>Playlists</h2>
-          {paginatedPlaylists.length === 0 ? (
-            <p className={styles.emptyState}>No playlists available.</p>
-          ) : (
-            <>
-              <Row className="g-4">
-                {paginatedPlaylists.map((playlist) => (
-                  <Col key={playlist.id} md={6} lg={4}>
-                    <Link href={`/articles/playlist/${playlist.slug}`} className={styles.playlistCard}>
-                      {playlist.coverImage && (
-                        <div className={styles.playlistImage}>
+          {/* Latest Articles */}
+          <section className="mb-16">
+            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-[family-name:var(--font-oswald)]">
+              Latest Articles
+            </h2>
+
+            {paginatedPosts.length === 0 ? (
+              <p className="text-[var(--color-text-secondary)] text-center py-12">
+                No articles found.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {paginatedPosts.map((post) => (
+                  <article key={post.id} className="group">
+                    <Link
+                      href={`/articles/${post.topic}/${post.slug}`}
+                      className="flex flex-col sm:flex-row gap-6 p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] hover:border-[var(--color-primary)] transition-all duration-300"
+                    >
+                      {post.coverImage && (
+                        <div className="relative w-full sm:w-48 h-32 shrink-0 rounded-lg overflow-hidden">
                           <Image
-                            src={playlist.coverImage}
-                            alt={playlist.title}
-                            width={400}
-                            height={250}
-                            className={styles.playlistCoverImage}
+                            src={post.coverImage}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 200px"
                           />
                         </div>
                       )}
-                      <div className={styles.playlistContent}>
-                        <h3 className={styles.playlistTitle}>{playlist.title}</h3>
-                        {playlist.description && (
-                          <p className={styles.playlistDescription}>{playlist.description}</p>
-                        )}
-                        <span className={styles.playlistCount}>
-                          {playlist._count?.playlistPosts || 0} articles
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                            {post.topic}
+                          </span>
+                          <span className="text-xs text-[var(--color-text-muted)]">
+                            {formatArticleDate(post.datePublished)}
+                          </span>
+                          {post.readingTime && (
+                            <span className="text-xs text-[var(--color-text-muted)]">
+                              {post.readingTime} min read
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+                        <p className="text-[var(--color-text-secondary)] text-sm mb-4 line-clamp-2">
+                          {post.description}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {post.tags?.slice(0, 3).map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-0.5 text-xs rounded bg-[var(--color-bg-darker)] text-[var(--color-text-muted)]"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </Link>
-                  </Col>
+                  </article>
                 ))}
-              </Row>
+              </div>
+            )}
 
-              {/* Playlist Pagination */}
-              {totalPlaylistPages > 1 && (
-                <div className={styles.pagination}>
-                  <button
-                    onClick={() => setPlaylistPage((p) => Math.max(1, p - 1))}
-                    disabled={playlistPage === 1}
-                    className={styles.paginationButton}
-                  >
-                    Previous
-                  </button>
-                  <span className={styles.paginationInfo}>
-                    Page {playlistPage} of {totalPlaylistPages}
-                  </span>
-                  <button
-                    onClick={() => setPlaylistPage((p) => Math.min(totalPlaylistPages, p + 1))}
-                    disabled={playlistPage === totalPlaylistPages}
-                    className={styles.paginationButton}
-                  >
-                    Next
-                  </button>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-8">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="text-[var(--color-text-secondary)]">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* Playlists */}
+          <section className="mb-16">
+            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-[family-name:var(--font-oswald)]">
+              Playlists
+            </h2>
+
+            {paginatedPlaylists.length === 0 ? (
+              <p className="text-[var(--color-text-secondary)] text-center py-12">
+                No playlists available.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedPlaylists.map((playlist) => (
+                    <Link
+                      key={playlist.id}
+                      href={`/articles/playlist/${playlist.slug}`}
+                      className="group p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] hover:border-[var(--color-primary)] transition-all duration-300"
+                    >
+                      {playlist.coverImage && (
+                        <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden">
+                          <Image
+                            src={playlist.coverImage}
+                            alt={playlist.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 400px"
+                          />
+                        </div>
+                      )}
+                      <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+                        {playlist.title}
+                      </h3>
+                      {playlist.description && (
+                        <p className="text-sm text-[var(--color-text-secondary)] mb-4 line-clamp-2">
+                          {playlist.description}
+                        </p>
+                      )}
+                      <span className="text-xs text-[var(--color-text-muted)]">
+                        {playlist._count?.playlistPosts || 0} articles
+                      </span>
+                    </Link>
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </section>
 
-        {/* Newsletter Subscription */}
-        <NewsletterSubscription />
-      </Container>
+                {/* Playlist Pagination */}
+                {totalPlaylistPages > 1 && (
+                  <div className="flex justify-center items-center gap-4 mt-8">
+                    <button
+                      onClick={() => setPlaylistPage((p) => Math.max(1, p - 1))}
+                      disabled={playlistPage === 1}
+                      className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-[var(--color-text-secondary)]">
+                      Page {playlistPage} of {totalPlaylistPages}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setPlaylistPage((p) =>
+                          Math.min(totalPlaylistPages, p + 1),
+                        )
+                      }
+                      disabled={playlistPage === totalPlaylistPages}
+                      className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+
+          {/* Newsletter */}
+          <NewsletterSubscription />
+        </div>
+      </div>
     </>
   );
 }
 
 export async function getStaticProps() {
   try {
-    // Check if Post model exists (handle case where database hasn't been migrated yet)
-    // Get top 10 most recent published posts
     let recentPosts = [];
     let playlists = [];
     let topics = [];
@@ -274,13 +322,9 @@ export async function getStaticProps() {
 
     try {
       recentPosts = await prisma.post.findMany({
-        where: {
-          status: "Published",
-        },
-        orderBy: {
-          datePublished: "desc",
-        },
-        take: 100, // Get more than 10 so filtering/sorting has data to work with
+        where: { status: "Published" },
+        orderBy: { datePublished: "desc" },
+        take: 100,
         include: {
           _count: {
             select: {
@@ -291,7 +335,6 @@ export async function getStaticProps() {
         },
       });
 
-      // Get all playlists
       playlists = await prisma.playlist.findMany({
         orderBy: [
           { featured: "desc" },
@@ -300,14 +343,11 @@ export async function getStaticProps() {
         ],
         include: {
           _count: {
-            select: {
-              playlistPosts: true,
-            },
+            select: { playlistPosts: true },
           },
         },
       });
 
-      // Get all unique topics and tags
       const allPosts = await prisma.post.findMany({
         where: { status: "Published" },
         select: { topic: true, tags: true },
@@ -316,9 +356,10 @@ export async function getStaticProps() {
       topics = [...new Set(allPosts.map((p) => p.topic))].sort();
       tags = [...new Set(allPosts.flatMap((p) => p.tags || []))].sort();
     } catch (dbError) {
-      // If Post model doesn't exist, return empty arrays
-      // This handles the case where the database hasn't been migrated yet
-      console.warn("Post model not found - database may need migration:", dbError.message);
+      console.warn(
+        "Post model not found - database may need migration:",
+        dbError.message,
+      );
     }
 
     return {
@@ -328,7 +369,7 @@ export async function getStaticProps() {
         allTopics: topics,
         allTags: tags,
       },
-      revalidate: 60, // ISR: revalidate every 60 seconds
+      revalidate: 60,
     };
   } catch (error) {
     console.error("Error in articles getStaticProps:", error);
@@ -343,4 +384,3 @@ export async function getStaticProps() {
     };
   }
 }
-

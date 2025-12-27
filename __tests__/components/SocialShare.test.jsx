@@ -36,7 +36,7 @@ describe("SocialShare", () => {
     const twitterLink = screen.getByLabelText("Share on Twitter");
     expect(twitterLink).toHaveAttribute(
       "href",
-      expect.stringContaining(encodeURIComponent(defaultProps.url))
+      expect.stringContaining(encodeURIComponent(defaultProps.url)),
     );
   });
 
@@ -50,7 +50,7 @@ describe("SocialShare", () => {
     await user.click(copyButton);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      defaultProps.url
+      defaultProps.url,
     );
   });
 
@@ -69,4 +69,3 @@ describe("SocialShare", () => {
     expect(twitterLink).toHaveAttribute("rel", "noopener noreferrer");
   });
 });
-

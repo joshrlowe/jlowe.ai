@@ -1,28 +1,27 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { gsap } from "gsap";
 import styles from "@/styles/SocialLinks.module.css";
 
 export default function SocialLinks({ contactData, vertical = false }) {
-  const [socialLinks, setSocialLinks] = useState({});
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    if (!contactData) return;
-
-    const links = contactData.socialMediaLinks && typeof contactData.socialMediaLinks === "object"
+  // Extract links directly from contactData prop to avoid state-based hydration issues
+  // This ensures the same data is used on both server and client
+  const socialLinks =
+    contactData?.socialMediaLinks &&
+    typeof contactData.socialMediaLinks === "object"
       ? contactData.socialMediaLinks
       : {};
-
-    setSocialLinks(links);
-  }, [contactData]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const links = containerRef.current.querySelectorAll(`.${styles.socialLink}`);
-    
+    const links = containerRef.current.querySelectorAll(
+      `.${styles.socialLink}`,
+    );
+
     links.forEach((link, index) => {
       gsap.fromTo(
         link,
@@ -35,19 +34,28 @@ export default function SocialLinks({ contactData, vertical = false }) {
           duration: 0.5,
           delay: index * 0.1,
           ease: "back.out(1.7)",
-        }
+        },
       );
     });
   }, [socialLinks, vertical]);
 
-  if (!contactData || Object.keys(socialLinks).length === 0) {
+  // Always render the same structure to prevent hydration mismatch
+  // Only return null if contactData prop is not provided (prop-based check, same on server/client)
+  if (!contactData) {
     return null;
   }
 
-  const containerClass = vertical ? styles.socialLinksVertical : styles.socialLinks;
+  const containerClass = vertical
+    ? styles.socialLinksVertical
+    : styles.socialLinks;
 
   return (
-    <div ref={containerRef} className={containerClass} role="list" aria-label="Social media links">
+    <div
+      ref={containerRef}
+      className={containerClass}
+      role="list"
+      aria-label="Social media links"
+    >
       {socialLinks.github && (
         <Link
           href={socialLinks.github}
@@ -121,4 +129,3 @@ export default function SocialLinks({ contactData, vertical = false }) {
     </div>
   );
 }
-

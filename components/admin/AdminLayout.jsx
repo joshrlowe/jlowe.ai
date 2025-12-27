@@ -1,15 +1,17 @@
 import AdminSidebar from "./AdminSidebar";
-import styles from "@/styles/AdminLayout.module.css";
 
 export default function AdminLayout({ children, title = "Admin" }) {
   return (
-    <div className={`${styles.adminLayout} adminWrapper`}>
+    <div className="flex min-h-screen bg-[var(--color-bg-dark)]">
       <AdminSidebar />
-      <main className={styles.mainContent}>
-        {title && <h1 className={styles.adminPageTitle}>{title}</h1>}
+      <main className="flex-1 p-6 md:p-8 ml-0 md:ml-64">
+        {title && (
+          <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-8 font-heading">
+            {title}
+          </h1>
+        )}
         {children}
       </main>
     </div>
   );
 }
-

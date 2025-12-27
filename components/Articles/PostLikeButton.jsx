@@ -1,68 +1,71 @@
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import { buildLikeApiUrl } from "@/lib/utils/likeHelpers.js";
-import styles from "./PostLikeButton.module.css";
 
-export default function PostLikeButton({ topic, slug, initialLikeData, onLikeUpdate }) {
-  const [liked, setLiked] = useState(initialLikeData?.liked || false);
-  const [likeCount, setLikeCount] = useState(initialLikeData?.likeCount || 0);
-  const [loading, setLoading] = useState(false);
+export default function PostLikeButton({ postId, initialLikes = 0 }) {
+  const [likes, setLikes] = useState(initialLikes);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (initialLikeData) {
-      setLiked(initialLikeData.liked);
-      setLikeCount(initialLikeData.likeCount);
-    }
-  }, [initialLikeData]);
+    // Check if user has already liked this post
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+    setHasLiked(likedPosts.includes(postId));
+  }, [postId]);
 
   const handleLike = async () => {
-    if (liked || loading) return;
+    if (hasLiked || isLoading) return;
 
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const response = await fetch(buildLikeApiUrl(topic, slug), {
+      const response = await fetch("/api/posts/like", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
-        setLiked(true);
-        setLikeCount(data.likeCount);
-        if (onLikeUpdate) {
-          onLikeUpdate(data);
-        }
-      } else {
-        toast.error(data.message || "Failed to like post");
+        setLikes((prev) => prev + 1);
+        setHasLiked(true);
+
+        // Store in localStorage
+        const likedPosts = JSON.parse(
+          localStorage.getItem("likedPosts") || "[]",
+        );
+        likedPosts.push(postId);
+        localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
       }
     } catch (error) {
-      console.error("Like error:", error);
-      toast.error("Failed to like post");
+      console.error("Error liking post:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <button
       onClick={handleLike}
-      className={`${styles.likeButton} ${liked ? styles.liked : ""}`}
-      disabled={liked || loading}
-      aria-label={liked ? "Already liked" : "Like this post"}
+      disabled={hasLiked || isLoading}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+        hasLiked
+          ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)] cursor-default"
+          : "bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+      }`}
+      aria-label={hasLiked ? "Already liked" : "Like this article"}
     >
       <svg
-        width="20"
-        height="20"
+        className={`w-5 h-5 transition-transform ${hasLiked ? "scale-110" : ""}`}
+        fill={hasLiked ? "currentColor" : "none"}
         viewBox="0 0 24 24"
-        fill={liked ? "currentColor" : "none"}
         stroke="currentColor"
-        strokeWidth="2"
       >
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
       </svg>
-      <span className={styles.likeCount}>{likeCount}</span>
+      <span className="font-medium">{likes}</span>
     </button>
   );
 }
-

@@ -19,7 +19,8 @@ const nextConfig = {
       // On server side, mark next-auth providers as externals to avoid bundling
       config.externals = config.externals || [];
       config.externals.push({
-        "next-auth/providers/credentials": "commonjs next-auth/providers/credentials",
+        "next-auth/providers/credentials":
+          "commonjs next-auth/providers/credentials",
       });
     } else {
       // Client-side fallbacks

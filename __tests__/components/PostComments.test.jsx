@@ -34,10 +34,10 @@ describe("PostComments", () => {
 
     expect(screen.getByPlaceholderText("Your Name *")).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Your Email (optional)")
+      screen.getByPlaceholderText("Your Email (optional)"),
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Write your comment... *")
+      screen.getByPlaceholderText("Write your comment... *"),
     ).toBeInTheDocument();
     expect(screen.getByText("Submit Comment")).toBeInTheDocument();
   });
@@ -61,7 +61,7 @@ describe("PostComments", () => {
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
-        `/api/comments?postId=${postId}&approved=true`
+        `/api/comments?postId=${postId}&approved=true`,
       );
     });
 
@@ -96,7 +96,7 @@ describe("PostComments", () => {
     await user.type(screen.getByPlaceholderText("Your Name *"), "Jane");
     await user.type(
       screen.getByPlaceholderText("Write your comment... *"),
-      "New comment"
+      "New comment",
     );
     await user.click(screen.getByText("Submit Comment"));
 
@@ -141,7 +141,7 @@ describe("PostComments", () => {
     await user.type(screen.getByPlaceholderText("Your Name *"), "Jane");
     await user.type(
       screen.getByPlaceholderText("Write your comment... *"),
-      "Comment"
+      "Comment",
     );
     await user.click(screen.getByText("Submit Comment"));
 
@@ -160,9 +160,8 @@ describe("PostComments", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/No comments yet. Be the first to comment!/)
+        screen.getByText(/No comments yet. Be the first to comment!/),
       ).toBeInTheDocument();
     });
   });
 });
-

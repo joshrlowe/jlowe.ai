@@ -1,132 +1,51 @@
-import { useState } from "react";
-import { useInView } from "react-intersection-observer";
-import styles from "./LeadershipExperience.module.css";
-
-export default function LeadershipExperience({ experience }) {
-  const { ref, inView } = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-
-  const [expandedItems, setExpandedItems] = useState({});
-
-  const toggleExpand = (index) => {
-    setExpandedItems((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Present";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  const calculateDuration = (startDate, endDate) => {
-    if (!startDate) return "";
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : new Date();
-    
-    const years = end.getFullYear() - start.getFullYear();
-    const months = end.getMonth() - start.getMonth();
-    
-    let duration = "";
-    if (years > 0) {
-      duration += `${years} ${years === 1 ? "year" : "years"}`;
-    }
-    if (months > 0) {
-      if (duration) duration += ", ";
-      duration += `${months} ${months === 1 ? "month" : "months"}`;
-    }
-    if (!duration) {
-      duration = "Less than a month";
-    }
-    
-    return duration;
-  };
-
-  // Sort experience by start date (most recent first)
-  const sortedExperience = [...experience].sort((a, b) => {
-    const dateA = new Date(a.startDate || 0);
-    const dateB = new Date(b.startDate || 0);
-    return dateB - dateA;
-  });
+export default function LeadershipExperience({ experience = [] }) {
+  if (!experience || experience.length === 0) return null;
 
   return (
-    <>
-      <hr />
-      <section
-        ref={ref}
-        className={`${styles.leadershipExperience} ${inView ? styles.fadeIn : ""}`}
-      >
-        <h2>Leadership Experience</h2>
-        <div className={styles.leadershipGrid}>
-          {sortedExperience.map((exp, index) => {
-            const isExpanded = expandedItems[index];
-            const achievements = exp.achievements || [];
-            const duration = calculateDuration(exp.startDate, exp.endDate);
-            const isCurrent = !exp.endDate;
-
-            return (
-              <div key={index} className={styles.leadershipCard}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.leadershipInfo}>
-                    <h3 className={styles.role}>{exp.role}</h3>
-                    <p className={styles.organization}>{exp.organization}</p>
-                  </div>
-                </div>
-
-                <div className={styles.cardDates}>
-                  <span className={styles.dateRange}>
-                    {formatDate(exp.startDate)} - {formatDate(exp.endDate)}
-                  </span>
-                  {duration && (
-                    <span className={styles.duration}>• {duration}</span>
-                  )}
-                  {isCurrent && (
-                    <span className={styles.currentBadge}>Current</span>
-                  )}
-                </div>
-
-                {achievements.length > 0 && (
-                  <div className={styles.achievementsSection}>
-                    <button
-                      className={styles.toggleButton}
-                      onClick={() => toggleExpand(index)}
-                      aria-expanded={isExpanded}
+    <div className="p-8 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
+      <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-heading">
+        Leadership Experience
+      </h2>
+      <div className="space-y-6">
+        {experience.map((item, index) => (
+          <div
+            key={index}
+            className="p-4 rounded-lg bg-[var(--color-bg-darker)]"
+          >
+            <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              {item.role || item.title || item.position}
+            </h3>
+            <div className="text-[var(--color-primary)] font-medium mt-1">
+              {item.organization || item.company}
+            </div>
+            <div className="text-sm text-[var(--color-text-muted)] mt-1">
+              {item.startDate || item.year} - {item.endDate || "Present"}
+            </div>
+            {item.description && (
+              <p className="text-[var(--color-text-secondary)] mt-3">
+                {item.description}
+              </p>
+            )}
+            {item.achievements &&
+              Array.isArray(item.achievements) &&
+              item.achievements.length > 0 && (
+                <ul className="mt-3 space-y-2">
+                  {item.achievements.map((achievement, i) => (
+                    <li
+                      key={i}
+                      className="text-[var(--color-text-secondary)] flex items-start gap-2"
                     >
-                      <span>
-                        {isExpanded ? "Hide" : "Show"} Achievements
-                        {!isExpanded && ` (${achievements.length})`}
+                      <span className="text-[var(--color-primary)] mt-1.5">
+                        •
                       </span>
-                      <span className={styles.toggleIcon}>
-                        {isExpanded ? "▲" : "▼"}
-                      </span>
-                    </button>
-
-                    {isExpanded && (
-                      <ul className={styles.achievementsList}>
-                        {achievements.map((achievement, aIndex) => (
-                          <li key={aIndex} className={styles.achievementItem}>
-                            <span className={styles.achievementBullet}>▸</span>
-                            <span className={styles.achievementText}>
-                              {achievement}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </>
+                      <span>{achievement}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

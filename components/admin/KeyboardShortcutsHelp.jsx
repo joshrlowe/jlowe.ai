@@ -1,42 +1,43 @@
-import { Modal, Table } from "react-bootstrap";
-
 export default function KeyboardShortcutsHelp({ show, onHide }) {
+  if (!show) return null;
+
   const shortcuts = [
-    { key: "Ctrl/Cmd + K", description: "Quick search" },
-    { key: "Ctrl/Cmd + N", description: "New project" },
-    { key: "Ctrl/Cmd + S", description: "Save (in modals)" },
-    { key: "Esc", description: "Close modals" },
-    { key: "Ctrl/Cmd + /", description: "Show shortcuts help" },
-    { key: "Ctrl/Cmd + A", description: "Select all projects" },
-    { key: "Ctrl/Cmd + D", description: "Deselect all projects" },
+    { keys: "Ctrl/Cmd + K", description: "Focus search" },
+    { keys: "Ctrl/Cmd + N", description: "Create new project" },
+    { keys: "Ctrl/Cmd + S", description: "Save (in modal)" },
+    { keys: "Ctrl/Cmd + A", description: "Select all" },
+    { keys: "Ctrl/Cmd + D", description: "Deselect all" },
+    { keys: "Escape", description: "Close modal" },
   ];
 
   return (
-    <Modal show={show} onHide={onHide} size="sm" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Keyboard Shortcuts</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Table striped bordered hover size="sm">
-          <thead>
-            <tr>
-              <th>Shortcut</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shortcuts.map((shortcut, i) => (
-              <tr key={i}>
-                <td>
-                  <code>{shortcut.key}</code>
-                </td>
-                <td>{shortcut.description}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      </Modal.Body>
-    </Modal>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50" onClick={onHide} />
+      <div className="relative w-full max-w-md rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
+        <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">
+          Keyboard Shortcuts
+        </h2>
+
+        <div className="space-y-3">
+          {shortcuts.map((shortcut, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <span className="text-[var(--color-text-secondary)]">
+                {shortcut.description}
+              </span>
+              <kbd className="px-2 py-1 text-sm rounded bg-[var(--color-bg-darker)] text-[var(--color-text-primary)] font-mono">
+                {shortcut.keys}
+              </kbd>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onHide}
+          className="mt-6 w-full px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-text-secondary)] transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
   );
 }
-

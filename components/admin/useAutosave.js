@@ -31,4 +31,3 @@ export function useAutosave(data, onSave, interval = 30000) {
     };
   }, [data, onSave, interval]);
 }
-

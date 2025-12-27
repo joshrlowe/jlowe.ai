@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Button, Form, Alert, Card } from "react-bootstrap";
 import { useToast } from "./ToastProvider";
 
 export default function GlobalSettingsSection({ onError }) {
@@ -7,7 +6,13 @@ export default function GlobalSettingsSection({ onError }) {
   const [settings, setSettings] = useState({
     siteName: "",
     footerText: "",
-    socials: { github: "", linkedin: "", twitter: "", instagram: "", email: "" },
+    socials: {
+      github: "",
+      linkedin: "",
+      twitter: "",
+      instagram: "",
+      email: "",
+    },
     navLinks: [],
   });
   const [loading, setLoading] = useState(true);
@@ -25,7 +30,13 @@ export default function GlobalSettingsSection({ onError }) {
       setSettings({
         siteName: data.siteName || "",
         footerText: data.footerText || "",
-        socials: data.socials || { github: "", linkedin: "", twitter: "", instagram: "", email: "" },
+        socials: data.socials || {
+          github: "",
+          linkedin: "",
+          twitter: "",
+          instagram: "",
+          email: "",
+        },
         navLinks: data.navLinks || [],
         seoDefaults: data.seoDefaults || {},
       });
@@ -64,7 +75,10 @@ export default function GlobalSettingsSection({ onError }) {
   const addNavLink = () => {
     setSettings({
       ...settings,
-      navLinks: [...settings.navLinks, { label: "", href: "", order: settings.navLinks.length }],
+      navLinks: [
+        ...settings.navLinks,
+        { label: "", href: "", order: settings.navLinks.length },
+      ],
     });
   };
 
@@ -81,84 +95,130 @@ export default function GlobalSettingsSection({ onError }) {
     setSettings({ ...settings, navLinks: updated });
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <Form onSubmit={handleSave}>
-      {message && <Alert variant="success">{message}</Alert>}
+    <form onSubmit={handleSave} className="space-y-6">
+      {message && (
+        <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400">
+          {message}
+        </div>
+      )}
 
-      <Form.Group className="mb-3">
-        <Form.Label>Site Name</Form.Label>
-        <Form.Control
+      <div>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          Site Name
+        </label>
+        <input
           type="text"
           value={settings.siteName}
-          onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
+          onChange={(e) =>
+            setSettings({ ...settings, siteName: e.target.value })
+          }
+          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
         />
-      </Form.Group>
+      </div>
 
-      <Form.Group className="mb-3">
-        <Form.Label>Footer Text</Form.Label>
-        <Form.Control
-          as="textarea"
+      <div>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          Footer Text
+        </label>
+        <textarea
           rows={3}
           value={settings.footerText}
-          onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
+          onChange={(e) =>
+            setSettings({ ...settings, footerText: e.target.value })
+          }
+          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
         />
-      </Form.Group>
+      </div>
 
-      <Card className="mb-3">
-        <Card.Header>Social Media Links</Card.Header>
-        <Card.Body>
-          {["github", "linkedin", "twitter", "instagram", "email"].map((platform) => (
-            <Form.Group key={platform} className="mb-2">
-              <Form.Label>{platform.charAt(0).toUpperCase() + platform.slice(1)}</Form.Label>
-              <Form.Control
-                type="text"
-                value={settings.socials[platform] || ""}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    socials: { ...settings.socials, [platform]: e.target.value },
-                  })
-                }
-              />
-            </Form.Group>
-          ))}
-        </Card.Body>
-      </Card>
+      {/* Social Media Links */}
+      <div className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
+          Social Media Links
+        </h3>
+        <div className="space-y-4">
+          {["github", "linkedin", "twitter", "instagram", "email"].map(
+            (platform) => (
+              <div key={platform}>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1 capitalize">
+                  {platform}
+                </label>
+                <input
+                  type="text"
+                  value={settings.socials[platform] || ""}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      socials: {
+                        ...settings.socials,
+                        [platform]: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+                />
+              </div>
+            ),
+          )}
+        </div>
+      </div>
 
-      <Card className="mb-3">
-        <Card.Header>
-          Navigation Links
-          <Button size="sm" variant="outline-primary" className="ms-2" onClick={addNavLink}>
+      {/* Navigation Links */}
+      <div className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            Navigation Links
+          </h3>
+          <button
+            type="button"
+            onClick={addNavLink}
+            className="px-3 py-1 text-sm rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+          >
             Add Link
-          </Button>
-        </Card.Header>
-        <Card.Body>
+          </button>
+        </div>
+        <div className="space-y-3">
           {settings.navLinks.map((link, index) => (
-            <div key={index} className="d-flex gap-2 mb-2">
-              <Form.Control
+            <div key={index} className="flex gap-2">
+              <input
                 placeholder="Label"
                 value={link.label}
                 onChange={(e) => updateNavLink(index, "label", e.target.value)}
+                className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
               />
-              <Form.Control
+              <input
                 placeholder="URL"
                 value={link.href}
                 onChange={(e) => updateNavLink(index, "href", e.target.value)}
+                className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
               />
-              <Button variant="outline-danger" onClick={() => removeNavLink(index)}>
+              <button
+                type="button"
+                onClick={() => removeNavLink(index)}
+                className="px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+              >
                 Remove
-              </Button>
+              </button>
             </div>
           ))}
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
 
-      <Button type="submit" variant="primary" disabled={saving}>
+      <button
+        type="submit"
+        disabled={saving}
+        className="px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
         {saving ? "Saving..." : "Save Settings"}
-      </Button>
-    </Form>
+      </button>
+    </form>
   );
 }
-

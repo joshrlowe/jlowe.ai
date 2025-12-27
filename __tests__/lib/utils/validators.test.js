@@ -103,7 +103,7 @@ describe("validators utilities", () => {
       const result = combineValidations(
         { isValid: true },
         { isValid: true },
-        { isValid: true }
+        { isValid: true },
       );
 
       expect(result.isValid).toBe(true);
@@ -113,7 +113,7 @@ describe("validators utilities", () => {
       const result = combineValidations(
         { isValid: true },
         { isValid: false, message: "Second validation failed" },
-        { isValid: false, message: "Third validation failed" }
+        { isValid: false, message: "Third validation failed" },
       );
 
       expect(result.isValid).toBe(false);
@@ -134,4 +134,3 @@ describe("validators utilities", () => {
     });
   });
 });
-

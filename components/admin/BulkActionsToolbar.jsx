@@ -1,5 +1,3 @@
-import { Button, Form, Dropdown } from "react-bootstrap";
-
 export default function BulkActionsToolbar({
   selectedIds,
   onSelectAll,
@@ -11,63 +9,58 @@ export default function BulkActionsToolbar({
   someSelected,
   totalCount,
 }) {
-  if (selectedIds.length === 0) {
-    return (
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Form.Check
-          type="checkbox"
-          checked={allSelected}
-          onChange={(e) => (e.target.checked ? onSelectAll() : onDeselectAll())}
-          label={`Select all ${totalCount} projects`}
-        />
-      </div>
-    );
-  }
+  if (selectedIds.length === 0) return null;
 
   return (
-    <div
-      className="d-flex justify-content-between align-items-center mb-3 p-3"
-      style={{
-        backgroundColor: "var(--color-bg-dark-alt)",
-        borderRadius: "var(--radius-md)",
-        border: "1px solid var(--color-border)",
-      }}
-    >
-      <div className="d-flex align-items-center gap-3">
-        <span style={{ color: "var(--color-text-primary)", fontWeight: "500" }}>
-          {selectedIds.length} project{selectedIds.length !== 1 ? "s" : ""} selected
-        </span>
-        <Button variant="link" size="sm" onClick={onDeselectAll} style={{ color: "var(--color-text-secondary)" }}>
-          Clear selection
-        </Button>
+    <div className="flex flex-wrap items-center gap-4 p-4 mb-4 rounded-lg bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30">
+      <span className="text-sm text-[var(--color-text-primary)]">
+        {selectedIds.length} of {totalCount} selected
+      </span>
+
+      <div className="flex gap-2">
+        <button
+          onClick={onSelectAll}
+          disabled={allSelected}
+          className="px-3 py-1 text-sm rounded bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-50"
+        >
+          Select All
+        </button>
+        <button
+          onClick={onDeselectAll}
+          className="px-3 py-1 text-sm rounded bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+        >
+          Deselect All
+        </button>
       </div>
-      <div className="d-flex gap-2">
-        <Dropdown>
-          <Dropdown.Toggle variant="outline-primary" size="sm" id="bulk-status-dropdown">
-            Change Status
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => onBulkStatusChange("Draft")}>Draft</Dropdown.Item>
-            <Dropdown.Item onClick={() => onBulkStatusChange("Published")}>Published</Dropdown.Item>
-            <Dropdown.Item onClick={() => onBulkStatusChange("InProgress")}>In Progress</Dropdown.Item>
-            <Dropdown.Item onClick={() => onBulkStatusChange("Completed")}>Completed</Dropdown.Item>
-            <Dropdown.Item onClick={() => onBulkStatusChange("OnHold")}>On Hold</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-        <Dropdown>
-          <Dropdown.Toggle variant="outline-secondary" size="sm" id="bulk-featured-dropdown">
-            Featured
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => onBulkFeaturedChange(true)}>Set Featured</Dropdown.Item>
-            <Dropdown.Item onClick={() => onBulkFeaturedChange(false)}>Remove Featured</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-        <Button variant="outline-danger" size="sm" onClick={onBulkDelete}>
+
+      <div className="flex gap-2 ml-auto">
+        <select
+          onChange={(e) => e.target.value && onBulkStatusChange(e.target.value)}
+          className="px-3 py-1 text-sm rounded bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)]"
+          defaultValue=""
+        >
+          <option value="" disabled>
+            Set Status
+          </option>
+          <option value="Draft">Draft</option>
+          <option value="Published">Published</option>
+          <option value="Completed">Completed</option>
+        </select>
+
+        <button
+          onClick={() => onBulkFeaturedChange(true)}
+          className="px-3 py-1 text-sm rounded border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+        >
+          Feature
+        </button>
+
+        <button
+          onClick={onBulkDelete}
+          className="px-3 py-1 text-sm rounded border border-red-500/30 text-red-400 hover:bg-red-500/10"
+        >
           Delete Selected
-        </Button>
+        </button>
       </div>
     </div>
   );
 }
-

@@ -1,63 +1,17 @@
-import { Container, Row, Col } from "react-bootstrap";
-import { TableRowSkeleton } from "../admin/SkeletonLoader";
-import styles from "@/styles/ProjectCard.module.css";
-
-export default function ProjectSkeleton({ count = 6 }) {
+export default function ProjectSkeleton() {
   return (
-    <Row className="g-4">
-      {Array.from({ length: count }).map((_, i) => (
-        <Col key={i} md={6} lg={4}>
-          <div className={styles.projectCard} style={{ minHeight: "400px" }}>
-            <div
-              style={{
-                width: "100%",
-                height: "200px",
-                background: "var(--color-bg-dark-alt)",
-                borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
-              }}
-            />
-            <div style={{ padding: "var(--spacing-xl)" }}>
-              <div
-                style={{
-                  height: "24px",
-                  width: "70%",
-                  background: "var(--color-bg-dark-alt)",
-                  borderRadius: "var(--radius-sm)",
-                  marginBottom: "var(--spacing-md)",
-                }}
-              />
-              <div
-                style={{
-                  height: "16px",
-                  width: "100%",
-                  background: "var(--color-bg-dark-alt)",
-                  borderRadius: "var(--radius-sm)",
-                  marginBottom: "var(--spacing-xs)",
-                }}
-              />
-              <div
-                style={{
-                  height: "16px",
-                  width: "80%",
-                  background: "var(--color-bg-dark-alt)",
-                  borderRadius: "var(--radius-sm)",
-                  marginBottom: "var(--spacing-lg)",
-                }}
-              />
-              <div
-                style={{
-                  height: "12px",
-                  width: "50%",
-                  background: "var(--color-bg-dark-alt)",
-                  borderRadius: "var(--radius-sm)",
-                  marginBottom: "var(--spacing-md)",
-                }}
-              />
-            </div>
-          </div>
-        </Col>
-      ))}
-    </Row>
+    <div className="bg-[var(--color-bg-card)] rounded-xl overflow-hidden border border-[var(--color-border)] animate-pulse">
+      <div className="h-48 bg-[var(--color-bg-darker)]"></div>
+      <div className="p-6">
+        <div className="h-6 w-3/4 bg-[var(--color-bg-darker)] rounded mb-3"></div>
+        <div className="h-4 w-full bg-[var(--color-bg-darker)] rounded mb-2"></div>
+        <div className="h-4 w-2/3 bg-[var(--color-bg-darker)] rounded mb-4"></div>
+        <div className="flex gap-2">
+          <div className="h-6 w-16 bg-[var(--color-bg-darker)] rounded-full"></div>
+          <div className="h-6 w-20 bg-[var(--color-bg-darker)] rounded-full"></div>
+          <div className="h-6 w-14 bg-[var(--color-bg-darker)] rounded-full"></div>
+        </div>
+      </div>
+    </div>
   );
 }
-

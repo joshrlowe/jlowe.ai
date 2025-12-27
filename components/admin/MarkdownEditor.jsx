@@ -1,53 +1,41 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import { Button } from "react-bootstrap";
 
-export default function MarkdownEditor({ value, onChange, placeholder = "Enter markdown content..." }) {
-  const [showPreview, setShowPreview] = useState(false);
+export default function MarkdownEditor({
+  value,
+  onChange,
+  placeholder = "Enter markdown content...",
+}) {
+  const [isPreview, setIsPreview] = useState(false);
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <label className="fw-semibold">Content</label>
-        <Button
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-sm font-medium text-[var(--color-text-primary)]">
+          Description (Markdown)
+        </label>
+        <button
           type="button"
-          variant="outline-secondary"
-          size="sm"
-          onClick={() => setShowPreview(!showPreview)}
+          onClick={() => setIsPreview(!isPreview)}
+          className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]"
         >
-          {showPreview ? "Edit" : "Preview"}
-        </Button>
+          {isPreview ? "Edit" : "Preview"}
+        </button>
       </div>
-      {showPreview ? (
+
+      {isPreview ? (
         <div
-          style={{
-            minHeight: "300px",
-            padding: "var(--spacing-md)",
-            backgroundColor: "var(--color-bg-dark)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-md)",
-            color: "var(--color-text-primary)",
-            overflow: "auto",
-          }}
-        >
-          <ReactMarkdown>{value || "*No content*"}</ReactMarkdown>
-        </div>
+          className="min-h-[200px] p-4 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-secondary)] prose prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: value.replace(/\n/g, "<br>") }}
+        />
       ) : (
         <textarea
-          className="form-control"
-          rows={12}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          style={{
-            fontFamily: "monospace",
-            backgroundColor: "var(--color-bg-dark)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-text-primary)",
-          }}
+          rows={8}
+          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-y font-mono text-sm"
         />
       )}
     </div>
   );
 }
-

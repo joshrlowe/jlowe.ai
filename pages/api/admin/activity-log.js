@@ -7,7 +7,13 @@ import { removeUndefined } from "../../../lib/utils/apiHelpers.js";
 // Refactored: Extract Method - GET handler extracted
 const handleGetRequest = async (req, res) => {
   try {
-    const { entityType, entityId, projectId, limit = 50, offset = 0 } = req.query;
+    const {
+      entityType,
+      entityId,
+      projectId,
+      limit = 50,
+      offset = 0,
+    } = req.query;
 
     // Refactored: Extract Method - Where clause building extracted
     const where = removeUndefined({
@@ -36,6 +42,5 @@ const handleGetRequest = async (req, res) => {
 export default withAuth(
   createApiHandler({
     GET: handleGetRequest,
-  })
+  }),
 );
-

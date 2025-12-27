@@ -3,7 +3,12 @@
  */
 import commentsHandler from "../../../pages/api/comments/index.js";
 import prisma from "../../../lib/prisma.js";
-import { createMockRequest, createMockResponse, getJsonResponse, getStatusCode } from "../setup/api-test-utils.js";
+import {
+  createMockRequest,
+  createMockResponse,
+  getJsonResponse,
+  getStatusCode,
+} from "../setup/api-test-utils.js";
 
 jest.mock("../../../lib/prisma.js", () => ({
   __esModule: true,
@@ -213,4 +218,3 @@ describe("POST /api/comments", () => {
     });
   });
 });
-

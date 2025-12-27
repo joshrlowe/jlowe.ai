@@ -18,7 +18,10 @@ export default async (req, res) => {
 const handlePostRequest = async (req, res) => {
   try {
     const { topic, slug } = req.query;
-    const userIP = req.headers["x-forwarded-for"] || req.connection.remoteAddress || "unknown";
+    const userIP =
+      req.headers["x-forwarded-for"] ||
+      req.connection.remoteAddress ||
+      "unknown";
     const userAgent = req.headers["user-agent"] || "unknown";
 
     // Find post
@@ -74,8 +77,8 @@ const handleGetRequest = async (req, res) => {
     const { topic, slug } = req.query;
     // Get IP from various headers (respecting proxies)
     const forwarded = req.headers["x-forwarded-for"];
-    const userIP = forwarded 
-      ? forwarded.split(",")[0].trim() 
+    const userIP = forwarded
+      ? forwarded.split(",")[0].trim()
       : req.connection?.remoteAddress || req.socket?.remoteAddress || "0.0.0.0";
 
     // Find post
@@ -111,4 +114,3 @@ const handleGetRequest = async (req, res) => {
     handleApiError(error, res);
   }
 };
-

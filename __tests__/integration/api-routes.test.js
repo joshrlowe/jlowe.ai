@@ -1,12 +1,16 @@
 /**
  * Integration tests for refactored API routes
- * 
+ *
  * Following Martin Fowler's refactoring principles:
  * - Tests ensure behavior is preserved after refactoring
  * - Each test verifies end-to-end functionality
  */
 
-import { createMockRequest, createMockResponse, createMockPrisma } from "../setup/api-test-utils";
+import {
+  createMockRequest,
+  createMockResponse,
+  createMockPrisma,
+} from "../setup/api-test-utils";
 
 // Note: These are integration test examples
 // Actual implementation would require mocking Next.js API routes
@@ -98,4 +102,3 @@ describe("API Routes Integration Tests", () => {
     });
   });
 });
-

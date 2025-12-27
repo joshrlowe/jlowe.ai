@@ -3,7 +3,12 @@
  */
 import playlistsHandler from "../../../pages/api/playlists/index.js";
 import prisma from "../../../lib/prisma.js";
-import { createMockRequest, createMockResponse, getJsonResponse, getStatusCode } from "../setup/api-test-utils.js";
+import {
+  createMockRequest,
+  createMockResponse,
+  getJsonResponse,
+  getStatusCode,
+} from "../setup/api-test-utils.js";
 
 jest.mock("../../../lib/prisma.js", () => ({
   __esModule: true,
@@ -89,7 +94,7 @@ describe("GET /api/playlists", () => {
     expect(prisma.playlist.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { featured: true },
-      })
+      }),
     );
   });
 
@@ -109,7 +114,7 @@ describe("GET /api/playlists", () => {
       expect.objectContaining({
         take: 9,
         skip: 0,
-      })
+      }),
     );
   });
 
@@ -128,7 +133,7 @@ describe("GET /api/playlists", () => {
     expect(prisma.playlist.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: { title: "asc" },
-      })
+      }),
     );
   });
 });
@@ -198,7 +203,7 @@ describe("POST /api/playlists", () => {
             ],
           },
         }),
-      })
+      }),
     );
   });
 
@@ -219,4 +224,3 @@ describe("POST /api/playlists", () => {
     expect(response.message).toContain("Missing required fields");
   });
 });
-

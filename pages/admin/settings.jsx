@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Accordion, Alert, Spinner } from "react-bootstrap";
 import { requireAuth } from "@/lib/auth.js";
 import AdminLayout from "@/components/admin/AdminLayout";
 import GlobalSettingsSection from "@/components/admin/GlobalSettingsSection";
@@ -8,7 +7,6 @@ import HomeSettingsSection from "@/components/admin/HomeSettingsSection";
 import AboutSettingsSection from "@/components/admin/AboutSettingsSection";
 import ProjectsSettingsSection from "@/components/admin/ProjectsSettingsSection";
 import ContactSettingsSection from "@/components/admin/ContactSettingsSection";
-import styles from "@/styles/AdminSettings.module.css";
 
 export async function getServerSideProps(context) {
   return requireAuth(context);
@@ -17,13 +15,25 @@ export async function getServerSideProps(context) {
 export default function AdminSettings() {
   const { data: session, status } = useSession();
   const [error, setError] = useState("");
-  const [activeKey, setActiveKey] = useState("0");
+  const [activeSection, setActiveSection] = useState("global");
+
+  const sections = [
+    {
+      id: "global",
+      label: "Global Site Settings",
+      Component: GlobalSettingsSection,
+    },
+    { id: "home", label: "Home Page", Component: HomeSettingsSection },
+    { id: "about", label: "About Page", Component: AboutSettingsSection },
+    { id: "projects", label: "Projects", Component: ProjectsSettingsSection },
+    { id: "contact", label: "Contact", Component: ContactSettingsSection },
+  ];
 
   if (status === "loading" || !session) {
     return (
       <AdminLayout>
-        <div className={styles.loadingContainer}>
-          <Spinner animation="border" variant="primary" />
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </AdminLayout>
     );
@@ -32,48 +42,42 @@ export default function AdminSettings() {
   return (
     <AdminLayout title="Site Settings">
       {error && (
-        <Alert variant="danger" dismissible onClose={() => setError("")} className={styles.alert}>
-          {error}
-        </Alert>
+        <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            onClick={() => setError("")}
+            className="text-red-400 hover:text-red-300"
+          >
+            ✕
+          </button>
+        </div>
       )}
 
-      <Accordion activeKey={activeKey} onSelect={(k) => setActiveKey(k)} className={styles.accordion}>
-        <Accordion.Item eventKey="0" className={styles.accordionItem}>
-          <Accordion.Header className={styles.accordionHeader}>Global Site Settings</Accordion.Header>
-          <Accordion.Body className={styles.accordionBody}>
-            <GlobalSettingsSection onError={setError} />
-          </Accordion.Body>
-        </Accordion.Item>
+      {/* Section tabs */}
+      <div className="flex flex-wrap gap-2 mb-6 pb-6 border-b border-[var(--color-border)]">
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => setActiveSection(section.id)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeSection === section.id
+                ? "bg-[var(--color-primary)] text-white"
+                : "bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card-hover)]"
+            }`}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
 
-        <Accordion.Item eventKey="1" className={styles.accordionItem}>
-          <Accordion.Header className={styles.accordionHeader}>Home Page</Accordion.Header>
-          <Accordion.Body className={styles.accordionBody}>
-            <HomeSettingsSection onError={setError} />
-          </Accordion.Body>
-        </Accordion.Item>
-
-        <Accordion.Item eventKey="2" className={styles.accordionItem}>
-          <Accordion.Header className={styles.accordionHeader}>About Page</Accordion.Header>
-          <Accordion.Body className={styles.accordionBody}>
-            <AboutSettingsSection onError={setError} />
-          </Accordion.Body>
-        </Accordion.Item>
-
-        <Accordion.Item eventKey="3" className={styles.accordionItem}>
-          <Accordion.Header className={styles.accordionHeader}>Projects</Accordion.Header>
-          <Accordion.Body className={styles.accordionBody}>
-            <ProjectsSettingsSection onError={setError} />
-          </Accordion.Body>
-        </Accordion.Item>
-
-        <Accordion.Item eventKey="4" className={styles.accordionItem}>
-          <Accordion.Header className={styles.accordionHeader}>Contact</Accordion.Header>
-          <Accordion.Body className={styles.accordionBody}>
-            <ContactSettingsSection onError={setError} />
-          </Accordion.Body>
-        </Accordion.Item>
-      </Accordion>
+      {/* Active section content */}
+      <div className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
+        {sections.map((section) => {
+          if (section.id !== activeSection) return null;
+          const { Component } = section;
+          return <Component key={section.id} onError={setError} />;
+        })}
+      </div>
     </AdminLayout>
   );
 }
-

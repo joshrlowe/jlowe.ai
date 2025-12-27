@@ -45,6 +45,7 @@ const handleGetRequest = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
+      take: 100, // Add reasonable limit to prevent memory issues
       take: limit ? parseInt(limit) : undefined,
       skip: parseInt(offset),
       include: {
@@ -97,7 +98,9 @@ const handlePostRequest = async (req, res) => {
     // Calculate reading time if content exists
     let readingTime = null;
     if (content) {
-      const { calculateReadingTime } = await import("../../../../lib/utils/readingTime.js");
+      const { calculateReadingTime } = await import(
+        "../../../../lib/utils/readingTime.js"
+      );
       readingTime = calculateReadingTime(content);
     }
 
@@ -118,7 +121,11 @@ const handlePostRequest = async (req, res) => {
         metaDescription: metaDescription || null,
         ogImage: ogImage || null,
         readingTime,
-        datePublished: datePublished ? new Date(datePublished) : status === "Published" ? new Date() : null,
+        datePublished: datePublished
+          ? new Date(datePublished)
+          : status === "Published"
+            ? new Date()
+            : null,
       },
     });
 
@@ -127,4 +134,3 @@ const handlePostRequest = async (req, res) => {
     handleApiError(error, res);
   }
 };
-

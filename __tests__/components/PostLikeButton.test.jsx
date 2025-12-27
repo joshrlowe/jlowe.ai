@@ -42,7 +42,7 @@ describe("PostLikeButton", () => {
       <PostLikeButton
         {...defaultProps}
         initialLikeData={{ liked: true, likeCount: 6 }}
-      />
+      />,
     );
 
     expect(screen.getByLabelText("Already liked")).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe("PostLikeButton", () => {
         `/api/posts/${defaultProps.topic}/${defaultProps.slug}/like`,
         {
           method: "POST",
-        }
+        },
       );
     });
 
@@ -87,7 +87,7 @@ describe("PostLikeButton", () => {
       <PostLikeButton
         {...defaultProps}
         initialLikeData={{ liked: true, likeCount: 6 }}
-      />
+      />,
     );
 
     const likeButton = screen.getByLabelText("Already liked");
@@ -135,4 +135,3 @@ describe("PostLikeButton", () => {
     });
   });
 });
-

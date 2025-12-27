@@ -64,4 +64,3 @@ export const getStatusCode = (res) => {
   const calls = res.status.mock.calls;
   return calls.length > 0 ? calls[calls.length - 1][0] : null;
 };
-

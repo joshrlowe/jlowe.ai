@@ -6,23 +6,44 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/admin/ToastProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { spaceGrotesk, plusJakartaSans, jetbrainsMono } from "@/lib/fonts";
 
-import "bootstrap/dist/css/bootstrap.min.css";
+import ScrollProgress from "@/components/ui/ScrollProgress";
+
 import "react-toastify/dist/ReactToastify.css";
-import styles from "@/styles/Layout.module.css";
 import "@/styles/globals.css";
-import "@/styles/design-system.css";
-import "@/styles/admin-components.css";
-import "@/styles/Skeleton.module.css";
 import "@/styles/toast.css";
 
-export default function App({ Component, pageProps: { session, ...pageProps } }) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
 
-  // Register service worker for PWA
+  // Combine font variables for className
+  const fontVariables = `${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`;
+
+  // Register service worker for PWA and listen for intro complete
   useEffect(() => {
     setMounted(true);
+
+    // Check if not on home page - skip intro animation
+    if (router.pathname !== "/") {
+      setIntroComplete(true);
+    }
+
+    // Check if intro animation has already played this session
+    const hasPlayed = sessionStorage.getItem("introAnimationPlayed") === "true";
+    if (hasPlayed) {
+      setIntroComplete(true);
+    }
+
+    // Listen for intro animation complete event
+    const handleIntroComplete = () => setIntroComplete(true);
+    window.addEventListener("introAnimationComplete", handleIntroComplete);
+
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
@@ -33,18 +54,22 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
           console.log("Service Worker registration failed:", error);
         });
     }
-  }, []);
+
+    return () => {
+      window.removeEventListener("introAnimationComplete", handleIntroComplete);
+    };
+  }, [router.pathname]);
 
   // Prefetch pages on hover for better navigation
   useEffect(() => {
     if (!mounted) return;
-    
+
     const handleLinkMouseEnter = (e) => {
       // Check if target is a DOM element
       if (!e.target || typeof e.target.closest !== "function") {
         return;
       }
-      
+
       const link = e.target.closest("a");
       if (link && link instanceof HTMLAnchorElement) {
         const href = link.getAttribute("href");
@@ -60,8 +85,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
     };
   }, [router, mounted]);
 
-  // Check if admin page - router.pathname is available during SSR in Next.js
-  // Always render the same structure based on pathname to prevent hydration mismatch
+  // Check if admin page
   const isAdminPage = router.pathname?.startsWith("/admin") ?? false;
 
   // Admin pages layout
@@ -72,31 +96,52 @@ export default function App({ Component, pageProps: { session, ...pageProps } })
           <Head>
             <title>Admin - Josh Lowe</title>
           </Head>
-          <Component {...pageProps} />
+          <div className={fontVariables}>
+            <Component {...pageProps} />
+          </div>
         </ToastProvider>
       </SessionProvider>
     );
   }
 
   // Default layout for all non-admin pages
-  // Header and Footer are client-only to prevent hydration issues
   return (
     <ErrorBoundary>
       <SessionProvider session={session}>
-        <div className={styles.container}>
+        <div
+          className={`min-h-screen flex flex-col bg-[var(--color-bg-dark)] text-[var(--color-text-primary)] ${fontVariables}`}
+        >
           <Head>
             <title>Josh Lowe</title>
             <link rel="manifest" href="/manifest.json" />
             <meta name="theme-color" content="#bb1313" />
             <meta name="apple-mobile-web-app-capable" content="yes" />
-            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+            <meta
+              name="apple-mobile-web-app-status-bar-style"
+              content="black-translucent"
+            />
           </Head>
-          <a href="#main-content" className={styles.skipLink} suppressHydrationWarning>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--color-primary)] focus:text-white focus:rounded"
+          >
             Skip to main content
           </a>
-          <Header />
-          <div className={styles.contentWrapper}>
-            <main id="main-content" className={`${styles.main} darkBackground`} role="main">
+          <ScrollProgress />
+          <Header
+            style={{
+              opacity: introComplete ? 1 : 0,
+              transform: introComplete ? "translateY(0)" : "translateY(-100%)",
+              transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+              pointerEvents: introComplete ? "auto" : "none",
+            }}
+          />
+          <div className="flex-1 flex flex-col">
+            <main
+              id="main-content"
+              className="flex-1 bg-[var(--color-bg-dark)]"
+              role="main"
+            >
               <Component {...pageProps} />
             </main>
             <Footer />

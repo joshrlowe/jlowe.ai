@@ -3,7 +3,12 @@
  */
 import postsHandler from "../../../pages/api/posts/index.js";
 import prisma from "../../../lib/prisma.js";
-import { createMockRequest, createMockResponse, getJsonResponse, getStatusCode } from "../setup/api-test-utils.js";
+import {
+  createMockRequest,
+  createMockResponse,
+  getJsonResponse,
+  getStatusCode,
+} from "../setup/api-test-utils.js";
 
 jest.mock("../../../lib/prisma.js", () => ({
   __esModule: true,
@@ -75,7 +80,7 @@ describe("POST /api/posts", () => {
           where: expect.objectContaining({
             topic: "react",
           }),
-        })
+        }),
       );
     });
 
@@ -99,7 +104,7 @@ describe("POST /api/posts", () => {
               { title: { contains: "react", mode: "insensitive" } },
             ]),
           }),
-        })
+        }),
       );
     });
 
@@ -119,7 +124,7 @@ describe("POST /api/posts", () => {
         expect.objectContaining({
           take: 10,
           skip: 20,
-        })
+        }),
       );
     });
   });
@@ -195,7 +200,8 @@ describe("POST /api/posts", () => {
           topic: "react",
           slug: "new-post",
           author: "John Doe",
-          content: "This is a test content with many words to calculate reading time properly.",
+          content:
+            "This is a test content with many words to calculate reading time properly.",
         },
       });
       const res = createMockResponse();
@@ -207,9 +213,8 @@ describe("POST /api/posts", () => {
           data: expect.objectContaining({
             readingTime: expect.any(Number),
           }),
-        })
+        }),
       );
     });
   });
 });
-

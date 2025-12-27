@@ -7,7 +7,10 @@ import {
   buildOrderBy,
   formatPaginatedResponse,
 } from "../../../lib/utils/apiHelpers.js";
-import { buildPostWhereClause, buildPostQuery } from "../../../lib/utils/queryBuilders.js";
+import {
+  buildPostWhereClause,
+  buildPostQuery,
+} from "../../../lib/utils/queryBuilders.js";
 import { validateRequiredFields } from "../../../lib/utils/validators.js";
 
 // Refactored: Extract Method - GET handler with query builder
@@ -34,7 +37,13 @@ const handleGetRequest = async (req, res) => {
     });
 
     // Refactored: Extract Method - Query building extracted to query builder
-    const query = buildPostQuery({ where, orderBy, limit, offset, includeCounts: true });
+    const query = buildPostQuery({
+      where,
+      orderBy,
+      limit,
+      offset,
+      includeCounts: true,
+    });
     const posts = await prisma.post.findMany(query);
     const total = await prisma.post.count({ where });
 
@@ -82,7 +91,9 @@ const handlePostRequest = async (req, res) => {
     // Refactored: Extract Method - Reading time calculation extracted
     let readingTime = null;
     if (content) {
-      const { calculateReadingTime } = await import("../../../lib/utils/readingTime.js");
+      const { calculateReadingTime } = await import(
+        "../../../lib/utils/readingTime.js"
+      );
       readingTime = calculateReadingTime(content);
     }
 
@@ -103,7 +114,11 @@ const handlePostRequest = async (req, res) => {
         metaDescription: metaDescription || null,
         ogImage: ogImage || null,
         readingTime,
-        datePublished: datePublished ? new Date(datePublished) : status === "Published" ? new Date() : null,
+        datePublished: datePublished
+          ? new Date(datePublished)
+          : status === "Published"
+            ? new Date()
+            : null,
       },
     });
 
@@ -118,4 +133,3 @@ export default createApiHandler({
   GET: handleGetRequest,
   POST: handlePostRequest,
 });
-

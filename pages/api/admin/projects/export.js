@@ -42,10 +42,19 @@ export default async function handler(req, res) {
 
       const rows = projects.map((project) => {
         const tags = Array.isArray(project.tags) ? project.tags.join("; ") : "";
-        const techStack = Array.isArray(project.techStack) ? project.techStack.join("; ") : "";
-        const links = project.links && typeof project.links === "object" ? project.links : {};
-        const startDate = project.startDate ? new Date(project.startDate).toISOString().split("T")[0] : "";
-        const releaseDate = project.releaseDate ? new Date(project.releaseDate).toISOString().split("T")[0] : "";
+        const techStack = Array.isArray(project.techStack)
+          ? project.techStack.join("; ")
+          : "";
+        const links =
+          project.links && typeof project.links === "object"
+            ? project.links
+            : {};
+        const startDate = project.startDate
+          ? new Date(project.startDate).toISOString().split("T")[0]
+          : "";
+        const releaseDate = project.releaseDate
+          ? new Date(project.releaseDate).toISOString().split("T")[0]
+          : "";
 
         return [
           project.title || "",
@@ -62,19 +71,28 @@ export default async function handler(req, res) {
         ];
       });
 
-      const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const csvContent = [headers, ...rows]
+        .map((row) =>
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+        )
+        .join("\n");
 
       res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.csv"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.csv"`,
+      );
       return res.send(csvContent);
     } else {
       // JSON format
       res.setHeader("Content-Type", "application/json");
-      res.setHeader("Content-Disposition", `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.json"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.json"`,
+      );
       return res.json(projects);
     }
   } catch (error) {
     handleApiError(error, res);
   }
 }
-

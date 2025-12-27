@@ -1,17 +1,57 @@
-import { useRef, useState, useEffect } from "react";
+/**
+ * ProjectCard.jsx
+ *
+ * Space-themed project card with:
+ * - Hover effects and glow
+ * - GSAP entrance animation
+ * - Tech stack badges
+ */
+
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import styles from "@/styles/ProjectCard.module.css";
 import StatusBadge from "./StatusBadge";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function ProjectCard({ project, index = 0 }) {
   const router = useRouter();
   const cardRef = useRef(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!cardRef.current) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) return;
+
+    gsap.fromTo(
+      cardRef.current,
+      { opacity: 0, y: 50, scale: 0.95 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: cardRef.current,
+          start: "top 90%",
+          toggleActions: "play none none reverse",
+        },
+        delay: (index % 3) * 0.1,
+      },
+    );
+
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, [index]);
 
   const parseJsonField = (field, defaultValue = []) => {
     if (!field) return defaultValue;
@@ -26,155 +66,139 @@ export default function ProjectCard({ project, index = 0 }) {
   };
 
   const images = parseJsonField(project.images, []);
+  const techStack = parseJsonField(project.techStack, []);
   const tags = parseJsonField(project.tags, []);
-  const links = parseJsonField(project.links, {});
+
   let thumbnail = images.length > 0 ? images[0] : null;
   if (thumbnail && typeof thumbnail === "object") {
     thumbnail = thumbnail.url || thumbnail.src || thumbnail;
   }
   const thumbnailUrl = typeof thumbnail === "string" ? thumbnail : null;
+  const projectUrl = `/projects/${project.slug || project.id}`;
 
-  const projectUrl = project.slug ? `/projects/${project.slug}` : `/projects/${project.id}`;
-
-  const handleCardClick = (e) => {
-    // Don't navigate if clicking on external links or buttons
-    if (e.target.closest('[data-external-link]')) {
-      return;
-    }
-    if (mounted && router) {
-      router.push(projectUrl);
-    }
+  const handleClick = () => {
+    router.push(projectUrl);
   };
 
-  const handleExternalLink = (e, url) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.open(url, "_blank", "noopener,noreferrer");
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleClick();
+    }
   };
 
   return (
     <article
       ref={cardRef}
-      className={styles.projectCard}
-      data-index={index}
+      className="group relative overflow-hidden rounded-2xl bg-[var(--color-bg-card)] border border-[var(--color-border)] transition-all duration-500 hover:border-[var(--color-border-glow)] hover:shadow-lg cursor-pointer"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       role="article"
-      aria-label={`Project: ${project.title}`}
+      tabIndex={0}
+      aria-label={`View project: ${project.title}`}
     >
-      <div 
-        onClick={handleCardClick} 
-        className={styles.cardLink}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if ((e.key === "Enter" || e.key === " ") && mounted && router) {
-            e.preventDefault();
-            router.push(projectUrl);
-          }
-        }}
-      >
+      {/* Image */}
+      <div className="relative h-48 overflow-hidden bg-[var(--color-bg-darker)]">
         {thumbnailUrl ? (
-          <div className={styles.imageContainer}>
+          <>
             <Image
               src={thumbnailUrl}
               alt={project.title}
               fill
-              className={styles.projectImage}
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
-              unoptimized={thumbnailUrl.startsWith("data:") || thumbnailUrl.startsWith("blob:")}
+              unoptimized={
+                thumbnailUrl.startsWith("data:") ||
+                thumbnailUrl.startsWith("blob:")
+              }
             />
-            <div className={styles.imageOverlay}>
-              <StatusBadge status={project.status} />
-            </div>
-          </div>
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg-card)] via-transparent to-transparent" />
+          </>
         ) : (
-          <div className={styles.imageContainer} style={{ background: "var(--color-bg-dark)" }}>
-            <div className={styles.placeholderImage}>
-              <span>{project.title.charAt(0)}</span>
-            </div>
-            <div className={styles.imageOverlay}>
-              <StatusBadge status={project.status} />
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--color-bg-card)] to-[var(--color-bg-darker)]">
+            <span className="text-5xl font-bold text-[var(--color-primary)] opacity-20 font-heading">
+              {project.title?.charAt(0) || "P"}
+            </span>
           </div>
         )}
 
-        <div className={styles.cardContent}>
-          <h3 className={styles.projectTitle}>{project.title}</h3>
-          
-          {project.shortDescription && (
-            <p className={styles.projectDescription}>
-              {project.shortDescription.length > 120
-                ? `${project.shortDescription.substring(0, 120)}...`
-                : project.shortDescription}
-            </p>
-          )}
+        {/* Status badge */}
+        <div className="absolute top-4 left-4">
+          <StatusBadge status={project.status} />
+        </div>
 
-          <div className={styles.cardMeta}>
-            {project.startDate && (
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Started:</span>
-                <span className={styles.metaValue}>
-                  {new Date(project.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}
-                </span>
-              </div>
-            )}
-            {project.releaseDate && (
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Released:</span>
-                <span className={styles.metaValue}>
-                  {new Date(project.releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "short" })}
-                </span>
-              </div>
+        {/* Featured indicator */}
+        {project.featured && (
+          <div className="absolute top-4 right-4">
+            <span className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)] text-[var(--color-bg-dark)]">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Featured
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-6">
+        <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2 font-heading group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
+          {project.title}
+        </h3>
+
+        {project.shortDescription && (
+          <p className="text-[var(--color-text-secondary)] text-sm mb-4 line-clamp-2">
+            {project.shortDescription}
+          </p>
+        )}
+
+        {/* Tech stack */}
+        {techStack.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {techStack.slice(0, 3).map((tech, i) => (
+              <span
+                key={i}
+                className="px-2 py-1 text-xs rounded-md bg-[var(--color-bg-darker)] text-[var(--color-text-muted)] border border-[var(--color-border)]"
+              >
+                {typeof tech === "string" ? tech : tech.name || tech}
+              </span>
+            ))}
+            {techStack.length > 3 && (
+              <span className="px-2 py-1 text-xs text-[var(--color-text-muted)]">
+                +{techStack.length - 3}
+              </span>
             )}
           </div>
+        )}
 
-          {tags.length > 0 && (
-            <div className={styles.tags}>
-              {tags.slice(0, 3).map((tag, i) => (
-                <span key={i} className={styles.tag}>
-                  {tag}
-                </span>
-              ))}
-              {tags.length > 3 && (
-                <span className={styles.moreTags}>+{tags.length - 3}</span>
-              )}
-            </div>
-          )}
-
-          <div className={styles.cardFooter}>
-            <div className={styles.links}>
-              {links.github && (
-                <button
-                  type="button"
-                  data-external-link
-                  className={styles.linkIcon}
-                  onClick={(e) => handleExternalLink(e, links.github)}
-                  aria-label={`View ${project.title} on GitHub`}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                  </svg>
-                </button>
-              )}
-              {links.live && (
-                <button
-                  type="button"
-                  data-external-link
-                  className={styles.linkIcon}
-                  onClick={(e) => handleExternalLink(e, links.live)}
-                  aria-label={`Visit live ${project.title} site`}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
-                  </svg>
-                </button>
-              )}
-            </div>
-            <span className={styles.viewProject}>View Project →</span>
-          </div>
+        {/* View link */}
+        <div className="flex items-center gap-2 text-[var(--color-primary)] text-sm font-medium">
+          <span>View Details</span>
+          <svg
+            className="w-4 h-4 transition-transform group-hover:translate-x-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 8l4 4m0 0l-4 4m4-4H3"
+            />
+          </svg>
         </div>
       </div>
+
+      {/* Hover glow effect */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          background: `radial-gradient(600px circle at 50% 50%, rgba(0, 212, 255, 0.05), transparent 40%)`,
+        }}
+      />
     </article>
   );
 }
-

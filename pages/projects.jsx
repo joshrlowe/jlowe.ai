@@ -1,62 +1,96 @@
+/**
+ * Projects Page
+ *
+ * Portfolio showcase with:
+ * - Space-themed design
+ * - Filtering and search
+ * - Infinite scroll
+ */
+
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Container, Row, Col, Form } from "react-bootstrap";
 import { useRouter } from "next/router";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import prisma from "../lib/prisma.js";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
+import {
+  DEBOUNCE_DELAY_MS,
+  INITIAL_PROJECT_DISPLAY_COUNT,
+  PROJECTS_PER_PAGE,
+} from "@/lib/utils/constants";
 import SEO from "@/components/SEO";
 import ProjectCard from "@/components/Project/ProjectCard";
 import ProjectFilters from "@/components/Project/ProjectFilters";
 import ProjectsEmptyState from "@/components/Project/ProjectsEmptyState";
-import ProjectSkeleton from "@/components/Project/ProjectSkeleton";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function ProjectsPage({ projects: initialProjects }) {
   const router = useRouter();
+  const headerRef = useRef(null);
   const [projects] = useState(initialProjects || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
   const [sortBy, setSortBy] = useState("startDate");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [displayCount, setDisplayCount] = useState(9); // Initial display count
+  const [displayCount, setDisplayCount] = useState(
+    INITIAL_PROJECT_DISPLAY_COUNT,
+  );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const cardsRef = useRef([]);
   const loadMoreRef = useRef(null);
 
-  // Debounce search
+  // Header animation
+  useEffect(() => {
+    if (!headerRef.current) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) return;
+
+    gsap.fromTo(
+      headerRef.current,
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+    );
+  }, []);
+
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 300);
+    }, DEBOUNCE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Extract unique tags and statuses
   const { availableTags, availableStatuses } = useMemo(() => {
     const tags = new Set();
     const statuses = new Set();
 
-      projects.forEach((project) => {
-        let projectTags = [];
-        if (Array.isArray(project.tags)) {
-          projectTags = project.tags;
-        } else if (typeof project.tags === "string") {
-          try {
-            projectTags = JSON.parse(project.tags || "[]");
-          } catch {
-            projectTags = [];
-          }
+    projects.forEach((project) => {
+      let projectTags = [];
+      if (Array.isArray(project.tags)) {
+        projectTags = project.tags;
+      } else if (typeof project.tags === "string") {
+        try {
+          projectTags = JSON.parse(project.tags || "[]");
+        } catch {
+          projectTags = [];
         }
-        if (Array.isArray(projectTags)) {
-          projectTags.forEach((tag) => {
-            if (tag) tags.add(String(tag));
-          });
-        }
+      }
+      if (Array.isArray(projectTags)) {
+        projectTags.forEach((tag) => {
+          if (tag) tags.add(String(tag));
+        });
+      }
 
-        if (project.status) {
-          statuses.add(project.status);
-        }
-      });
+      if (project.status) {
+        statuses.add(project.status);
+      }
+    });
 
     return {
       availableTags: Array.from(tags).sort(),
@@ -64,11 +98,9 @@ export default function ProjectsPage({ projects: initialProjects }) {
     };
   }, [projects]);
 
-  // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = [...projects];
 
-    // Search filter
     if (debouncedSearch) {
       const query = debouncedSearch.toLowerCase();
       filtered = filtered.filter(
@@ -76,16 +108,15 @@ export default function ProjectsPage({ projects: initialProjects }) {
           p.title?.toLowerCase().includes(query) ||
           p.shortDescription?.toLowerCase().includes(query) ||
           p.description?.toLowerCase().includes(query) ||
-          (Array.isArray(p.tags) && p.tags.some((tag) => tag.toLowerCase().includes(query)))
+          (Array.isArray(p.tags) &&
+            p.tags.some((tag) => tag.toLowerCase().includes(query))),
       );
     }
 
-    // Status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((p) => p.status === statusFilter);
     }
 
-    // Tag filter
     if (tagFilter !== "all") {
       filtered = filtered.filter((p) => {
         let tags = [];
@@ -102,7 +133,6 @@ export default function ProjectsPage({ projects: initialProjects }) {
       });
     }
 
-    // Sort
     filtered.sort((a, b) => {
       let aVal = a[sortBy];
       let bVal = b[sortBy];
@@ -125,20 +155,16 @@ export default function ProjectsPage({ projects: initialProjects }) {
     return filtered;
   }, [projects, debouncedSearch, statusFilter, tagFilter, sortBy, sortOrder]);
 
-  // Get displayed projects based on displayCount
   const displayedProjects = useMemo(() => {
     return filteredAndSortedProjects.slice(0, displayCount);
   }, [filteredAndSortedProjects, displayCount]);
 
-  // Check if there are more projects to load
   const hasMore = filteredAndSortedProjects.length > displayCount;
 
-  // Reset display count when filters change
   useEffect(() => {
-    setDisplayCount(9);
+    setDisplayCount(INITIAL_PROJECT_DISPLAY_COUNT);
   }, [debouncedSearch, statusFilter, tagFilter, sortBy, sortOrder]);
 
-  // Infinite scroll: Load more projects when scrolling near bottom
   useEffect(() => {
     if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
 
@@ -146,14 +172,18 @@ export default function ProjectsPage({ projects: initialProjects }) {
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
           setIsLoadingMore(true);
-          // Simulate a small delay for smooth loading
           setTimeout(() => {
-            setDisplayCount((prev) => Math.min(prev + 9, filteredAndSortedProjects.length));
+            setDisplayCount((prev) =>
+              Math.min(
+                prev + PROJECTS_PER_PAGE,
+                filteredAndSortedProjects.length,
+              ),
+            );
             setIsLoadingMore(false);
-          }, 300);
+          }, DEBOUNCE_DELAY_MS);
         }
       },
-      { threshold: 0.1, rootMargin: "100px" }
+      { threshold: 0.1, rootMargin: "100px" },
     );
 
     observer.observe(loadMoreRef.current);
@@ -165,9 +195,6 @@ export default function ProjectsPage({ projects: initialProjects }) {
     };
   }, [hasMore, isLoadingMore, filteredAndSortedProjects.length]);
 
-  // Cards are now visible by default - removed IntersectionObserver animation
-  // Cards will still animate on hover via CSS
-
   const handleClearFilters = () => {
     setSearchQuery("");
     setStatusFilter("all");
@@ -175,147 +202,130 @@ export default function ProjectsPage({ projects: initialProjects }) {
     router.push("/projects", undefined, { shallow: true });
   };
 
-  const hasActiveFilters = searchQuery || statusFilter !== "all" || tagFilter !== "all";
+  const hasActiveFilters =
+    searchQuery || statusFilter !== "all" || tagFilter !== "all";
 
   return (
     <>
       <SEO
         title="Projects - Josh Lowe"
-        description="View my portfolio of software development projects, featuring web applications, APIs, and full-stack solutions."
+        description="Explore my portfolio of AI, machine learning, and full-stack development projects."
       />
-      <Container className="my-5">
-        <h1 className="mb-4" style={{ 
-          fontFamily: "var(--font-family-display)",
-          fontSize: "var(--font-size-5xl)",
-          fontWeight: "var(--font-weight-semibold)",
-          color: "var(--color-primary)"
-        }}>
-          Projects
-        </h1>
 
-        <ProjectFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          tagFilter={tagFilter}
-          onTagFilterChange={setTagFilter}
-          availableTags={availableTags}
-          availableStatuses={availableStatuses}
-          onClearFilters={handleClearFilters}
-        />
+      <div className="section relative z-10">
+        <div className="container mx-auto max-w-7xl">
+          {/* Header */}
+          <div ref={headerRef} className="mb-12">
+            <span className="badge mb-4">Portfolio</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 font-[family-name:var(--font-oswald)]">
+              <span className="gradient-text">Projects</span>
+            </h1>
+            <p
+              className="text-lg text-[var(--color-text-secondary)]"
+              style={{ maxWidth: "80%" }}
+            >
+              A collection of AI systems, web applications, and engineering
+              solutions I've built for clients and personal exploration.
+            </p>
+          </div>
 
-        {/* Sort Options */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <div style={{ color: "var(--color-text-secondary)", fontSize: "var(--font-size-sm)" }}>
-            Showing {displayedProjects.length} of {filteredAndSortedProjects.length} project{filteredAndSortedProjects.length !== 1 ? "s" : ""}
+          {/* Filters */}
+          <ProjectFilters
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            tagFilter={tagFilter}
+            onTagFilterChange={setTagFilter}
+            availableTags={availableTags}
+            availableStatuses={availableStatuses}
+            onClearFilters={handleClearFilters}
+          />
+
+          {/* Sort Options */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div className="text-sm text-[var(--color-text-muted)]">
+              <span className="text-[var(--color-text-primary)] font-medium">
+                {filteredAndSortedProjects.length}
+              </span>{" "}
+              project{filteredAndSortedProjects.length !== 1 ? "s" : ""} found
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
+                aria-label="Sort by"
+              >
+                <option value="startDate">Start Date</option>
+                <option value="releaseDate">Release Date</option>
+                <option value="title">Title</option>
+                <option value="status">Status</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
+                aria-label="Sort order"
+              >
+                <option value="desc">Newest First</option>
+                <option value="asc">Oldest First</option>
+              </select>
+            </div>
           </div>
-          <div className="d-flex gap-2 align-items-center">
-            <Form.Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              size="sm"
-              style={{
-                backgroundColor: "var(--color-bg-dark)",
-                borderColor: "var(--color-border)",
-                color: "var(--color-text-primary)",
-                width: "auto",
-                minWidth: "150px",
-              }}
-              aria-label="Sort by"
-            >
-              <option value="startDate">Start Date</option>
-              <option value="releaseDate">Release Date</option>
-              <option value="title">Title</option>
-              <option value="status">Status</option>
-            </Form.Select>
-            <Form.Select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              size="sm"
-              style={{
-                backgroundColor: "var(--color-bg-dark)",
-                borderColor: "var(--color-border)",
-                color: "var(--color-text-primary)",
-                width: "auto",
-                minWidth: "120px",
-              }}
-              aria-label="Sort order"
-            >
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
-            </Form.Select>
-          </div>
+
+          {/* Projects Grid */}
+          {filteredAndSortedProjects.length === 0 ? (
+            <ProjectsEmptyState
+              hasFilters={hasActiveFilters}
+              onClearFilters={handleClearFilters}
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedProjects.map((project, index) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    index={index}
+                  />
+                ))}
+              </div>
+
+              {/* Load More Trigger */}
+              {hasMore && (
+                <div
+                  ref={loadMoreRef}
+                  className="h-24 flex justify-center items-center mt-8"
+                >
+                  {isLoadingMore && (
+                    <div className="flex items-center gap-3 text-[var(--color-text-muted)]">
+                      <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                      <span>Loading more...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* End of results */}
+              {!hasMore && displayedProjects.length > 0 && (
+                <div className="text-center mt-12 py-8 border-t border-[var(--color-border)]">
+                  <p className="text-[var(--color-text-muted)] text-sm">
+                    You've seen all {filteredAndSortedProjects.length} project
+                    {filteredAndSortedProjects.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
-
-        {/* Projects Grid */}
-        {filteredAndSortedProjects.length === 0 ? (
-          <ProjectsEmptyState hasFilters={hasActiveFilters} onClearFilters={handleClearFilters} />
-        ) : (
-          <>
-            <Row className="g-4">
-              {displayedProjects.map((project, index) => (
-                <Col key={project.id} md={6} lg={4}>
-                  <div
-                    ref={(el) => {
-                      if (el) {
-                        cardsRef.current[index] = el;
-                      }
-                    }}
-                    style={{
-                      opacity: 1, // Changed from 0 to 1 - IntersectionObserver will still animate new cards
-                      transform: "translateY(0)", // Changed from translateY(20px) to translateY(0)
-                    }}
-                  >
-                    <ProjectCard project={project} index={index} />
-                  </div>
-                </Col>
-              ))}
-            </Row>
-
-            {/* Load More Trigger */}
-            {hasMore && (
-              <div 
-                ref={loadMoreRef} 
-                style={{ 
-                  height: "100px", 
-                  display: "flex", 
-                  justifyContent: "center", 
-                  alignItems: "center",
-                  marginTop: "var(--spacing-2xl)"
-                }}
-              >
-                {isLoadingMore && (
-                  <div style={{ color: "var(--color-text-secondary)" }}>
-                    Loading more projects...
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* End of results message */}
-            {!hasMore && displayedProjects.length > 0 && (
-              <div 
-                style={{ 
-                  textAlign: "center", 
-                  color: "var(--color-text-secondary)", 
-                  marginTop: "var(--spacing-2xl)",
-                  fontSize: "var(--font-size-sm)"
-                }}
-              >
-                You've reached the end. All {filteredAndSortedProjects.length} project{filteredAndSortedProjects.length !== 1 ? "s" : ""} displayed.
-              </div>
-            )}
-          </>
-        )}
-      </Container>
+      </div>
     </>
   );
 }
 
 export async function getStaticProps() {
   try {
-    // Get all projects except Draft status
     const projectsRaw = await prisma.project.findMany({
       where: {
         status: {
@@ -339,7 +349,6 @@ export async function getStaticProps() {
       revalidate: 60,
     };
   } catch (error) {
-    // Log error only in development
     if (process.env.NODE_ENV === "development") {
       console.error("Error in getStaticProps:", error);
     }

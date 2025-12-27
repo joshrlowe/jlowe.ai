@@ -1,6 +1,7 @@
+import React from "react";
 import styles from "@/styles/ProjectsPage.module.css";
 
-export default function ProjectTeam({ team }) {
+function ProjectTeam({ team }) {
   return (
     <div className={styles.teamContainer}>
       {team && team.length > 1 && <p className={styles.teamHeader}>Team</p>}
@@ -27,3 +28,5 @@ export default function ProjectTeam({ team }) {
     </div>
   );
 }
+
+export default React.memo(ProjectTeam);

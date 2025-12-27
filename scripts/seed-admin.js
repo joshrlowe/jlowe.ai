@@ -12,7 +12,7 @@ async function main() {
 
   if (!email || !password) {
     console.error(
-      "❌ ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required"
+      "❌ ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required",
     );
     process.exit(1);
   }
@@ -52,4 +52,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

@@ -6,13 +6,17 @@ import {
   transformProjectToApiFormat,
   transformTeamToTeamMembers,
 } from "../../../lib/utils/projectTransformer.js";
-import { validateProjectData, validateTeamMembers } from "../../../lib/utils/projectValidators.js";
+import {
+  validateProjectData,
+  validateTeamMembers,
+} from "../../../lib/utils/projectValidators.js";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
 
 // Refactored: Extract Method - GET handler extracted with clear intent
 const handleGetRequest = async (req, res) => {
   try {
     const projects = await prisma.project.findMany({
+      take: 100, // Add reasonable limit to prevent memory issues
       orderBy: { startDate: "desc" },
       include: { teamMembers: true },
     });
@@ -41,13 +45,19 @@ const handlePostRequest = async (req, res) => {
     // Refactored: Extract Method - Validation logic extracted
     const projectValidation = validateProjectData({ title, startDate });
     const teamValidation = validateTeamMembers(team);
-    
+
     if (!projectValidation.isValid) {
-      return res.status(400).json({ message: projectValidation.message || "Missing required fields" });
+      return res
+        .status(400)
+        .json({
+          message: projectValidation.message || "Missing required fields",
+        });
     }
-    
+
     if (!teamValidation.isValid) {
-      return res.status(400).json({ message: teamValidation.message || "Invalid team data" });
+      return res
+        .status(400)
+        .json({ message: teamValidation.message || "Invalid team data" });
     }
 
     const mappedStatus = mapProjectStatus(status);
@@ -81,4 +91,3 @@ export default createApiHandler({
   GET: handleGetRequest,
   POST: handlePostRequest,
 });
-

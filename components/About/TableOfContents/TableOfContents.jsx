@@ -1,10 +1,7 @@
-import { useEffect, useState } from "react";
-import styles from "./TableOfContents.module.css";
-
 const sections = [
-  { id: "section-hero", label: "Profile" },
+  { id: "section-hero", label: "Overview" },
   { id: "section-summary", label: "Summary" },
-  { id: "section-skills", label: "Skills" },
+  { id: "section-skills", label: "Technical Skills" },
   { id: "section-experience", label: "Experience" },
   { id: "section-education", label: "Education" },
   { id: "section-certifications", label: "Certifications" },
@@ -13,59 +10,36 @@ const sections = [
 ];
 
 export default function TableOfContents({ activeSection }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleScroll = (sectionId) => {
+  const handleClick = (e, sectionId) => {
+    e.preventDefault();
     const element = document.getElementById(sectionId);
     if (element) {
-      const headerOffset = 100;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
-    <nav className={styles.tableOfContents} aria-label="Table of Contents">
-      <h3 className={styles.tocTitle}>Contents</h3>
-      <ul className={styles.tocList}>
-        {sections.map((section) => {
-          const isActive = activeSection === section.id;
-
-          return (
-            <li key={section.id} className={styles.tocItem}>
-              <button
-                onClick={() => handleScroll(section.id)}
-                className={`${styles.tocLink} ${isActive ? styles.active : ""}`}
-                aria-current={isActive ? "true" : "false"}
-              >
-                {section.label}
-              </button>
-            </li>
-          );
-        })}
+    <nav className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
+      <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
+        Contents
+      </h3>
+      <ul className="space-y-2">
+        {sections.map((section) => (
+          <li key={section.id}>
+            <a
+              href={`#${section.id}`}
+              onClick={(e) => handleClick(e, section.id)}
+              className={`block py-2 px-3 rounded-lg text-sm transition-all duration-200 ${
+                activeSection === section.id
+                  ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-medium"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-card-hover)]"
+              }`}
+            >
+              {section.label}
+            </a>
+          </li>
+        ))}
       </ul>
-      
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={styles.backToTop}
-        aria-label="Back to top"
-      >
-        ↑ Back to Top
-      </button>
     </nav>
   );
 }
-

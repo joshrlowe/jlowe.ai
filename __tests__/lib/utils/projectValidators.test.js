@@ -112,4 +112,3 @@ describe("projectValidators utilities", () => {
     });
   });
 });
-

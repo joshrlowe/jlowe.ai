@@ -1,73 +1,81 @@
 import { useState } from "react";
-import { toast } from "react-toastify";
-import styles from "./NewsletterSubscription.module.css";
 
 export default function NewsletterSubscription() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("idle"); // idle, loading, success, error
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !email.includes("@")) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
+    if (!email) return;
 
-    setLoading(true);
+    setStatus("loading");
 
     try {
       const response = await fetch("/api/newsletter/subscribe", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Successfully subscribed to newsletter!");
+        setStatus("success");
+        setMessage("Thank you for subscribing!");
         setEmail("");
       } else {
-        toast.error(data.message || "Subscription failed. Please try again.");
+        setStatus("error");
+        setMessage(data.message || "Something went wrong. Please try again.");
       }
     } catch (error) {
-      console.error("Newsletter subscription error:", error);
-      toast.error("Subscription failed. Please try again.");
-    } finally {
-      setLoading(false);
+      setStatus("error");
+      setMessage("Failed to subscribe. Please try again later.");
     }
   };
 
   return (
-    <section className={styles.newsletterSection}>
-      <div className={styles.newsletterContent}>
-        <h2 className={styles.newsletterTitle}>Subscribe to Newsletter</h2>
-        <p className={styles.newsletterDescription}>
-          Get notified when new articles are published. No spam, unsubscribe at any time.
+    <section className="p-8 rounded-xl bg-gradient-to-br from-[var(--color-bg-card)] to-[var(--color-bg-darker)] border border-[var(--color-border)]">
+      <div className="text-center max-w-lg mx-auto">
+        <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2 font-heading">
+          Stay Updated
+        </h2>
+        <p className="text-[var(--color-text-secondary)] mb-6">
+          Subscribe to get the latest articles, tutorials, and updates delivered
+          to your inbox.
         </p>
-        <form onSubmit={handleSubmit} className={styles.newsletterForm}>
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col sm:flex-row gap-4"
+        >
           <input
             type="email"
-            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={styles.newsletterInput}
+            placeholder="Enter your email"
+            className="flex-1 px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
             required
-            disabled={loading}
+            disabled={status === "loading"}
           />
           <button
             type="submit"
-            className={styles.newsletterButton}
-            disabled={loading}
+            disabled={status === "loading"}
+            className="px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "Subscribing..." : "Subscribe"}
+            {status === "loading" ? "Subscribing..." : "Subscribe"}
           </button>
         </form>
+
+        {message && (
+          <p
+            className={`mt-4 text-sm ${status === "success" ? "text-green-400" : "text-red-400"}`}
+          >
+            {message}
+          </p>
+        )}
       </div>
     </section>
   );
 }
-

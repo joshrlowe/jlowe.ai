@@ -114,7 +114,13 @@ describe("queryBuilders utilities", () => {
     it("should build complete query with all parameters", () => {
       const where = { status: "Published" };
       const orderBy = { createdAt: "desc" };
-      const result = buildPostQuery({ where, orderBy, limit: 10, offset: 0, includeCounts: true });
+      const result = buildPostQuery({
+        where,
+        orderBy,
+        limit: 10,
+        offset: 0,
+        includeCounts: true,
+      });
 
       expect(result.where).toEqual(where);
       expect(result.orderBy).toEqual(orderBy);
@@ -145,7 +151,13 @@ describe("queryBuilders utilities", () => {
     it("should build complete query with all parameters", () => {
       const where = { status: "Published" };
       const orderBy = { createdAt: "desc" };
-      const result = buildProjectQuery({ where, orderBy, limit: 10, offset: 0, includeTeam: true });
+      const result = buildProjectQuery({
+        where,
+        orderBy,
+        limit: 10,
+        offset: 0,
+        includeTeam: true,
+      });
 
       expect(result.where).toEqual(where);
       expect(result.orderBy).toEqual(orderBy);
@@ -163,4 +175,3 @@ describe("queryBuilders utilities", () => {
     });
   });
 });
-
