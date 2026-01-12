@@ -8,7 +8,7 @@ import {
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from "../setup/api-test-utils.js";
+} from "../../setup/api-test-utils.js";
 
 jest.mock("../../../lib/prisma.js", () => ({
   __esModule: true,
@@ -58,6 +58,7 @@ describe("POST /api/comments", () => {
         orderBy: {
           createdAt: "desc",
         },
+        take: 100,
       });
 
       expect(getStatusCode(res)).toBe(200);
@@ -96,6 +97,7 @@ describe("POST /api/comments", () => {
         orderBy: {
           createdAt: "desc",
         },
+        take: 100,
       });
     });
   });

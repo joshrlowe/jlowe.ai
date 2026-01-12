@@ -11,6 +11,7 @@ import ProfessionalExperience from "@/components/About/ProfessionalExperience/Pr
 import Education from "@/components/About/Education/Education";
 import TechnicalCertifications from "@/components/About/TechnicalCertifications/TechnicalCertifications";
 import LeadershipExperience from "@/components/About/LeadershipExperience/LeadershipExperience";
+import ProfessionalDevelopment from "@/components/About/ProfessionalDevelopment/ProfessionalDevelopment";
 import Hobbies from "@/components/About/Hobbies/Hobbies";
 
 // Only register GSAP plugin on client side
@@ -85,7 +86,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData }) => {
         url="https://jlowe.ai/about"
         type="profile"
       />
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col lg:flex-row gap-12">
             {/* Main Content */}
@@ -171,6 +172,20 @@ const AboutPage = ({ aboutData, welcomeData, contactData }) => {
                   >
                     <LeadershipExperience
                       experience={serializedData.leadershipExperience}
+                    />
+                  </section>
+                )}
+
+              {/* Professional Development */}
+              {serializedData?.professionalDevelopment &&
+                Array.isArray(serializedData.professionalDevelopment) &&
+                serializedData.professionalDevelopment.length > 0 && (
+                  <section
+                    id="section-development"
+                    className="fade-in-on-scroll mb-12"
+                  >
+                    <ProfessionalDevelopment
+                      development={serializedData.professionalDevelopment}
                     />
                   </section>
                 )}

@@ -6,6 +6,7 @@ const sections = [
   { id: "section-education", label: "Education" },
   { id: "section-certifications", label: "Certifications" },
   { id: "section-leadership", label: "Leadership" },
+  { id: "section-development", label: "Professional Growth" },
   { id: "section-hobbies", label: "Hobbies" },
 ];
 

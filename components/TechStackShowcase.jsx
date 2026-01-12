@@ -13,6 +13,8 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Badge } from "@/components/ui";
+import { parseJsonField } from "@/lib/utils/jsonUtils";
+import { COLOR_VARIANTS } from "@/lib/utils/constants";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -52,18 +54,6 @@ export default function TechStackShowcase({ projects = [] }) {
   const iconsRef = useRef([]);
 
   useEffect(() => {
-    const parseJsonField = (field, defaultValue = []) => {
-      if (!field) return defaultValue;
-      if (typeof field === "string") {
-        try {
-          return JSON.parse(field);
-        } catch {
-          return defaultValue;
-        }
-      }
-      return Array.isArray(field) ? field : defaultValue;
-    };
-
     const techMap = new Map();
 
     projects.forEach((project) => {
@@ -156,34 +146,6 @@ export default function TechStackShowcase({ projects = [] }) {
     };
   }, [techStack]);
 
-  // Refined color map
-  const colorMap = {
-    primary: {
-      bg: "rgba(232, 93, 4, 0.12)",
-      border: "rgba(232, 93, 4, 0.25)",
-      text: "#E85D04",
-      glow: "0 0 25px rgba(232, 93, 4, 0.35)",
-    },
-    cool: {
-      bg: "rgba(76, 201, 240, 0.12)",
-      border: "rgba(76, 201, 240, 0.25)",
-      text: "#4CC9F0",
-      glow: "0 0 25px rgba(76, 201, 240, 0.35)",
-    },
-    accent: {
-      bg: "rgba(250, 163, 7, 0.12)",
-      border: "rgba(250, 163, 7, 0.25)",
-      text: "#FAA307",
-      glow: "0 0 25px rgba(250, 163, 7, 0.35)",
-    },
-    fuchsia: {
-      bg: "rgba(247, 37, 133, 0.12)",
-      border: "rgba(247, 37, 133, 0.25)",
-      text: "#F72585",
-      glow: "0 0 25px rgba(247, 37, 133, 0.35)",
-    },
-  };
-
   if (techStack.length === 0) return null;
 
   return (
@@ -230,7 +192,7 @@ export default function TechStackShowcase({ projects = [] }) {
 
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-5">
           {techStack.map((tech, index) => {
-            const colors = colorMap[tech.color];
+            const colors = COLOR_VARIANTS[tech.color];
             return (
               <div
                 key={tech.name}

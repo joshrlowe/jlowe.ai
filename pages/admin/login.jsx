@@ -34,55 +34,62 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-dark)] px-4">
-      <div className="w-full max-w-lg">
-        <h1 className="text-4xl font-bold text-[var(--color-primary)] text-center mb-8 font-[family-name:var(--font-oswald)]">
-          Admin Login
-        </h1>
-
-        {error && (
-          <div className="mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] disabled:opacity-50"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] disabled:opacity-50"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    <div className="min-h-screen bg-[var(--color-bg-dark)] flex items-center justify-center p-4">
+      <div className="w-full max-w-[28rem]">
+        <div className="bg-[var(--color-bg-card)] rounded-2xl p-8 sm:p-10 border border-[var(--color-border)]">
+          <h1 
+            className="text-3xl sm:text-4xl font-bold text-[var(--color-primary)] text-center mb-8"
+            style={{ fontFamily: 'var(--font-family-heading)' }}
           >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            Admin Login
+          </h1>
+
+          {error && (
+            <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="admin@example.com"
+                className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-dark)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent disabled:opacity-50 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-dark)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent disabled:opacity-50 transition-all"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-2"
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

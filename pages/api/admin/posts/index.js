@@ -45,8 +45,7 @@ const handleGetRequest = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
-      take: 100, // Add reasonable limit to prevent memory issues
-      take: limit ? parseInt(limit) : undefined,
+      take: limit ? parseInt(limit) : 100,
       skip: parseInt(offset),
       include: {
         _count: {

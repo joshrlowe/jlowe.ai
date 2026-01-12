@@ -12,11 +12,12 @@ import {
 } from "../../../lib/utils/projectValidators.js";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
 
-// Refactored: Extract Method - GET handler extracted with clear intent
+const PROJECTS_LIMIT = 100;
+
 const handleGetRequest = async (req, res) => {
   try {
     const projects = await prisma.project.findMany({
-      take: 100, // Add reasonable limit to prevent memory issues
+      take: PROJECTS_LIMIT,
       orderBy: { startDate: "desc" },
       include: { teamMembers: true },
     });
@@ -28,7 +29,6 @@ const handleGetRequest = async (req, res) => {
   }
 };
 
-// Refactored: Extract Method - POST handler with extracted utilities
 const handlePostRequest = async (req, res) => {
   try {
     const {
@@ -42,7 +42,6 @@ const handlePostRequest = async (req, res) => {
       status,
     } = req.body;
 
-    // Refactored: Extract Method - Validation logic extracted
     const projectValidation = validateProjectData({ title, startDate });
     const teamValidation = validateTeamMembers(team);
 
@@ -62,7 +61,6 @@ const handlePostRequest = async (req, res) => {
 
     const mappedStatus = mapProjectStatus(status);
 
-    // Refactored: Extract Method - Team transformation extracted to utility
     const savedProject = await prisma.project.create({
       data: {
         title,
@@ -86,7 +84,6 @@ const handlePostRequest = async (req, res) => {
   }
 };
 
-// Refactored: Extract Method - Method routing extracted to reusable handler
 export default createApiHandler({
   GET: handleGetRequest,
   POST: handlePostRequest,

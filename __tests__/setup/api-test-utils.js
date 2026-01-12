@@ -46,7 +46,11 @@ export const createMockRequest = (options = {}) => ({
 
 export const createMockResponse = () => {
   const res = {
-    status: jest.fn().mockReturnThis(),
+    statusCode: 200, // Default status code
+    status: jest.fn().mockImplementation(function(code) {
+      this.statusCode = code;
+      return this;
+    }),
     json: jest.fn().mockReturnThis(),
     end: jest.fn().mockReturnThis(),
   };
@@ -62,5 +66,9 @@ export const getJsonResponse = (res) => {
 // Helper to get status code
 export const getStatusCode = (res) => {
   const calls = res.status.mock.calls;
-  return calls.length > 0 ? calls[calls.length - 1][0] : null;
+  if (calls.length > 0) {
+    return calls[calls.length - 1][0];
+  }
+  // Return statusCode if status() was never called (defaults to 200)
+  return res.statusCode;
 };

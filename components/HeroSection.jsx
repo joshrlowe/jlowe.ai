@@ -1,12 +1,13 @@
 /**
  * HeroSection.jsx
  *
- * SUPERNOVA v2.1 - Premium AI Consultant Hero
+ * SUPERNOVA v2.2 - Portfolio-focused Hero
  *
- * Features:
- * - Balanced typography sizes
- * - Typing starts after stars appear
- * - Single-line subtitle with proper wrapping
+ * Reframed for portfolio positioning (vs pure consulting):
+ * - Lead with identity and achievements
+ * - Primary CTA: View Projects (portfolio focus)
+ * - Secondary CTA: Contact (still available)
+ * - Shows what you've built, not just what you offer
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -99,44 +100,46 @@ export default function HeroSection({ data, contactData, homeContent }) {
   }, [mounted, typingComplete, animationReady]);
 
   const name = data?.name || "Josh Lowe";
-  const tagline = data?.callToAction || "AI Engineer & Consultant";
+  const tagline = data?.callToAction || "AI/ML Engineer";
   const bio =
     data?.briefBio ||
-    "I design and build intelligent systems that solve real-world problems. From machine learning pipelines to production-grade AI applications.";
+    "Building production-grade AI systems and leading engineering teams. MSCS candidate crafting intelligent solutions that drive real-world impact.";
 
   // Get content from homeContent prop (from database) or use defaults
+  // Portfolio-focused: Lead with what you've built
   const typingIntro = homeContent?.typingIntro || "I build...";
-  const heroTitle = homeContent?.heroTitle || "intelligent AI systems";
+  const heroTitle = homeContent?.heroTitle || "production AI systems";
   const typingStrings =
     homeContent?.typingStrings?.length > 0
       ? homeContent.typingStrings
       : [
-          "intelligent AI systems",
-          "production ML pipelines",
-          "custom LLM solutions",
-          "scalable data platforms",
-          "next-gen applications",
-        ];
+        "production AI systems",
+        "scalable ML pipelines",
+        "full-stack applications",
+        "data-driven solutions",
+        "intelligent platforms",
+      ];
 
+  // Portfolio-first CTAs: Projects primary, Contact secondary
   const primaryCta = homeContent?.primaryCta || {
-    text: "Start a Project",
-    href: "/contact",
-  };
-  const secondaryCta = homeContent?.secondaryCta || {
     text: "View My Work",
     href: "/projects",
+  };
+  const secondaryCta = homeContent?.secondaryCta || {
+    text: "Get in Touch",
+    href: "/contact",
   };
 
   const techBadges =
     homeContent?.techBadges?.length > 0
       ? homeContent.techBadges
       : [
-          { name: "Python", color: "#E85D04" },
-          { name: "TensorFlow", color: "#FAA307" },
-          { name: "React", color: "#4CC9F0" },
-          { name: "AWS", color: "#F48C06" },
-          { name: "LLMs", color: "#F72585" },
-        ];
+        { name: "Python", color: "#E85D04" },
+        { name: "TensorFlow", color: "#FAA307" },
+        { name: "React", color: "#4CC9F0" },
+        { name: "AWS", color: "#F48C06" },
+        { name: "LLMs", color: "#F72585" },
+      ];
 
   return (
     <section
@@ -148,9 +151,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
         <div className="text-center">
           {/* Typing intro - starts after stars appear */}
           <p
-            className={`text-lg sm:text-xl mb-4 h-8 transition-opacity duration-500 font-light tracking-wide ${
-              animationReady ? "opacity-100" : "opacity-0"
-            }`}
+            className={`text-lg sm:text-xl mb-4 h-8 transition-opacity duration-500 font-light tracking-wide ${animationReady ? "opacity-100" : "opacity-0"
+              }`}
             style={{ color: "var(--color-text-secondary)" }}
           >
             {typingComplete ? (
@@ -173,9 +175,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
           {/* Main title - balanced size */}
           <h1
             ref={titleRef}
-            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight transition-opacity duration-300 ${
-              typingComplete ? "" : "opacity-0"
-            }`}
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
+              }`}
             style={{
               background:
                 "linear-gradient(135deg, #FAFAFA 0%, #FFBA08 30%, #E85D04 60%, #9D0208 100%)",
@@ -191,9 +192,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
           {/* Subtitle / Role - single line, flexible width */}
           <div
             ref={subtitleRef}
-            className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-6 transition-opacity duration-300 ${
-              typingComplete ? "" : "opacity-0"
-            }`}
+            className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-6 transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
+              }`}
           >
             <span
               className="text-xl sm:text-2xl lg:text-3xl font-semibold whitespace-nowrap"
@@ -221,9 +221,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
           {/* Description */}
           <p
             ref={descRef}
-            className={`text-base sm:text-lg lg:text-xl w-full mx-auto mb-10 leading-relaxed transition-opacity duration-300 ${
-              typingComplete ? "" : "opacity-0"
-            }`}
+            className={`text-base sm:text-lg lg:text-xl w-full mx-auto mb-10 leading-relaxed transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
+              }`}
             style={{ color: "var(--color-text-secondary)", maxWidth: "80%" }}
           >
             {bio}
@@ -232,9 +231,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
           {/* CTAs */}
           <div
             ref={ctaRef}
-            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-opacity duration-300 ${
-              typingComplete ? "" : "opacity-0"
-            }`}
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
+              }`}
           >
             <Button
               href={primaryCta.href}
@@ -267,9 +265,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
 
           {/* Tech badges */}
           <div
-            className={`flex flex-wrap items-center justify-center gap-2 mt-12 transition-opacity duration-500 delay-300 ${
-              typingComplete ? "opacity-100" : "opacity-0"
-            }`}
+            className={`flex flex-wrap items-center justify-center gap-2 mt-12 transition-opacity duration-500 delay-300 ${typingComplete ? "opacity-100" : "opacity-0"
+              }`}
           >
             {techBadges.map((tech) => (
               <span
@@ -290,9 +287,8 @@ export default function HeroSection({ data, contactData, homeContent }) {
 
       {/* Scroll indicator */}
       <div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${
-          typingComplete ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${typingComplete ? "opacity-100" : "opacity-0"
+          }`}
       >
         <button
           onClick={() => {

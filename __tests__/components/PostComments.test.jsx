@@ -2,16 +2,8 @@
  * Tests for PostComments component
  */
 import { render, screen, waitFor } from "@testing-library/react";
-import { toast } from "react-toastify";
+import userEvent from "@testing-library/user-event";
 import PostComments from "../../components/Articles/PostComments";
-
-// Mock react-toastify
-jest.mock("react-toastify", () => ({
-  toast: {
-    error: jest.fn(),
-    success: jest.fn(),
-  },
-}));
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -24,7 +16,7 @@ describe("PostComments", () => {
     fetch.mockClear();
   });
 
-  it("should render comment form", () => {
+  it("should render comment form", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => [],
@@ -32,13 +24,11 @@ describe("PostComments", () => {
 
     render(<PostComments postId={postId} />);
 
-    expect(screen.getByPlaceholderText("Your Name *")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Your Email (optional)"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Write your comment... *"),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
+    });
+    expect(screen.getByPlaceholderText("Your email")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Your comment")).toBeInTheDocument();
     expect(screen.getByText("Submit Comment")).toBeInTheDocument();
   });
 
@@ -46,7 +36,7 @@ describe("PostComments", () => {
     const mockComments = [
       {
         id: "1",
-        authorName: "John Doe",
+        name: "John Doe",
         content: "Great article!",
         createdAt: new Date().toISOString(),
       },
@@ -61,16 +51,17 @@ describe("PostComments", () => {
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
-        `/api/comments?postId=${postId}&approved=true`,
+        `/api/comments?postId=${postId}`,
       );
     });
 
-    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+    });
     expect(screen.getByText("Great article!")).toBeInTheDocument();
   });
 
   it("should submit comment successfully", async () => {
-    const { userEvent } = require("@testing-library/user-event");
     const user = userEvent.setup();
 
     fetch
@@ -82,7 +73,7 @@ describe("PostComments", () => {
         ok: true,
         json: async () => ({
           id: "1",
-          authorName: "Jane",
+          name: "Jane",
           content: "New comment",
         }),
       });
@@ -90,14 +81,12 @@ describe("PostComments", () => {
     render(<PostComments postId={postId} />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Your Name *")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Your Name *"), "Jane");
-    await user.type(
-      screen.getByPlaceholderText("Write your comment... *"),
-      "New comment",
-    );
+    await user.type(screen.getByPlaceholderText("Your name"), "Jane");
+    await user.type(screen.getByPlaceholderText("Your email"), "jane@test.com");
+    await user.type(screen.getByPlaceholderText("Your comment"), "New comment");
     await user.click(screen.getByText("Submit Comment"));
 
     await waitFor(() => {
@@ -107,19 +96,21 @@ describe("PostComments", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          postId,
-          authorName: "Jane",
-          authorEmail: "",
+          name: "Jane",
+          email: "jane@test.com",
           content: "New comment",
+          postId,
         }),
       });
     });
 
-    expect(toast.success).toHaveBeenCalled();
+    // Component shows success message, not toast
+    await waitFor(() => {
+      expect(screen.getByText(/awaiting approval/i)).toBeInTheDocument();
+    });
   });
 
   it("should show error if submission fails", async () => {
-    const { userEvent } = require("@testing-library/user-event");
     const user = userEvent.setup();
 
     fetch
@@ -135,18 +126,17 @@ describe("PostComments", () => {
     render(<PostComments postId={postId} />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Your Name *")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText("Your Name *"), "Jane");
-    await user.type(
-      screen.getByPlaceholderText("Write your comment... *"),
-      "Comment",
-    );
+    await user.type(screen.getByPlaceholderText("Your name"), "Jane");
+    await user.type(screen.getByPlaceholderText("Your email"), "jane@test.com");
+    await user.type(screen.getByPlaceholderText("Your comment"), "Comment");
     await user.click(screen.getByText("Submit Comment"));
 
+    // Component shows error message inline, not toast
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled();
+      expect(screen.getByText("Error message")).toBeInTheDocument();
     });
   });
 

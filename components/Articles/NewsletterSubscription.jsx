@@ -36,14 +36,13 @@ export default function NewsletterSubscription() {
   };
 
   return (
-    <section className="p-8 rounded-xl bg-gradient-to-br from-[var(--color-bg-card)] to-[var(--color-bg-darker)] border border-[var(--color-border)]">
-      <div className="text-center max-w-lg mx-auto">
-        <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2 font-heading">
+    <section className="block w-full p-6 sm:p-8 rounded-xl bg-gradient-to-br from-[var(--color-bg-card)] to-[var(--color-bg-darker)] border border-[var(--color-border)]">
+      <div className="block w-full max-w-[36rem] mx-auto text-center">
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)] mb-2 font-heading">
           Stay Updated
         </h2>
-        <p className="text-[var(--color-text-secondary)] mb-6">
-          Subscribe to get the latest articles, tutorials, and updates delivered
-          to your inbox.
+        <p className="text-sm sm:text-base text-[var(--color-text-secondary)] mb-6 leading-relaxed">
+          Subscribe to get the latest articles, tutorials, and updates delivered to your inbox.
         </p>
 
         <form
@@ -55,14 +54,14 @@ export default function NewsletterSubscription() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="flex-1 px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
+            className="flex-1 min-w-0 px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
             required
             disabled={status === "loading"}
           />
           <button
             type="submit"
             disabled={status === "loading"}
-            className="px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
           >
             {status === "loading" ? "Subscribing..." : "Subscribe"}
           </button>

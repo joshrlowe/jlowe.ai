@@ -103,8 +103,9 @@ More text here.
     });
 
     it("should handle newlines", () => {
+      // 70 * 3 words = 210 words, 210/200 = 1.05, ceil = 2
       const text = "word\nword\nword\n".repeat(70);
-      expect(calculateReadingTime(text)).toBe(1);
+      expect(calculateReadingTime(text)).toBe(2);
     });
 
     it("should trim leading/trailing whitespace", () => {

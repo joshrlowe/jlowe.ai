@@ -47,7 +47,7 @@ export default async function handler(req, res) {
           message: `${projectIds.length} project(s) deleted successfully`,
         });
 
-      case "updateStatus":
+      case "updateStatus": {
         if (!data?.status) {
           return res.status(400).json({ message: "Status is required" });
         }
@@ -72,6 +72,7 @@ export default async function handler(req, res) {
         return res.json({
           message: `${projectIds.length} project(s) updated successfully`,
         });
+      }
 
       case "updateFeatured":
         if (data?.featured === undefined) {

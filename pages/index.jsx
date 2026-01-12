@@ -1,12 +1,14 @@
 /**
  * Home Page
  *
- * Main landing page featuring:
+ * Portfolio-focused landing page featuring:
  * - Three.js space background
  * - Hero section with typing animation
- * - Services showcase
- * - Featured projects
- * - Stats and testimonials
+ * - GitHub contribution graph (shows coding activity)
+ * - Featured projects (portfolio focus - ABOVE services)
+ * - Recent activity timeline
+ * - Services showcase (consulting - secondary)
+ * - Stats and tech stack
  */
 
 import dynamic from "next/dynamic";
@@ -14,12 +16,26 @@ import prisma from "../lib/prisma.js";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
 import SEO from "@/components/SEO";
 import HeroSection from "@/components/HeroSection";
-import ServicesSection from "@/components/ServicesSection";
 import FeaturedProjects from "@/components/FeaturedProjects";
+import RecentActivity from "@/components/RecentActivity";
+import ServicesSection from "@/components/ServicesSection";
 import QuickStats from "@/components/QuickStats";
 import TechStackShowcase from "@/components/TechStackShowcase";
-import RecentResources from "@/components/RecentResources";
-import GitHubActivity from "@/components/GitHubActivity";
+
+// Dynamically import GitHubContributionGraph (uses client-only library)
+const GitHubContributionGraph = dynamic(
+  () => import("@/components/GitHubContributionGraph"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="py-24">
+        <div className="container max-w-6xl mx-auto px-4 text-center">
+          <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
+        </div>
+      </div>
+    ),
+  }
+);
 
 // Note: AnimatedBackground, Welcome, WelcomeCTAs, ScrollIndicator, and SkillsTimeline
 // have been replaced by SpaceBackground, HeroSection, and ServicesSection
@@ -39,38 +55,48 @@ export default function Home({
   contactData,
   resources,
   homeContent,
+  githubUsername,
 }) {
-  const githubUrl = contactData?.socialMediaLinks?.github || null;
-
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeResources = Array.isArray(resources) ? resources : [];
 
   return (
     <>
       <SEO
-        title="Josh Lowe - AI Engineer & Consultant"
+        title="Josh Lowe - AI/ML Engineer | Portfolio"
         description={
           welcomeData?.briefBio ||
-          "AI Engineer & Consultant building intelligent systems and production-grade AI applications."
+          "AI/ML Engineer building production-grade intelligent systems. View my projects, experience, and technical expertise."
         }
       />
 
       {/* Three.js Space Background */}
       <SpaceBackground />
 
-      {/* Main Content */}
+      {/* Main Content - Portfolio-first ordering */}
       <div className="relative z-10">
+        {/* 1. Hero - Who I am */}
         <HeroSection
           data={welcomeData}
           contactData={contactData}
           homeContent={homeContent}
         />
-        <ServicesSection homeContent={homeContent} />
+
+        {/* 2. GitHub Activity - Proof of consistent work */}
+        <GitHubContributionGraph username={githubUsername || "joshrlowe"} />
+
+        {/* 3. Featured Projects - What I've built (PORTFOLIO FOCUS) */}
         <FeaturedProjects projects={safeProjects} />
+
+        {/* 4. Recent Activity - Timeline of work */}
+        <RecentActivity projects={safeProjects} articles={safeResources} />
+
+        {/* 5. Services - What I can do for you (CONSULTING) */}
+        <ServicesSection homeContent={homeContent} />
+
+        {/* 6. Stats & Tech - Credibility */}
         <QuickStats projects={safeProjects} aboutData={aboutData} />
         <TechStackShowcase projects={safeProjects} />
-        <RecentResources resources={safeResources} />
-        {githubUrl && <GitHubActivity githubUrl={githubUrl} />}
       </div>
     </>
   );
@@ -193,6 +219,10 @@ export async function getStaticProps() {
       }
     };
 
+    // Extract GitHub username from contact data
+    const githubUrl = contactData?.socialMediaLinks?.github || "";
+    const githubUsername = githubUrl.split("/").filter(Boolean).pop() || "joshrlowe";
+
     return {
       props: {
         welcomeData: welcomeData ? serialize(welcomeData) : null,
@@ -201,6 +231,7 @@ export async function getStaticProps() {
         contactData: contactData ? serialize(contactData) : null,
         resources: serialize(resources || []),
         homeContent: serialize(homeContent),
+        githubUsername,
       },
       revalidate: 60,
     };
@@ -214,6 +245,7 @@ export async function getStaticProps() {
         contactData: null,
         resources: [],
         homeContent: defaultHomeContent,
+        githubUsername: "joshrlowe",
       },
       revalidate: 60,
     };

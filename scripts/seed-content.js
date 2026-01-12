@@ -33,9 +33,9 @@ async function main() {
         emailAddress: "joshlowe.cs@gmail.com",
         phoneNumber: "+1 (267) 644-8659",
         socialMediaLinks: {
-          github: "https://github.com/joshlowe",
-          linkedIn: "https://linkedin.com/in/joshlowe",
-          X: "https://x.com/joshlowe",
+          github: "https://github.com/joshrlowe",
+          linkedIn: "https://linkedin.com/in/joshrlowe",
+          X: "https://x.com/joshrlowe",
         },
         location: {
           city: "Hatfield",

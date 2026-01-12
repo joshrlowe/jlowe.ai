@@ -44,9 +44,15 @@ export default function ArticleDetailPage({ post: initialPost }) {
     }
   }, [router.query.topic, router.query.slug]);
 
+  // Must call useMemo before any conditional returns to follow Rules of Hooks
+  const articleUrl = useMemo(() => {
+    if (!post) return "";
+    return `https://jlowe.ai/articles/${post.topic}/${post.slug}`;
+  }, [post]);
+
   if (router.isFallback || !post) {
     return (
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
@@ -66,10 +72,6 @@ export default function ArticleDetailPage({ post: initialPost }) {
     });
   };
 
-  const articleUrl = useMemo(() => {
-    return `https://jlowe.ai/articles/${post.topic}/${post.slug}`;
-  }, [post.topic, post.slug]);
-
   return (
     <>
       <SEO
@@ -78,7 +80,7 @@ export default function ArticleDetailPage({ post: initialPost }) {
         image={post.ogImage || post.coverImage}
         url={articleUrl}
       />
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl">
           <article>
             {/* Header */}

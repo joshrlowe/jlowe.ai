@@ -13,12 +13,11 @@ import {
 } from "../../../lib/utils/queryBuilders.js";
 import { validateRequiredFields } from "../../../lib/utils/validators.js";
 
-// Refactored: Extract Method - GET handler with query builder
 const handleGetRequest = async (req, res) => {
   try {
     const {
       topic,
-      status = "Published", // Default to published only for public API
+      status = "Published",
       search,
       tags,
     } = req.query;
@@ -26,9 +25,7 @@ const handleGetRequest = async (req, res) => {
     const { limit, offset } = parsePagination(req.query);
     const { sortBy, sortOrder } = parseSort(req.query, "datePublished", "desc");
 
-    // Refactored: Extract Method - Where clause building extracted to query builder
     const where = buildPostWhereClause({ status, topic, search, tags });
-
     const orderBy = buildOrderBy(sortBy, sortOrder, {
       datePublished: "datePublished",
       createdAt: "createdAt",
@@ -36,7 +33,6 @@ const handleGetRequest = async (req, res) => {
       viewCount: "viewCount",
     });
 
-    // Refactored: Extract Method - Query building extracted to query builder
     const query = buildPostQuery({
       where,
       orderBy,
@@ -53,7 +49,6 @@ const handleGetRequest = async (req, res) => {
   }
 };
 
-// Refactored: Extract Method - POST handler extracted
 const handlePostRequest = async (req, res) => {
   try {
     const {
@@ -74,7 +69,6 @@ const handlePostRequest = async (req, res) => {
       datePublished,
     } = req.body;
 
-    // Refactored: Extract Method - Validation extracted
     const validation = validateRequiredFields(req.body, [
       "title",
       "description",
@@ -88,7 +82,6 @@ const handlePostRequest = async (req, res) => {
       return res.status(400).json({ message: validation.message });
     }
 
-    // Refactored: Extract Method - Reading time calculation extracted
     let readingTime = null;
     if (content) {
       const { calculateReadingTime } = await import(
@@ -128,7 +121,6 @@ const handlePostRequest = async (req, res) => {
   }
 };
 
-// Refactored: Extract Method - Method routing extracted to reusable handler
 export default createApiHandler({
   GET: handleGetRequest,
   POST: handlePostRequest,

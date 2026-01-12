@@ -96,7 +96,7 @@ export default function App({
           <Head>
             <title>Admin - Josh Lowe</title>
           </Head>
-          <div className={fontVariables}>
+          <div className={`${fontVariables} min-h-screen w-full`}>
             <Component {...pageProps} />
           </div>
         </ToastProvider>
@@ -136,10 +136,10 @@ export default function App({
               pointerEvents: introComplete ? "auto" : "none",
             }}
           />
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col w-full">
             <main
               id="main-content"
-              className="flex-1 bg-[var(--color-bg-dark)]"
+              className="flex-1 w-full bg-[var(--color-bg-dark)]"
               role="main"
             >
               <Component {...pageProps} />

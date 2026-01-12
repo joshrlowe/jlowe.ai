@@ -118,15 +118,29 @@ describe("queryBuilders utilities", () => {
         where,
         orderBy,
         limit: 10,
-        offset: 0,
+        offset: 5,
         includeCounts: true,
       });
 
       expect(result.where).toEqual(where);
       expect(result.orderBy).toEqual(orderBy);
       expect(result.take).toBe(10);
-      expect(result.skip).toBe(0);
+      expect(result.skip).toBe(5);
       expect(result.include._count).toBeDefined();
+    });
+
+    it("should not include skip when offset is 0", () => {
+      const where = { status: "Published" };
+      const orderBy = { createdAt: "desc" };
+      const result = buildPostQuery({
+        where,
+        orderBy,
+        limit: 10,
+        offset: 0,
+        includeCounts: true,
+      });
+
+      expect(result.skip).toBeUndefined();
     });
 
     it("should handle missing limit and offset", () => {
@@ -155,15 +169,29 @@ describe("queryBuilders utilities", () => {
         where,
         orderBy,
         limit: 10,
-        offset: 0,
+        offset: 5,
         includeTeam: true,
       });
 
       expect(result.where).toEqual(where);
       expect(result.orderBy).toEqual(orderBy);
       expect(result.take).toBe(10);
-      expect(result.skip).toBe(0);
+      expect(result.skip).toBe(5);
       expect(result.include.teamMembers).toBe(true);
+    });
+
+    it("should not include skip when offset is 0", () => {
+      const where = { status: "Published" };
+      const orderBy = { createdAt: "desc" };
+      const result = buildProjectQuery({
+        where,
+        orderBy,
+        limit: 10,
+        offset: 0,
+        includeTeam: true,
+      });
+
+      expect(result.skip).toBeUndefined();
     });
 
     it("should handle includeTeam false", () => {

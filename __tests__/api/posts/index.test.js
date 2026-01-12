@@ -8,7 +8,7 @@ import {
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from "../setup/api-test-utils.js";
+} from "../../setup/api-test-utils.js";
 
 jest.mock("../../../lib/prisma.js", () => ({
   __esModule: true,
@@ -44,8 +44,6 @@ describe("POST /api/posts", () => {
       expect(prisma.post.findMany).toHaveBeenCalledWith({
         where: { status: "Published" },
         orderBy: { datePublished: "desc" },
-        take: undefined,
-        skip: 0,
         include: {
           _count: {
             select: {

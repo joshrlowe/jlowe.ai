@@ -18,6 +18,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card, Badge } from "@/components/ui";
 import { getServiceIcon } from "@/components/icons";
+import { COLOR_VARIANTS } from "@/lib/utils/constants";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -69,29 +70,6 @@ const defaultServices = [
   },
 ];
 
-// Refined color map
-const colorMap = {
-  primary: {
-    text: "#E85D04",
-    bg: "rgba(232, 93, 4, 0.1)",
-    border: "rgba(232, 93, 4, 0.25)",
-  },
-  secondary: {
-    text: "#9D0208",
-    bg: "rgba(157, 2, 8, 0.1)",
-    border: "rgba(157, 2, 8, 0.25)",
-  },
-  accent: {
-    text: "#FAA307",
-    bg: "rgba(250, 163, 7, 0.1)",
-    border: "rgba(250, 163, 7, 0.25)",
-  },
-  cool: {
-    text: "#4CC9F0",
-    bg: "rgba(76, 201, 240, 0.1)",
-    border: "rgba(76, 201, 240, 0.25)",
-  },
-};
 
 export default function ServicesSection({ homeContent }) {
   const sectionRef = useRef(null);
@@ -206,7 +184,7 @@ export default function ServicesSection({ homeContent }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
           {services.map((service, index) => {
-            const colors = colorMap[service.variant] || colorMap.primary;
+            const colors = COLOR_VARIANTS[service.variant] || COLOR_VARIANTS.primary;
             return (
               <Card
                 key={service.title || index}

@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import Link from "next/link";
 import Image from "next/image";
 import NewsletterSubscription from "@/components/Articles/NewsletterSubscription";
+import { Pagination } from "@/components/ui";
 import {
   filterAndSortPosts,
   paginate,
@@ -57,8 +58,8 @@ export default function ArticlesPage({
         description="Read my latest articles on web development, full-stack engineering, and technology insights."
         url="https://jlowe.ai/articles"
       />
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-6xl">
+      <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="w-full max-w-6xl mx-auto">
           {/* Page Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold text-[var(--color-primary)] mb-4 font-[family-name:var(--font-oswald)]">
@@ -205,29 +206,12 @@ export default function ArticlesPage({
             )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-8">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="text-[var(--color-text-secondary)]">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="mt-8"
+            />
           </section>
 
           {/* Playlists */}
@@ -276,31 +260,12 @@ export default function ArticlesPage({
                 </div>
 
                 {/* Playlist Pagination */}
-                {totalPlaylistPages > 1 && (
-                  <div className="flex justify-center items-center gap-4 mt-8">
-                    <button
-                      onClick={() => setPlaylistPage((p) => Math.max(1, p - 1))}
-                      disabled={playlistPage === 1}
-                      className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-                    <span className="text-[var(--color-text-secondary)]">
-                      Page {playlistPage} of {totalPlaylistPages}
-                    </span>
-                    <button
-                      onClick={() =>
-                        setPlaylistPage((p) =>
-                          Math.min(totalPlaylistPages, p + 1),
-                        )
-                      }
-                      disabled={playlistPage === totalPlaylistPages}
-                      className="px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
+                <Pagination
+                  currentPage={playlistPage}
+                  totalPages={totalPlaylistPages}
+                  onPageChange={setPlaylistPage}
+                  className="mt-8"
+                />
               </>
             )}
           </section>

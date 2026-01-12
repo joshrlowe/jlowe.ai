@@ -17,6 +17,8 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge, Button } from "@/components/ui";
+import { parseJsonField } from "@/lib/utils/jsonUtils";
+import { FEATURED_ACCENT_COLORS } from "@/lib/utils/constants";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -99,42 +101,6 @@ export default function FeaturedProjects({ projects = [] }) {
   const featuredProjects = projects.filter((p) => p.featured).slice(0, 4);
   if (featuredProjects.length === 0) return null;
 
-  const parseJsonField = (field, defaultValue = []) => {
-    if (!field) return defaultValue;
-    if (typeof field === "string") {
-      try {
-        return JSON.parse(field);
-      } catch {
-        return defaultValue;
-      }
-    }
-    return Array.isArray(field) ? field : defaultValue;
-  };
-
-  // Refined accent colors
-  const accentColors = [
-    {
-      text: "#E85D04",
-      bg: "rgba(232, 93, 4, 0.12)",
-      glow: "0 0 45px rgba(232, 93, 4, 0.35)",
-    },
-    {
-      text: "#4CC9F0",
-      bg: "rgba(76, 201, 240, 0.12)",
-      glow: "0 0 45px rgba(76, 201, 240, 0.35)",
-    },
-    {
-      text: "#FAA307",
-      bg: "rgba(250, 163, 7, 0.12)",
-      glow: "0 0 45px rgba(250, 163, 7, 0.35)",
-    },
-    {
-      text: "#F72585",
-      bg: "rgba(247, 37, 133, 0.12)",
-      glow: "0 0 45px rgba(247, 37, 133, 0.35)",
-    },
-  ];
-
   return (
     <section
       ref={sectionRef}
@@ -190,7 +156,7 @@ export default function FeaturedProjects({ projects = [] }) {
               typeof thumbnail === "string" ? thumbnail : null;
             const projectUrl = `/projects#${project.slug || project.id}`;
 
-            const accent = accentColors[index % accentColors.length];
+            const accent = FEATURED_ACCENT_COLORS[index % FEATURED_ACCENT_COLORS.length];
 
             return (
               <article

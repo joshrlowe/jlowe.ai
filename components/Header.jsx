@@ -40,15 +40,15 @@ export default function Header({ style = {} }) {
   ];
 
   const isActive = (href) => {
-    if (href === "/") return router.pathname === "/";
-    return router.pathname.startsWith(href);
+    const pathname = router?.pathname || '';
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
   };
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "py-2 backdrop-blur-xl border-b" : "py-5 bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "py-2 backdrop-blur-xl border-b" : "py-5 bg-transparent"
+        }`}
       style={{
         background: isScrolled ? "rgba(0, 0, 0, 0.88)" : "transparent",
         borderColor: isScrolled ? "rgba(232, 93, 4, 0.12)" : "transparent",
@@ -151,22 +151,19 @@ export default function Header({ style = {} }) {
             <span className="sr-only">Menu</span>
             <div className="relative w-5 h-4">
               <span
-                className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${
-                  isMenuOpen ? "top-1/2 -translate-y-1/2 rotate-45" : "top-0"
-                }`}
+                className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${isMenuOpen ? "top-1/2 -translate-y-1/2 rotate-45" : "top-0"
+                  }`}
                 style={{ background: isMenuOpen ? "#E85D04" : "currentColor" }}
               />
               <span
-                className={`absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-current transition-all duration-300 ${
-                  isMenuOpen ? "opacity-0 scale-0" : "opacity-100 scale-100"
-                }`}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? "opacity-0 scale-0" : "opacity-100 scale-100"
+                  }`}
               />
               <span
-                className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${
-                  isMenuOpen
+                className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${isMenuOpen
                     ? "top-1/2 -translate-y-1/2 -rotate-45"
                     : "bottom-0"
-                }`}
+                  }`}
                 style={{ background: isMenuOpen ? "#E85D04" : "currentColor" }}
               />
             </div>
@@ -175,11 +172,10 @@ export default function Header({ style = {} }) {
 
         {/* Mobile Navigation */}
         <div
-          className={`md:hidden absolute left-0 right-0 top-full px-4 pb-4 transition-all duration-300 ${
-            isMenuOpen
+          className={`md:hidden absolute left-0 right-0 top-full px-4 pb-4 transition-all duration-300 ${isMenuOpen
               ? "opacity-100 translate-y-0 pointer-events-auto"
               : "opacity-0 -translate-y-4 pointer-events-none"
-          }`}
+            }`}
         >
           <div
             className="rounded-xl p-4 space-y-1 backdrop-blur-xl"

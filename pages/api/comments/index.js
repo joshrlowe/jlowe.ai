@@ -1,78 +1,61 @@
 import prisma from "../../../lib/prisma.js";
-import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
-import { validateRequiredFields } from "../../../lib/utils/apiHelpers.js";
+import { createApiHandler } from "../../../lib/utils/apiRouteHandler.js";
+import { validateRequiredFields } from "../../../lib/utils/validators.js";
 
-export default async (req, res) => {
-  switch (req.method) {
-    case "GET":
-      await handleGetRequest(req, res);
-      break;
-    case "POST":
-      await handlePostRequest(req, res);
-      break;
-    default:
-      res.status(405).json({ message: "Method Not Allowed" });
-      break;
-  }
-};
+const COMMENTS_PER_PAGE_LIMIT = 100;
 
 const handleGetRequest = async (req, res) => {
-  try {
-    const { postId, approved = "true" } = req.query;
+  const { postId, approved = "true" } = req.query;
 
-    const where = {
-      postId,
-      ...(approved === "true" && { approved: true }),
-    };
+  const where = {
+    postId,
+    ...(approved === "true" && { approved: true }),
+  };
 
-    const comments = await prisma.comment.findMany({
-      where,
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 100, // Add reasonable limit to prevent memory issues
-    });
+  const comments = await prisma.comment.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    take: COMMENTS_PER_PAGE_LIMIT,
+  });
 
-    res.json(comments);
-  } catch (error) {
-    handleApiError(error, res);
-  }
+  res.json(comments);
 };
 
 const handlePostRequest = async (req, res) => {
-  try {
-    const { postId, authorName, authorEmail, content } = req.body;
+  const { postId, authorName, authorEmail, content } = req.body;
 
-    const validation = validateRequiredFields(req.body, [
-      "postId",
-      "authorName",
-      "content",
-    ]);
-    if (!validation.isValid) {
-      return res.status(400).json({ message: validation.message });
-    }
+  const validation = validateRequiredFields(req.body, [
+    "postId",
+    "authorName",
+    "content",
+  ]);
 
-    // Verify post exists
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-    });
-
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    const comment = await prisma.comment.create({
-      data: {
-        postId,
-        authorName,
-        authorEmail: authorEmail || null,
-        content,
-        approved: false, // Require moderation by default
-      },
-    });
-
-    res.status(201).json(comment);
-  } catch (error) {
-    handleApiError(error, res);
+  if (!validation.isValid) {
+    return res.status(400).json({ message: validation.message });
   }
+
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+  });
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found" });
+  }
+
+  const comment = await prisma.comment.create({
+    data: {
+      postId,
+      authorName,
+      authorEmail: authorEmail || null,
+      content,
+      approved: false,
+    },
+  });
+
+  res.status(201).json(comment);
 };
+
+export default createApiHandler({
+  GET: handleGetRequest,
+  POST: handlePostRequest,
+});
