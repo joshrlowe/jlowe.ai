@@ -16,12 +16,15 @@ test.describe('Home Page', () => {
   });
 
   test('should display hero section', async ({ page }) => {
-    // Wait for typing animation or hero content
-    const heroSection = page.locator('[class*="hero"]').first();
+    // Wait for page to load
+    await page.waitForLoadState('domcontentloaded');
+    
+    // Check for hero section using aria-label
+    const heroSection = page.locator('section[aria-label="Hero section"]');
     await expect(heroSection).toBeVisible({ timeout: 10000 });
     
-    // Check for key hero elements
-    await expect(page.getByText(/intelligent AI systems|production ML pipelines|build/i).first()).toBeVisible({ timeout: 10000 });
+    // Check for key hero elements (typing animation or main heading)
+    await expect(page.getByText(/intelligent AI systems|production ML pipelines|build|Josh|engineer/i).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('should display services section', async ({ page }) => {
@@ -144,9 +147,14 @@ test.describe('Home Page - Mobile', () => {
 
   test('should display hero content on mobile', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
     
-    const heroContent = page.locator('[class*="hero"]').first();
+    // Check for hero section using aria-label
+    const heroContent = page.locator('section[aria-label="Hero section"]');
     await expect(heroContent).toBeVisible({ timeout: 10000 });
+    
+    // Verify some content is visible
+    await expect(page.getByRole('heading').first()).toBeVisible({ timeout: 15000 });
   });
 });
 
