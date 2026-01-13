@@ -90,6 +90,11 @@ test.describe('Accessibility - Automated Audits', () => {
 });
 
 test.describe('Accessibility - Keyboard Navigation', () => {
+  test.beforeEach(async ({ browserName }) => {
+    // Skip Firefox in CI due to WebGL issues causing DOM instability
+    test.skip(process.env.CI === 'true' && browserName === 'firefox', 'Firefox WebGL issues in CI');
+  });
+
   test('should navigate through all interactive elements with Tab', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -284,6 +289,11 @@ test.describe('Accessibility - Focus Visibility', () => {
 });
 
 test.describe('Accessibility - ARIA Attributes', () => {
+  test.beforeEach(async ({ browserName }) => {
+    // Skip Firefox in CI due to WebGL issues causing DOM instability
+    test.skip(process.env.CI === 'true' && browserName === 'firefox', 'Firefox WebGL issues in CI');
+  });
+
   test('should have proper ARIA labels on buttons', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -449,6 +459,11 @@ test.describe('Accessibility - Skip Links', () => {
 });
 
 test.describe('Accessibility - Landmarks', () => {
+  test.beforeEach(async ({ browserName }) => {
+    // Skip Firefox in CI due to WebGL issues causing DOM instability
+    test.skip(process.env.CI === 'true' && browserName === 'firefox', 'Firefox WebGL issues in CI');
+  });
+
   test('should have proper landmark regions', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -473,6 +488,11 @@ test.describe('Accessibility - Landmarks', () => {
 });
 
 test.describe('Accessibility - Alternative Text', () => {
+  test.beforeEach(async ({ browserName }) => {
+    // Skip Firefox in CI due to WebGL issues causing DOM instability
+    test.skip(process.env.CI === 'true' && browserName === 'firefox', 'Firefox WebGL issues in CI');
+  });
+
   test('should have alt text for all images', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
