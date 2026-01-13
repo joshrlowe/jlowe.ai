@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);

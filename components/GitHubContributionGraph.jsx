@@ -265,7 +265,8 @@ function CalendarWrapper({ username, onDataLoaded }) {
       clearTimeout(timeout);
       mounted = false;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally run once - Calendar is only used in timeout check
 
   // Cleanup timeout on unmount
   useEffect(() => {

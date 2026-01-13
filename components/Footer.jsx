@@ -70,7 +70,7 @@ export default function Footer() {
         if (isMounted) {
           setContactData(data);
         }
-      } catch (error) {
+      } catch (_error) {
         // Silently fail - contact data is optional
       }
     };
@@ -119,6 +119,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-5">
               <div className="w-11 h-11 rounded-xl overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/logo.png"
                   alt="JL Logo"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function PostComments({ postId }) {
   const [comments, setComments] = useState([]);
@@ -11,23 +11,23 @@ export default function PostComments({ postId }) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchComments();
-  }, [postId]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const response = await fetch(`/api/comments?postId=${postId}`);
       if (response.ok) {
         const data = await response.json();
         setComments(data);
       }
-    } catch (error) {
-      console.error("Error fetching comments:", error);
+    } catch (_error) {
+      // Error logged silently - comments will remain empty
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +50,7 @@ export default function PostComments({ postId }) {
         setStatus("error");
         setMessage(data.message || "Failed to submit comment.");
       }
-    } catch (error) {
+    } catch (_error) {
       setStatus("error");
       setMessage("Something went wrong. Please try again.");
     }

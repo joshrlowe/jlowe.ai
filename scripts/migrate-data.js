@@ -197,7 +197,7 @@ async function migrateProjects() {
       const cleanedTechStack = techStack ? cleanMongoFields(techStack) : null;
 
       // Create project
-      const createdProject = await prisma.project.create({
+      const _createdProject = await prisma.project.create({
         data: {
           title: projectData.title,
           description: projectData.description || null,

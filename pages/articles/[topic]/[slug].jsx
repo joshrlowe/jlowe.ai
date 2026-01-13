@@ -24,7 +24,7 @@ const CodeBlock = ({ language, children }) => {
 export default function ArticleDetailPage({ post: initialPost }) {
   const router = useRouter();
   const [post] = useState(initialPost);
-  const [likeData, setLikeData] = useState(null);
+  const [_likeData, setLikeData] = useState(null);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -177,7 +177,7 @@ export default function ArticleDetailPage({ post: initialPost }) {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    code({ node, inline, className, children, ...props }) {
+                    code({ node: _node, inline, className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || "");
                       if (!inline && match) {
                         return (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 
 export default function AboutSettingsSection({ onError }) {
@@ -12,11 +12,7 @@ export default function AboutSettingsSection({ onError }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchAboutData();
-  }, []);
-
-  const fetchAboutData = async () => {
+  const fetchAboutData = useCallback(async () => {
     try {
       const res = await fetch("/api/about");
       const data = await res.json();
@@ -26,12 +22,16 @@ export default function AboutSettingsSection({ onError }) {
         professionalExperience: data.professionalExperience || [],
         education: data.education || [],
       });
-    } catch (error) {
+    } catch (_error) {
       onError("Failed to load about page data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [onError]);
+
+  useEffect(() => {
+    fetchAboutData();
+  }, [fetchAboutData]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ export default function AboutSettingsSection({ onError }) {
       if (!res.ok) throw new Error("Failed to save");
 
       showToast("About page settings saved!", "success");
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to save settings", "error");
       onError("Failed to save settings");
     } finally {

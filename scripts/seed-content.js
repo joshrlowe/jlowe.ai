@@ -58,7 +58,7 @@ async function main() {
   // Seed About data
   const existingAbout = await prisma.about.findFirst();
   if (!existingAbout) {
-    const about = await prisma.about.create({
+    const _about = await prisma.about.create({
       data: {
         professionalSummary: `
           <p>I'm a Full Stack Developer with a passion for building scalable, user-friendly web applications. 

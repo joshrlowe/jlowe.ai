@@ -13,13 +13,13 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Card } from "@/components/ui";
+// Card import removed - not currently used
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function QuickStats({ projects = [], aboutData = null }) {
+export default function QuickStats({ projects = [], aboutData: _aboutData = null }) {
   const sectionRef = useRef(null);
   const [countersStarted, setCountersStarted] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -103,7 +103,12 @@ export default function QuickStats({ projects = [], aboutData = null }) {
     ).matches;
 
     if (prefersReducedMotion) {
-      setDisplayedStats(stats);
+      setDisplayedStats({
+        projects: stats.projects,
+        technologies: stats.technologies,
+        experience: stats.experience,
+        clients: stats.clients,
+      });
       return;
     }
 

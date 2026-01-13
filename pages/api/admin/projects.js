@@ -10,7 +10,7 @@ import { logActivity } from "../../../lib/utils/activityLogger.js";
 import { validateAdminProjectData } from "../../../lib/utils/projectValidators.js";
 import { transformTeamToTeamMembers } from "../../../lib/utils/projectTransformer.js";
 import { buildProjectQuery } from "../../../lib/utils/queryBuilders.js";
-import { buildOrderBy } from "../../../lib/utils/apiHelpers.js";
+// buildOrderBy removed - not currently used
 
 // Refactored: Extract Method - GET handler extracted with query builder
 const handleGetRequest = async (req, res) => {

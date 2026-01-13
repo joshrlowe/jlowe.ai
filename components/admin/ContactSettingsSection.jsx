@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 
 export default function ContactSettingsSection({ onError }) {
@@ -13,11 +13,7 @@ export default function ContactSettingsSection({ onError }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchContactData();
-  }, []);
-
-  const fetchContactData = async () => {
+  const fetchContactData = useCallback(async () => {
     try {
       const res = await fetch("/api/contact");
       const data = await res.json();
@@ -32,12 +28,16 @@ export default function ContactSettingsSection({ onError }) {
           X: "",
         },
       });
-    } catch (error) {
+    } catch (_error) {
       onError("Failed to load contact data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [onError]);
+
+  useEffect(() => {
+    fetchContactData();
+  }, [fetchContactData]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -53,7 +53,7 @@ export default function ContactSettingsSection({ onError }) {
       if (!res.ok) throw new Error("Failed to save");
 
       showToast("Contact settings saved!", "success");
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to save settings", "error");
       onError("Failed to save settings");
     } finally {

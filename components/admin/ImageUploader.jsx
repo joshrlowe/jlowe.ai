@@ -52,6 +52,7 @@ export default function ImageUploader({
             const imgUrl = typeof img === "string" ? img : img.url || img.src;
             return (
               <div key={index} className="relative group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imgUrl}
                   alt={`Project image ${index + 1}`}

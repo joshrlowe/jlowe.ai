@@ -49,7 +49,7 @@ const handlePostRequest = async (req, res) => {
     }
 
     // Create like
-    const like = await prisma.like.create({
+    const _like = await prisma.like.create({
       data: {
         postId: post.id,
         userIP,

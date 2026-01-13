@@ -9,7 +9,7 @@
  * Reduced from 630 lines to ~120 lines (~80% reduction)
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import { LoadingSpinner, adminStyles } from "./shared";
 import { WelcomeTab, HeroTab, ServicesTab } from "./home";
@@ -47,11 +47,7 @@ export default function HomeSettingsSection({ onError }) {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("welcome");
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
       // Fetch welcome data
       const welcomeRes = await fetch("/api/welcome");
@@ -72,12 +68,16 @@ export default function HomeSettingsSection({ onError }) {
           setHomeContent((prev) => ({ ...prev, ...data.content }));
         }
       }
-    } catch (error) {
+    } catch (_error) {
       onError("Failed to load home page data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [onError]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const handleSaveWelcome = async () => {
     setSaving(true);
@@ -89,7 +89,7 @@ export default function HomeSettingsSection({ onError }) {
       });
       if (!res.ok) throw new Error("Failed to save");
       showToast("Welcome data saved!", "success");
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to save welcome data", "error");
     } finally {
       setSaving(false);
@@ -109,7 +109,7 @@ export default function HomeSettingsSection({ onError }) {
       });
       if (!res.ok) throw new Error("Failed to save");
       showToast("Home content saved!", "success");
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to save content", "error");
     } finally {
       setSaving(false);

@@ -9,7 +9,7 @@
  * Reduced from 505 lines to ~180 lines (~65% reduction)
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import { LoadingSpinner, Modal, adminStyles, PROJECT_STATUSES } from "./shared";
 import { ProjectForm, ProjectListItem } from "./projects";
@@ -40,9 +40,23 @@ export default function ProjectsSettingsSection({ onError }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
+  const fetchProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/projects");
+      const data = await res.json();
+      setProjects(data);
+    } catch (_error) {
+      showToast("Failed to load projects", "error");
+      onError("Failed to load projects");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast, onError]);
+
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   const filteredProjects = useMemo(() => {
     let filtered = [...projects];
@@ -65,19 +79,6 @@ export default function ProjectsSettingsSection({ onError }) {
     );
   }, [projects, searchQuery, statusFilter]);
 
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/projects");
-      const data = await res.json();
-      setProjects(data);
-    } catch (error) {
-      showToast("Failed to load projects", "error");
-      onError("Failed to load projects");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const parseJsonField = (field, defaultValue = null) => {
     if (!field) return defaultValue;
@@ -134,7 +135,7 @@ export default function ProjectsSettingsSection({ onError }) {
         });
         setShowModal(true);
       }
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to load project details", "error");
     }
   };
@@ -187,7 +188,7 @@ export default function ProjectsSettingsSection({ onError }) {
       if (!res.ok) throw new Error("Failed to delete");
       showToast("Project deleted", "success");
       fetchProjects();
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to delete project", "error");
     }
   };
@@ -203,7 +204,7 @@ export default function ProjectsSettingsSection({ onError }) {
         showToast("Status updated", "success");
         fetchProjects();
       }
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to update status", "error");
     }
   };

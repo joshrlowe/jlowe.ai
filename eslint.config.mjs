@@ -78,6 +78,7 @@ export default [
       "no-unused-vars": ["warn", { 
         argsIgnorePattern: "^_",
         varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
       }],
       "no-console": "off",
     },

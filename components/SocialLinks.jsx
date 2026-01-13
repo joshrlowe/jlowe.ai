@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { gsap } from "gsap";
@@ -8,12 +8,13 @@ export default function SocialLinks({ contactData, vertical = false }) {
   const containerRef = useRef(null);
 
   // Extract links directly from contactData prop to avoid state-based hydration issues
-  // This ensures the same data is used on both server and client
-  const socialLinks =
-    contactData?.socialMediaLinks &&
-    typeof contactData.socialMediaLinks === "object"
+  // Memoize to prevent useEffect dependency from changing on every render
+  const socialLinks = useMemo(() => {
+    return contactData?.socialMediaLinks &&
+      typeof contactData.socialMediaLinks === "object"
       ? contactData.socialMediaLinks
       : {};
+  }, [contactData?.socialMediaLinks]);
 
   useEffect(() => {
     if (!containerRef.current) return;

@@ -67,7 +67,7 @@ export default function ProjectCard({ project, index = 0 }) {
 
   const images = parseJsonField(project.images, []);
   const techStack = parseJsonField(project.techStack, []);
-  const tags = parseJsonField(project.tags, []);
+  const _tags = parseJsonField(project.tags, []);
 
   let thumbnail = images.length > 0 ? images[0] : null;
   if (thumbnail && typeof thumbnail === "object") {

@@ -15,8 +15,8 @@ export default function ProjectForm({
   onCancel,
   isEditing = false,
 }) {
-  const [newTag, setNewTag] = useState("");
-  const [newTech, setNewTech] = useState("");
+  const [_newTag, _setNewTag] = useState("");
+  const [_newTech, _setNewTech] = useState("");
 
   const handleAddTag = (tag) => {
     if (!formData.tags.includes(tag)) {

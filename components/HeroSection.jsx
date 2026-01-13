@@ -25,7 +25,7 @@ const ReactTyped = dynamic(
   },
 );
 
-export default function HeroSection({ data, contactData, homeContent }) {
+export default function HeroSection({ data, contactData: _contactData, homeContent }) {
   const [typingComplete, setTypingComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [animationReady, setAnimationReady] = useState(false);
@@ -109,7 +109,7 @@ export default function HeroSection({ data, contactData, homeContent }) {
   // Portfolio-focused: Lead with what you've built
   const typingIntro = homeContent?.typingIntro || "I build...";
   const heroTitle = homeContent?.heroTitle || "production AI systems";
-  const typingStrings =
+  const _typingStrings =
     homeContent?.typingStrings?.length > 0
       ? homeContent.typingStrings
       : [

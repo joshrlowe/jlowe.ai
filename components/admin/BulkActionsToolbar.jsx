@@ -6,7 +6,7 @@ export default function BulkActionsToolbar({
   onBulkStatusChange,
   onBulkFeaturedChange,
   allSelected,
-  someSelected,
+  someSelected: _someSelected,
   totalCount,
 }) {
   if (selectedIds.length === 0) return null;

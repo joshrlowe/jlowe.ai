@@ -65,6 +65,7 @@ export default function Header({ style = {} }) {
           >
             {/* Logo mark - custom image */}
             <div className="relative w-18 h-18 rounded-xl overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_25px_rgba(232,93,4,0.45)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/logo.png"
                 alt="JL Logo"

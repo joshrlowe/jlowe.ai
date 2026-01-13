@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 
 export default function GlobalSettingsSection({ onError }) {
@@ -19,11 +19,7 @@ export default function GlobalSettingsSection({ onError }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/site-settings");
       const data = await res.json();
@@ -40,12 +36,16 @@ export default function GlobalSettingsSection({ onError }) {
         navLinks: data.navLinks || [],
         seoDefaults: data.seoDefaults || {},
       });
-    } catch (error) {
+    } catch (_error) {
       onError("Failed to load settings");
     } finally {
       setLoading(false);
     }
-  };
+  }, [onError]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -64,7 +64,7 @@ export default function GlobalSettingsSection({ onError }) {
       setMessage("Settings saved successfully!");
       showToast("Settings saved successfully!", "success");
       setTimeout(() => setMessage(""), 3000);
-    } catch (error) {
+    } catch (_error) {
       showToast("Failed to save settings", "error");
       onError("Failed to save settings");
     } finally {

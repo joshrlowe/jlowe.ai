@@ -14,7 +14,6 @@ import { useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRouter } from "next/router";
-import Link from "next/link";
 import Image from "next/image";
 import { Badge, Button } from "@/components/ui";
 import { parseJsonField } from "@/lib/utils/jsonUtils";

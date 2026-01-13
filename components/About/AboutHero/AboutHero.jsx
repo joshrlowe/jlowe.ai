@@ -2,7 +2,7 @@ export default function AboutHero({
   name,
   briefBio,
   contactData,
-  professionalSummary,
+  professionalSummary: _professionalSummary,
 }) {
   const socialLinks = contactData?.socialMediaLinks || {};
 
@@ -48,6 +48,7 @@ export default function AboutHero({
             }}
             aria-label="LinkedIn"
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/linkedin-logo.png"
               alt="LinkedIn"
@@ -78,6 +79,7 @@ export default function AboutHero({
             }}
             aria-label="GitHub"
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/github-logo.png"
               alt="GitHub"
@@ -106,6 +108,7 @@ export default function AboutHero({
             }}
             aria-label="Email"
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/email-logo.png"
               alt="Email"

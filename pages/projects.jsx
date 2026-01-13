@@ -166,7 +166,8 @@ export default function ProjectsPage({ projects: initialProjects }) {
   }, [debouncedSearch, statusFilter, tagFilter, sortBy, sortOrder]);
 
   useEffect(() => {
-    if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
+    const currentRef = loadMoreRef.current;
+    if (!currentRef || !hasMore || isLoadingMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -186,12 +187,10 @@ export default function ProjectsPage({ projects: initialProjects }) {
       { threshold: 0.1, rootMargin: "100px" },
     );
 
-    observer.observe(loadMoreRef.current);
+    observer.observe(currentRef);
 
     return () => {
-      if (loadMoreRef.current) {
-        observer.unobserve(loadMoreRef.current);
-      }
+      observer.unobserve(currentRef);
     };
   }, [hasMore, isLoadingMore, filteredAndSortedProjects.length]);
 

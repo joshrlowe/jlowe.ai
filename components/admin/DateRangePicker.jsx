@@ -3,7 +3,7 @@ export default function DateRangePicker({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  label = "Date Range",
+  label: _label = "Date Range",
 }) {
   return (
     <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function SocialShare({ url, title, description }) {
+export default function SocialShare({ url, title, description: _description }) {
   const [copied, setCopied] = useState(false);
 
   const shareLinks = [
