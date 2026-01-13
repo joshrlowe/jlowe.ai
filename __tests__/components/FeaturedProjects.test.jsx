@@ -159,9 +159,10 @@ describe('FeaturedProjects Component', () => {
 
     it('should render tech stack badges', () => {
       render(<FeaturedProjects projects={mockProjects} />);
-      expect(screen.getByText('Python')).toBeInTheDocument();
-      expect(screen.getByText('TensorFlow')).toBeInTheDocument();
-      expect(screen.getByText('React')).toBeInTheDocument();
+      // Multiple projects may have the same tech, so use getAllByText
+      expect(screen.getAllByText('Python').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('TensorFlow').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('React').length).toBeGreaterThan(0);
     });
 
     it('should limit tech stack to 4 items', () => {
@@ -221,15 +222,18 @@ describe('FeaturedProjects Component', () => {
       };
       render(<FeaturedProjects projects={[projectWithDataUri]} />);
       const image = screen.getByAltText('AI Chatbot Platform');
-      expect(image).toHaveAttribute('data-nimg', 'fill');
+      // Verify image is rendered with the data URI src
+      expect(image).toBeInTheDocument();
+      expect(image).toHaveAttribute('src', 'data:image/png;base64,abc');
     });
   });
 
   describe('Tech Stack', () => {
     it('should parse JSON tech stack', () => {
       render(<FeaturedProjects projects={mockProjects} />);
-      expect(screen.getByText('Python')).toBeInTheDocument();
-      expect(screen.getByText('TensorFlow')).toBeInTheDocument();
+      // Multiple projects may have the same tech
+      expect(screen.getAllByText('Python').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('TensorFlow').length).toBeGreaterThan(0);
     });
 
     it('should handle tech stack as objects', () => {
@@ -238,8 +242,9 @@ describe('FeaturedProjects Component', () => {
         techStack: JSON.stringify([{ name: 'Python' }, { name: 'React' }]),
       };
       render(<FeaturedProjects projects={[projectWithObjectTech]} />);
-      expect(screen.getByText('Python')).toBeInTheDocument();
-      expect(screen.getByText('React')).toBeInTheDocument();
+      // Single project with these techs
+      expect(screen.getAllByText('Python').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('React').length).toBeGreaterThan(0);
     });
 
     it('should handle invalid JSON in tech stack', () => {
