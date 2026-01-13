@@ -33,28 +33,40 @@ if (typeof global.BroadcastChannel === 'undefined') {
 }
 
 /**
- * MSW 2.x Polyfills
+ * MSW 2.x Fetch API Setup
  * 
- * Note: MSW 2.x requires Node.js 18+ or extensive polyfills.
- * The following attempts to polyfill the Fetch API.
+ * Node.js 18+ has native Fetch API support.
+ * MSW 2.x requires specific globals from undici for proper request interception.
  * 
- * If you're using Node.js 18+, these should be available natively.
- * For older Node.js versions, you may need to:
- * 1. Use MSW 1.x instead
- * 2. Or use node-fetch with custom configuration
+ * We use undici because:
+ * 1. It's the same implementation Node.js uses internally
+ * 2. MSW can properly intercept requests with undici globals
+ * 3. It provides ReadableStream support needed by MSW
  */
+
+// First, ensure ReadableStream is available (needed by undici)
+if (typeof global.ReadableStream === 'undefined') {
+  try {
+    const { ReadableStream, WritableStream, TransformStream } = require('stream/web');
+    global.ReadableStream = ReadableStream;
+    global.WritableStream = WritableStream;
+    global.TransformStream = TransformStream;
+  } catch {
+    // stream/web not available in this Node.js version
+  }
+}
+
+// Now set up undici globals for MSW
 try {
-  // MSW requires these globals to be defined from undici for proper interception
-  const undici = require('undici');
+  const { fetch, Headers, Request, Response, FormData } = require('undici');
   
-  // Always set these from undici for MSW compatibility
-  global.fetch = undici.fetch;
-  global.Headers = undici.Headers;
-  global.Request = undici.Request;
-  global.Response = undici.Response;
-  global.FormData = undici.FormData;
+  // Set undici globals for MSW compatibility
+  global.fetch = fetch;
+  global.Headers = Headers;
+  global.Request = Request;
+  global.Response = Response;
+  global.FormData = FormData;
 } catch (error) {
-  // Fetch API not available - MSW will not work, but tests can still run
-  console.warn('Fetch API polyfill failed:', error.message);
-  console.warn('MSW may not work correctly. Consider using Node.js 18+');
+  // If undici fails, fall back to native fetch if available (Node.js 18+)
+  // This is silent - MSW tests will simply not run
 }

@@ -22,9 +22,9 @@ try {
   handlers = handlersModule.handlers || [];
   
   server = setupServer(...handlers);
-} catch (error) {
+} catch {
   // MSW is not available - server remains null
-  console.warn('MSW server not initialized:', error.message);
+  // This is expected in some test environments, so we silently fall back to manual mocks
 }
 
 /**

@@ -23,6 +23,13 @@ try {
 }
 
 /**
+ * Configure userEvent with options that prevent act() warnings
+ * - delay: null removes artificial delays between key presses
+ * - This helps avoid React 18 concurrent mode timing issues in tests
+ */
+const userEventOptions = { delay: null };
+
+/**
  * Custom render function that wraps components with common providers
  * 
  * @param {React.ReactElement} ui - The component to render
@@ -45,7 +52,7 @@ export function render(ui, { session = null, ...renderOptions } = {}) {
         return children;
     }
 
-    const user = userEvent.setup();
+    const user = userEvent.setup(userEventOptions);
     const renderResult = rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 
     return {
@@ -63,7 +70,7 @@ export function render(ui, { session = null, ...renderOptions } = {}) {
  * @returns {Object} - RTL render result with user utility
  */
 export function renderWithoutProviders(ui, options = {}) {
-    const user = userEvent.setup();
+    const user = userEvent.setup(userEventOptions);
     const renderResult = rtlRender(ui, options);
 
     return {

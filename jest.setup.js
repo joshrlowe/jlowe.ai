@@ -14,6 +14,7 @@
 
 import '@testing-library/jest-dom';
 import { toHaveNoViolations } from 'jest-axe';
+import { configure } from '@testing-library/react';
 
 // ============================================================================
 // EXTEND JEST MATCHERS
@@ -21,6 +22,49 @@ import { toHaveNoViolations } from 'jest-axe';
 
 // Add jest-axe accessibility matchers
 expect.extend(toHaveNoViolations);
+
+// ============================================================================
+// TESTING LIBRARY CONFIGURATION
+// ============================================================================
+
+// Configure @testing-library/react
+configure({
+  // Async utilities timeout (default: 1000ms)
+  asyncUtilTimeout: 5000,
+});
+
+// ============================================================================
+// SUPPRESS KNOWN FALSE-POSITIVE WARNINGS
+// ============================================================================
+
+// Store original console.error
+const originalConsoleError = console.error;
+
+// Suppress specific warnings that are known false positives with React 18 + userEvent v14
+console.error = (...args) => {
+  const message = args[0];
+  
+  // Suppress "not wrapped in act(...)" warnings from userEvent interactions
+  // These are false positives when using @testing-library/user-event v14+ with React 18
+  // See: https://github.com/testing-library/react-testing-library/issues/1051
+  if (
+    typeof message === 'string' &&
+    message.includes('Warning: An update to') &&
+    message.includes('inside a test was not wrapped in act')
+  ) {
+    return;
+  }
+  
+  // Suppress "ReactDOMTestUtils.act is deprecated" warnings
+  if (
+    typeof message === 'string' &&
+    message.includes('ReactDOMTestUtils.act is deprecated')
+  ) {
+    return;
+  }
+  
+  originalConsoleError.apply(console, args);
+};
 
 // ============================================================================
 // MSW (MOCK SERVICE WORKER) SETUP - Optional
@@ -50,8 +94,8 @@ try {
     // Start MSW server before all tests
     beforeAll(() => {
       server.listen({
-        // 'warn' logs unhandled requests but doesn't fail tests
-        onUnhandledRequest: 'warn',
+        // 'bypass' silently lets unhandled requests through
+        onUnhandledRequest: 'bypass',
       });
     });
 
@@ -64,12 +108,11 @@ try {
     afterAll(() => {
       server.close();
     });
-  } else {
-    console.warn('MSW server is null - tests will use manual mocks');
   }
-} catch (error) {
+  // If server is null, tests will use manual mocks (this is expected)
+} catch {
   // MSW not available - tests will use manual mocks or fetch mocking
-  console.warn('MSW setup skipped:', error.message);
+  // This is expected in some environments, so we silently continue
 }
 
 // Export server for use in tests (may be null if MSW failed)

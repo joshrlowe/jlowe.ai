@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { screen, renderWithoutProviders } from '@/test-utils';
+import { screen, renderWithoutProviders, waitFor } from '@/test-utils';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import TagInput from '@/components/admin/shared/TagInput';
 
@@ -107,7 +107,9 @@ describe('TagInput', () => {
       await user.type(screen.getByRole('textbox'), 'NewTag');
       await user.click(screen.getByRole('button', { name: 'Add' }));
       
-      expect(screen.getByRole('textbox')).toHaveValue('');
+      await waitFor(() => {
+        expect(screen.getByRole('textbox')).toHaveValue('');
+      });
     });
 
     it('should not add empty tag', async () => {
@@ -194,7 +196,9 @@ describe('TagInput', () => {
       await user.type(screen.getByRole('textbox'), 'EnterTag');
       await user.keyboard('{Enter}');
       
-      expect(screen.getByRole('textbox')).toHaveValue('');
+      await waitFor(() => {
+        expect(screen.getByRole('textbox')).toHaveValue('');
+      });
     });
   });
 
