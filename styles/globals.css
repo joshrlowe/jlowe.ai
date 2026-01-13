@@ -54,7 +54,7 @@
   /* Text - Starlight */
   --color-text-primary: #fafafa;
   --color-text-secondary: #a3a3a3;
-  --color-text-muted: #636363;
+  --color-text-muted: #8a8a8a; /* WCAG AA: 5.5:1 contrast on black */
   --color-text-accent: #e85d04;
 
   /* Borders */
