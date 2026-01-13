@@ -6,11 +6,19 @@
  */
 
 import React from 'react';
+import { act } from 'react';
 import { screen, renderWithoutProviders, waitFor } from '@/test-utils';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import ScrollProgress from '@/components/ui/ScrollProgress';
 
 expect.extend(toHaveNoViolations);
+
+// Helper to dispatch scroll events wrapped in act()
+const triggerScroll = () => {
+  act(() => {
+    triggerScroll();
+  });
+};
 
 describe('ScrollProgress', () => {
   // Mock window dimensions and scroll
@@ -45,7 +53,7 @@ describe('ScrollProgress', () => {
       renderWithoutProviders(<ScrollProgress />);
       
       // Trigger initial scroll handler
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       const progressBar = screen.queryByRole('progressbar');
       expect(progressBar).not.toBeInTheDocument();
@@ -56,7 +64,7 @@ describe('ScrollProgress', () => {
       renderWithoutProviders(<ScrollProgress />);
       
       // Trigger scroll event
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -68,7 +76,7 @@ describe('ScrollProgress', () => {
     it('should show 0% progress at top of page', async () => {
       mockScrollPosition(101);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -80,7 +88,7 @@ describe('ScrollProgress', () => {
       // scrollY = docHeight - innerHeight = 1200
       mockScrollPosition(1200, 2000);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -91,7 +99,7 @@ describe('ScrollProgress', () => {
     it('should show 50% progress at middle of page', async () => {
       mockScrollPosition(600, 2000); // 600 / 1200 = 50%
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -105,7 +113,7 @@ describe('ScrollProgress', () => {
       mockMatchMedia(true);
       mockScrollPosition(500);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       const progressBar = screen.queryByRole('progressbar');
       expect(progressBar).not.toBeInTheDocument();
@@ -129,7 +137,7 @@ describe('ScrollProgress', () => {
     it('should have fixed positioning', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -140,7 +148,7 @@ describe('ScrollProgress', () => {
     it('should be positioned at top of viewport', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -152,7 +160,7 @@ describe('ScrollProgress', () => {
     it('should have pointer-events-none for non-blocking', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -165,7 +173,7 @@ describe('ScrollProgress', () => {
     it('should have progressbar role', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -175,7 +183,7 @@ describe('ScrollProgress', () => {
     it('should have aria-valuenow attribute', async () => {
       mockScrollPosition(300);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -186,7 +194,7 @@ describe('ScrollProgress', () => {
     it('should have aria-valuemin attribute', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -197,7 +205,7 @@ describe('ScrollProgress', () => {
     it('should have aria-valuemax attribute', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -208,7 +216,7 @@ describe('ScrollProgress', () => {
     it('should have aria-label attribute', async () => {
       mockScrollPosition(150);
       renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         const progressBar = screen.getByRole('progressbar');
@@ -219,7 +227,7 @@ describe('ScrollProgress', () => {
     it('should have no accessibility violations when visible', async () => {
       mockScrollPosition(150);
       const { container } = renderWithoutProviders(<ScrollProgress />);
-      window.dispatchEvent(new Event('scroll'));
+      triggerScroll();
       
       await waitFor(() => {
         expect(screen.getByRole('progressbar')).toBeInTheDocument();
