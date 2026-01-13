@@ -41,7 +41,8 @@ export default function QuickStats({ projects = [], aboutData = null }) {
   };
 
   const calculateStats = () => {
-    const publishedProjects = projects.filter((p) => p.status === "Published");
+    const safeProjects = projects || [];
+    const publishedProjects = safeProjects.filter((p) => p.status === "Published");
     const techStack = publishedProjects.reduce((acc, project) => {
       const tech = parseJsonField(project.techStack, []);
       return [...acc, ...tech];

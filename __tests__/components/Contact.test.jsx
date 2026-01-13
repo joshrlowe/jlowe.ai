@@ -62,12 +62,17 @@ describe('Contact Page Component', () => {
   });
 
   describe('Rendering', () => {
-    it('should render without crashing', () => {
+    it('should render without crashing', async () => {
       render(<ContactPage />);
-      expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+      // Wait for data to load and "Get in Touch" badge to appear
+      await waitFor(() => {
+        expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+      });
     });
 
     it('should show loading state initially', () => {
+      // Don't resolve fetch immediately to see loading state
+      global.fetch.mockImplementationOnce(() => new Promise(() => {}));
       render(<ContactPage />);
       expect(screen.getByText('Loading contact info...')).toBeInTheDocument();
     });
@@ -246,15 +251,19 @@ describe('Contact Page Component', () => {
   });
 
   describe('Typing Animation', () => {
-    it('should render typing animation', () => {
+    it('should render typing animation', async () => {
       render(<ContactPage />);
-      expect(screen.getByTestId('typed-text')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('typed-text')).toBeInTheDocument();
+      });
     });
 
-    it('should display the main heading text', () => {
+    it('should display the main heading text', async () => {
       render(<ContactPage />);
-      const typedText = screen.getByTestId('typed-text');
-      expect(typedText).toHaveTextContent("Let's Build Something Amazing");
+      await waitFor(() => {
+        const typedText = screen.getByTestId('typed-text');
+        expect(typedText).toHaveTextContent("Let's Build Something Amazing");
+      });
     });
   });
 
@@ -387,10 +396,12 @@ describe('Contact Page Component', () => {
   });
 
   describe('SEO', () => {
-    it('should render SEO component', () => {
+    it('should render SEO component', async () => {
       render(<ContactPage />);
-      // SEO component is mocked, just verify page renders
-      expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+      // Wait for data to load then verify page renders
+      await waitFor(() => {
+        expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+      });
     });
   });
 
@@ -512,10 +523,12 @@ describe('Contact Page Component', () => {
   });
 
   describe('Styling', () => {
-    it('should apply badge styling', () => {
+    it('should apply badge styling', async () => {
       render(<ContactPage />);
-      const badge = screen.getByText('Get in Touch');
-      expect(badge).toHaveClass('badge', 'badge-accent');
+      await waitFor(() => {
+        const badge = screen.getByText('Get in Touch');
+        expect(badge).toHaveClass('badge', 'badge-accent');
+      });
     });
 
     it('should apply font classes', async () => {
@@ -529,7 +542,7 @@ describe('Contact Page Component', () => {
   });
 
   describe('Responsive Behavior', () => {
-    it('should respect reduced motion preference', () => {
+    it('should respect reduced motion preference', async () => {
       window.matchMedia = jest.fn().mockImplementation((query) => ({
         matches: query === '(prefers-reduced-motion: reduce)',
         media: query,
@@ -542,7 +555,9 @@ describe('Contact Page Component', () => {
       }));
 
       render(<ContactPage />);
-      expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+      });
     });
 
     it('should apply responsive text sizes', async () => {
