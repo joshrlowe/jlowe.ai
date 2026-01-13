@@ -57,7 +57,9 @@ export default function TechStackShowcase({ projects = [] }) {
   const techStack = useMemo(() => {
     const techMap = new Map();
 
-    projects.forEach((project) => {
+    // Guard against null/undefined projects
+    const safeProjects = projects || [];
+    safeProjects.forEach((project) => {
       const techs = parseJsonField(project.techStack, []);
       techs.forEach((tech) => {
         const techName = typeof tech === "string" ? tech : tech.name || tech;
