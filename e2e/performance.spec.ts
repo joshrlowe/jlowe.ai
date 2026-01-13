@@ -316,11 +316,12 @@ test.describe('Performance - Time to Interactive', () => {
 
 test.describe('Performance - Memory Usage', () => {
     test('should not have excessive memory usage', async ({ page }) => {
+        // Use consistent page.goto() for all navigation to avoid interruption
         await page.goto('/');
         await page.waitForLoadState('networkidle');
 
         // Navigate to multiple pages to test for memory leaks
-        await page.click('a[href="/about"]');
+        await page.goto('/about');
         await page.waitForLoadState('networkidle');
 
         await page.goto('/projects');
