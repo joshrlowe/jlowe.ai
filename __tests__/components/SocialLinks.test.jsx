@@ -31,7 +31,7 @@ describe('SocialLinks Component', () => {
   describe('Rendering', () => {
     it('should render without crashing', () => {
       render(<SocialLinks contactData={mockContactData} />);
-      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
     });
 
     it('should render null when no contactData', () => {
@@ -172,12 +172,12 @@ describe('SocialLinks Component', () => {
         <SocialLinks contactData={mockContactData} vertical={true} />
       );
       // Component should render with vertical layout
-      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
     });
 
     it('should apply horizontal class by default', () => {
       const { container } = render(<SocialLinks contactData={mockContactData} />);
-      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
     });
   });
 
@@ -262,10 +262,11 @@ describe('SocialLinks Component', () => {
       expect(screen.getByLabelText('Social media links')).toBeInTheDocument();
     });
 
-    it('should have role listitem on links', () => {
+    it('should have proper link elements', () => {
       render(<SocialLinks contactData={mockContactData} />);
-      const listitems = screen.getAllByRole('listitem');
-      expect(listitems.length).toBe(4);
+      const nav = screen.getByRole('navigation');
+      const links = nav.querySelectorAll('a');
+      expect(links.length).toBe(4);
     });
 
     it('should have proper aria-labels on links', () => {
@@ -364,7 +365,7 @@ describe('SocialLinks Component', () => {
     it('should trigger GSAP animations on mount', () => {
       render(<SocialLinks contactData={mockContactData} />);
       // GSAP animations are mocked, just verify component renders
-      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
     });
 
     it('should handle re-renders', () => {
@@ -372,7 +373,7 @@ describe('SocialLinks Component', () => {
       
       rerender(<SocialLinks contactData={mockContactData} />);
       
-      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByRole('navigation')).toBeInTheDocument();
     });
   });
 
