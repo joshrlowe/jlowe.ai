@@ -359,16 +359,18 @@ describe('Navigation Flow Integration', () => {
 
   describe('Route Changes', () => {
     it('should update active state when route changes', () => {
+      // Render on home route first
       mockPathname.mockReturnValue('/');
-      const { rerender } = render(<Header />);
+      const { unmount } = render(<Header />);
 
       let homeLinks = screen.getAllByRole('link', { name: /home/i });
       let homeLink = homeLinks.find(link => link.getAttribute('href') === '/' && link.textContent === 'Home');
       expect(homeLink).toHaveStyle({ color: 'rgb(232, 93, 4)' });
 
-      // Change route
+      // Unmount and remount with new route to ensure fresh render with new mock value
+      unmount();
       mockPathname.mockReturnValue('/about');
-      rerender(<Header />);
+      render(<Header />);
 
       homeLinks = screen.getAllByRole('link', { name: /home/i });
       homeLink = homeLinks.find(link => link.getAttribute('href') === '/' && link.textContent === 'Home');
