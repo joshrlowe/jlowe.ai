@@ -9,7 +9,7 @@
  * - GSAP animations
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Badge } from "@/components/ui";
@@ -50,10 +50,11 @@ const techCategories = {
 export default function TechStackShowcase({ projects = [] }) {
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
-  const [techStack, setTechStack] = useState([]);
   const iconsRef = useRef([]);
 
-  useEffect(() => {
+  // Use useMemo instead of useEffect+useState to avoid infinite loops
+  // when projects array reference changes but content is the same
+  const techStack = useMemo(() => {
     const techMap = new Map();
 
     projects.forEach((project) => {
@@ -70,7 +71,7 @@ export default function TechStackShowcase({ projects = [] }) {
 
     // Determine category for each tech
     const categorizedTech = (techName) => {
-      for (const [category, data] of Object.entries(techCategories)) {
+      for (const [, data] of Object.entries(techCategories)) {
         if (
           data.techs.some((t) => t.toLowerCase() === techName.toLowerCase())
         ) {
@@ -80,7 +81,7 @@ export default function TechStackShowcase({ projects = [] }) {
       return "primary";
     };
 
-    const techArray = Array.from(techMap.entries())
+    return Array.from(techMap.entries())
       .map(([name, count]) => ({
         name,
         count,
@@ -88,8 +89,6 @@ export default function TechStackShowcase({ projects = [] }) {
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 12);
-
-    setTechStack(techArray);
   }, [projects]);
 
   useEffect(() => {
