@@ -18,8 +18,8 @@ test.describe('Contact Page', () => {
     // Contact information should be visible
     await expect(page.getByText(/Contact Information/i)).toBeVisible();
     
-    // Email should be visible
-    await expect(page.locator('a[href^="mailto:"]')).toBeVisible();
+    // Email should be visible (use .first() as there may be multiple mailto links)
+    await expect(page.locator('a[href^="mailto:"]').first()).toBeVisible();
   });
 
   test('should display social media links', async ({ page }) => {
