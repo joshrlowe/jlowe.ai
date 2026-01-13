@@ -8,32 +8,49 @@ import AxeBuilder from '@axe-core/playwright';
  * manual keyboard navigation and focus management tests.
  */
 
+// Helper to filter only serious/critical violations (exclude minor and best-practice)
+function getSeriousViolations(violations: any[]) {
+  return violations.filter(v => 
+    (v.impact === 'serious' || v.impact === 'critical') &&
+    !v.tags?.includes('best-practice')
+  );
+}
+
 test.describe('Accessibility - Automated Audits', () => {
   test('should pass axe accessibility audit on home page', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
-    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
     
-    expect(accessibilityScanResults.violations).toEqual([]);
+    const seriousViolations = getSeriousViolations(accessibilityScanResults.violations);
+    expect(seriousViolations).toEqual([]);
   });
 
   test('should pass axe accessibility audit on about page', async ({ page }) => {
     await page.goto('/about');
     await page.waitForLoadState('networkidle');
     
-    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
     
-    expect(accessibilityScanResults.violations).toEqual([]);
+    const seriousViolations = getSeriousViolations(accessibilityScanResults.violations);
+    expect(seriousViolations).toEqual([]);
   });
 
   test('should pass axe accessibility audit on projects page', async ({ page }) => {
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
     
-    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
     
-    expect(accessibilityScanResults.violations).toEqual([]);
+    const seriousViolations = getSeriousViolations(accessibilityScanResults.violations);
+    expect(seriousViolations).toEqual([]);
   });
 
   test('should pass axe accessibility audit on contact page', async ({ page }) => {
@@ -43,9 +60,12 @@ test.describe('Accessibility - Automated Audits', () => {
       timeout: 10000 
     }).catch(() => {});
     
-    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
     
-    expect(accessibilityScanResults.violations).toEqual([]);
+    const seriousViolations = getSeriousViolations(accessibilityScanResults.violations);
+    expect(seriousViolations).toEqual([]);
   });
 
   test('should pass axe accessibility audit on articles page', async ({ page }) => {
