@@ -1,3 +1,22 @@
+# =============================================================================
+# TEST SUITE WORKFLOW
+# =============================================================================
+# Comprehensive CI/CD pipeline for jlowe.ai portfolio
+# 
+# Pipeline Flow:
+#   lint ──┬──> build ──┬──> e2e-tests ──> e2e-report
+#          │            ├──> lighthouse
+#          │            ├──> visual-regression
+#          │            ├──> accessibility
+#          │            └──> performance
+#          │
+#          └──> unit-tests
+#
+#   security (runs in parallel, non-blocking)
+#
+# All jobs report to test-summary for final status
+# =============================================================================
+
 name: Test Suite
 
 on:
@@ -7,11 +26,14 @@ on:
     branches: [main, develop]
   workflow_dispatch: # Allow manual triggers
 
-# Cancel in-progress runs when a new one starts
+# Cancel in-progress runs when a new one starts (saves CI minutes)
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# =============================================================================
+# GLOBAL ENVIRONMENT VARIABLES
+# =============================================================================
 env:
   NODE_VERSION: '20'
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
@@ -19,6 +41,10 @@ env:
   NEXTAUTH_URL: http://localhost:3000
 
 jobs:
+  # ===========================================================================
+  # STAGE 1: CODE QUALITY CHECKS (runs first, fast feedback)
+  # ===========================================================================
+  
   lint:
     name: Lint & Code Quality
     runs-on: ubuntu-latest
@@ -48,9 +74,14 @@ jobs:
           fi
         continue-on-error: true
 
+  # ===========================================================================
+  # STAGE 1: SECURITY SCANNING (runs in parallel, non-blocking)
+  # ===========================================================================
+  
   security:
     name: Security Scanning
     runs-on: ubuntu-latest
+    # No dependencies - runs in parallel with lint
     
     steps:
       - name: Checkout code
@@ -77,6 +108,10 @@ jobs:
         with:
           args: --severity-threshold=high
 
+  # ===========================================================================
+  # STAGE 2: BUILD VERIFICATION (fail fast before expensive tests)
+  # ===========================================================================
+  
   build:
     name: Build Verification
     runs-on: ubuntu-latest
@@ -119,71 +154,10 @@ jobs:
           path: .next/
           retention-days: 1
 
-  lighthouse:
-    name: Lighthouse CI
-    runs-on: ubuntu-latest
-    needs: build
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Generate Prisma client
-        run: npx prisma generate
-      
-      - name: Setup database schema
-        run: npx prisma db push --skip-generate
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-      
-      - name: Seed database with test data
-        run: npm run seed:content || echo "Seed script not available, continuing..."
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-        continue-on-error: true
-      
-      - name: Build Next.js application
-        run: npm run build
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
-      
-      - name: Run Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v10
-        with:
-          configPath: ./lighthouserc.json
-          uploadArtifacts: true
-          temporaryPublicStorage: true
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
-
+  # ===========================================================================
+  # STAGE 2: UNIT & INTEGRATION TESTS (runs after lint, parallel with build)
+  # ===========================================================================
+  
   unit-tests:
     name: Unit & Integration Tests
     runs-on: ubuntu-latest
@@ -290,6 +264,79 @@ jobs:
               body: comment
             });
 
+  # ===========================================================================
+  # STAGE 3: LIGHTHOUSE CI (runs after build for performance auditing)
+  # ===========================================================================
+  
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: build
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate Prisma client
+        run: npx prisma generate
+      
+      - name: Setup database schema
+        run: npx prisma db push --skip-generate
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      
+      - name: Seed database with test data
+        run: npm run seed:content || echo "Seed script not available, continuing..."
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        continue-on-error: true
+      
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
+      
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
+
+  # ===========================================================================
+  # STAGE 3: E2E TESTS (Playwright - runs after build)
+  # ===========================================================================
+  
   e2e-tests:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
@@ -311,10 +358,10 @@ jobs:
           - 5432:5432
     
     strategy:
-      fail-fast: false
+      fail-fast: false  # Continue other browsers if one fails
       matrix:
         browser: [chromium, firefox, webkit]
-        shard: [1/2, 2/2]
+        shard: [1/2, 2/2]  # Split tests for faster execution
     
     steps:
       - name: Checkout code
@@ -379,7 +426,7 @@ jobs:
           path: playwright-report/
           retention-days: 30
       
-      - name: Upload screenshots
+      - name: Upload screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -387,7 +434,7 @@ jobs:
           path: test-results/**/*.png
           retention-days: 7
       
-      - name: Upload videos
+      - name: Upload videos on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -395,6 +442,10 @@ jobs:
           path: test-results/**/*.webm
           retention-days: 7
 
+  # ===========================================================================
+  # STAGE 4: MERGE E2E REPORTS
+  # ===========================================================================
+  
   e2e-report:
     name: Publish E2E Test Report
     runs-on: ubuntu-latest
@@ -424,6 +475,10 @@ jobs:
           path: merged-report/
           retention-days: 30
 
+  # ===========================================================================
+  # STAGE 3: VISUAL REGRESSION TESTS (runs after build)
+  # ===========================================================================
+  
   visual-regression:
     name: Visual Regression Tests
     runs-on: ubuntu-latest
@@ -491,7 +546,7 @@ jobs:
           NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
       
-      - name: Upload visual diffs
+      - name: Upload visual diffs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -499,6 +554,10 @@ jobs:
           path: test-results/**/diff-*.png
           retention-days: 7
 
+  # ===========================================================================
+  # STAGE 3: ACCESSIBILITY TESTS (runs after build)
+  # ===========================================================================
+  
   accessibility:
     name: Accessibility Tests
     runs-on: ubuntu-latest
@@ -574,6 +633,10 @@ jobs:
           path: test-results/
           retention-days: 30
 
+  # ===========================================================================
+  # STAGE 3: PERFORMANCE TESTS (runs after build)
+  # ===========================================================================
+  
   performance:
     name: Performance Tests
     runs-on: ubuntu-latest
@@ -649,6 +712,10 @@ jobs:
           path: test-results/
           retention-days: 30
 
+  # ===========================================================================
+  # FINAL STAGE: TEST SUMMARY (aggregates all job results)
+  # ===========================================================================
+  
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
@@ -656,7 +723,7 @@ jobs:
     if: always()
     
     steps:
-      - name: Check test results
+      - name: Generate test summary
         run: |
           echo "## 🧪 Test Suite Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -687,4 +754,5 @@ jobs:
       - name: Warn if security scan failed
         if: needs.security.result == 'failure'
         run: |
-          echo "⚠️ Security scan reported issues - please review" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Security scan reported issues** - please review the security job logs" >> $GITHUB_STEP_SUMMARY
