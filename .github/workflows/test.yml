@@ -141,10 +141,27 @@ jobs:
           NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
       
       - name: Analyze bundle size
-        uses: hashicorp/nextjs-bundle-analysis@v1
-        with:
-          build-directory: .next
-          name: 'Production Build'
+        run: |
+          echo "## 📦 Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f .next/build-manifest.json ]; then
+            echo "### Build Manifest" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat .next/build-manifest.json | head -50 >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Page Sizes" >> $GITHUB_STEP_SUMMARY
+          if [ -d .next/server/pages ]; then
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            du -sh .next/server/pages/* 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || echo "No pages found"
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Total Build Size" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          du -sh .next/ >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         continue-on-error: true
       
       - name: Upload build artifacts
