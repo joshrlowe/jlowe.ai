@@ -58,6 +58,7 @@ export default function Footer() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     setMounted(true);
 
     const fetchData = async () => {
@@ -65,13 +66,20 @@ export default function Footer() {
         const response = await fetch("/api/contact");
         if (!response.ok) return;
         const data = await response.json();
-        setContactData(data);
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setContactData(data);
+        }
       } catch (error) {
         // Silently fail - contact data is optional
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const getHref = (key) => {

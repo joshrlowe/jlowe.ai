@@ -102,6 +102,21 @@ export class BufferGeometry {
   dispose() {}
 }
 
+export class BufferAttribute {
+  constructor(array, itemSize) {
+    this.array = array || new Float32Array(0);
+    this.itemSize = itemSize || 1;
+    this.count = this.array.length / this.itemSize;
+    this.needsUpdate = false;
+  }
+}
+
+export class Float32BufferAttribute extends BufferAttribute {
+  constructor(array, itemSize) {
+    super(array, itemSize);
+  }
+}
+
 export class MeshBasicMaterial {
   constructor(params = {}) {
     Object.assign(this, params);
@@ -267,6 +282,8 @@ export default {
   SphereGeometry,
   PlaneGeometry,
   BufferGeometry,
+  BufferAttribute,
+  Float32BufferAttribute,
   MeshBasicMaterial,
   MeshStandardMaterial,
   ShaderMaterial,

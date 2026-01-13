@@ -134,7 +134,8 @@ jest.mock('next/navigation', () => ({
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: function MockImage({ src, alt, width, height, fill, priority, style, ...props }) {
+  default: function MockImage({ src, alt, width, height, fill, priority, style, unoptimized, placeholder, blurDataURL, onLoadingComplete, onLoad, onError, loader, quality, sizes, ...props }) {
+    // Filter out Next.js Image specific props that are not valid HTML attributes
     const imageStyle = fill
       ? { objectFit: 'cover', position: 'absolute', width: '100%', height: '100%', ...style }
       : style;
@@ -153,15 +154,18 @@ jest.mock('next/image', () => ({
   },
 }));
 
-// Mock next/link - simple passthrough
-jest.mock('next/link', () => ({
-  __esModule: true,
-  default: ({ children, href, ...props }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+// Mock next/link - simple passthrough with ref support
+jest.mock('next/link', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef(({ children, href, ...props }, ref) => (
+      <a href={href} ref={ref} {...props}>
+        {children}
+      </a>
+    )),
+  };
+});
 
 // Mock next/head
 jest.mock('next/head', () => ({
