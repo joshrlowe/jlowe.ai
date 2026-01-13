@@ -105,6 +105,13 @@ jobs:
           NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
       
+      - name: Analyze bundle size
+        uses: hashicorp/nextjs-bundle-analysis@v1
+        with:
+          build-directory: .next
+          name: 'Production Build'
+        continue-on-error: true
+      
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
