@@ -343,6 +343,14 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
         continue-on-error: true
       
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}
       
@@ -463,6 +471,14 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
         continue-on-error: true
       
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       
@@ -530,6 +546,14 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
         continue-on-error: true
       
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       
@@ -596,6 +620,14 @@ jobs:
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
         continue-on-error: true
+      
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
