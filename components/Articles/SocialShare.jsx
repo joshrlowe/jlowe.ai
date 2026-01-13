@@ -64,11 +64,10 @@ export default function SocialShare({ url, title, description: _description }) {
 
       <button
         onClick={copyToClipboard}
-        className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all duration-300 ${
-          copied
+        className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all duration-300 ${copied
             ? "bg-green-500/10 border-green-500 text-green-400"
             : "bg-[var(--color-bg-card)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-        }`}
+          }`}
         aria-label="Copy link"
       >
         {copied ? (

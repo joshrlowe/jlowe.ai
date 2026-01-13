@@ -40,7 +40,7 @@ configure({
 // Store original console.error
 const originalConsoleError = console.error;
 
-// Suppress specific warnings that are known false positives with React 18 + userEvent v14
+// Suppress specific warnings that are known false positives or expected test behavior
 console.error = (...args) => {
   const message = args[0];
   
@@ -59,6 +59,15 @@ console.error = (...args) => {
   if (
     typeof message === 'string' &&
     message.includes('ReactDOMTestUtils.act is deprecated')
+  ) {
+    return;
+  }
+  
+  // Suppress expected API error messages during error handling tests
+  // These are intentionally triggered to test error scenarios
+  if (
+    typeof message === 'string' &&
+    message.startsWith('API Error:')
   ) {
     return;
   }

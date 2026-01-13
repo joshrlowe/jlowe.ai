@@ -37,7 +37,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-[var(--color-bg-dark)] flex items-center justify-center p-4">
       <div className="w-full max-w-[28rem]">
         <div className="bg-[var(--color-bg-card)] rounded-2xl p-8 sm:p-10 border border-[var(--color-border)]">
-          <h1 
+          <h1
             className="text-3xl sm:text-4xl font-bold text-[var(--color-primary)] text-center mb-8"
             style={{ fontFamily: 'var(--font-family-heading)' }}
           >

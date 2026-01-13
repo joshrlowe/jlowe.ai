@@ -223,8 +223,8 @@ export default function Footer() {
                       (e.currentTarget.style.color = "#E85D04")
                     }
                     onMouseLeave={(e) =>
-                      (e.currentTarget.style.color =
-                        "var(--color-text-secondary)")
+                    (e.currentTarget.style.color =
+                      "var(--color-text-secondary)")
                     }
                   >
                     {link.label}
