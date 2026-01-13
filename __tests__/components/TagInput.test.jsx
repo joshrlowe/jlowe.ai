@@ -91,10 +91,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), 'NewTag');
       await user.click(screen.getByRole('button', { name: 'Add' }));
-      
+
       expect(onAdd).toHaveBeenCalledWith('NewTag');
     });
 
@@ -103,10 +103,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), 'NewTag');
       await user.click(screen.getByRole('button', { name: 'Add' }));
-      
+
       await waitFor(() => {
         expect(screen.getByRole('textbox')).toHaveValue('');
       });
@@ -117,9 +117,9 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.click(screen.getByRole('button', { name: 'Add' }));
-      
+
       expect(onAdd).not.toHaveBeenCalled();
     });
 
@@ -128,10 +128,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), '   ');
       await user.click(screen.getByRole('button', { name: 'Add' }));
-      
+
       expect(onAdd).not.toHaveBeenCalled();
     });
 
@@ -140,10 +140,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), '  Trimmed Tag  ');
       await user.click(screen.getByRole('button', { name: 'Add' }));
-      
+
       expect(onAdd).toHaveBeenCalledWith('Trimmed Tag');
     });
 
@@ -152,10 +152,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} tags={['Existing']} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), 'Existing');
       await user.click(screen.getByRole('button', { name: 'Add' }));
-      
+
       expect(onAdd).not.toHaveBeenCalled();
     });
   });
@@ -166,10 +166,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), 'EnterTag');
       await user.keyboard('{Enter}');
-      
+
       expect(onAdd).toHaveBeenCalledWith('EnterTag');
     });
 
@@ -180,10 +180,10 @@ describe('TagInput', () => {
           <TagInput {...defaultProps} />
         </form>
       );
-      
+
       await user.type(screen.getByRole('textbox'), 'Tag');
       await user.keyboard('{Enter}');
-      
+
       expect(onSubmit).not.toHaveBeenCalled();
     });
 
@@ -192,10 +192,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} onAdd={onAdd} />
       );
-      
+
       await user.type(screen.getByRole('textbox'), 'EnterTag');
       await user.keyboard('{Enter}');
-      
+
       await waitFor(() => {
         expect(screen.getByRole('textbox')).toHaveValue('');
       });
@@ -208,10 +208,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} tags={['Tag1', 'Tag2', 'Tag3']} onRemove={onRemove} />
       );
-      
+
       const removeButtons = screen.getAllByRole('button', { name: '×' });
       await user.click(removeButtons[1]); // Remove second tag
-      
+
       expect(onRemove).toHaveBeenCalledWith(1);
     });
 
@@ -220,10 +220,10 @@ describe('TagInput', () => {
       const { user } = renderWithoutProviders(
         <TagInput {...defaultProps} tags={['First', 'Second']} onRemove={onRemove} />
       );
-      
+
       const removeButtons = screen.getAllByRole('button', { name: '×' });
       await user.click(removeButtons[0]);
-      
+
       expect(onRemove).toHaveBeenCalledWith(0);
     });
   });

@@ -1,9 +1,10 @@
 /**
  * Tests for PostComments component
+ * 
+ * Uses custom test-utils for proper act() warning suppression
  */
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import PostComments from "../../components/Articles/PostComments";
+import { screen, waitFor, renderWithoutProviders } from "@/test-utils";
+import PostComments from "@/components/Articles/PostComments";
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -22,7 +23,7 @@ describe("PostComments", () => {
       json: async () => [],
     });
 
-    render(<PostComments postId={postId} />);
+    renderWithoutProviders(<PostComments postId={postId} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
@@ -47,7 +48,7 @@ describe("PostComments", () => {
       json: async () => mockComments,
     });
 
-    render(<PostComments postId={postId} />);
+    renderWithoutProviders(<PostComments postId={postId} />);
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
@@ -62,8 +63,6 @@ describe("PostComments", () => {
   });
 
   it("should submit comment successfully", async () => {
-    const user = userEvent.setup();
-
     fetch
       .mockResolvedValueOnce({
         ok: true,
@@ -78,7 +77,7 @@ describe("PostComments", () => {
         }),
       });
 
-    render(<PostComments postId={postId} />);
+    const { user } = renderWithoutProviders(<PostComments postId={postId} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
@@ -111,8 +110,6 @@ describe("PostComments", () => {
   });
 
   it("should show error if submission fails", async () => {
-    const user = userEvent.setup();
-
     fetch
       .mockResolvedValueOnce({
         ok: true,
@@ -123,7 +120,7 @@ describe("PostComments", () => {
         json: async () => ({ message: "Error message" }),
       });
 
-    render(<PostComments postId={postId} />);
+    const { user } = renderWithoutProviders(<PostComments postId={postId} />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
@@ -146,7 +143,7 @@ describe("PostComments", () => {
       json: async () => [],
     });
 
-    render(<PostComments postId={postId} />);
+    renderWithoutProviders(<PostComments postId={postId} />);
 
     await waitFor(() => {
       expect(
