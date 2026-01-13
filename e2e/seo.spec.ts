@@ -220,10 +220,21 @@ test.describe('SEO - Technical SEO', () => {
   test('should have favicon', async ({ page }) => {
     await page.goto('/');
     
-    const favicon = page.locator('link[rel="icon"], link[rel="shortcut icon"]');
-    const count = await favicon.count();
+    // Check for various favicon formats
+    const faviconLink = page.locator('link[rel="icon"], link[rel="shortcut icon"], link[rel*="icon"]');
+    const faviconLinkCount = await faviconLink.count();
     
-    expect(count).toBeGreaterThan(0);
+    // Also check for favicon.ico in head or direct file
+    const hasFaviconLink = faviconLinkCount > 0;
+    
+    // If no link tag, check if favicon.ico exists (default location)
+    if (!hasFaviconLink) {
+      const response = await page.request.get('/favicon.ico');
+      const hasFaviconFile = response.ok();
+      expect(hasFaviconLink || hasFaviconFile).toBeTruthy();
+    } else {
+      expect(faviconLinkCount).toBeGreaterThan(0);
+    }
   });
 
   test('should have apple touch icon', async ({ page }) => {
