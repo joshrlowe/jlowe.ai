@@ -327,23 +327,27 @@ test.describe('SEO - Technical SEO', () => {
 test.describe('SEO - Performance Impact', () => {
   test('should not have render-blocking resources', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
     
-    // Check for async/defer on script tags
-    const scripts = await page.locator('script[src]').all();
+    // Get all script info in one evaluate call to avoid stale element issues
+    const scriptInfo = await page.evaluate(() => {
+      const scripts = Array.from(document.querySelectorAll('script[src]'));
+      return scripts.map(script => ({
+        src: script.getAttribute('src'),
+        async: script.hasAttribute('async'),
+        defer: script.hasAttribute('defer'),
+        type: script.getAttribute('type'),
+      }));
+    });
     
-    for (const script of scripts) {
-      const async = await script.getAttribute('async');
-      const defer = await script.getAttribute('defer');
-      const type = await script.getAttribute('type');
-      
+    for (const script of scriptInfo) {
       // Script should either be async, defer, or module
-      const isOptimized = async !== null || defer !== null || type === 'module';
+      const isOptimized = script.async || script.defer || script.type === 'module';
       
       // This is a recommendation, not a hard requirement
       // so we just log if not optimized
       if (!isOptimized) {
-        const src = await script.getAttribute('src');
-        console.log(`Script may be render-blocking: ${src}`);
+        console.log(`Script may be render-blocking: ${script.src}`);
       }
     }
   });
