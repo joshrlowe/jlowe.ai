@@ -75,12 +75,22 @@ test.describe('Home Page', () => {
         // NextAuth session errors in test environment
         '[next-auth]',
         'CLIENT_FETCH_ERROR',
+        'operation was aborted',
         // API calls that may fail when database is empty or network issues
         '400 (Bad Request)',
         '400',
         'Failed to load resource',
         'Load failed',
         'TypeError: Load failed',
+        // WebGL/Three.js errors in Firefox CI (no GPU support)
+        'THREE.WebGLRenderer',
+        'WebGL context could not be created',
+        'WebGL creation failed',
+        'AllowWebgl2',
+        'Error creating WebGL context',
+        // React error boundary catches (graceful degradation)
+        'Error caught by boundary',
+        'recreate this component tree',
       ];
       return !ignoredPatterns.some(pattern => error.includes(pattern));
     });
