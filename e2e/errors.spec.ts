@@ -62,8 +62,9 @@ test.describe('Error Handling - 404 Page', () => {
         ];
 
         for (const route of invalidRoutes) {
-            const response = await page.goto(route);
-            await page.waitForLoadState('domcontentloaded');
+            // Navigate with explicit wait to avoid interruptions
+            const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
+            await page.waitForTimeout(500); // Allow page to settle
             
             // Status may be 200 (soft 404) or 404
             const status = response?.status();
