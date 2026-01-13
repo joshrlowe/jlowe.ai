@@ -343,12 +343,21 @@ jobs:
         uses: treosh/lighthouse-ci-action@v10
         with:
           configPath: ./lighthouserc.json
-          uploadArtifacts: true
+          uploadArtifacts: false
           temporaryPublicStorage: true
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
+      
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          retention-days: 7
+        continue-on-error: true
 
   # ===========================================================================
   # STAGE 3: E2E TESTS (Playwright - runs after build)
