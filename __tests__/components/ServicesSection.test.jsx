@@ -50,8 +50,9 @@ describe('ServicesSection Component', () => {
 
   describe('Rendering', () => {
     it('should render without crashing', () => {
-      render(<ServicesSection />);
-      expect(screen.getByLabelText('services-title')).toBeInTheDocument();
+      const { container } = render(<ServicesSection />);
+      // The section uses aria-labelledby pointing to the title element
+      expect(container.querySelector('#services-title')).toBeInTheDocument();
     });
 
     it('should render with custom homeContent', () => {
@@ -160,8 +161,11 @@ describe('ServicesSection Component', () => {
     });
 
     it('should have proper section landmark', () => {
-      render(<ServicesSection />);
-      expect(screen.getByLabelText('services-title')).toBeInTheDocument();
+      const { container } = render(<ServicesSection />);
+      // The section uses aria-labelledby with id="services-title"
+      const section = container.querySelector('section[aria-labelledby="services-title"]');
+      expect(section).toBeInTheDocument();
+      expect(container.querySelector('#services-title')).toBeInTheDocument();
     });
 
     it('should have heading for services title', () => {
