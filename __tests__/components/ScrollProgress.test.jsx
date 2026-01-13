@@ -14,9 +14,9 @@ import ScrollProgress from '@/components/ui/ScrollProgress';
 expect.extend(toHaveNoViolations);
 
 // Helper to dispatch scroll events wrapped in act()
-const triggerScroll = () => {
-  act(() => {
-    triggerScroll();
+const triggerScroll = async () => {
+  await act(async () => {
+    window.dispatchEvent(new Event('scroll'));
   });
 };
 

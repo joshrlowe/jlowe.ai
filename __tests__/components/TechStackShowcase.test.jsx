@@ -106,8 +106,9 @@ describe('TechStackShowcase Component', () => {
 
     it('should render tech initials as fallback icons', () => {
       render(<TechStackShowcase projects={mockProjects} />);
-      expect(screen.getByText('P')).toBeInTheDocument(); // Python initial
-      expect(screen.getByText('T')).toBeInTheDocument(); // TensorFlow initial
+      // Multiple techs may start with same letter (Python appears twice)
+      expect(screen.getAllByText('P').length).toBeGreaterThan(0); // Python initial
+      expect(screen.getAllByText('T').length).toBeGreaterThan(0); // TensorFlow initial
     });
 
     it('should limit to 12 technologies', () => {
@@ -399,10 +400,10 @@ describe('TechStackShowcase Component', () => {
   describe('Icon Display', () => {
     it('should display first letter of tech name', () => {
       render(<TechStackShowcase projects={mockProjects} />);
-      // Should show uppercase first letters
-      expect(screen.getByText('P')).toBeInTheDocument(); // Python
-      expect(screen.getByText('T')).toBeInTheDocument(); // TensorFlow
-      expect(screen.getByText('R')).toBeInTheDocument(); // React
+      // Should show uppercase first letters (may have duplicates)
+      expect(screen.getAllByText('P').length).toBeGreaterThan(0); // Python
+      expect(screen.getAllByText('T').length).toBeGreaterThan(0); // TensorFlow
+      expect(screen.getAllByText('R').length).toBeGreaterThan(0); // React
     });
 
     it('should capitalize first letter', () => {
@@ -411,7 +412,7 @@ describe('TechStackShowcase Component', () => {
       ];
       
       render(<TechStackShowcase projects={projectsWithLowercase} />);
-      expect(screen.getByText('P')).toBeInTheDocument();
+      expect(screen.getAllByText('P').length).toBeGreaterThan(0);
     });
   });
 

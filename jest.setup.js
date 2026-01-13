@@ -174,13 +174,46 @@ jest.mock('next/head', () => ({
 // ============================================================================
 
 // Mock Three.js - prevents WebGL context errors
-jest.mock('three', () => require('./__mocks__/three'));
+jest.mock('three', () => ({
+  WebGLRenderer: jest.fn().mockImplementation(() => ({
+    setSize: jest.fn(),
+    setPixelRatio: jest.fn(),
+    render: jest.fn(),
+    dispose: jest.fn(),
+    domElement: document.createElement('canvas'),
+  })),
+  Scene: jest.fn(),
+  PerspectiveCamera: jest.fn(),
+  Vector3: jest.fn().mockImplementation(() => ({ set: jest.fn(), copy: jest.fn() })),
+  Color: jest.fn(),
+  Points: jest.fn(),
+  PointsMaterial: jest.fn(),
+  BufferGeometry: jest.fn().mockImplementation(() => ({
+    setAttribute: jest.fn(),
+    dispose: jest.fn(),
+  })),
+  Float32BufferAttribute: jest.fn(),
+  ShaderMaterial: jest.fn(),
+  AdditiveBlending: 1,
+}));
 
 // Mock @react-three/fiber
-jest.mock('@react-three/fiber', () => require('./__mocks__/@react-three/fiber'));
+jest.mock('@react-three/fiber', () => ({
+  Canvas: ({ children }) => <div data-testid="r3f-canvas">{children}</div>,
+  useFrame: jest.fn(),
+  useThree: jest.fn(() => ({
+    camera: { position: { set: jest.fn() } },
+    gl: { setSize: jest.fn() },
+  })),
+  extend: jest.fn(),
+}));
 
 // Mock @react-three/drei
-jest.mock('@react-three/drei', () => require('./__mocks__/@react-three/drei'));
+jest.mock('@react-three/drei', () => ({
+  OrbitControls: () => null,
+  Stars: () => null,
+  useTexture: jest.fn(() => null),
+}));
 
 // ============================================================================
 // ANIMATION LIBRARY MOCKS

@@ -51,12 +51,12 @@ describe('Navigation Flow Integration', () => {
     it('should render all navigation links', () => {
       render(<Header />);
 
-      // Use getByText to avoid confusion with aria-label
-      expect(screen.getByText('Home')).toBeInTheDocument();
-      expect(screen.getByText('About')).toBeInTheDocument();
-      expect(screen.getByText('Projects')).toBeInTheDocument();
-      expect(screen.getByText('Articles')).toBeInTheDocument();
-      expect(screen.getByText('Contact')).toBeInTheDocument();
+      // Use getAllByText since nav links appear in both desktop and mobile menus
+      expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('About').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Projects').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Articles').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Contact').length).toBeGreaterThan(0);
     });
 
     it('should have correct href attributes for all links', () => {
