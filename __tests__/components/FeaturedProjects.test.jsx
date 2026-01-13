@@ -332,8 +332,9 @@ describe('FeaturedProjects Component', () => {
     });
 
     it('should have proper section landmark', () => {
-      render(<FeaturedProjects projects={mockProjects} />);
-      expect(screen.getByLabelText('projects-title')).toBeInTheDocument();
+      const { container } = render(<FeaturedProjects projects={mockProjects} />);
+      const section = container.querySelector('section[aria-labelledby="projects-title"]');
+      expect(section).toBeInTheDocument();
     });
 
     it('should have article role for project cards', () => {

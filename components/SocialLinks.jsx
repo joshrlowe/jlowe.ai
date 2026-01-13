@@ -50,10 +50,9 @@ export default function SocialLinks({ contactData, vertical = false }) {
     : styles.socialLinks;
 
   return (
-    <div
+    <nav
       ref={containerRef}
       className={containerClass}
-      role="list"
       aria-label="Social media links"
     >
       {socialLinks.github && (
@@ -63,7 +62,6 @@ export default function SocialLinks({ contactData, vertical = false }) {
           rel="noopener noreferrer"
           className={styles.socialLink}
           aria-label="Visit GitHub profile"
-          role="listitem"
         >
           <Image
             src="/images/github-logo.png"
@@ -81,7 +79,6 @@ export default function SocialLinks({ contactData, vertical = false }) {
           rel="noopener noreferrer"
           className={styles.socialLink}
           aria-label="Visit LinkedIn profile"
-          role="listitem"
         >
           <Image
             src="/images/linkedin-logo.png"
@@ -99,7 +96,6 @@ export default function SocialLinks({ contactData, vertical = false }) {
           rel="noopener noreferrer"
           className={styles.socialLink}
           aria-label="Visit X (Twitter) profile"
-          role="listitem"
         >
           <Image
             src="/images/x-logo.png"
@@ -115,7 +111,6 @@ export default function SocialLinks({ contactData, vertical = false }) {
           href={`mailto:${contactData.emailAddress}`}
           className={styles.socialLink}
           aria-label="Send email"
-          role="listitem"
         >
           <Image
             src="/images/email-logo.png"
@@ -126,6 +121,6 @@ export default function SocialLinks({ contactData, vertical = false }) {
           />
         </Link>
       )}
-    </div>
+    </nav>
   );
 }
