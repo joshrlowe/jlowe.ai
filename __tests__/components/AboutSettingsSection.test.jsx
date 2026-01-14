@@ -183,8 +183,9 @@ describe("AboutSettingsSection", () => {
       renderWithToast(<AboutSettingsSection onError={jest.fn()} />);
 
       await waitFor(() => {
-        const textarea = screen.getByTestId("markdown-editor");
-        expect(textarea).toHaveValue("# Hello\n\nI am a developer.");
+        // Get the first markdown editor (professional summary)
+        const textareas = screen.getAllByTestId("markdown-editor");
+        expect(textareas[0]).toHaveValue("# Hello\n\nI am a developer.");
       });
     });
 
@@ -192,8 +193,11 @@ describe("AboutSettingsSection", () => {
       renderWithToast(<AboutSettingsSection onError={jest.fn()} />);
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Preview" })).toBeInTheDocument();
+        // Multiple Edit/Preview buttons exist, one for each MarkdownEditor
+        const editButtons = screen.getAllByRole("button", { name: "Edit" });
+        const previewButtons = screen.getAllByRole("button", { name: "Preview" });
+        expect(editButtons.length).toBeGreaterThan(0);
+        expect(previewButtons.length).toBeGreaterThan(0);
       });
     });
   });
