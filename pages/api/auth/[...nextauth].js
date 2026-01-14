@@ -1,12 +1,16 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import NextAuthModule from "next-auth";
+import CredentialsModule from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "../../../lib/prisma.js";
 
-// Handle next-auth ESM/CJS interop - Vercel bundling may export as { default: fn }
-const CredentialsProvider = typeof Credentials === "function" 
-  ? Credentials 
-  : Credentials.default;
+// Handle next-auth ESM/CJS interop - webpack bundling may export as { default: fn }
+const NextAuth = typeof NextAuthModule === "function" 
+  ? NextAuthModule 
+  : NextAuthModule.default;
+
+const CredentialsProvider = typeof CredentialsModule === "function" 
+  ? CredentialsModule 
+  : CredentialsModule.default;
 
 export const authOptions = {
   providers: [
