@@ -49,6 +49,8 @@ const config = {
     
     // External components
     '^react-github-calendar$': '<rootDir>/__mocks__/react-github-calendar.jsx',
+    '^react-markdown$': '<rootDir>/__mocks__/react-markdown.jsx',
+    '^remark-gfm$': '<rootDir>/__mocks__/remark-gfm.js',
     
     // Next.js
     '^next/navigation$': '<rootDir>/__mocks__/next/navigation.js',

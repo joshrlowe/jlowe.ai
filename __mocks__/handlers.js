@@ -476,6 +476,31 @@ const adminActivityLogHandlers = [
   }),
 ];
 
+/**
+ * Admin About handlers
+ * PUT /api/admin/about - Updates about page content
+ */
+const adminAboutHandlers = [
+  http.put('/api/admin/about', async ({ request }) => {
+    const body = await request.json();
+    
+    // Validate required field
+    if (!body.professionalSummary) {
+      return HttpResponse.json(
+        { message: 'Professional summary is required' },
+        { status: 400 }
+      );
+    }
+    
+    return HttpResponse.json({
+      id: 'about-1',
+      ...mockAbout,
+      ...body,
+      updatedAt: new Date().toISOString(),
+    });
+  }),
+];
+
 // ============================================================================
 // COMBINED HANDLERS
 // ============================================================================
@@ -501,6 +526,7 @@ export const handlers = [
   ...adminPageContentHandlers,
   ...adminSiteSettingsHandlers,
   ...adminActivityLogHandlers,
+  ...adminAboutHandlers,
 ];
 
 // ============================================================================
