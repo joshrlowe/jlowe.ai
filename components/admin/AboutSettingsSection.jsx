@@ -124,24 +124,28 @@ function EntryForm({
   );
 }
 
-// Technical Skill entry component
-function SkillEntry({ skill, onChange, onRemove, index }) {
+// Professional Experience entry component with Ongoing toggle
+function ExperienceEntryForm({ entry, onChange, onRemove, index }) {
   const handleFieldChange = (field, value) => {
-    onChange({ ...skill, [field]: value });
+    onChange({ ...entry, [field]: value });
   };
 
-  const expertiseLevels = [
-    { value: "Beginner", label: "Beginner" },
-    { value: "Intermediate", label: "Intermediate" },
-    { value: "Advanced", label: "Advanced" },
-    { value: "Expert", label: "Expert" },
-  ];
+  const handleOngoingToggle = (checked) => {
+    const updates = { isOngoing: checked };
+    // Clear end date when marking as ongoing
+    if (checked) {
+      updates.endDate = "";
+    }
+    onChange({ ...entry, ...updates });
+  };
+
+  const isOngoing = entry.isOngoing || false;
 
   return (
     <div className={adminStyles.card}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium text-[var(--color-text-secondary)]">
-          Skill #{index + 1}
+          Experience #{index + 1}
         </span>
         <button
           type="button"
@@ -151,68 +155,323 @@ function SkillEntry({ skill, onChange, onRemove, index }) {
           Remove
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
-          label="Category"
-          value={skill.category || ""}
-          onChange={(e) => handleFieldChange("category", e.target.value)}
-          placeholder="e.g., Programming Languages"
+          label="Company"
+          value={entry.company || ""}
+          onChange={(e) => handleFieldChange("company", e.target.value)}
+          placeholder="Company name"
         />
         <FormField
+          label="Role/Title"
+          value={entry.role || ""}
+          onChange={(e) => handleFieldChange("role", e.target.value)}
+          placeholder="Your role"
+        />
+        <div className="md:col-span-2">
+          <FormField
+            label="Description"
+            value={entry.description || ""}
+            onChange={(e) => handleFieldChange("description", e.target.value)}
+            rows={3}
+            placeholder="Describe your responsibilities..."
+          />
+        </div>
+        <FormField
+          label="Start Date"
+          type="date"
+          value={entry.startDate || ""}
+          onChange={(e) => handleFieldChange("startDate", e.target.value)}
+        />
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className={adminStyles.label} style={{ marginBottom: 0 }}>
+              End Date
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isOngoing}
+                onChange={(e) => handleOngoingToggle(e.target.checked)}
+                className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-darker)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0 cursor-pointer"
+                data-testid="ongoing-checkbox"
+              />
+              <span className="text-sm text-[var(--color-text-secondary)]">
+                Ongoing
+              </span>
+            </label>
+          </div>
+          {isOngoing ? (
+            <div
+              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-muted)] italic"
+              data-testid="ongoing-indicator"
+            >
+              Present
+            </div>
+          ) : (
+            <input
+              type="date"
+              value={entry.endDate || ""}
+              onChange={(e) => handleFieldChange("endDate", e.target.value)}
+              className={adminStyles.input}
+              required={!isOngoing}
+              data-testid="end-date-input"
+            />
+          )}
+        </div>
+        <div className="md:col-span-2">
+          <TagInput
+            label="Achievements"
+            tags={entry.achievements || []}
+            onAdd={(tag) =>
+              handleFieldChange("achievements", [
+                ...(entry.achievements || []),
+                tag,
+              ])
+            }
+            onRemove={(idx) =>
+              handleFieldChange(
+                "achievements",
+                (entry.achievements || []).filter((_, i) => i !== idx),
+              )
+            }
+            placeholder="Add achievement"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Education entry component with Ongoing toggle and Expected Graduation Date
+function EducationEntryForm({ entry, onChange, onRemove, index }) {
+  const handleFieldChange = (field, value) => {
+    onChange({ ...entry, [field]: value });
+  };
+
+  const handleOngoingToggle = (checked) => {
+    const updates = { isOngoing: checked };
+    // Clear end date when marking as ongoing, keep expectedGradDate
+    if (checked) {
+      updates.endDate = "";
+    } else {
+      // Clear expected graduation date when not ongoing
+      updates.expectedGradDate = "";
+    }
+    onChange({ ...entry, ...updates });
+  };
+
+  const isOngoing = entry.isOngoing || false;
+
+  return (
+    <div className={adminStyles.card} data-testid={`education-entry-${index}`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-medium text-[var(--color-text-secondary)]">
+          Education #{index + 1}
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          className={adminStyles.buttonDangerOutline}
+        >
+          Remove
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          label="Institution"
+          value={entry.institution || ""}
+          onChange={(e) => handleFieldChange("institution", e.target.value)}
+          placeholder="University or school name"
+        />
+        <FormField
+          label="Degree"
+          value={entry.degree || ""}
+          onChange={(e) => handleFieldChange("degree", e.target.value)}
+          placeholder="e.g., Bachelor of Science"
+        />
+        <FormField
+          label="Field of Study"
+          value={entry.fieldOfStudy || ""}
+          onChange={(e) => handleFieldChange("fieldOfStudy", e.target.value)}
+          placeholder="e.g., Computer Science"
+        />
+        <FormField
+          label="Start Date"
+          type="date"
+          value={entry.startDate || ""}
+          onChange={(e) => handleFieldChange("startDate", e.target.value)}
+        />
+
+        {/* End Date / Expected Graduation with Ongoing Toggle */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className={adminStyles.label} style={{ marginBottom: 0 }}>
+              {isOngoing ? "Expected Graduation" : "End Date"}
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isOngoing}
+                onChange={(e) => handleOngoingToggle(e.target.checked)}
+                className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-darker)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0 cursor-pointer"
+                data-testid={`education-ongoing-checkbox-${index}`}
+              />
+              <span className="text-sm text-[var(--color-text-secondary)]">
+                Currently Enrolled
+              </span>
+            </label>
+          </div>
+          {isOngoing ? (
+            <input
+              type="date"
+              value={entry.expectedGradDate || ""}
+              onChange={(e) => handleFieldChange("expectedGradDate", e.target.value)}
+              className={adminStyles.input}
+              placeholder="Expected graduation date"
+              data-testid={`education-expected-grad-${index}`}
+            />
+          ) : (
+            <input
+              type="date"
+              value={entry.endDate || ""}
+              onChange={(e) => handleFieldChange("endDate", e.target.value)}
+              className={adminStyles.input}
+              required={!isOngoing}
+              data-testid={`education-end-date-${index}`}
+            />
+          )}
+          {isOngoing && (
+            <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+              Leave empty if graduation date is unknown
+            </p>
+          )}
+        </div>
+
+        {/* Relevant Coursework */}
+        <div className="md:col-span-2">
+          <TagInput
+            label="Relevant Coursework"
+            tags={entry.relevantCoursework || []}
+            onAdd={(course) =>
+              handleFieldChange("relevantCoursework", [
+                ...(entry.relevantCoursework || []),
+                course,
+              ])
+            }
+            onRemove={(idx) =>
+              handleFieldChange(
+                "relevantCoursework",
+                (entry.relevantCoursework || []).filter((_, i) => i !== idx),
+              )
+            }
+            placeholder="Add course name"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Expertise level options for skills
+const expertiseLevels = [
+  { value: "Beginner", label: "Beginner" },
+  { value: "Intermediate", label: "Intermediate" },
+  { value: "Advanced", label: "Advanced" },
+  { value: "Expert", label: "Expert" },
+];
+
+// Individual skill within a category
+function SkillItem({ skill, onChange, onRemove, skillIndex }) {
+  const handleFieldChange = (field, value) => {
+    onChange({ ...skill, [field]: value });
+  };
+
+  const handleProjectChange = (projectIndex, field, value) => {
+    const newProjects = [...(skill.projects || [])];
+    newProjects[projectIndex] = {
+      ...newProjects[projectIndex],
+      [field]: value,
+    };
+    handleFieldChange("projects", newProjects);
+  };
+
+  const addProject = () => {
+    handleFieldChange("projects", [
+      ...(skill.projects || []),
+      { name: "", repositoryLink: "" },
+    ]);
+  };
+
+  const removeProject = (projectIndex) => {
+    handleFieldChange(
+      "projects",
+      (skill.projects || []).filter((_, i) => i !== projectIndex),
+    );
+  };
+
+  return (
+    <div
+      className="p-3 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)]"
+      data-testid={`skill-item-${skillIndex}`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-medium text-[var(--color-text-muted)]">
+          Skill #{skillIndex + 1}
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-xs px-2 py-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+          data-testid={`remove-skill-${skillIndex}`}
+        >
+          Remove Skill
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <FormField
           label="Skill Name"
-          value={skill.skillName || ""}
-          onChange={(e) => handleFieldChange("skillName", e.target.value)}
-          placeholder="e.g., Python"
+          value={skill.name || ""}
+          onChange={(e) => handleFieldChange("name", e.target.value)}
+          placeholder="e.g., React, Python, AWS"
+          inputClassName="text-sm"
         />
         <FormField
           label="Expertise Level"
           value={skill.expertiseLevel || "Intermediate"}
           onChange={(e) => handleFieldChange("expertiseLevel", e.target.value)}
           options={expertiseLevels}
+          inputClassName="text-sm"
         />
       </div>
-      <div className="mt-4">
-        <label className={adminStyles.label}>Related Projects</label>
+
+      {/* Related Projects */}
+      <div className="mt-3">
+        <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-2">
+          Related Projects (Optional)
+        </label>
         <div className="space-y-2">
           {(skill.projects || []).map((project, pIdx) => (
-            <div key={pIdx} className="flex gap-2">
+            <div key={pIdx} className="flex gap-2" data-testid={`project-${skillIndex}-${pIdx}`}>
               <input
                 type="text"
                 value={project.name || ""}
-                onChange={(e) => {
-                  const newProjects = [...(skill.projects || [])];
-                  newProjects[pIdx] = {
-                    ...newProjects[pIdx],
-                    name: e.target.value,
-                  };
-                  handleFieldChange("projects", newProjects);
-                }}
+                onChange={(e) => handleProjectChange(pIdx, "name", e.target.value)}
                 placeholder="Project name"
-                className={`flex-1 ${adminStyles.inputSmall}`}
+                className={`flex-1 text-sm ${adminStyles.inputSmall}`}
               />
               <input
                 type="url"
                 value={project.repositoryLink || ""}
-                onChange={(e) => {
-                  const newProjects = [...(skill.projects || [])];
-                  newProjects[pIdx] = {
-                    ...newProjects[pIdx],
-                    repositoryLink: e.target.value,
-                  };
-                  handleFieldChange("projects", newProjects);
-                }}
-                placeholder="Repository URL"
-                className={`flex-1 ${adminStyles.inputSmall}`}
+                onChange={(e) => handleProjectChange(pIdx, "repositoryLink", e.target.value)}
+                placeholder="URL (optional)"
+                className={`flex-1 text-sm ${adminStyles.inputSmall}`}
               />
               <button
                 type="button"
-                onClick={() => {
-                  handleFieldChange(
-                    "projects",
-                    (skill.projects || []).filter((_, i) => i !== pIdx),
-                  );
-                }}
+                onClick={() => removeProject(pIdx)}
                 className="px-2 text-red-400 hover:text-red-300"
+                aria-label="Remove project"
               >
                 ×
               </button>
@@ -220,17 +479,113 @@ function SkillEntry({ skill, onChange, onRemove, index }) {
           ))}
           <button
             type="button"
-            onClick={() => {
-              handleFieldChange("projects", [
-                ...(skill.projects || []),
-                { name: "", repositoryLink: "" },
-              ]);
-            }}
-            className={`text-sm ${adminStyles.buttonOutline}`}
+            onClick={addProject}
+            className="text-xs px-3 py-1 rounded border border-dashed border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+            data-testid={`add-project-${skillIndex}`}
           >
             + Add Project
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Skill Category entry component with nested skills
+function SkillCategoryEntry({ category, onChange, onRemove, index }) {
+  const handleCategoryNameChange = (name) => {
+    onChange({ ...category, category: name });
+  };
+
+  const handleSkillChange = (skillIndex, updatedSkill) => {
+    const newSkills = [...(category.skills || [])];
+    newSkills[skillIndex] = updatedSkill;
+    onChange({ ...category, skills: newSkills });
+  };
+
+  const addSkill = () => {
+    onChange({
+      ...category,
+      skills: [
+        ...(category.skills || []),
+        { name: "", expertiseLevel: "Intermediate", projects: [] },
+      ],
+    });
+  };
+
+  const removeSkill = (skillIndex) => {
+    onChange({
+      ...category,
+      skills: (category.skills || []).filter((_, i) => i !== skillIndex),
+    });
+  };
+
+  const skillCount = (category.skills || []).length;
+
+  return (
+    <div className={adminStyles.card} data-testid={`skill-category-${index}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-[var(--color-text-secondary)]">
+            Category #{index + 1}
+          </span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+            {skillCount} skill{skillCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className={adminStyles.buttonDangerOutline}
+          data-testid={`remove-category-${index}`}
+        >
+          Remove Category
+        </button>
+      </div>
+
+      {/* Category Name */}
+      <FormField
+        label="Category Name"
+        value={category.category || ""}
+        onChange={(e) => handleCategoryNameChange(e.target.value)}
+        placeholder="e.g., Frontend, Backend, DevOps, Languages"
+        className="mb-4"
+      />
+
+      {/* Skills within this category */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className={adminStyles.label} style={{ marginBottom: 0 }}>
+            Skills in this Category
+          </label>
+        </div>
+
+        {(category.skills || []).length === 0 ? (
+          <div className="text-sm text-[var(--color-text-muted)] italic p-4 rounded-lg bg-[var(--color-bg-darker)] border border-dashed border-[var(--color-border)]">
+            No skills added yet. Click below to add your first skill.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {(category.skills || []).map((skill, sIdx) => (
+              <SkillItem
+                key={sIdx}
+                skill={skill}
+                skillIndex={sIdx}
+                onChange={(updatedSkill) => handleSkillChange(sIdx, updatedSkill)}
+                onRemove={() => removeSkill(sIdx)}
+              />
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={addSkill}
+          className={`w-full py-2 text-sm ${adminStyles.buttonOutline}`}
+          data-testid={`add-skill-to-category-${index}`}
+        >
+          + Add Skill to {category.category || "this Category"}
+        </button>
       </div>
     </div>
   );
@@ -342,44 +697,6 @@ export default function AboutSettingsSection({ onError }) {
   };
 
   // Field definitions for different entry types
-  const experienceFields = [
-    { key: "company", label: "Company", placeholder: "Company name" },
-    { key: "role", label: "Role/Title", placeholder: "Your role" },
-    {
-      key: "description",
-      label: "Description",
-      type: "textarea",
-      placeholder: "Describe your responsibilities...",
-    },
-    { key: "startDate", label: "Start Date", type: "date" },
-    {
-      key: "endDate",
-      label: "End Date",
-      type: "date",
-      placeholder: "Leave empty if current",
-    },
-    {
-      key: "achievements",
-      label: "Achievements",
-      type: "achievements",
-      placeholder: "Add achievement",
-    },
-  ];
-
-  const educationFields = [
-    { key: "institution", label: "Institution", placeholder: "University name" },
-    { key: "degree", label: "Degree", placeholder: "e.g., Bachelor of Science" },
-    { key: "fieldOfStudy", label: "Field of Study", placeholder: "e.g., Computer Science" },
-    { key: "startDate", label: "Start Date", type: "date" },
-    { key: "endDate", label: "End Date", type: "date" },
-    {
-      key: "relevantCoursework",
-      label: "Relevant Coursework",
-      type: "tags",
-      placeholder: "Add course",
-    },
-  ];
-
   const certificationFields = [
     { key: "organization", label: "Organization", placeholder: "e.g., AWS" },
     { key: "name", label: "Certification Name", placeholder: "e.g., Solutions Architect" },
@@ -422,21 +739,19 @@ export default function AboutSettingsSection({ onError }) {
         />
       </CollapsibleSection>
 
-      {/* Technical Skills */}
+      {/* Technical Skills - Nested by Category */}
       <ArraySection
-        title="Technical Skills"
+        title="Skill Categories"
         items={aboutData.technicalSkills}
         onItemsChange={(items) => updateField("technicalSkills", items)}
         addNew={() => ({
           category: "",
-          skillName: "",
-          expertiseLevel: "Intermediate",
-          projects: [],
+          skills: [],
         })}
-        renderItem={(skill, index, onChange, onRemove) => (
-          <SkillEntry
+        renderItem={(category, index, onChange, onRemove) => (
+          <SkillCategoryEntry
             key={index}
-            skill={skill}
+            category={category}
             index={index}
             onChange={onChange}
             onRemove={onRemove}
@@ -455,17 +770,16 @@ export default function AboutSettingsSection({ onError }) {
           description: "",
           startDate: "",
           endDate: "",
+          isOngoing: false,
           achievements: [],
         })}
         renderItem={(entry, index, onChange, onRemove) => (
-          <EntryForm
+          <ExperienceEntryForm
             key={index}
             entry={entry}
             index={index}
             onChange={onChange}
             onRemove={onRemove}
-            fields={experienceFields}
-            entityName="Experience"
           />
         )}
       />
@@ -481,17 +795,17 @@ export default function AboutSettingsSection({ onError }) {
           fieldOfStudy: "",
           startDate: "",
           endDate: "",
+          isOngoing: false,
+          expectedGradDate: "",
           relevantCoursework: [],
         })}
         renderItem={(entry, index, onChange, onRemove) => (
-          <EntryForm
+          <EducationEntryForm
             key={index}
             entry={entry}
             index={index}
             onChange={onChange}
             onRemove={onRemove}
-            fields={educationFields}
-            entityName="Education"
           />
         )}
       />
@@ -569,13 +883,13 @@ export default function AboutSettingsSection({ onError }) {
 
       {/* Save Button */}
       <div className="flex justify-end pt-4 border-t border-[var(--color-border)]">
-        <button
-          type="submit"
-          disabled={saving}
+      <button
+        type="submit"
+        disabled={saving}
           className={adminStyles.buttonPrimary}
-        >
+      >
           {saving ? "Saving..." : "Save All Changes"}
-        </button>
+      </button>
       </div>
     </form>
   );

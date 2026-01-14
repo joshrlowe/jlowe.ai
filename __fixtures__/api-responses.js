@@ -28,23 +28,45 @@ export const mockAbout = {
   technicalSkills: [
     {
       category: 'Programming Languages',
-      skillName: 'Python',
-      expertiseLevel: 'Expert',
-      projects: [
-        { name: 'ML Pipeline', repositoryLink: 'https://github.com/user/ml-pipeline' },
+      skills: [
+        {
+          name: 'Python',
+          expertiseLevel: 'Expert',
+          projects: [
+            { name: 'ML Pipeline', repositoryLink: 'https://github.com/user/ml-pipeline' },
+          ],
+        },
+        {
+          name: 'JavaScript',
+          expertiseLevel: 'Expert',
+          projects: [],
+        },
       ],
     },
     {
       category: 'Frameworks',
-      skillName: 'React',
-      expertiseLevel: 'Expert',
-      projects: [],
+      skills: [
+        {
+          name: 'React',
+          expertiseLevel: 'Expert',
+          projects: [],
+        },
+        {
+          name: 'Next.js',
+          expertiseLevel: 'Advanced',
+          projects: [],
+        },
+      ],
     },
     {
       category: 'Cloud',
-      skillName: 'AWS',
-      expertiseLevel: 'Advanced',
-      projects: [],
+      skills: [
+        {
+          name: 'AWS',
+          expertiseLevel: 'Advanced',
+          projects: [],
+        },
+      ],
     },
   ],
   professionalExperience: [
@@ -53,7 +75,8 @@ export const mockAbout = {
       role: 'Senior Software Engineer',
       description: 'Led AI/ML initiatives and built production systems.',
       startDate: '2022-01-01',
-      endDate: null,
+      endDate: '',
+      isOngoing: true,
       achievements: [
         'Increased system efficiency by 40%',
         'Led team of 5 engineers',
@@ -68,6 +91,8 @@ export const mockAbout = {
       relevantCoursework: ['Machine Learning', 'Data Structures', 'Algorithms'],
       startDate: '2016-09-01',
       endDate: '2020-05-15',
+      isOngoing: false,
+      expectedGradDate: '',
     },
   ],
   technicalCertifications: [

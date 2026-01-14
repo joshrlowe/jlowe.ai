@@ -24,9 +24,9 @@ model Welcome {
 model About {
   id                     String   @id @default(cuid())
   professionalSummary    String
-  technicalSkills        Json     // Array of { category, skillName, expertiseLevel, projects: [{ name, repositoryLink }] }
-  professionalExperience Json     // Array of { company, role, description, startDate, endDate, achievements: [String] }
-  education              Json     // Array of { institution, degree, fieldOfStudy, relevantCoursework: [String], startDate, endDate }
+  technicalSkills        Json     // Array of { category, skills: [{ name, expertiseLevel, projects: [{ name, repositoryLink }] }] }
+  professionalExperience Json     // Array of { company, role, description, startDate, endDate, isOngoing: Boolean, achievements: [String] }
+  education              Json     // Array of { institution, degree, fieldOfStudy, relevantCoursework: [String], startDate, endDate, isOngoing: Boolean, expectedGradDate? }
   technicalCertifications Json    // Array of { organization, name, issueDate, expirationDate, credentialUrl }
   leadershipExperience   Json     // Array of { organization, role, startDate, endDate, achievements: [String] }
   hobbies                Json     // Array of String

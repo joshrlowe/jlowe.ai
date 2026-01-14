@@ -206,7 +206,8 @@ describe("/api/admin/about", () => {
           role: "Developer",
           description: "Built things",
           startDate: "2020-01-01",
-          endDate: null,
+          endDate: "",
+          isOngoing: true,
           achievements: ["Shipped features"],
         },
       ],
@@ -408,6 +409,323 @@ const skills = ['js', 'py'];
         expect.objectContaining({
           data: expect.objectContaining({
             professionalSummary: markdownContent,
+          }),
+        })
+      );
+    });
+  });
+
+  describe("professional experience with isOngoing", () => {
+    it("should save isOngoing field for ongoing experience", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({
+        id: "about-1",
+        professionalSummary: "Test",
+        professionalExperience: [
+          {
+            company: "Current Company",
+            role: "Developer",
+            startDate: "2023-01-01",
+            endDate: "",
+            isOngoing: true,
+          },
+        ],
+      });
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          professionalExperience: [
+            {
+              company: "Current Company",
+              role: "Developer",
+              startDate: "2023-01-01",
+              endDate: "",
+              isOngoing: true,
+            },
+          ],
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            professionalExperience: expect.arrayContaining([
+              expect.objectContaining({
+                isOngoing: true,
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
+    it("should save isOngoing as false for completed experience", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({
+        id: "about-1",
+        professionalSummary: "Test",
+        professionalExperience: [
+          {
+            company: "Past Company",
+            role: "Developer",
+            startDate: "2020-01-01",
+            endDate: "2022-12-31",
+            isOngoing: false,
+          },
+        ],
+      });
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          professionalExperience: [
+            {
+              company: "Past Company",
+              role: "Developer",
+              startDate: "2020-01-01",
+              endDate: "2022-12-31",
+              isOngoing: false,
+            },
+          ],
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            professionalExperience: expect.arrayContaining([
+              expect.objectContaining({
+                isOngoing: false,
+                endDate: "2022-12-31",
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
+    it("should handle multiple experiences with mixed isOngoing values", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({ id: "about-1" });
+
+      const experiences = [
+        {
+          company: "Current Job",
+          role: "Senior Dev",
+          startDate: "2023-01-01",
+          endDate: "",
+          isOngoing: true,
+        },
+        {
+          company: "Previous Job",
+          role: "Dev",
+          startDate: "2020-01-01",
+          endDate: "2022-12-31",
+          isOngoing: false,
+        },
+      ];
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          professionalExperience: experiences,
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            professionalExperience: experiences,
+          }),
+        })
+      );
+    });
+  });
+
+  describe("education with isOngoing and expectedGradDate", () => {
+    it("should save isOngoing and expectedGradDate for ongoing education", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({ id: "about-1" });
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          education: [
+            {
+              institution: "Graduate University",
+              degree: "MS",
+              fieldOfStudy: "AI",
+              startDate: "2024-01-01",
+              endDate: "",
+              isOngoing: true,
+              expectedGradDate: "2026-05-15",
+              relevantCoursework: ["Deep Learning"],
+            },
+          ],
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            education: expect.arrayContaining([
+              expect.objectContaining({
+                isOngoing: true,
+                expectedGradDate: "2026-05-15",
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
+    it("should save isOngoing as false for completed education", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({ id: "about-1" });
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          education: [
+            {
+              institution: "University",
+              degree: "BS",
+              fieldOfStudy: "CS",
+              startDate: "2016-09-01",
+              endDate: "2020-05-15",
+              isOngoing: false,
+              expectedGradDate: "",
+              relevantCoursework: ["Algorithms"],
+            },
+          ],
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            education: expect.arrayContaining([
+              expect.objectContaining({
+                isOngoing: false,
+                endDate: "2020-05-15",
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
+    it("should handle ongoing education with empty expectedGradDate", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({ id: "about-1" });
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          education: [
+            {
+              institution: "Part-time University",
+              degree: "PhD",
+              fieldOfStudy: "Machine Learning",
+              startDate: "2023-01-01",
+              endDate: "",
+              isOngoing: true,
+              expectedGradDate: "",
+              relevantCoursework: [],
+            },
+          ],
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(getStatusCode(res)).toBe(200);
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            education: expect.arrayContaining([
+              expect.objectContaining({
+                isOngoing: true,
+                expectedGradDate: "",
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
+    it("should handle multiple education entries with mixed isOngoing values", async () => {
+      getServerSession.mockResolvedValue({ user: { email: "admin@test.com" } });
+      prisma.about.deleteMany.mockResolvedValue({});
+      prisma.about.create.mockResolvedValue({ id: "about-1" });
+
+      const educationEntries = [
+        {
+          institution: "Graduate School",
+          degree: "MS",
+          fieldOfStudy: "AI",
+          startDate: "2024-01-01",
+          endDate: "",
+          isOngoing: true,
+          expectedGradDate: "2026-05-01",
+          relevantCoursework: ["NLP"],
+        },
+        {
+          institution: "Undergrad University",
+          degree: "BS",
+          fieldOfStudy: "CS",
+          startDate: "2016-09-01",
+          endDate: "2020-05-15",
+          isOngoing: false,
+          expectedGradDate: "",
+          relevantCoursework: ["Algorithms", "Data Structures"],
+        },
+      ];
+
+      const req = createMockRequest({
+        method: "PUT",
+        body: {
+          professionalSummary: "Test",
+          education: educationEntries,
+        },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(prisma.about.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            education: educationEntries,
           }),
         })
       );
