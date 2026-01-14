@@ -29,22 +29,39 @@ export default function ProfessionalExperience({ experience = [] }) {
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-heading">
         Professional Experience
       </h2>
-      <div className="space-y-8">
-        {experience.map((job, index) => {
-          const role = job.role || job.title || job.position;
-          const company = job.company || job.organization;
-          const startDate = formatDate(job.startDate);
-          const endDate = job.isOngoing ? "Present" : formatDate(job.endDate) || "Present";
+      <div className="relative">
+        {/* Continuous timeline line */}
+        <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-[var(--color-primary)] opacity-30" />
+        
+        <div className="space-y-8">
+          {experience.map((job, index) => {
+            const role = job.role || job.title || job.position;
+            const company = job.company || job.organization;
+            const startDate = formatDate(job.startDate);
+            const endDate = job.isOngoing ? "Present" : formatDate(job.endDate) || "Present";
+            const isOngoing = job.isOngoing || !job.endDate;
 
-          return (
-            <div
-              key={index}
-              className="relative pl-6 border-l-2 border-[var(--color-primary)]"
-              data-testid={`experience-entry-${index}`}
-            >
-              <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+            return (
+              <div
+                key={index}
+                className="relative pl-8"
+                data-testid={`experience-entry-${index}`}
+              >
+                {/* Timeline dot - centered on the line */}
+                <div className="absolute left-0 top-1.5 flex items-center justify-center">
+                  {isOngoing ? (
+                    /* Pulsing dot for ongoing positions */
+                    <div className="relative">
+                      <div className="w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+                      <div className="absolute inset-0 w-4 h-4 rounded-full bg-[var(--color-primary)] animate-ping opacity-75" />
+                    </div>
+                  ) : (
+                    /* Static dot for past positions */
+                    <div className="w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+                  )}
+                </div>
               
-              {/* Role/Title - Largest text (h3) */}
+                {/* Role/Title - Largest text (h3) */}
               <h3
                 className="text-xl font-bold text-[var(--color-text-primary)]"
                 data-testid={`experience-role-${index}`}
@@ -132,9 +149,10 @@ export default function ProfessionalExperience({ experience = [] }) {
                     ))}
                   </div>
                 )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
