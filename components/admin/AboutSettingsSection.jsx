@@ -169,12 +169,12 @@ function ExperienceEntryForm({ entry, onChange, onRemove, index }) {
           placeholder="Your role"
         />
         <div className="md:col-span-2">
-          <FormField
-            label="Description"
+          <MarkdownEditor
+            label="Description (Markdown)"
             value={entry.description || ""}
-            onChange={(e) => handleFieldChange("description", e.target.value)}
-            rows={3}
-            placeholder="Describe your responsibilities..."
+            onChange={(value) => handleFieldChange("description", value)}
+            rows={4}
+            placeholder="Describe your responsibilities and accomplishments. Markdown is supported..."
           />
         </div>
         <FormField
