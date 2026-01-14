@@ -67,56 +67,65 @@ export default function Education({ education = [] }) {
       >
         Education
       </h2>
-      <div className="space-y-6">
-        {education.map((edu, index) => {
-          const dateRange = getDateRange(edu);
-          const isOngoing = edu.isOngoing || false;
-          
-          return (
-            <div
-              key={index}
-              className="p-4 sm:p-5 rounded-lg"
-              style={{ background: "var(--color-bg-darker)" }}
-            >
-              {/* Degree - full width, proper wrapping */}
-              <h3
-                className="text-lg sm:text-xl font-semibold font-heading leading-snug"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                {edu.degree}
-                {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
-              </h3>
-
-              {/* Institution */}
+      <div className="relative">
+        {/* Continuous timeline line */}
+        <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-[var(--color-primary)] opacity-30" />
+        
+        <div className="space-y-8">
+          {education.map((edu, index) => {
+            const dateRange = getDateRange(edu);
+            const isOngoing = edu.isOngoing || false;
+            
+            return (
               <div
-                className="font-medium mt-1 text-base"
-                style={{ color: "var(--color-primary)" }}
+                key={index}
+                className="relative pl-8"
+                data-testid={`education-entry-${index}`}
               >
-                {edu.institution || edu.school}
-              </div>
+                {/* Timeline dot - centered on the line */}
+                <div className="absolute left-0 top-1.5 flex items-center justify-center">
+                  {isOngoing ? (
+                    /* Pulsing dot for ongoing education */
+                    <div className="relative">
+                      <div className="w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+                      <div className="absolute inset-0 w-4 h-4 rounded-full bg-[var(--color-primary)] animate-ping opacity-75" />
+                    </div>
+                  ) : (
+                    /* Static dot for completed education */
+                    <div className="w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+                  )}
+                </div>
 
-              {/* Year and location - inline */}
-              <div
-                className="text-sm mt-1 flex flex-wrap items-center gap-x-2"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {dateRange && (
-                  <span className="flex items-center gap-1">
-                    {dateRange}
-                    {isOngoing && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-[var(--color-primary)] bg-opacity-20 text-[var(--color-primary)]">
-                        In Progress
-                      </span>
-                    )}
-                  </span>
-                )}
-                {edu.location && (
-                  <>
-                    <span>•</span>
-                    <span>{edu.location}</span>
-                  </>
-                )}
-              </div>
+                {/* Degree - full width, proper wrapping */}
+                <h3
+                  className="text-lg sm:text-xl font-semibold font-heading leading-snug"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {edu.degree}
+                  {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
+                </h3>
+
+                {/* Institution */}
+                <div
+                  className="font-medium mt-1 text-base"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  {edu.institution || edu.school}
+                </div>
+
+                {/* Year and location - inline */}
+                <div
+                  className="text-sm mt-1 flex flex-wrap items-center gap-x-2"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {dateRange && <span>{dateRange}</span>}
+                  {edu.location && (
+                    <>
+                      <span>•</span>
+                      <span>{edu.location}</span>
+                    </>
+                  )}
+                </div>
 
               {edu.gpa && (
                 <div
@@ -145,36 +154,37 @@ export default function Education({ education = [] }) {
                 </p>
               )}
 
-              {/* Relevant Coursework */}
-              {edu.relevantCoursework &&
-                Array.isArray(edu.relevantCoursework) &&
-                edu.relevantCoursework.length > 0 && (
-                  <div className="mt-3">
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: "var(--color-text-secondary)" }}
-                    >
-                      Relevant Coursework:
-                    </span>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {edu.relevantCoursework.map((course, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-1 text-xs rounded"
-                          style={{
-                            background: "var(--color-bg-card)",
-                            color: "var(--color-text-muted)",
-                          }}
-                        >
-                          {course}
-                        </span>
-                      ))}
+                {/* Relevant Coursework */}
+                {edu.relevantCoursework &&
+                  Array.isArray(edu.relevantCoursework) &&
+                  edu.relevantCoursework.length > 0 && (
+                    <div className="mt-3">
+                      <span
+                        className="text-sm font-medium"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
+                        Relevant Coursework:
+                      </span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {edu.relevantCoursework.map((course, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-1 text-xs rounded"
+                            style={{
+                              background: "var(--color-bg-card)",
+                              color: "var(--color-text-muted)",
+                            }}
+                          >
+                            {course}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-            </div>
-          );
-        })}
+                  )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
