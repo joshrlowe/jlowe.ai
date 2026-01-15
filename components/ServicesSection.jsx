@@ -87,13 +87,9 @@ export default function ServicesSection({ homeContent }) {
   const services =
     homeContent?.services !== undefined ? homeContent.services : defaultServices;
 
-  // If no services to display, don't render the section
-  if (services.length === 0) {
-    return null;
-  }
-
   useEffect(() => {
-    if (!sectionRef.current) return;
+    // Skip animations if no services or no section ref
+    if (!sectionRef.current || services.length === 0) return;
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -146,6 +142,11 @@ export default function ServicesSection({ homeContent }) {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, [services]);
+
+  // If no services to display, don't render the section
+  if (services.length === 0) {
+    return null;
+  }
 
   return (
     <section
