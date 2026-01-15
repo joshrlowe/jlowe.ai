@@ -48,7 +48,7 @@ const handlePostRequest = async (req, res) => {
       authorName,
       authorEmail: authorEmail || null,
       content,
-      approved: false,
+      approved: true,
     },
   });
 
