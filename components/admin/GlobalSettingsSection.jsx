@@ -63,18 +63,29 @@ export default function GlobalSettingsSection({ onError }) {
 
       // Trigger revalidation of the home page so changes appear immediately
       try {
-        await fetch("/api/revalidate", {
+        const revalidateRes = await fetch("/api/revalidate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ path: "/" }),
         });
+        
+        if (revalidateRes.ok) {
+          // Wait a moment for revalidation to complete, then trigger a prefetch
+          await new Promise(resolve => setTimeout(resolve, 500));
+          // Prefetch the home page to warm the cache with new content
+          fetch("/", { 
+            method: "GET",
+            cache: "no-store",
+            headers: { "x-prerender-revalidate": "1" }
+          }).catch(() => {});
+        }
       } catch (revalidateError) {
         console.warn("Revalidation failed:", revalidateError);
       }
 
-      setMessage("Settings saved successfully!");
-      showToast("Settings saved successfully!", "success");
-      setTimeout(() => setMessage(""), 3000);
+      setMessage("Settings saved! Refresh the home page to see changes.");
+      showToast("Settings saved! Refresh the home page to see changes.", "success");
+      setTimeout(() => setMessage(""), 5000);
     } catch (_error) {
       showToast("Failed to save settings", "error");
       onError("Failed to save settings");

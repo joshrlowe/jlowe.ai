@@ -233,21 +233,16 @@ export async function getStaticProps() {
       where: { pageKey: "home" },
     });
 
-    // Fetch site settings for enabled sections (with fallback for missing column)
-    let enabledSections = DEFAULT_ENABLED_SECTIONS;
-    try {
-      const siteSettings = await prisma.siteSettings.findFirst({
-        select: {
-          enabledSections: true,
-        },
-      });
-      if (siteSettings?.enabledSections) {
-        enabledSections = siteSettings.enabledSections;
-      }
-    } catch (settingsError) {
-      // Column may not exist yet - use defaults
-      console.warn("Could not fetch enabledSections, using defaults:", settingsError.message);
-    }
+    // Fetch site settings for enabled sections
+    const siteSettings = await prisma.siteSettings.findFirst({
+      select: {
+        enabledSections: true,
+      },
+    });
+    const enabledSections = siteSettings?.enabledSections || DEFAULT_ENABLED_SECTIONS;
+    
+    // Log for debugging
+    console.log("Fetched enabledSections:", enabledSections);
 
     // Merge with defaults
     const homeContent = pageContent?.content
