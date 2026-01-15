@@ -61,11 +61,18 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }) {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const date = new Date(dateString);
+    const dateOptions = {
       year: "numeric",
       month: "short",
       day: "numeric",
-    });
+    };
+    const timeOptions = {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    };
+    return `${date.toLocaleDateString("en-US", dateOptions)} at ${date.toLocaleTimeString("en-US", timeOptions)}`;
   };
 
   const maxDepth = 3; // Limit nesting depth
