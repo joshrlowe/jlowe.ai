@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 
+const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
+
 export default function ContactSettingsSection({ onError }) {
   const { showToast } = useToast();
   const [contactData, setContactData] = useState({
@@ -9,7 +11,9 @@ export default function ContactSettingsSection({ onError }) {
     address: "",
     availability: { workingHours: "" },
     socialMediaLinks: { linkedIn: "", github: "", X: "" },
+    heroWords: DEFAULT_HERO_WORDS,
   });
+  const [heroWordInput, setHeroWordInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -27,6 +31,7 @@ export default function ContactSettingsSection({ onError }) {
           github: "",
           X: "",
         },
+        heroWords: data.heroWords || DEFAULT_HERO_WORDS,
       });
     } catch (_error) {
       onError("Failed to load contact data");
@@ -131,6 +136,77 @@ export default function ContactSettingsSection({ onError }) {
           }
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
         />
+      </div>
+
+      {/* Hero Words Carousel */}
+      <div className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+          Hero Carousel Words
+        </h3>
+        <p className="text-sm text-[var(--color-text-muted)] mb-4">
+          Words that rotate in "Let's Build Something ___" on the contact page
+        </p>
+        
+        {/* Current words */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {(contactData.heroWords || []).map((word, index) => (
+            <span
+              key={index}
+              className="px-3 py-1.5 rounded-full bg-[var(--color-primary)]/20 text-[var(--color-primary)] text-sm flex items-center gap-2"
+            >
+              {word}
+              <button
+                type="button"
+                onClick={() => {
+                  const newWords = [...contactData.heroWords];
+                  newWords.splice(index, 1);
+                  setContactData({ ...contactData, heroWords: newWords });
+                }}
+                className="hover:text-white transition-colors"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        
+        {/* Add new word */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={heroWordInput}
+            onChange={(e) => setHeroWordInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (heroWordInput.trim()) {
+                  setContactData({
+                    ...contactData,
+                    heroWords: [...(contactData.heroWords || []), heroWordInput.trim()],
+                  });
+                  setHeroWordInput("");
+                }
+              }
+            }}
+            placeholder="Add a word (e.g., Extraordinary)"
+            className="flex-1 px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (heroWordInput.trim()) {
+                setContactData({
+                  ...contactData,
+                  heroWords: [...(contactData.heroWords || []), heroWordInput.trim()],
+                });
+                setHeroWordInput("");
+              }
+            }}
+            className="px-4 py-2 rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
+          >
+            Add
+          </button>
+        </div>
       </div>
 
       {/* Social Media Links */}

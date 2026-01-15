@@ -45,6 +45,7 @@ model Contact {
   location                Json?    // { city, state, country }
   availability            Json?    // { workingHours, preferredContactTimes, additionalInstructions }
   additionalContactMethods Json?   // Array of { method, handle }
+  heroWords               Json?    // Array of words for "Let's Build Something ___" carousel
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 

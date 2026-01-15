@@ -5,10 +5,10 @@
  * - Space-themed design
  * - GSAP animations
  * - Social links
+ * - Vertical word carousel
  */
 
 import { useEffect, useState, useRef } from "react";
-import dynamic from "next/dynamic";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SEO from "@/components/SEO";
@@ -17,37 +17,55 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const HERO_TEXT = "Let's Build Something Amazing";
+const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
-const ReactTyped = dynamic(
-  () => import("react-typed").then((mod) => mod.ReactTyped),
-  {
-    ssr: false,
-    loading: () => (
-      <span className="text-[var(--color-primary)]">{HERO_TEXT}</span>
-    ),
-  },
-);
+// Vertical carousel component for rotating words
+function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (words.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % words.length);
+        setIsAnimating(false);
+      }, 400); // Half of the transition time
+    }, 3000); // Change word every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [words.length]);
+
+  return (
+    <span
+      ref={containerRef}
+      className="inline-block relative overflow-hidden"
+      style={{ height: "1.2em", verticalAlign: "bottom" }}
+    >
+      <span
+        className={`inline-block text-[var(--color-primary)] transition-all duration-500 ease-out ${
+          isAnimating
+            ? "opacity-0 -translate-y-full"
+            : "opacity-100 translate-y-0"
+        }`}
+      >
+        {words[currentIndex]}
+      </span>
+    </span>
+  );
+}
 
 export default function ContactPage() {
   const [contactData, setContactData] = useState(null);
-  const [typingComplete, setTypingComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
-  // Use ref to prevent double-typing in StrictMode
-  const hasTypedRef = useRef(false);
 
   const headerRef = useRef(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
-    // Check if typing already completed in this session
-    const hasTyped = sessionStorage.getItem("contactTypingComplete") === "true";
-    if (hasTyped) {
-      setTypingComplete(true);
-      hasTypedRef.current = true;
-    }
-    
     setMounted(true);
 
     const fetchData = async () => {
@@ -62,17 +80,12 @@ export default function ContactPage() {
 
     fetchData();
   }, []);
-  
-  const handleTypingComplete = () => {
-    if (!hasTypedRef.current) {
-      hasTypedRef.current = true;
-      setTypingComplete(true);
-      sessionStorage.setItem("contactTypingComplete", "true");
-    }
-  };
+
+  // Get hero words from contact data or use defaults
+  const heroWords = contactData?.heroWords || DEFAULT_HERO_WORDS;
 
   useEffect(() => {
-    if (!mounted || !typingComplete) return;
+    if (!mounted) return;
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -85,10 +98,10 @@ export default function ContactPage() {
       tl.fromTo(
         contentRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8 },
+        { opacity: 1, y: 0, duration: 0.8, delay: 0.3 },
       );
     }
-  }, [mounted, typingComplete]);
+  }, [mounted]);
 
   const socialLinks = contactData?.socialMediaLinks || {};
 
@@ -212,22 +225,11 @@ export default function ContactPage() {
           <div ref={headerRef} className="text-center mb-16">
             <span className="badge badge-accent mb-4">Get in Touch</span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-oswald)]">
-              {typingComplete ? (
-                <span>{HERO_TEXT}</span>
-              ) : (
-                mounted && (
-                  <ReactTyped
-                    strings={[HERO_TEXT]}
-                    typeSpeed={50}
-                    onComplete={handleTypingComplete}
-                    showCursor={true}
-                    cursorChar="|"
-                  />
-                )
-              )}
+              Let's Build Something{" "}
+              {mounted && <WordCarousel words={heroWords} />}
             </h1>
             <p
-              className={`text-lg text-[var(--color-text-secondary)] mx-auto transition-opacity duration-500 ${typingComplete ? "opacity-100" : "opacity-0"}`}
+              className="text-lg text-[var(--color-text-secondary)] mx-auto"
               style={{ maxWidth: "80%" }}
             >
               Ready to bring AI to your business? I'd love to hear about your
@@ -238,7 +240,7 @@ export default function ContactPage() {
           {/* Content */}
           <div
             ref={contentRef}
-            className={`grid grid-cols-1 lg:grid-cols-2 gap-8 transition-opacity duration-500 ${typingComplete ? "opacity-100" : "opacity-0"}`}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
           >
             {/* Contact Card */}
             <div className="glass-card p-8">

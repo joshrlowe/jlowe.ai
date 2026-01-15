@@ -28,6 +28,7 @@ const handlePostRequest = createUpsertHandler(
         location: body.location || null,
         availability: body.availability || null,
         additionalContactMethods: body.additionalContactMethods || null,
+        heroWords: body.heroWords || ["Amazing", "Innovative", "Momentous"],
       },
     }),
   (body) =>
