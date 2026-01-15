@@ -12,11 +12,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import { LoadingSpinner, adminStyles } from "./shared";
-import { WelcomeTab, HeroTab, ServicesTab } from "./home";
+import { WelcomeTab, HeroTab, ServicesTab, GitHubTab } from "./home";
 
 const TABS = [
   { key: "welcome", label: "Welcome Info" },
   { key: "hero", label: "Hero Section" },
+  { key: "github", label: "GitHub Section" },
   { key: "services", label: "Services" },
 ];
 
@@ -38,6 +39,8 @@ export default function HomeSettingsSection({ onError }) {
     primaryCta: { text: "", href: "" },
     secondaryCta: { text: "", href: "" },
     techBadges: [],
+    githubSectionTitle: "GitHub Contributions",
+    githubSectionDescription: "A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.",
     servicesTitle: "",
     servicesSubtitle: "",
     services: [],
@@ -151,6 +154,15 @@ export default function HomeSettingsSection({ onError }) {
 
       {activeTab === "hero" && (
         <HeroTab
+          homeContent={homeContent}
+          setHomeContent={setHomeContent}
+          saving={saving}
+          onSave={handleSaveContent}
+        />
+      )}
+
+      {activeTab === "github" && (
+        <GitHubTab
           homeContent={homeContent}
           setHomeContent={setHomeContent}
           saving={saving}

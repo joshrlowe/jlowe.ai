@@ -273,10 +273,6 @@ export default function RecentActivity({ projects = [], articles = [] }) {
     >
       <div className="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={titleRef} className="text-center mb-12">
-          <Badge variant="accent" size="lg" className="mb-6">
-            What I&apos;ve Been Up To
-          </Badge>
-
           <h2
             id="activity-title"
             className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight"

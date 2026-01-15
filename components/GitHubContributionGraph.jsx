@@ -386,7 +386,11 @@ function CalendarWrapper({ username, onDataLoaded }) {
   );
 }
 
-export default function GitHubContributionGraph({ username = "joshrlowe" }) {
+export default function GitHubContributionGraph({ 
+  username = "joshrlowe",
+  title = "GitHub Contributions",
+  description = "A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.",
+}) {
   const sectionRef = useRef(null);
   const contentRef = useRef(null);
   const [stats, setStats] = useState({ total: 0, bestDay: 0, currentStreak: 0 });
@@ -441,10 +445,6 @@ export default function GitHubContributionGraph({ username = "joshrlowe" }) {
         <div ref={contentRef}>
           {/* Header */}
           <div className="text-center mb-12">
-            <Badge variant="cool" size="lg" className="mb-6">
-              Coding Activity
-            </Badge>
-
             <h2
               id="github-title"
               className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight"
@@ -453,7 +453,7 @@ export default function GitHubContributionGraph({ username = "joshrlowe" }) {
                 color: "var(--color-text-primary)",
               }}
             >
-              GitHub Contributions
+              {title}
             </h2>
 
             <p
@@ -463,7 +463,7 @@ export default function GitHubContributionGraph({ username = "joshrlowe" }) {
                 maxWidth: "600px",
               }}
             >
-              A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.
+              {description}
             </p>
           </div>
 
