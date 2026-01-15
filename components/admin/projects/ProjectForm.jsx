@@ -67,8 +67,24 @@ export default function ProjectForm({
         />
       </div>
 
+      {/* Status */}
+      <FormField
+        label="Status"
+        value={formData.status}
+        onChange={(e) => {
+          const newStatus = e.target.value;
+          // Clear release date if switching to In Progress
+          if (newStatus === "InProgress") {
+            setFormData({ ...formData, status: newStatus, releaseDate: "" });
+          } else {
+            setFormData({ ...formData, status: newStatus });
+          }
+        }}
+        options={PROJECT_STATUSES}
+      />
+
       {/* Dates */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={`grid gap-4 ${formData.status === "InProgress" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
         <FormField
           label="Start Date"
           type="date"
@@ -77,23 +93,17 @@ export default function ProjectForm({
             setFormData({ ...formData, startDate: e.target.value })
           }
         />
-        <FormField
-          label="Release Date"
-          type="date"
-          value={formData.releaseDate}
-          onChange={(e) =>
-            setFormData({ ...formData, releaseDate: e.target.value })
-          }
-        />
+        {formData.status !== "InProgress" && (
+          <FormField
+            label="Release Date"
+            type="date"
+            value={formData.releaseDate}
+            onChange={(e) =>
+              setFormData({ ...formData, releaseDate: e.target.value })
+            }
+          />
+        )}
       </div>
-
-      {/* Status */}
-      <FormField
-        label="Status"
-        value={formData.status}
-        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-        options={PROJECT_STATUSES}
-      />
 
       {/* Descriptions */}
       <FormField
