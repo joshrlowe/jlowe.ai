@@ -1,30 +1,59 @@
 import { useState, useEffect } from "react";
 
-export default function PostLikeButton({ postId, initialLikes = 0 }) {
+export default function PostLikeButton({ postId, topic, slug, initialLikes = 0 }) {
   const [likes, setLikes] = useState(initialLikes);
   const [hasLiked, setHasLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user has already liked this post
+    // Check localStorage first for immediate feedback
     const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-    setHasLiked(likedPosts.includes(postId));
-  }, [postId]);
+    if (likedPosts.includes(postId)) {
+      setHasLiked(true);
+      return;
+    }
+
+    // Also check server-side (IP-based) like status
+    if (topic && slug) {
+      fetch(`/api/posts/${encodeURIComponent(topic)}/${encodeURIComponent(slug)}/like`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.liked) {
+            setHasLiked(true);
+            // Sync localStorage
+            const stored = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+            if (!stored.includes(postId)) {
+              stored.push(postId);
+              localStorage.setItem("likedPosts", JSON.stringify(stored));
+            }
+          }
+          if (typeof data.likeCount === "number") {
+            setLikes(data.likeCount);
+          }
+        })
+        .catch(() => {
+          // Silently fail - localStorage check is sufficient
+        });
+    }
+  }, [postId, topic, slug]);
 
   const handleLike = async () => {
-    if (hasLiked || isLoading) return;
+    if (hasLiked || isLoading || !topic || !slug) return;
 
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/posts/like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId }),
-      });
+      const response = await fetch(
+        `/api/posts/${encodeURIComponent(topic)}/${encodeURIComponent(slug)}/like`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (response.ok) {
-        setLikes((prev) => prev + 1);
+        const data = await response.json();
+        setLikes(data.likeCount || likes + 1);
         setHasLiked(true);
 
         // Store in localStorage

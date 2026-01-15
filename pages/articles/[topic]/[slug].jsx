@@ -167,6 +167,8 @@ export default function ArticleDetailPage({ post: initialPost }) {
               />
               <PostLikeButton
                 postId={post.id}
+                topic={post.topic}
+                slug={post.slug}
                 initialLikes={post._count?.likes || 0}
               />
             </div>
