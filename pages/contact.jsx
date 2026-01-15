@@ -19,58 +19,115 @@ if (typeof window !== "undefined") {
 
 const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
-// Vertical carousel component for rotating words
+// Enhanced vertical carousel component with GSAP animations
 function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [animationPhase, setAnimationPhase] = useState("visible"); // visible, exit, enter
+  const [nextIndex, setNextIndex] = useState(1);
+  const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef(null);
+  const currentWordRef = useRef(null);
+  const nextWordRef = useRef(null);
 
   useEffect(() => {
-    if (words.length <= 1) return;
+    if (words.length <= 1 || !currentWordRef.current || !nextWordRef.current) return;
 
-    const interval = setInterval(() => {
-      // Phase 1: Exit animation (slide up and fade out)
-      setAnimationPhase("exit");
-      
-      setTimeout(() => {
-        // Phase 2: Change word and start enter animation (slide up from below)
-        setCurrentIndex((prev) => (prev + 1) % words.length);
-        setAnimationPhase("enter");
-        
-        // Small delay to ensure the DOM has updated before animating in
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setAnimationPhase("visible");
-          });
-        });
-      }, 400);
-    }, 3000);
+    // Set initial state
+    gsap.set(nextWordRef.current, { yPercent: 100, opacity: 0 });
 
-    return () => clearInterval(interval);
-  }, [words.length]);
+    const animate = () => {
+      if (isAnimating) return;
+      setIsAnimating(true);
 
-  const getAnimationClasses = () => {
-    switch (animationPhase) {
-      case "exit":
-        return "opacity-0 -translate-y-full";
-      case "enter":
-        return "opacity-0 translate-y-full";
-      case "visible":
-      default:
-        return "opacity-100 translate-y-0";
-    }
-  };
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setCurrentIndex(nextIndex);
+          setNextIndex((nextIndex + 1) % words.length);
+          setIsAnimating(false);
+          // Reset positions for next animation
+          gsap.set(currentWordRef.current, { yPercent: 0, opacity: 1 });
+          gsap.set(nextWordRef.current, { yPercent: 100, opacity: 0 });
+        },
+      });
+
+      // Animate current word out (slide up and fade)
+      tl.to(currentWordRef.current, {
+        yPercent: -100,
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.in",
+      });
+
+      // Animate next word in (slide up from below)
+      tl.to(
+        nextWordRef.current,
+        {
+          yPercent: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.out",
+        },
+        "-=0.3" // Overlap for smoother transition
+      );
+    };
+
+    const interval = setInterval(animate, 3000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [words.length, nextIndex, isAnimating]);
+
+  // Update next index when current changes
+  useEffect(() => {
+    setNextIndex((currentIndex + 1) % words.length);
+  }, [currentIndex, words.length]);
 
   return (
     <span
       ref={containerRef}
       className="inline-block relative overflow-hidden"
-      style={{ height: "1.2em", verticalAlign: "bottom" }}
+      style={{ 
+        height: "1.3em", 
+        verticalAlign: "bottom",
+        minWidth: "180px",
+      }}
     >
+      {/* Current word */}
       <span
-        className={`inline-block text-[var(--color-primary)] transition-all duration-400 ease-out ${getAnimationClasses()}`}
+        ref={currentWordRef}
+        className="absolute inset-0 flex items-center justify-start"
+        style={{
+          background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          textShadow: "0 0 40px rgba(232, 93, 4, 0.4)",
+          fontWeight: "inherit",
+        }}
       >
         {words[currentIndex]}
+      </span>
+      
+      {/* Next word (initially hidden below) */}
+      <span
+        ref={nextWordRef}
+        className="absolute inset-0 flex items-center justify-start"
+        style={{
+          background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          textShadow: "0 0 40px rgba(232, 93, 4, 0.4)",
+          fontWeight: "inherit",
+          opacity: 0,
+        }}
+      >
+        {words[nextIndex]}
+      </span>
+
+      {/* Invisible text to maintain width */}
+      <span className="invisible" aria-hidden="true">
+        {words.reduce((a, b) => (a.length > b.length ? a : b))}
       </span>
     </span>
   );
