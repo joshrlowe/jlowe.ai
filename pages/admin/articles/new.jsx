@@ -310,6 +310,21 @@ export default function NewArticle() {
 
       if (response.ok) {
         toast.success("Article created successfully!");
+        
+        // Trigger revalidation if published
+        if (formData.status === "Published") {
+          try {
+            await fetch("/api/revalidate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ path: "/articles" }),
+            });
+          } catch (e) {
+            // Revalidation failure is not critical
+            console.warn("Revalidation failed:", e);
+          }
+        }
+        
         router.push("/admin/articles");
       } else {
         toast.error(data.message || "Failed to create article");
