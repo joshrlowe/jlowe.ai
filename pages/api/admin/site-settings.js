@@ -2,6 +2,9 @@ import { getToken } from "next-auth/jwt";
 import prisma from "../../../lib/prisma.js";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
 
+// Default enabled sections for home page
+const DEFAULT_ENABLED_SECTIONS = ["hero", "welcome", "projects", "stats", "articles"];
+
 export default async function handler(req, res) {
   const token = await getToken({
     req,
@@ -25,8 +28,14 @@ export default async function handler(req, res) {
             footerText: "",
             socials: {},
             seoDefaults: {},
+            enabledSections: DEFAULT_ENABLED_SECTIONS,
           },
         });
+      }
+
+      // Ensure enabledSections has a default value
+      if (!settings.enabledSections) {
+        settings.enabledSections = DEFAULT_ENABLED_SECTIONS;
       }
 
       res.json(settings);
@@ -35,7 +44,7 @@ export default async function handler(req, res) {
     }
   } else if (req.method === "PUT") {
     try {
-      const { siteName, navLinks, footerText, socials, seoDefaults } = req.body;
+      const { siteName, navLinks, footerText, socials, seoDefaults, enabledSections } = req.body;
 
       let settings = await prisma.siteSettings.findFirst();
 
@@ -47,6 +56,7 @@ export default async function handler(req, res) {
             footerText: footerText || "",
             socials: socials || {},
             seoDefaults: seoDefaults || {},
+            enabledSections: enabledSections || DEFAULT_ENABLED_SECTIONS,
           },
         });
       } else {
@@ -58,6 +68,7 @@ export default async function handler(req, res) {
             footerText,
             socials,
             seoDefaults,
+            enabledSections: enabledSections || settings.enabledSections || DEFAULT_ENABLED_SECTIONS,
           },
         });
       }

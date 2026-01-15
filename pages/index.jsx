@@ -48,6 +48,9 @@ const SpaceBackground = dynamic(() => import("@/components/SpaceBackground"), {
   ),
 });
 
+// Default enabled sections
+const DEFAULT_ENABLED_SECTIONS = ["hero", "welcome", "projects", "stats", "articles"];
+
 export default function Home({
   welcomeData,
   projects,
@@ -56,9 +59,13 @@ export default function Home({
   resources,
   homeContent,
   githubUsername,
+  enabledSections = DEFAULT_ENABLED_SECTIONS,
 }) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeResources = Array.isArray(resources) ? resources : [];
+
+  // Helper to check if a section is enabled
+  const isEnabled = (sectionId) => enabledSections.includes(sectionId);
 
   return (
     <>
@@ -75,28 +82,42 @@ export default function Home({
 
       {/* Main Content - Portfolio-first ordering */}
       <div className="relative z-10">
-        {/* 1. Hero - Who I am */}
-        <HeroSection
-          data={welcomeData}
-          contactData={contactData}
-          homeContent={homeContent}
-        />
+        {/* 1. Hero - Who I am (always shown - required) */}
+        {isEnabled("hero") && (
+          <HeroSection
+            data={welcomeData}
+            contactData={contactData}
+            homeContent={homeContent}
+          />
+        )}
 
-        {/* 2. GitHub Activity - Proof of consistent work */}
-        <GitHubContributionGraph username={githubUsername || "joshrlowe"} />
+        {/* 2. GitHub Activity - Proof of consistent work (part of welcome) */}
+        {isEnabled("welcome") && (
+          <GitHubContributionGraph username={githubUsername || "joshrlowe"} />
+        )}
 
         {/* 3. Featured Projects - What I've built (PORTFOLIO FOCUS) */}
-        <FeaturedProjects projects={safeProjects} />
+        {isEnabled("projects") && (
+          <FeaturedProjects projects={safeProjects} />
+        )}
 
-        {/* 4. Recent Activity - Timeline of work */}
-        <RecentActivity projects={safeProjects} articles={safeResources} />
+        {/* 4. Recent Activity - Timeline of work (part of articles) */}
+        {isEnabled("articles") && (
+          <RecentActivity projects={safeProjects} articles={safeResources} />
+        )}
 
         {/* 5. Services - What I can do for you (CONSULTING) */}
-        <ServicesSection homeContent={homeContent} />
+        {isEnabled("services") && (
+          <ServicesSection homeContent={homeContent} />
+        )}
 
         {/* 6. Stats & Tech - Credibility */}
-        <QuickStats projects={safeProjects} aboutData={aboutData} />
-        <TechStackShowcase projects={safeProjects} />
+        {isEnabled("stats") && (
+          <>
+            <QuickStats projects={safeProjects} aboutData={aboutData} />
+            <TechStackShowcase projects={safeProjects} />
+          </>
+        )}
       </div>
     </>
   );
@@ -205,6 +226,10 @@ export async function getStaticProps() {
       where: { pageKey: "home" },
     });
 
+    // Fetch site settings for enabled sections
+    const siteSettings = await prisma.siteSettings.findFirst();
+    const enabledSections = siteSettings?.enabledSections || DEFAULT_ENABLED_SECTIONS;
+
     // Merge with defaults
     const homeContent = pageContent?.content
       ? { ...defaultHomeContent, ...pageContent.content }
@@ -232,6 +257,7 @@ export async function getStaticProps() {
         resources: serialize(resources || []),
         homeContent: serialize(homeContent),
         githubUsername,
+        enabledSections: serialize(enabledSections),
       },
       revalidate: 60,
     };
@@ -246,6 +272,7 @@ export async function getStaticProps() {
         resources: [],
         homeContent: defaultHomeContent,
         githubUsername: "joshrlowe",
+        enabledSections: DEFAULT_ENABLED_SECTIONS,
       },
       revalidate: 60,
     };

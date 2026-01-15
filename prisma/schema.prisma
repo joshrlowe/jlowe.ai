@@ -279,14 +279,15 @@ model AdminUser {
 }
 
 model SiteSettings {
-  id          String   @id @default(cuid())
-  siteName    String   @default("jlowe.ai")
-  navLinks    Json?    // Array: [{label: String, href: String, order: Number}]
-  footerText  String?
-  socials     Json?    // { twitter?, github?, linkedin?, instagram?, email? }
-  seoDefaults Json?    // { title?, description?, ogImage? }
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  siteName        String   @default("jlowe.ai")
+  navLinks        Json?    // Array: [{label: String, href: String, order: Number}]
+  footerText      String?
+  socials         Json?    // { twitter?, github?, linkedin?, instagram?, email? }
+  seoDefaults     Json?    // { title?, description?, ogImage? }
+  enabledSections Json?    // Array of section IDs enabled on home page: ["hero", "welcome", "projects", ...]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("site_settings")
 }

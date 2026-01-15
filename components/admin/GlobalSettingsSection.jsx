@@ -1,12 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 
+// Available sections for the home page
+const AVAILABLE_SECTIONS = [
+  { id: "hero", label: "Hero Section", required: true },
+  { id: "welcome", label: "Welcome Message", required: true },
+  { id: "services", label: "Services", required: false },
+  { id: "projects", label: "Featured Projects", required: false },
+  { id: "stats", label: "Quick Stats", required: false },
+  { id: "articles", label: "Recent Articles", required: false },
+];
+
+const DEFAULT_ENABLED_SECTIONS = ["hero", "welcome", "projects", "stats", "articles"];
+
 export default function GlobalSettingsSection({ onError }) {
   const { showToast } = useToast();
   const [settings, setSettings] = useState({
     siteName: "",
     footerText: "",
     navLinks: [],
+    enabledSections: DEFAULT_ENABLED_SECTIONS,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,6 +34,7 @@ export default function GlobalSettingsSection({ onError }) {
         footerText: data.footerText || "",
         navLinks: data.navLinks || [],
         seoDefaults: data.seoDefaults || {},
+        enabledSections: data.enabledSections || DEFAULT_ENABLED_SECTIONS,
       });
     } catch (_error) {
       onError("Failed to load settings");
@@ -123,6 +137,55 @@ export default function GlobalSettingsSection({ onError }) {
           }
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
         />
+      </div>
+
+      {/* Home Page Sections */}
+      <div className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+          Home Page Sections
+        </h3>
+        <p className="text-sm text-[var(--color-text-muted)] mb-4">
+          Enable or disable sections on the home page
+        </p>
+        <div className="space-y-3">
+          {AVAILABLE_SECTIONS.map((section) => {
+            const isEnabled = settings.enabledSections?.includes(section.id);
+            return (
+              <label
+                key={section.id}
+                className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                  isEnabled
+                    ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30"
+                    : "bg-[var(--color-bg-card)] border-[var(--color-border)]"
+                } ${section.required ? "opacity-75" : "hover:border-[var(--color-primary)]/50"}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isEnabled}
+                  disabled={section.required}
+                  onChange={(e) => {
+                    if (section.required) return;
+                    const newSections = e.target.checked
+                      ? [...(settings.enabledSections || []), section.id]
+                      : (settings.enabledSections || []).filter((id) => id !== section.id);
+                    setSettings({ ...settings, enabledSections: newSections });
+                  }}
+                  className="w-5 h-5 rounded border-[var(--color-border)] bg-[var(--color-bg-darker)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+                <div className="flex-1">
+                  <span className="text-[var(--color-text-primary)] font-medium">
+                    {section.label}
+                  </span>
+                  {section.required && (
+                    <span className="ml-2 text-xs text-[var(--color-text-muted)]">
+                      (required)
+                    </span>
+                  )}
+                </div>
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       {/* Navigation Links */}
