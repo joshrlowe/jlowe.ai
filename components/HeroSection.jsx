@@ -108,8 +108,7 @@ export default function HeroSection({ data, contactData: _contactData, homeConte
   // Get content from homeContent prop (from database) or use defaults
   // Portfolio-focused: Lead with what you've built
   const typingIntro = homeContent?.typingIntro || "I build...";
-  const heroTitle = homeContent?.heroTitle || "production AI systems";
-  const _typingStrings =
+  const typingStrings =
     homeContent?.typingStrings?.length > 0
       ? homeContent.typingStrings
       : [
@@ -172,7 +171,7 @@ export default function HeroSection({ data, contactData: _contactData, homeConte
             )}
           </p>
 
-          {/* Main title - balanced size */}
+          {/* Main title - with typing animation */}
           <h1
             ref={titleRef}
             className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
@@ -186,7 +185,19 @@ export default function HeroSection({ data, contactData: _contactData, homeConte
               textShadow: "0 0 80px rgba(232, 93, 4, 0.2)",
             }}
           >
-            {heroTitle}
+            {mounted && typingComplete ? (
+              <ReactTyped
+                strings={typingStrings}
+                typeSpeed={50}
+                backSpeed={30}
+                backDelay={2000}
+                loop={true}
+                showCursor={true}
+                cursorChar="|"
+              />
+            ) : (
+              typingStrings[0]
+            )}
           </h1>
 
           {/* Subtitle / Role - single line, flexible width */}

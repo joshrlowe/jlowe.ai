@@ -22,22 +22,44 @@ const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 // Vertical carousel component for rotating words
 function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationPhase, setAnimationPhase] = useState("visible"); // visible, exit, enter
   const containerRef = useRef(null);
 
   useEffect(() => {
     if (words.length <= 1) return;
 
     const interval = setInterval(() => {
-      setIsAnimating(true);
+      // Phase 1: Exit animation (slide up and fade out)
+      setAnimationPhase("exit");
+      
       setTimeout(() => {
+        // Phase 2: Change word and start enter animation (slide up from below)
         setCurrentIndex((prev) => (prev + 1) % words.length);
-        setIsAnimating(false);
-      }, 400); // Half of the transition time
-    }, 3000); // Change word every 3 seconds
+        setAnimationPhase("enter");
+        
+        // Small delay to ensure the DOM has updated before animating in
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setAnimationPhase("visible");
+          });
+        });
+      }, 400);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [words.length]);
+
+  const getAnimationClasses = () => {
+    switch (animationPhase) {
+      case "exit":
+        return "opacity-0 -translate-y-full";
+      case "enter":
+        return "opacity-0 translate-y-full";
+      case "visible":
+      default:
+        return "opacity-100 translate-y-0";
+    }
+  };
 
   return (
     <span
@@ -46,11 +68,7 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
       style={{ height: "1.2em", verticalAlign: "bottom" }}
     >
       <span
-        className={`inline-block text-[var(--color-primary)] transition-all duration-500 ease-out ${
-          isAnimating
-            ? "opacity-0 -translate-y-full"
-            : "opacity-100 translate-y-0"
-        }`}
+        className={`inline-block text-[var(--color-primary)] transition-all duration-400 ease-out ${getAnimationClasses()}`}
       >
         {words[currentIndex]}
       </span>
