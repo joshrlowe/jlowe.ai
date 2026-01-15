@@ -114,7 +114,7 @@ export default function Footer() {
       }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-14 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-14 mb-14">
           {/* Brand */}
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-5">
@@ -234,38 +234,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Services */}
-          <div>
-            <h3
-              className="text-sm font-semibold uppercase tracking-wider mb-5"
-              style={{
-                color: "#FAA307",
-                fontFamily: "var(--font-family-heading)",
-              }}
-            >
-              Services
-            </h3>
-            <ul className="space-y-3">
-              {[
-                "AI Strategy",
-                "ML Systems",
-                "LLM Solutions",
-                "Cloud & MLOps",
-                "Data Analytics",
-              ].map((service) => (
-                <li
-                  key={service}
-                  className="text-sm"
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    fontFamily: "var(--font-family-base)",
-                  }}
-                >
-                  {service}
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
 
         {/* Bottom bar */}
