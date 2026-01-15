@@ -151,24 +151,25 @@ export default function ContactPage() {
     },
   ];
 
+  // Ember theme color variants
   const colorMap = {
     primary: {
-      bg: "rgba(0, 212, 255, 0.1)",
-      border: "rgba(0, 212, 255, 0.3)",
-      text: "var(--color-primary)",
-      hover: "var(--color-primary)",
+      bg: "rgba(232, 93, 4, 0.08)",
+      border: "rgba(232, 93, 4, 0.2)",
+      text: "#E85D04",
+      hover: "#E85D04",
     },
     secondary: {
-      bg: "rgba(139, 92, 246, 0.1)",
-      border: "rgba(139, 92, 246, 0.3)",
-      text: "var(--color-secondary)",
-      hover: "var(--color-secondary)",
+      bg: "rgba(250, 163, 7, 0.08)",
+      border: "rgba(250, 163, 7, 0.2)",
+      text: "#FAA307",
+      hover: "#FAA307",
     },
     accent: {
-      bg: "rgba(244, 114, 182, 0.1)",
-      border: "rgba(244, 114, 182, 0.3)",
-      text: "var(--color-accent)",
-      hover: "var(--color-accent)",
+      bg: "rgba(255, 186, 8, 0.08)",
+      border: "rgba(255, 186, 8, 0.2)",
+      text: "#FFBA08",
+      hover: "#FFBA08",
     },
   };
 
