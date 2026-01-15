@@ -12,11 +12,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import { LoadingSpinner, adminStyles } from "./shared";
-import { WelcomeTab, HeroTab, ServicesTab, GitHubTab } from "./home";
+import { WelcomeTab, HeroTab, ServicesTab, GitHubTab, SectionsTab, DEFAULT_ENABLED_SECTIONS } from "./home";
 
 const TABS = [
   { key: "welcome", label: "Welcome Info" },
   { key: "hero", label: "Hero Section" },
+  { key: "sections", label: "Sections" },
   { key: "github", label: "GitHub Section" },
   { key: "services", label: "Services" },
 ];
@@ -46,6 +47,9 @@ export default function HomeSettingsSection({ onError }) {
     services: [],
   });
 
+  // Enabled sections (from site settings)
+  const [enabledSections, setEnabledSections] = useState(DEFAULT_ENABLED_SECTIONS);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("welcome");
@@ -69,6 +73,15 @@ export default function HomeSettingsSection({ onError }) {
         const data = await contentRes.json();
         if (data.content) {
           setHomeContent((prev) => ({ ...prev, ...data.content }));
+        }
+      }
+
+      // Fetch site settings for enabled sections
+      const settingsRes = await fetch("/api/admin/site-settings");
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        if (data.enabledSections) {
+          setEnabledSections(data.enabledSections);
         }
       }
     } catch (_error) {
@@ -119,6 +132,40 @@ export default function HomeSettingsSection({ onError }) {
     }
   };
 
+  const handleSaveSections = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/site-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabledSections }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+
+      // Trigger revalidation of the home page
+      try {
+        const revalidateRes = await fetch("/api/revalidate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: "/" }),
+        });
+        
+        if (revalidateRes.ok) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          fetch("/", { method: "GET", cache: "no-store" }).catch(() => {});
+        }
+      } catch (revalidateError) {
+        console.warn("Revalidation failed:", revalidateError);
+      }
+
+      showToast("Sections saved! Refresh home page to see changes.", "success");
+    } catch (_error) {
+      showToast("Failed to save sections", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -158,6 +205,15 @@ export default function HomeSettingsSection({ onError }) {
           setHomeContent={setHomeContent}
           saving={saving}
           onSave={handleSaveContent}
+        />
+      )}
+
+      {activeTab === "sections" && (
+        <SectionsTab
+          enabledSections={enabledSections}
+          setEnabledSections={setEnabledSections}
+          saving={saving}
+          onSave={handleSaveSections}
         />
       )}
 
