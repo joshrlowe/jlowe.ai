@@ -61,6 +61,17 @@ export default function GlobalSettingsSection({ onError }) {
 
       if (!res.ok) throw new Error("Failed to save");
 
+      // Trigger revalidation of the home page so changes appear immediately
+      try {
+        await fetch("/api/revalidate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: "/" }),
+        });
+      } catch (revalidateError) {
+        console.warn("Revalidation failed:", revalidateError);
+      }
+
       setMessage("Settings saved successfully!");
       showToast("Settings saved successfully!", "success");
       setTimeout(() => setMessage(""), 3000);
