@@ -204,20 +204,41 @@ model PlaylistPost {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorName String
+  id          String   @id @default(cuid())
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorName  String
   authorEmail String?
-  content   String
-  approved  Boolean  @default(false) // For moderation
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  content     String
+  approved    Boolean  @default(true) // Auto-approve comments
+  likes       Int      @default(0)
+  dislikes    Int      @default(0)
+  parentId    String?  // For replies - null means top-level comment
+  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[] @relation("CommentReplies")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  commentVotes CommentVote[]
 
   @@index([postId])
+  @@index([parentId])
   @@index([approved])
   @@index([createdAt])
   @@map("comments")
+}
+
+model CommentVote {
+  id        String   @id @default(cuid())
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userIP    String   // Track by IP for anonymous votes
+  voteType  String   // "like" or "dislike"
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userIP])
+  @@index([commentId])
+  @@map("comment_votes")
 }
 
 model Like {
