@@ -218,7 +218,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData }) => {
 
 export async function getStaticProps() {
   try {
-    const [aboutData, welcomeData, contactData, siteSettings] = await Promise.all([
+    const [aboutData, welcomeData, contactData] = await Promise.all([
       prisma.about.findFirst({
         orderBy: { createdAt: "desc" },
       }),
@@ -228,7 +228,6 @@ export async function getStaticProps() {
       prisma.contact.findFirst({
         orderBy: { createdAt: "desc" },
       }),
-      prisma.siteSettings.findFirst(),
     ]);
 
     if (!aboutData) {
@@ -251,30 +250,14 @@ export async function getStaticProps() {
         }
       : null;
 
-    // Merge social links from both Contact and SiteSettings
-    // SiteSettings uses lowercase keys, Contact uses camelCase
-    const siteSettingsSocials = siteSettings?.socials || {};
-    const contactSocials = contactData?.socialMediaLinks || {};
-    
-    // Merge: prefer Contact settings, fallback to SiteSettings
-    const mergedSocialLinks = {
-      linkedIn: contactSocials.linkedIn || siteSettingsSocials.linkedin || siteSettingsSocials.linkedIn || "",
-      github: contactSocials.github || siteSettingsSocials.github || "",
-      X: contactSocials.X || siteSettingsSocials.twitter || siteSettingsSocials.x || "",
-    };
-
+    // Social links come only from Contact settings (single source of truth)
     const serializedContactData = contactData
       ? {
           ...contactData,
-          socialMediaLinks: mergedSocialLinks,
           createdAt: contactData.createdAt.toISOString(),
           updatedAt: contactData.updatedAt.toISOString(),
         }
-      : {
-          // If no contact data, create a minimal object with social links from site settings
-          socialMediaLinks: mergedSocialLinks,
-          emailAddress: siteSettingsSocials.email || "",
-        };
+      : null;
 
     return {
       props: {

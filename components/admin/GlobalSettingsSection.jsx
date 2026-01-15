@@ -6,13 +6,6 @@ export default function GlobalSettingsSection({ onError }) {
   const [settings, setSettings] = useState({
     siteName: "",
     footerText: "",
-    socials: {
-      github: "",
-      linkedin: "",
-      twitter: "",
-      instagram: "",
-      email: "",
-    },
     navLinks: [],
   });
   const [loading, setLoading] = useState(true);
@@ -26,13 +19,6 @@ export default function GlobalSettingsSection({ onError }) {
       setSettings({
         siteName: data.siteName || "",
         footerText: data.footerText || "",
-        socials: data.socials || {
-          github: "",
-          linkedin: "",
-          twitter: "",
-          instagram: "",
-          email: "",
-        },
         navLinks: data.navLinks || [],
         seoDefaults: data.seoDefaults || {},
       });
@@ -137,38 +123,6 @@ export default function GlobalSettingsSection({ onError }) {
           }
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
         />
-      </div>
-
-      {/* Social Media Links */}
-      <div className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
-        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-          Social Media Links
-        </h3>
-        <div className="space-y-4">
-          {["github", "linkedin", "twitter", "instagram", "email"].map(
-            (platform) => (
-              <div key={platform}>
-                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1 capitalize">
-                  {platform}
-                </label>
-                <input
-                  type="text"
-                  value={settings.socials[platform] || ""}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      socials: {
-                        ...settings.socials,
-                        [platform]: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
-                />
-              </div>
-            ),
-          )}
-        </div>
       </div>
 
       {/* Navigation Links */}

@@ -77,13 +77,20 @@ export default function ServicesSection({ homeContent }) {
   const titleRef = useRef(null);
 
   // Get content from props or use defaults
+  // Only use defaults if homeContent doesn't exist at all
+  // If user explicitly set empty array, respect that choice
   const servicesTitle =
     homeContent?.servicesTitle || "AI & Engineering Services";
   const servicesSubtitle =
     homeContent?.servicesSubtitle ||
     "From strategy to implementation, I help businesses harness the power of AI and modern engineering practices.";
   const services =
-    homeContent?.services?.length > 0 ? homeContent.services : defaultServices;
+    homeContent?.services !== undefined ? homeContent.services : defaultServices;
+
+  // If no services to display, don't render the section
+  if (services.length === 0) {
+    return null;
+  }
 
   useEffect(() => {
     if (!sectionRef.current) return;
