@@ -93,7 +93,11 @@ export default function Home({
 
         {/* 2. GitHub Activity - Proof of consistent work (part of welcome) */}
         {isEnabled("welcome") && (
-          <GitHubContributionGraph username={githubUsername || "joshrlowe"} />
+          <GitHubContributionGraph 
+            username={githubUsername || "joshrlowe"} 
+            title={homeContent?.githubSectionTitle}
+            description={homeContent?.githubSectionDescription}
+          />
         )}
 
         {/* 3. Featured Projects - What I've built (PORTFOLIO FOCUS) */}
@@ -143,6 +147,9 @@ const defaultHomeContent = {
     { name: "AWS", color: "#F48C06" },
     { name: "LLMs", color: "#F72585" },
   ],
+  githubSectionTitle: "GitHub Contributions",
+  githubSectionDescription:
+    "A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.",
   servicesTitle: "AI & Engineering Services",
   servicesSubtitle:
     "From strategy to implementation, I help businesses harness the power of AI and modern engineering practices.",
@@ -226,9 +233,21 @@ export async function getStaticProps() {
       where: { pageKey: "home" },
     });
 
-    // Fetch site settings for enabled sections
-    const siteSettings = await prisma.siteSettings.findFirst();
-    const enabledSections = siteSettings?.enabledSections || DEFAULT_ENABLED_SECTIONS;
+    // Fetch site settings for enabled sections (with fallback for missing column)
+    let enabledSections = DEFAULT_ENABLED_SECTIONS;
+    try {
+      const siteSettings = await prisma.siteSettings.findFirst({
+        select: {
+          enabledSections: true,
+        },
+      });
+      if (siteSettings?.enabledSections) {
+        enabledSections = siteSettings.enabledSections;
+      }
+    } catch (settingsError) {
+      // Column may not exist yet - use defaults
+      console.warn("Could not fetch enabledSections, using defaults:", settingsError.message);
+    }
 
     // Merge with defaults
     const homeContent = pageContent?.content

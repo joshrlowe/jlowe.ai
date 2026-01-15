@@ -21,16 +21,35 @@ export default async function handler(req, res) {
 
       if (!settings) {
         // Create default settings if none exist
-        settings = await prisma.siteSettings.create({
-          data: {
-            siteName: "jlowe.ai",
-            navLinks: [],
-            footerText: "",
-            socials: {},
-            seoDefaults: {},
-            enabledSections: DEFAULT_ENABLED_SECTIONS,
-          },
-        });
+        // Try with enabledSections first, fall back without it if column doesn't exist
+        try {
+          settings = await prisma.siteSettings.create({
+            data: {
+              siteName: "jlowe.ai",
+              navLinks: [],
+              footerText: "",
+              socials: {},
+              seoDefaults: {},
+              enabledSections: DEFAULT_ENABLED_SECTIONS,
+            },
+          });
+        } catch (createError) {
+          // If enabledSections column doesn't exist, create without it
+          if (createError.code === 'P2022') {
+            settings = await prisma.siteSettings.create({
+              data: {
+                siteName: "jlowe.ai",
+                navLinks: [],
+                footerText: "",
+                socials: {},
+                seoDefaults: {},
+              },
+            });
+            settings.enabledSections = DEFAULT_ENABLED_SECTIONS;
+          } else {
+            throw createError;
+          }
+        }
       }
 
       // Ensure enabledSections has a default value
@@ -40,6 +59,29 @@ export default async function handler(req, res) {
 
       res.json(settings);
     } catch (error) {
+      // Handle case where enabledSections column doesn't exist
+      if (error.code === 'P2022' && error.message?.includes('enabledSections')) {
+        try {
+          let settings = await prisma.siteSettings.findFirst({
+            select: {
+              id: true,
+              siteName: true,
+              navLinks: true,
+              footerText: true,
+              socials: true,
+              seoDefaults: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          });
+          if (settings) {
+            settings.enabledSections = DEFAULT_ENABLED_SECTIONS;
+            return res.json(settings);
+          }
+        } catch (fallbackError) {
+          console.error("Fallback query failed:", fallbackError);
+        }
+      }
       handleApiError(error, res);
     }
   } else if (req.method === "PUT") {
@@ -48,29 +90,72 @@ export default async function handler(req, res) {
 
       let settings = await prisma.siteSettings.findFirst();
 
+      // Build update data, conditionally including enabledSections
+      const updateData = {
+        siteName,
+        navLinks,
+        footerText,
+        socials,
+        seoDefaults,
+      };
+
+      // Try to include enabledSections if the column exists
+      let supportsEnabledSections = true;
+
       if (!settings) {
-        settings = await prisma.siteSettings.create({
-          data: {
-            siteName: siteName || "jlowe.ai",
-            navLinks: navLinks || [],
-            footerText: footerText || "",
-            socials: socials || {},
-            seoDefaults: seoDefaults || {},
-            enabledSections: enabledSections || DEFAULT_ENABLED_SECTIONS,
-          },
-        });
+        try {
+          settings = await prisma.siteSettings.create({
+            data: {
+              ...updateData,
+              siteName: siteName || "jlowe.ai",
+              navLinks: navLinks || [],
+              footerText: footerText || "",
+              socials: socials || {},
+              seoDefaults: seoDefaults || {},
+              enabledSections: enabledSections || DEFAULT_ENABLED_SECTIONS,
+            },
+          });
+        } catch (createError) {
+          if (createError.code === 'P2022') {
+            supportsEnabledSections = false;
+            settings = await prisma.siteSettings.create({
+              data: {
+                siteName: siteName || "jlowe.ai",
+                navLinks: navLinks || [],
+                footerText: footerText || "",
+                socials: socials || {},
+                seoDefaults: seoDefaults || {},
+              },
+            });
+          } else {
+            throw createError;
+          }
+        }
       } else {
-        settings = await prisma.siteSettings.update({
-          where: { id: settings.id },
-          data: {
-            siteName,
-            navLinks,
-            footerText,
-            socials,
-            seoDefaults,
-            enabledSections: enabledSections || settings.enabledSections || DEFAULT_ENABLED_SECTIONS,
-          },
-        });
+        try {
+          settings = await prisma.siteSettings.update({
+            where: { id: settings.id },
+            data: {
+              ...updateData,
+              enabledSections: enabledSections || DEFAULT_ENABLED_SECTIONS,
+            },
+          });
+        } catch (updateError) {
+          if (updateError.code === 'P2022') {
+            supportsEnabledSections = false;
+            settings = await prisma.siteSettings.update({
+              where: { id: settings.id },
+              data: updateData,
+            });
+          } else {
+            throw updateError;
+          }
+        }
+      }
+
+      // Add enabledSections to response even if not in DB
+      if (!supportsEnabledSections || !settings.enabledSections) {
+        settings.enabledSections = enabledSections || DEFAULT_ENABLED_SECTIONS;
       }
 
       res.json(settings);
