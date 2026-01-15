@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 
 export default function PostComments({ postId }) {
   const [comments, setComments] = useState([]);
+  const [pendingComments, setPendingComments] = useState([]); // User's pending comments
   const [newComment, setNewComment] = useState({
     authorName: "",
     authorEmail: "",
@@ -45,6 +46,19 @@ export default function PostComments({ postId }) {
       if (response.ok) {
         setStatus("success");
         setMessage("Your comment has been submitted and is awaiting approval.");
+        
+        // Add to pending comments for immediate display
+        setPendingComments((prev) => [
+          {
+            id: data.id || `pending-${Date.now()}`,
+            authorName: newComment.authorName,
+            content: newComment.content,
+            createdAt: new Date().toISOString(),
+            pending: true,
+          },
+          ...prev,
+        ]);
+        
         setNewComment({ authorName: "", authorEmail: "", content: "" });
       } else {
         setStatus("error");
@@ -55,6 +69,9 @@ export default function PostComments({ postId }) {
       setMessage("Something went wrong. Please try again.");
     }
   };
+  
+  // Combine approved and pending comments for display
+  const allComments = [...pendingComments, ...comments];
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -142,21 +159,32 @@ export default function PostComments({ postId }) {
             </div>
           ))}
         </div>
-      ) : comments.length === 0 ? (
+      ) : allComments.length === 0 ? (
         <p className="text-[var(--color-text-secondary)] text-center py-8">
           No comments yet. Be the first to comment!
         </p>
       ) : (
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {allComments.map((comment) => (
             <div
               key={comment.id}
-              className="p-4 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)]"
+              className={`p-4 rounded-lg border ${
+                comment.pending
+                  ? "bg-[var(--color-primary)]/5 border-[var(--color-primary)]/30"
+                  : "bg-[var(--color-bg-card)] border-[var(--color-border)]"
+              }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-[var(--color-text-primary)]">
-                  {comment.authorName}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-[var(--color-text-primary)]">
+                    {comment.authorName}
+                  </span>
+                  {comment.pending && (
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-primary)]/20 text-[var(--color-primary)]">
+                      Pending Approval
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs text-[var(--color-text-muted)]">
                   {formatDate(comment.createdAt)}
                 </span>
