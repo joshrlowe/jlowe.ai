@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 export default function PostComments({ postId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({
-    name: "",
-    email: "",
+    authorName: "",
+    authorEmail: "",
     content: "",
   });
   const [status, setStatus] = useState("idle");
@@ -45,7 +45,7 @@ export default function PostComments({ postId }) {
       if (response.ok) {
         setStatus("success");
         setMessage("Your comment has been submitted and is awaiting approval.");
-        setNewComment({ name: "", email: "", content: "" });
+        setNewComment({ authorName: "", authorEmail: "", content: "" });
       } else {
         setStatus("error");
         setMessage(data.message || "Failed to submit comment.");
@@ -83,9 +83,9 @@ export default function PostComments({ postId }) {
           <input
             type="text"
             placeholder="Your name"
-            value={newComment.name}
+            value={newComment.authorName}
             onChange={(e) =>
-              setNewComment({ ...newComment, name: e.target.value })
+              setNewComment({ ...newComment, authorName: e.target.value })
             }
             className="px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
             required
@@ -93,12 +93,11 @@ export default function PostComments({ postId }) {
           <input
             type="email"
             placeholder="Your email"
-            value={newComment.email}
+            value={newComment.authorEmail}
             onChange={(e) =>
-              setNewComment({ ...newComment, email: e.target.value })
+              setNewComment({ ...newComment, authorEmail: e.target.value })
             }
             className="px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
-            required
           />
         </div>
 
@@ -156,7 +155,7 @@ export default function PostComments({ postId }) {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-[var(--color-text-primary)]">
-                  {comment.name}
+                  {comment.authorName}
                 </span>
                 <span className="text-xs text-[var(--color-text-muted)]">
                   {formatDate(comment.createdAt)}
