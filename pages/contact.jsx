@@ -17,12 +17,14 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const HERO_TEXT = "Let's Build Something Amazing";
+
 const ReactTyped = dynamic(
   () => import("react-typed").then((mod) => mod.ReactTyped),
   {
     ssr: false,
     loading: () => (
-      <span className="text-[var(--color-primary)]">Let's Connect</span>
+      <span className="text-[var(--color-primary)]">{HERO_TEXT}</span>
     ),
   },
 );
@@ -31,11 +33,21 @@ export default function ContactPage() {
   const [contactData, setContactData] = useState(null);
   const [typingComplete, setTypingComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
+  
+  // Use ref to prevent double-typing in StrictMode
+  const hasTypedRef = useRef(false);
 
   const headerRef = useRef(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
+    // Check if typing already completed in this session
+    const hasTyped = sessionStorage.getItem("contactTypingComplete") === "true";
+    if (hasTyped) {
+      setTypingComplete(true);
+      hasTypedRef.current = true;
+    }
+    
     setMounted(true);
 
     const fetchData = async () => {
@@ -50,6 +62,14 @@ export default function ContactPage() {
 
     fetchData();
   }, []);
+  
+  const handleTypingComplete = () => {
+    if (!hasTypedRef.current) {
+      hasTypedRef.current = true;
+      setTypingComplete(true);
+      sessionStorage.setItem("contactTypingComplete", "true");
+    }
+  };
 
   useEffect(() => {
     if (!mounted || !typingComplete) return;
@@ -185,14 +205,18 @@ export default function ContactPage() {
           <div ref={headerRef} className="text-center mb-16">
             <span className="badge badge-accent mb-4">Get in Touch</span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-oswald)]">
-              {mounted && (
-                <ReactTyped
-                  strings={["Let's Build Something Amazing"]}
-                  typeSpeed={50}
-                  onComplete={() => setTypingComplete(true)}
-                  showCursor={!typingComplete}
-                  cursorChar="|"
-                />
+              {typingComplete ? (
+                <span>{HERO_TEXT}</span>
+              ) : (
+                mounted && (
+                  <ReactTyped
+                    strings={[HERO_TEXT]}
+                    typeSpeed={50}
+                    onComplete={handleTypingComplete}
+                    showCursor={true}
+                    cursorChar="|"
+                  />
+                )
               )}
             </h1>
             <p
