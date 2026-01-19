@@ -103,14 +103,42 @@ export default function ProjectsPage({ projects: initialProjects }) {
 
     if (debouncedSearch) {
       const query = debouncedSearch.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.title?.toLowerCase().includes(query) ||
-          p.shortDescription?.toLowerCase().includes(query) ||
-          p.description?.toLowerCase().includes(query) ||
-          (Array.isArray(p.tags) &&
-            p.tags.some((tag) => tag.toLowerCase().includes(query))),
-      );
+      filtered = filtered.filter((p) => {
+        // Search in title
+        if (p.title?.toLowerCase().includes(query)) return true;
+        // Search in short description
+        if (p.shortDescription?.toLowerCase().includes(query)) return true;
+        // Search in long description
+        if (p.description?.toLowerCase().includes(query)) return true;
+        if (p.longDescription?.toLowerCase().includes(query)) return true;
+        // Search in tags
+        if (
+          Array.isArray(p.tags) &&
+          p.tags.some((tag) => tag.toLowerCase().includes(query))
+        )
+          return true;
+        // Search in tech stack (skills)
+        let techStack = [];
+        if (Array.isArray(p.techStack)) {
+          techStack = p.techStack;
+        } else if (typeof p.techStack === "string") {
+          try {
+            techStack = JSON.parse(p.techStack || "[]");
+          } catch {
+            techStack = [];
+          }
+        }
+        if (
+          Array.isArray(techStack) &&
+          techStack.some((tech) => {
+            const techName =
+              typeof tech === "string" ? tech : tech.name || "";
+            return techName.toLowerCase().includes(query);
+          })
+        )
+          return true;
+        return false;
+      });
     }
 
     if (statusFilter !== "all") {
@@ -215,7 +243,6 @@ export default function ProjectsPage({ projects: initialProjects }) {
         <div className="container mx-auto max-w-7xl">
           {/* Header */}
           <div ref={headerRef} className="mb-12">
-            <span className="badge mb-4">Portfolio</span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 font-[family-name:var(--font-oswald)]">
               <span className="gradient-text">Projects</span>
             </h1>
