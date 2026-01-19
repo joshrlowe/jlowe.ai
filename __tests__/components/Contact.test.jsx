@@ -31,15 +31,12 @@ describe('Contact Page Component', () => {
   const mockContactData = {
     emailAddress: 'josh@jlowe.ai',
     phoneNumber: '+1 (555) 123-4567',
-    address: 'San Francisco, CA',
-    availability: {
-      workingHours: 'Monday - Friday, 9AM - 5PM PST',
-    },
     socialMediaLinks: {
       linkedIn: 'https://linkedin.com/in/joshlowe',
       github: 'https://github.com/joshlowe',
       X: 'https://x.com/joshlowe',
     },
+    heroSubtitle: 'Ready to bring AI to your business?',
   };
 
   beforeEach(() => {
@@ -64,9 +61,9 @@ describe('Contact Page Component', () => {
   describe('Rendering', () => {
     it('should render without crashing', async () => {
       render(<ContactPage />);
-      // Wait for data to load and "Get in Touch" badge to appear
+      // Wait for data to load and content to appear
       await waitFor(() => {
-        expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+        expect(screen.getByText('Contact Information')).toBeInTheDocument();
       });
     });
 
@@ -119,21 +116,7 @@ describe('Contact Page Component', () => {
       });
     });
 
-    it('should display address', async () => {
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('San Francisco, CA')).toBeInTheDocument();
-      });
-    });
-
-    it('should display availability', async () => {
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Monday - Friday, 9AM - 5PM PST')).toBeInTheDocument();
-      });
-    });
+    // Address and availability sections have been removed from the contact page
 
     it('should link email with mailto', async () => {
       render(<ContactPage />);
@@ -259,34 +242,7 @@ describe('Contact Page Component', () => {
 
   });
 
-  describe('Availability Status', () => {
-    it('should show "Available for new projects" indicator', async () => {
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Available for new projects')).toBeInTheDocument();
-      });
-    });
-
-    it('should show pulse animation on availability indicator', async () => {
-      const { container } = render(<ContactPage />);
-
-      await waitFor(() => {
-        const pulseIndicator = container.querySelector('.animate-pulse');
-        expect(pulseIndicator).toBeInTheDocument();
-      });
-    });
-
-    it('should show availability message', async () => {
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/Currently accepting new consulting engagements/)
-        ).toBeInTheDocument();
-      });
-    });
-  });
+  // Availability Status section has been removed from the contact page
 
   describe('API Error Handling', () => {
     it('should handle fetch error gracefully', async () => {
@@ -318,37 +274,7 @@ describe('Contact Page Component', () => {
       });
     });
 
-    it('should handle null availability', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockContactData,
-          availability: null,
-        }),
-      });
-
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Contact Information')).toBeInTheDocument();
-      });
-    });
-
-    it('should handle string availability', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockContactData,
-          availability: 'Always available',
-        }),
-      });
-
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Always available')).toBeInTheDocument();
-      });
-    });
+    // Availability section has been removed - these tests are no longer needed
   });
 
   describe('Accessibility', () => {
@@ -392,7 +318,7 @@ describe('Contact Page Component', () => {
       render(<ContactPage />);
       // Wait for data to load then verify page renders
       await waitFor(() => {
-        expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+        expect(screen.getByText('Contact Information')).toBeInTheDocument();
       });
     });
   });
@@ -497,31 +423,11 @@ describe('Contact Page Component', () => {
       });
     });
 
-    it('should handle missing address', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockContactData,
-          address: null,
-        }),
-      });
-
-      render(<ContactPage />);
-
-      await waitFor(() => {
-        expect(screen.queryByText('Location')).not.toBeInTheDocument();
-      });
-    });
+    // Address/Location section has been removed from the contact page
   });
 
   describe('Styling', () => {
-    it('should apply badge styling', async () => {
-      render(<ContactPage />);
-      await waitFor(() => {
-        const badge = screen.getByText('Get in Touch');
-        expect(badge).toHaveClass('badge', 'badge-accent');
-      });
-    });
+    // Badge has been removed from the contact page
 
     it('should apply font classes', async () => {
       const { container } = render(<ContactPage />);
@@ -548,7 +454,7 @@ describe('Contact Page Component', () => {
 
       render(<ContactPage />);
       await waitFor(() => {
-        expect(screen.getByText('Get in Touch')).toBeInTheDocument();
+        expect(screen.getByText('Contact Information')).toBeInTheDocument();
       });
     });
 
