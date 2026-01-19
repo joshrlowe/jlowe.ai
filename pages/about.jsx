@@ -172,6 +172,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData }) => {
                   >
                     <LeadershipExperience
                       experience={serializedData.leadershipExperience}
+                      subtitle={serializedData.leadershipSubtitle || ""}
                     />
                   </section>
                 )}
