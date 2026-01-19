@@ -81,6 +81,19 @@ jest.mock('@/components/TechStackShowcase', () => {
   };
 });
 
+// Mock fetch for useEffect that fetches enabled sections
+beforeEach(() => {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({ enabledSections: ['hero', 'welcome', 'projects', 'stats', 'articles'] }),
+    })
+  );
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 describe('Home Page', () => {
   const defaultProps = {
     welcomeData: {
