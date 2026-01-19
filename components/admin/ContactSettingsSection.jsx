@@ -8,10 +8,9 @@ export default function ContactSettingsSection({ onError }) {
   const [contactData, setContactData] = useState({
     emailAddress: "",
     phoneNumber: "",
-    address: "",
-    availability: { workingHours: "" },
     socialMediaLinks: { linkedIn: "", github: "", X: "" },
     heroWords: DEFAULT_HERO_WORDS,
+    heroSubtitle: "",
   });
   const [heroWordInput, setHeroWordInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -24,14 +23,13 @@ export default function ContactSettingsSection({ onError }) {
       setContactData({
         emailAddress: data.emailAddress || "",
         phoneNumber: data.phoneNumber || "",
-        address: data.address || "",
-        availability: data.availability || { workingHours: "" },
         socialMediaLinks: data.socialMediaLinks || {
           linkedIn: "",
           github: "",
           X: "",
         },
         heroWords: data.heroWords || DEFAULT_HERO_WORDS,
+        heroSubtitle: data.heroSubtitle || "",
       });
     } catch (_error) {
       onError("Failed to load contact data");
@@ -104,38 +102,23 @@ export default function ContactSettingsSection({ onError }) {
         />
       </div>
 
+      {/* Hero Subtitle */}
       <div>
         <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-          Address
+          Hero Subtitle
         </label>
-        <input
-          type="text"
-          value={contactData.address}
+        <textarea
+          value={contactData.heroSubtitle}
           onChange={(e) =>
-            setContactData({ ...contactData, address: e.target.value })
+            setContactData({ ...contactData, heroSubtitle: e.target.value })
           }
-          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+          placeholder="Ready to bring AI to your business? I'd love to hear about your project and explore how we can work together."
+          rows={3}
+          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-          Working Hours
-        </label>
-        <input
-          type="text"
-          value={contactData.availability?.workingHours || ""}
-          onChange={(e) =>
-            setContactData({
-              ...contactData,
-              availability: {
-                ...contactData.availability,
-                workingHours: e.target.value,
-              },
-            })
-          }
-          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
-        />
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
+          Text displayed below "Let's Build Something ___" on the contact page
+        </p>
       </div>
 
       {/* Hero Words Carousel */}
