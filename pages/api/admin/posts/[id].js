@@ -1,14 +1,8 @@
 import prisma from "../../../../lib/prisma.js";
 import { handleApiError } from "../../../../lib/utils/apiErrorHandler.js";
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "../../../../lib/utils/authMiddleware.js";
 
-export default async (req, res) => {
-  const token = await getToken({ req });
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
+async function handler(req, res, _token) {
   switch (req.method) {
     case "GET":
       await handleGetRequest(req, res);
@@ -23,7 +17,9 @@ export default async (req, res) => {
       res.status(405).json({ message: "Method Not Allowed" });
       break;
   }
-};
+}
+
+export default withAuth(handler);
 
 const handleGetRequest = async (req, res) => {
   try {

@@ -5,18 +5,12 @@
  * when content is updated via the admin panel.
  */
 
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "../../lib/utils/authMiddleware.js";
 
-export default async function handler(req, res) {
+async function handler(req, res, _token) {
   // Only allow POST requests
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
-  }
-
-  // Check authentication
-  const token = await getToken({ req });
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
   }
 
   const { path } = req.body;
@@ -66,3 +60,4 @@ export default async function handler(req, res) {
   }
 }
 
+export default withAuth(handler);

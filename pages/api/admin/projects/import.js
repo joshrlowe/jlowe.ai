@@ -1,18 +1,9 @@
-import { getToken } from "next-auth/jwt";
 import prisma from "../../../../lib/prisma.js";
 import { handleApiError } from "../../../../lib/utils/apiErrorHandler.js";
 import { mapProjectStatus } from "../../../../lib/utils/projectStatusMapper.js";
+import { withAuth } from "../../../../lib/utils/authMiddleware.js";
 
-export default async function handler(req, res) {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
+async function handler(req, res, _token) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -97,3 +88,5 @@ export default async function handler(req, res) {
     handleApiError(error, res);
   }
 }
+
+export default withAuth(handler);

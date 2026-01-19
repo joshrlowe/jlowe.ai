@@ -1,20 +1,11 @@
-import { getToken } from "next-auth/jwt";
 import prisma from "../../../lib/prisma.js";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler.js";
+import { withAuth } from "../../../lib/utils/authMiddleware.js";
 
 // Default enabled sections for home page
 const DEFAULT_ENABLED_SECTIONS = ["hero", "welcome", "projects", "stats", "articles"];
 
-export default async function handler(req, res) {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
+async function handler(req, res, _token) {
   if (req.method === "GET") {
     try {
       let settings = await prisma.siteSettings.findFirst();
@@ -86,3 +77,5 @@ export default async function handler(req, res) {
     res.status(405).json({ message: "Method Not Allowed" });
   }
 }
+
+export default withAuth(handler);

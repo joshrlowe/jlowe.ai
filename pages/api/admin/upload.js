@@ -1,6 +1,6 @@
-import { getToken } from "next-auth/jwt";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { withAuth } from "../../../lib/utils/authMiddleware.js";
 
 export const config = {
   api: {
@@ -10,13 +10,7 @@ export const config = {
   },
 };
 
-export default async function handler(req, res) {
-  const token = await getToken({ req });
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
+async function handler(req, res, _token) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -59,3 +53,4 @@ export default async function handler(req, res) {
   }
 }
 
+export default withAuth(handler);
