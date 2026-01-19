@@ -74,15 +74,13 @@ const config = {
     '!**/.next/**',
   ],
 
-  // Coverage thresholds - increased from 30% baseline to 50%
-  // Current coverage: ~52% (as of Jan 2026)
-  // Goal: Continue increasing toward 70%+ as more tests are added
+  // Coverage thresholds - 70% minimum for all metrics
   coverageThreshold: {
     global: {
-      statements: 50,
-      branches: 50,
-      functions: 45,
-      lines: 50,
+      statements: 70,
+      branches: 70,
+      functions: 70,
+      lines: 70,
     },
   },
 
