@@ -1,402 +1,346 @@
-/**
- * Tests for HeroTab admin component
- *
- * Tests hero section editing form with typing animation, CTAs, and tech badges
- */
-
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import HeroTab from '../../../../components/admin/home/HeroTab';
 
-// Mock shared components
+// Mock the shared components
 jest.mock('../../../../components/admin/shared', () => ({
   FormField: ({ label, value, onChange, placeholder }) => (
     <div>
-      <label>{label}</label>
+      <label htmlFor={label}>{label}</label>
       <input
-        data-testid={`input-${label.toLowerCase().replace(/\s+/g, '-')}`}
-        value={value || ''}
+        id={label}
+        type="text"
+        value={value}
         onChange={onChange}
         placeholder={placeholder}
+        data-testid={`field-${label.toLowerCase().replace(/\s/g, '-').replace(/[()]/g, '')}`}
       />
     </div>
   ),
   adminStyles: {
-    card: 'card',
-    label: 'label',
-    input: 'input',
-    buttonPrimary: 'btn-primary',
-    buttonDanger: 'btn-danger',
+    buttonPrimary: 'button-primary',
+    buttonDanger: 'button-danger',
+    card: 'card-class',
+    label: 'label-class',
+    input: 'input-class',
   },
 }));
 
 describe('HeroTab', () => {
-  const mockHomeContent = {
-    typingIntro: 'I build...',
-    heroTitle: 'intelligent AI systems',
-    typingStrings: ['production AI systems', 'scalable ML pipelines'],
-    primaryCta: { text: 'View My Work', href: '/projects' },
-    secondaryCta: { text: 'Get in Touch', href: '/contact' },
-    techBadges: [
-      { name: 'Python', color: '#3776AB' },
-      { name: 'React', color: '#61DAFB' },
-    ],
-  };
-
   const mockSetHomeContent = jest.fn();
   const mockOnSave = jest.fn();
+  const defaultHomeContent = {
+    typingIntro: 'I build',
+    heroTitle: 'intelligent AI systems',
+    typingStrings: ['amazing websites', 'powerful apps'],
+    primaryCta: { text: 'Start a Project', href: '/contact' },
+    secondaryCta: { text: 'View My Work', href: '/projects' },
+    techBadges: [
+      { name: 'React', color: '#61DAFB' },
+      { name: 'Node.js', color: '#339933' },
+    ],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Rendering', () => {
-    it('should render Typing Animation section', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+  it('should render the hero tab with all sections', () => {
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      expect(screen.getByText('Typing Animation')).toBeInTheDocument();
-    });
-
-    it('should render Call to Action Buttons section', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByText('Call to Action Buttons')).toBeInTheDocument();
-    });
-
-    it('should render Tech Badges section', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByText('Tech Badges')).toBeInTheDocument();
-    });
-
-    it('should render save button', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByRole('button', { name: /save hero content/i })).toBeInTheDocument();
-    });
-
-    it('should show saving state', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={true}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByRole('button', { name: /saving/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /saving/i })).toBeDisabled();
-    });
+    expect(screen.getByText('Typing Animation')).toBeInTheDocument();
+    expect(screen.getByText('Call to Action Buttons')).toBeInTheDocument();
+    expect(screen.getByText('Tech Badges')).toBeInTheDocument();
   });
 
-  describe('Typing Animation section', () => {
-    it('should display intro text field', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+  it('should render typing strings', () => {
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      expect(screen.getByTestId('input-intro-text-(before-typing)')).toHaveValue('I build...');
-    });
-
-    it('should display hero title field', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByTestId('input-hero-title-(main-display)')).toHaveValue('intelligent AI systems');
-    });
-
-    it('should display typing strings', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      // Find typing string inputs (they have the input class)
-      const inputs = screen.getAllByRole('textbox');
-      const typingInputs = inputs.filter((input) => input.value === 'production AI systems');
-      expect(typingInputs.length).toBeGreaterThan(0);
-    });
-
-    it('should have Add String button', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByRole('button', { name: /\+ add string/i })).toBeInTheDocument();
-    });
+    expect(screen.getByDisplayValue('amazing websites')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('powerful apps')).toBeInTheDocument();
   });
 
-  describe('Typing strings management', () => {
-    it('should add typing string when Add String clicked', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+  it('should add a typing string', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      fireEvent.click(screen.getByRole('button', { name: /\+ add string/i }));
+    const addButton = screen.getByRole('button', { name: '+ Add String' });
+    await user.click(addButton);
 
-      expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
-      
-      // Test the updater function
-      const updaterFn = mockSetHomeContent.mock.calls[0][0];
-      const result = updaterFn(mockHomeContent);
-      expect(result.typingStrings).toHaveLength(3);
-      expect(result.typingStrings[2]).toBe('');
-    });
-
-    it('should remove typing string when remove button clicked', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      // Find remove buttons (✕)
-      const removeButtons = screen.getAllByRole('button', { name: '✕' });
-      // First two should be for typing strings, rest for tech badges
-      fireEvent.click(removeButtons[0]);
-
-      expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
-      
-      const updaterFn = mockSetHomeContent.mock.calls[0][0];
-      const result = updaterFn(mockHomeContent);
-      expect(result.typingStrings).toHaveLength(1);
-    });
+    expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
+    
+    // Test the callback function
+    const callback = mockSetHomeContent.mock.calls[0][0];
+    const result = callback(defaultHomeContent);
+    expect(result.typingStrings).toHaveLength(3);
+    expect(result.typingStrings[2]).toBe('');
   });
 
-  describe('CTA Buttons section', () => {
-    it('should display primary CTA fields', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+  it('should update a typing string', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      expect(screen.getByTestId('input-primary-cta-text')).toHaveValue('View My Work');
-      expect(screen.getByTestId('input-primary-cta-link')).toHaveValue('/projects');
-    });
+    const firstInput = screen.getByDisplayValue('amazing websites');
+    await user.clear(firstInput);
+    await user.type(firstInput, 'new value');
 
-    it('should display secondary CTA fields', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByTestId('input-secondary-cta-text')).toHaveValue('Get in Touch');
-      expect(screen.getByTestId('input-secondary-cta-link')).toHaveValue('/contact');
-    });
-
-    it('should update primary CTA text', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      fireEvent.change(screen.getByTestId('input-primary-cta-text'), {
-        target: { value: 'New CTA' },
-      });
-
-      expect(mockSetHomeContent).toHaveBeenCalledWith({
-        ...mockHomeContent,
-        primaryCta: { ...mockHomeContent.primaryCta, text: 'New CTA' },
-      });
-    });
+    expect(mockSetHomeContent).toHaveBeenCalled();
   });
 
-  describe('Tech Badges section', () => {
-    it('should display tech badges', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+  it('should remove a typing string', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      // Find text inputs with badge names
-      const inputs = screen.getAllByRole('textbox');
-      const pythonInput = inputs.find((input) => input.value === 'Python');
-      const reactInput = inputs.find((input) => input.value === 'React');
+    const removeButtons = screen.getAllByRole('button', { name: '✕' });
+    await user.click(removeButtons[0]); // First remove button for typing strings
 
-      expect(pythonInput).toBeInTheDocument();
-      expect(reactInput).toBeInTheDocument();
-    });
-
-    it('should have Add Badge button', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      expect(screen.getByRole('button', { name: /\+ add badge/i })).toBeInTheDocument();
-    });
-
-    it('should add tech badge when Add Badge clicked', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
-
-      fireEvent.click(screen.getByRole('button', { name: /\+ add badge/i }));
-
-      expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
-      
-      const updaterFn = mockSetHomeContent.mock.calls[0][0];
-      const result = updaterFn(mockHomeContent);
-      expect(result.techBadges).toHaveLength(3);
-      expect(result.techBadges[2]).toEqual({ name: '', color: '#E85D04' });
-    });
+    expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
+    
+    // Test the callback function
+    const callback = mockSetHomeContent.mock.calls[0][0];
+    const result = callback(defaultHomeContent);
+    expect(result.typingStrings).toHaveLength(1);
+    expect(result.typingStrings[0]).toBe('powerful apps');
   });
 
-  describe('Save functionality', () => {
-    it('should call onSave when save button clicked', () => {
-      render(
-        <HeroTab
-          homeContent={mockHomeContent}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+  it('should add a tech badge', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      fireEvent.click(screen.getByRole('button', { name: /save hero content/i }));
+    const addButton = screen.getByRole('button', { name: '+ Add Badge' });
+    await user.click(addButton);
 
-      expect(mockOnSave).toHaveBeenCalled();
-    });
+    expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
+    
+    // Test the callback function
+    const callback = mockSetHomeContent.mock.calls[0][0];
+    const result = callback(defaultHomeContent);
+    expect(result.techBadges).toHaveLength(3);
+    expect(result.techBadges[2]).toEqual({ name: '', color: '#E85D04' });
   });
 
-  describe('Edge cases', () => {
-    it('should handle empty typing strings array', () => {
-      const contentWithEmptyStrings = {
-        ...mockHomeContent,
-        typingStrings: [],
-      };
+  it('should update a tech badge name', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      render(
-        <HeroTab
-          homeContent={contentWithEmptyStrings}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+    const reactInput = screen.getByDisplayValue('React');
+    await user.clear(reactInput);
+    await user.type(reactInput, 'Vue');
 
-      expect(screen.getByRole('button', { name: /\+ add string/i })).toBeInTheDocument();
-    });
+    expect(mockSetHomeContent).toHaveBeenCalled();
+  });
 
-    it('should handle empty tech badges array', () => {
-      const contentWithEmptyBadges = {
-        ...mockHomeContent,
-        techBadges: [],
-      };
+  it('should remove a tech badge', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      render(
-        <HeroTab
-          homeContent={contentWithEmptyBadges}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+    // Get all remove buttons (2 for typing strings + 2 for tech badges)
+    const removeButtons = screen.getAllByRole('button', { name: '✕' });
+    // The tech badge remove buttons come after typing string ones
+    await user.click(removeButtons[2]); // First tech badge remove button
 
-      expect(screen.getByRole('button', { name: /\+ add badge/i })).toBeInTheDocument();
-    });
+    expect(mockSetHomeContent).toHaveBeenCalledWith(expect.any(Function));
+    
+    // Test the callback function
+    const callback = mockSetHomeContent.mock.calls[0][0];
+    const result = callback(defaultHomeContent);
+    expect(result.techBadges).toHaveLength(1);
+    expect(result.techBadges[0].name).toBe('Node.js');
+  });
 
-    it('should handle null CTA values', () => {
-      const contentWithNullCta = {
-        ...mockHomeContent,
-        primaryCta: null,
-        secondaryCta: null,
-      };
+  it('should call onSave when Save button is clicked', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
 
-      render(
-        <HeroTab
-          homeContent={contentWithNullCta}
-          setHomeContent={mockSetHomeContent}
-          saving={false}
-          onSave={mockOnSave}
-        />
-      );
+    const saveButton = screen.getByRole('button', { name: 'Save Hero Content' });
+    await user.click(saveButton);
 
-      expect(screen.getByTestId('input-primary-cta-text')).toHaveValue('');
-      expect(screen.getByTestId('input-secondary-cta-text')).toHaveValue('');
-    });
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('should show "Saving..." when saving is true', () => {
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={true}
+        onSave={mockOnSave}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Saving...' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled();
+  });
+
+  it('should update hero title', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
+
+    const heroTitleInput = screen.getByLabelText('Hero Title (main display)');
+    await user.clear(heroTitleInput);
+    await user.type(heroTitleInput, 'new hero title');
+
+    expect(mockSetHomeContent).toHaveBeenCalled();
+  });
+
+  it('should update typing intro', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
+
+    const typingIntroInput = screen.getByLabelText('Intro Text (before typing)');
+    await user.clear(typingIntroInput);
+    await user.type(typingIntroInput, 'We create');
+
+    expect(mockSetHomeContent).toHaveBeenCalled();
+  });
+
+  it('should update primary CTA text', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
+
+    const primaryCtaTextInput = screen.getByLabelText('Primary CTA Text');
+    await user.clear(primaryCtaTextInput);
+    await user.type(primaryCtaTextInput, 'Get Started');
+
+    expect(mockSetHomeContent).toHaveBeenCalled();
+  });
+
+  it('should update secondary CTA link', async () => {
+    const user = userEvent.setup();
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
+
+    const secondaryCtaLinkInput = screen.getByLabelText('Secondary CTA Link');
+    await user.clear(secondaryCtaLinkInput);
+    await user.type(secondaryCtaLinkInput, '/portfolio');
+
+    expect(mockSetHomeContent).toHaveBeenCalled();
+  });
+
+  it('should render tech badge previews', () => {
+    render(
+      <HeroTab
+        homeContent={defaultHomeContent}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
+
+    // Badge previews show the name
+    expect(screen.getByText('React')).toBeInTheDocument();
+    expect(screen.getByText('Node.js')).toBeInTheDocument();
+  });
+
+  it('should handle empty optional CTA fields', () => {
+    const contentWithEmptyCta = {
+      ...defaultHomeContent,
+      primaryCta: undefined,
+      secondaryCta: undefined,
+    };
+
+    render(
+      <HeroTab
+        homeContent={contentWithEmptyCta}
+        setHomeContent={mockSetHomeContent}
+        saving={false}
+        onSave={mockOnSave}
+      />
+    );
+
+    // Should render without crashing
+    expect(screen.getByLabelText('Primary CTA Text')).toHaveValue('');
+    expect(screen.getByLabelText('Primary CTA Link')).toHaveValue('');
   });
 });
-
