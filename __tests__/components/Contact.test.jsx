@@ -257,14 +257,6 @@ describe('Contact Page Component', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it.skip('should display the main heading text', async () => {
-      // Skipped: Typing animation has timing dependencies that make testing unreliable
-      render(<ContactPage />);
-      await waitFor(() => {
-        const typedText = screen.getByTestId('typed-text');
-        expect(typedText).toHaveTextContent("Let's Build Something Amazing");
-      });
-    });
   });
 
   describe('Availability Status', () => {
