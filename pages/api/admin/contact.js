@@ -22,10 +22,9 @@ export default async function handler(req, res) {
       const {
         emailAddress,
         phoneNumber,
-        address,
-        availability,
         socialMediaLinks,
         heroWords,
+        heroSubtitle,
       } = req.body;
 
       // Validate required fields
@@ -41,10 +40,9 @@ export default async function handler(req, res) {
           name: "Josh Lowe", // Default name
           emailAddress,
           phoneNumber: phoneNumber || null,
-          location: address ? { address } : null,
-          availability: availability || null,
           socialMediaLinks: socialMediaLinks || null,
           heroWords: heroWords || ["Amazing", "Innovative", "Momentous"],
+          heroSubtitle: heroSubtitle || null,
         },
       });
 

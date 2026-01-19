@@ -25,18 +25,14 @@ const handlePostRequest = createUpsertHandler(
         emailAddress: body.emailAddress,
         phoneNumber: body.phoneNumber || null,
         socialMediaLinks: body.socialMediaLinks || null,
-        location: body.location || null,
-        availability: body.availability || null,
-        additionalContactMethods: body.additionalContactMethods || null,
         heroWords: body.heroWords || ["Amazing", "Innovative", "Momentous"],
+        heroSubtitle: body.heroSubtitle || null,
       },
     }),
   (body) =>
     validateRequiredFields(body, [
       "name",
       "emailAddress",
-      "location",
-      "availability",
     ]),
 );
 
