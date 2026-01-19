@@ -48,8 +48,8 @@ describe("Analytics Utility", () => {
   });
 
   describe("ANALYTICS_EVENTS", () => {
-    it("should define all 12 event types", () => {
-      expect(Object.keys(ANALYTICS_EVENTS)).toHaveLength(12);
+    it("should define all 13 event types", () => {
+      expect(Object.keys(ANALYTICS_EVENTS)).toHaveLength(13);
       expect(ANALYTICS_EVENTS.CTA_CLICK).toBe("cta_click");
       expect(ANALYTICS_EVENTS.NEWSLETTER_SIGNUP).toBe("newsletter_signup");
       expect(ANALYTICS_EVENTS.SOCIAL_SHARE).toBe("social_share");
@@ -62,6 +62,7 @@ describe("Analytics Utility", () => {
       expect(ANALYTICS_EVENTS.EXTERNAL_LINK).toBe("external_link");
       expect(ANALYTICS_EVENTS.SEARCH_QUERY).toBe("search_query");
       expect(ANALYTICS_EVENTS.ARTICLE_VIEW).toBe("article_view");
+      expect(ANALYTICS_EVENTS.READ_DURATION).toBe("read_duration");
     });
   });
 
