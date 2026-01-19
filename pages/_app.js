@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
+import { Analytics } from "@vercel/analytics/react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/admin/ToastProvider";
@@ -94,6 +95,7 @@ export default function App({
           <div className={`${fontVariables} min-h-screen w-full`}>
             <Component {...pageProps} />
           </div>
+          <Analytics />
         </ToastProvider>
       </SessionProvider>
     );
@@ -142,6 +144,7 @@ export default function App({
             <Footer />
           </div>
         </div>
+        <Analytics />
       </SessionProvider>
     </ErrorBoundary>
   );
