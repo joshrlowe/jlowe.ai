@@ -7,9 +7,13 @@
  * - Tech badges
  * - Services
  * - CTA buttons
+ * - Enabled sections (for instant toggle updates)
  */
 
 import prisma from "../../lib/prisma.js";
+
+// Default enabled sections for home page
+const DEFAULT_ENABLED_SECTIONS = ["hero", "welcome", "projects", "stats", "articles"];
 
 // Default content structure
 const defaultHomeContent = {
@@ -99,25 +103,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Try to get custom content from database
-    const pageContent = await prisma.pageContent.findUnique({
-      where: { pageKey: "home" },
+    // Fetch page content and site settings in parallel
+    const [pageContent, siteSettings] = await Promise.all([
+      prisma.pageContent.findUnique({
+        where: { pageKey: "home" },
+      }),
+      prisma.siteSettings.findFirst({
+        select: { enabledSections: true },
+      }),
+    ]);
+
+    // Get enabled sections from settings or use defaults
+    const enabledSections = siteSettings?.enabledSections || DEFAULT_ENABLED_SECTIONS;
+
+    // Merge page content with defaults
+    const mergedContent = pageContent?.content
+      ? { ...defaultHomeContent, ...pageContent.content }
+      : defaultHomeContent;
+
+    // Return content with enabled sections
+    return res.json({
+      ...mergedContent,
+      enabledSections,
     });
-
-    if (pageContent?.content) {
-      // Merge with defaults to ensure all fields exist
-      const mergedContent = {
-        ...defaultHomeContent,
-        ...pageContent.content,
-      };
-      return res.json(mergedContent);
-    }
-
-    // Return defaults if no custom content exists
-    return res.json(defaultHomeContent);
   } catch (error) {
     console.error("Error fetching home content:", error);
     // Return defaults on error
-    return res.json(defaultHomeContent);
+    return res.json({
+      ...defaultHomeContent,
+      enabledSections: DEFAULT_ENABLED_SECTIONS,
+    });
   }
 }

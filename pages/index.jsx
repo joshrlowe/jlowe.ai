@@ -11,6 +11,7 @@
  * - Stats and tech stack
  */
 
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import prisma from "../lib/prisma.js";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
@@ -59,10 +60,27 @@ export default function Home({
   resources,
   homeContent,
   githubUsername,
-  enabledSections = DEFAULT_ENABLED_SECTIONS,
+  enabledSections: initialEnabledSections = DEFAULT_ENABLED_SECTIONS,
 }) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeResources = Array.isArray(resources) ? resources : [];
+
+  // Use state for enabledSections to allow client-side updates
+  const [enabledSections, setEnabledSections] = useState(initialEnabledSections);
+
+  // Fetch fresh enabledSections on mount for instant toggle updates
+  useEffect(() => {
+    fetch("/api/home-content")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.enabledSections) {
+          setEnabledSections(data.enabledSections);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch home content:", err);
+      });
+  }, []);
 
   // Helper to check if a section is enabled
   const isEnabled = (sectionId) => enabledSections.includes(sectionId);
