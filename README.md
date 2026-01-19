@@ -18,6 +18,7 @@ Personal AI consultancy portfolio built with Next.js, featuring a bold "Supernov
 | **Styling**     | Tailwind CSS + CSS Variables Design System |
 | **3D Graphics** | Three.js + @react-three/fiber              |
 | **Animations**  | GSAP (scroll-triggered, entrance)          |
+| **Analytics**   | @vercel/analytics (custom events)          |
 | **Content**     | Markdown with syntax highlighting          |
 | **Deployment**  | Vercel                                     |
 
@@ -38,6 +39,55 @@ Personal AI consultancy portfolio built with Next.js, featuring a bold "Supernov
 - Articles/blog management
 - Activity logging
 - SEO settings
+
+## Analytics
+
+User engagement tracking powered by `@vercel/analytics` with 13 custom events.
+
+### Custom Events
+
+| Event | Description |
+| ----- | ----------- |
+| `cta_click` | Primary/secondary CTA button clicks |
+| `newsletter_signup` | Successful email subscriptions |
+| `social_share` | Twitter, LinkedIn, Facebook shares |
+| `link_copy` | Article URL copied to clipboard |
+| `article_like` | Article like button clicks |
+| `article_view` | Article page views with reading time |
+| `comment_submit` | New comment submissions |
+| `project_view` | Project card clicks |
+| `filter_change` | Project filter/sort selections |
+| `scroll_depth` | Reading progress milestones (25/50/75/100%) |
+| `read_duration` | Time spent reading articles |
+| `external_link` | Social/external link clicks |
+| `search_query` | Project search submissions |
+
+### Reading Analytics
+
+Article pages include comprehensive reading analytics via custom hooks:
+- **Scroll depth tracking** with IntersectionObserver at 25%, 50%, 75%, 100% milestones
+- **Read duration** with Page Visibility API (pauses when tab is inactive)
+- **Completion tracking** to measure article engagement
+
+### Usage
+
+```javascript
+import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics';
+
+// Track custom event
+trackEvent(ANALYTICS_EVENTS.PROJECT_VIEW, { 
+  project_id: '123', 
+  project_title: 'My Project' 
+});
+
+// Or use helper functions
+import { trackProjectView } from '@/lib/analytics';
+trackProjectView('123', 'My Project');
+```
+
+### Verification
+
+View analytics in the [Vercel Dashboard](https://vercel.com) under Analytics > Custom Events.
 
 ## Quick Start
 
@@ -94,6 +144,8 @@ Visit `http://localhost:3000`
 │   ├── ui/              # Shared UI components (Button, Card, Badge)
 │   └── SpaceBackground.jsx  # Three.js hero animation
 ├── lib/
+│   ├── analytics.js     # Event tracking utility
+│   ├── hooks/           # Custom React hooks
 │   ├── utils/           # API handlers, validators, helpers
 │   └── prisma.js        # Database client
 ├── pages/
@@ -137,6 +189,42 @@ A bold, fiery space theme with true black backgrounds and warm accent colors.
 - **Scroll**: GSAP-triggered fade/slide animations
 - **Interactions**: Magnetic buttons, card tilt effects
 - **Accessibility**: Respects `prefers-reduced-motion`
+
+## Custom Hooks
+
+Reusable React hooks in `lib/hooks/`:
+
+| Hook | Description |
+| ---- | ----------- |
+| `useScrollDepth` | IntersectionObserver-based scroll tracking with configurable milestones |
+| `useReadDuration` | Page visibility-aware time tracking for read duration |
+| `useReadingAnalytics` | Composite hook combining scroll depth + read duration for articles |
+| `usePrefersReducedMotion` | Detects user's motion preference for accessible animations |
+
+### Example: Reading Analytics
+
+```javascript
+import { useReadingAnalytics } from '@/lib/hooks/useReadingAnalytics';
+
+function ArticlePage({ slug, topic, readingTime }) {
+  const articleRef = useRef(null);
+  
+  const { currentDepth, durationSeconds, formattedDuration } = useReadingAnalytics({
+    articleRef,
+    slug,
+    topic,
+    readingTime,
+  });
+
+  return (
+    <article ref={articleRef}>
+      {/* Article content */}
+      <p>Reading progress: {currentDepth}%</p>
+      <p>Time spent: {formattedDuration}</p>
+    </article>
+  );
+}
+```
 
 ## Scripts
 
@@ -258,9 +346,9 @@ See `.github/BRANCH_PROTECTION.md` for setup instructions.
 
 ### Coverage Reporting
 
-- **Current**: ~70% coverage (unit tests)
-- **Target**: 80% coverage
-- **CI Threshold**: 70% minimum
+- **Current**: ~50% coverage (unit tests)
+- **Target**: 70%+ coverage
+- **CI Threshold**: 50% minimum (statements, branches, lines)
 - **Reports**: Uploaded to Codecov on every run
 
 ### Artifacts
