@@ -55,7 +55,7 @@ export default function Home({
   welcomeData,
   projects,
   aboutData,
-  contactData,
+  _contactData,
   resources,
   homeContent,
   githubUsername,
