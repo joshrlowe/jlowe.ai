@@ -83,20 +83,22 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
     setNextIndex((currentIndex + 1) % words.length);
   }, [currentIndex, words.length]);
 
+  // Find the longest word for width calculation
+  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b));
+
   return (
     <span
       ref={containerRef}
-      className="inline-block relative overflow-hidden"
+      className="inline-flex relative overflow-hidden whitespace-nowrap"
       style={{ 
         height: "1.3em", 
         verticalAlign: "bottom",
-        minWidth: "180px",
       }}
     >
       {/* Current word */}
       <span
         ref={currentWordRef}
-        className="absolute inset-0 flex items-center justify-start"
+        className="absolute inset-0 flex items-center justify-center"
         style={{
           background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
           WebkitBackgroundClip: "text",
@@ -112,7 +114,7 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
       {/* Next word (initially hidden below) */}
       <span
         ref={nextWordRef}
-        className="absolute inset-0 flex items-center justify-start"
+        className="absolute inset-0 flex items-center justify-center"
         style={{
           background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
           WebkitBackgroundClip: "text",
@@ -126,9 +128,9 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
         {words[nextIndex]}
       </span>
 
-      {/* Invisible text to maintain width */}
+      {/* Invisible text to maintain width based on longest word */}
       <span className="invisible" aria-hidden="true">
-        {words.reduce((a, b) => (a.length > b.length ? a : b))}
+        {longestWord}
       </span>
     </span>
   );
@@ -299,7 +301,6 @@ export default function ContactPage() {
         <div className="container mx-auto max-w-4xl">
           {/* Header */}
           <div ref={headerRef} className="text-center mb-16">
-            <span className="badge badge-accent mb-4">Get in Touch</span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-oswald)]">
               Let's Build Something{" "}
               {mounted && <WordCarousel words={heroWords} />}
