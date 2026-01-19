@@ -309,8 +309,8 @@ export default function ContactPage() {
               className="text-lg text-[var(--color-text-secondary)] mx-auto"
               style={{ maxWidth: "80%" }}
             >
-              Ready to bring AI to your business? I'd love to hear about your
-              project and explore how we can work together.
+              {contactData?.heroSubtitle ||
+                "Ready to bring AI to your business? I'd love to hear about your project and explore how we can work together."}
             </p>
           </div>
 
@@ -366,34 +366,6 @@ export default function ContactPage() {
                   </div>
                 )}
 
-                {/* Location */}
-                {contactData.address && (
-                  <div>
-                    <label className="text-sm text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">
-                      Location
-                    </label>
-                    <p className="text-lg text-[var(--color-text-primary)]">
-                      {contactData.address}
-                    </p>
-                  </div>
-                )}
-
-                {/* Availability */}
-                {contactData.availability && (
-                  <div className="pt-4 border-t border-[var(--color-border)]">
-                    <label className="text-sm text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">
-                      Availability
-                    </label>
-                    <p className="text-[var(--color-text-primary)]">
-                      {typeof contactData.availability === "object"
-                        ? contactData.availability.workingHours
-                        : contactData.availability}
-                    </p>
-                    <p className="text-sm text-[var(--color-text-secondary)] mt-2 italic">
-                      Best reached via email or LinkedIn message.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -472,19 +444,6 @@ export default function ContactPage() {
                 })}
               </div>
 
-              {/* CTA */}
-              <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
-                <div className="flex items-center gap-2 text-[var(--color-success)] mb-2">
-                  <span className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse" />
-                  <span className="text-sm font-medium">
-                    Available for new projects
-                  </span>
-                </div>
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  Currently accepting new consulting engagements and
-                  collaboration opportunities.
-                </p>
-              </div>
             </div>
           </div>
         </div>
