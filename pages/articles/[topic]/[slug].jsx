@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import prisma from "../../../lib/prisma";
 import SEO from "@/components/SEO";
@@ -8,6 +8,7 @@ import PostLikeButton from "@/components/Articles/PostLikeButton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Image from "next/image";
+import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
 
 const CodeBlock = ({ language, children }) => {
   return (
@@ -25,6 +26,15 @@ export default function ArticleDetailPage({ post: initialPost }) {
   const router = useRouter();
   const [post] = useState(initialPost);
   const [_likeData, setLikeData] = useState(null);
+  const articleRef = useRef(null);
+
+  // Track reading analytics (scroll depth, duration, article view)
+  useReadingAnalytics({
+    articleRef,
+    slug: post?.slug,
+    topic: post?.topic,
+    readingTime: post?.readingTime,
+  });
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -82,7 +92,7 @@ export default function ArticleDetailPage({ post: initialPost }) {
       />
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl">
-          <article>
+          <article ref={articleRef}>
             {/* Header */}
             <header className="mb-8">
               <div className="flex flex-wrap items-center gap-3 mb-4">

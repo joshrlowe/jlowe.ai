@@ -86,7 +86,6 @@ export default function Home({
         {isEnabled("hero") && (
           <HeroSection
             data={welcomeData}
-            contactData={contactData}
             homeContent={homeContent}
           />
         )}

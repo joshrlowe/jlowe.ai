@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { trackNewsletterSignup } from "@/lib/analytics";
 
 export default function NewsletterSubscription() {
   const [email, setEmail] = useState("");
@@ -25,6 +26,7 @@ export default function NewsletterSubscription() {
         setStatus("success");
         setMessage("Thank you for subscribing!");
         setEmail("");
+        trackNewsletterSignup();
       } else {
         setStatus("error");
         setMessage(data.message || "Something went wrong. Please try again.");

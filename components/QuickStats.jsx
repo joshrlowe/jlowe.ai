@@ -13,7 +13,9 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-// Card import removed - not currently used
+import { parseJsonField } from "@/lib/utils/jsonUtils";
+import { COLOR_VARIANTS } from "@/lib/utils/constants";
+import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -27,18 +29,6 @@ export default function QuickStats({ projects = [], aboutData: _aboutData = null
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const parseJsonField = (field, defaultValue = []) => {
-    if (!field) return defaultValue;
-    if (typeof field === "string") {
-      try {
-        return JSON.parse(field);
-      } catch {
-        return defaultValue;
-      }
-    }
-    return Array.isArray(field) ? field : defaultValue;
-  };
 
   const calculateStats = () => {
     const safeProjects = projects || [];
@@ -98,9 +88,7 @@ export default function QuickStats({ projects = [], aboutData: _aboutData = null
   useEffect(() => {
     if (!countersStarted) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const prefersReducedMotion = getPrefersReducedMotion();
 
     if (prefersReducedMotion) {
       setDisplayedStats({
@@ -139,29 +127,8 @@ export default function QuickStats({ projects = [], aboutData: _aboutData = null
     stats.clients,
   ]);
 
-  // Refined color map
-  const colorMap = {
-    primary: {
-      text: "#E85D04",
-      bg: "rgba(232, 93, 4, 0.12)",
-      glow: "0 0 35px rgba(232, 93, 4, 0.3)",
-    },
-    accent: {
-      text: "#FAA307",
-      bg: "rgba(250, 163, 7, 0.12)",
-      glow: "0 0 35px rgba(250, 163, 7, 0.3)",
-    },
-    cool: {
-      text: "#4CC9F0",
-      bg: "rgba(76, 201, 240, 0.12)",
-      glow: "0 0 35px rgba(76, 201, 240, 0.3)",
-    },
-    fuchsia: {
-      text: "#F72585",
-      bg: "rgba(247, 37, 133, 0.12)",
-      glow: "0 0 35px rgba(247, 37, 133, 0.3)",
-    },
-  };
+  // Use centralized color variants
+  const colorMap = COLOR_VARIANTS;
 
   const statItems = [
     {

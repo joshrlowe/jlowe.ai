@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { trackCommentSubmit } from "@/lib/analytics";
 
 // Single comment component with likes, dislikes, and reply functionality
 function CommentItem({ comment, postId, onReplySubmit, depth = 0 }) {
@@ -258,6 +259,9 @@ export default function PostComments({ postId }) {
         setStatus("success");
         setMessage("Comment posted successfully!");
         setNewComment({ authorName: "", authorEmail: "", content: "" });
+        
+        // Track the comment submission
+        trackCommentSubmit(postId);
         
         // Refetch comments to show the new one
         fetchComments();

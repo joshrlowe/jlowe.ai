@@ -12,6 +12,7 @@ import { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SEO from "@/components/SEO";
+import { trackExternalLink } from "@/lib/analytics";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -418,7 +419,13 @@ export default function ContactPage() {
                           ? undefined
                           : "noopener noreferrer"
                       }
-                      onClick={(e) => isDisabled && e.preventDefault()}
+                      onClick={(e) => {
+                        if (isDisabled) {
+                          e.preventDefault();
+                        } else {
+                          trackExternalLink(item.key, item.href);
+                        }
+                      }}
                       className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 ${
                         isDisabled
                           ? "opacity-50 cursor-not-allowed"

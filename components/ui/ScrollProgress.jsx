@@ -5,11 +5,13 @@
  * showing how far the user has scrolled
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { trackScrollDepth } from "@/lib/analytics";
 
 export default function ScrollProgress() {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(false);
+  const trackedMilestones = useRef(new Set());
 
   useEffect(() => {
     // Check for reduced motion preference
@@ -26,6 +28,18 @@ export default function ScrollProgress() {
 
       setProgress(Math.min(100, Math.max(0, scrollPercent)));
       setVisible(scrollTop > 100);
+
+      // Track scroll depth milestones
+      const milestones = [25, 50, 75, 100];
+      milestones.forEach((milestone) => {
+        if (
+          scrollPercent >= milestone &&
+          !trackedMilestones.current.has(milestone)
+        ) {
+          trackedMilestones.current.add(milestone);
+          trackScrollDepth(milestone);
+        }
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

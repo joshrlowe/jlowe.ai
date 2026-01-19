@@ -4,6 +4,8 @@
  * Filter controls for projects with space-themed styling.
  */
 
+import { trackFilterChange } from "@/lib/analytics";
+
 export default function ProjectFilters({
   searchQuery,
   onSearchChange,
@@ -45,7 +47,12 @@ export default function ProjectFilters({
               type="text"
               placeholder="Search projects..."
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={(e) => {
+                onSearchChange(e.target.value);
+                if (e.target.value) {
+                  trackFilterChange("search", e.target.value);
+                }
+              }}
               className="w-full pl-10 pr-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
             />
           </div>
@@ -59,7 +66,10 @@ export default function ProjectFilters({
           <select
             id="status"
             value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
+            onChange={(e) => {
+              onStatusFilterChange(e.target.value);
+              trackFilterChange("status", e.target.value);
+            }}
             className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer transition-colors"
           >
             <option value="all">All Statuses</option>
@@ -79,7 +89,10 @@ export default function ProjectFilters({
           <select
             id="tag"
             value={tagFilter}
-            onChange={(e) => onTagFilterChange(e.target.value)}
+            onChange={(e) => {
+              onTagFilterChange(e.target.value);
+              trackFilterChange("tag", e.target.value);
+            }}
             className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer transition-colors"
           >
             <option value="all">All Tags</option>

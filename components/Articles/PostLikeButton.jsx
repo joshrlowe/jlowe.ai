@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { trackArticleLike } from "@/lib/analytics";
 
 export default function PostLikeButton({ postId, topic, slug, initialLikes = 0 }) {
   const [likes, setLikes] = useState(initialLikes);
@@ -55,6 +56,9 @@ export default function PostLikeButton({ postId, topic, slug, initialLikes = 0 }
         const data = await response.json();
         setLikes(data.likeCount || likes + 1);
         setHasLiked(true);
+
+        // Track the like event
+        trackArticleLike(postId, `${topic}/${slug}`);
 
         // Store in localStorage
         const likedPosts = JSON.parse(

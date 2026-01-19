@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { trackSocialShare, trackLinkCopy } from "@/lib/analytics";
 
 export default function SocialShare({ url, title, description: _description }) {
   const [copied, setCopied] = useState(false);
@@ -37,10 +38,16 @@ export default function SocialShare({ url, title, description: _description }) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      trackLinkCopy(url);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy:", error);
     }
+  };
+
+  const handleShareClick = (platform, shareUrl) => {
+    trackSocialShare(platform.toLowerCase(), url);
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -50,16 +57,14 @@ export default function SocialShare({ url, title, description: _description }) {
       </span>
 
       {shareLinks.map((link) => (
-        <a
+        <button
           key={link.name}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={() => handleShareClick(link.name, link.url)}
           className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
           aria-label={`Share on ${link.name}`}
         >
           {link.icon}
-        </a>
+        </button>
       ))}
 
       <button

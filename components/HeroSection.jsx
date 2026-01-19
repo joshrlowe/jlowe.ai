@@ -14,6 +14,8 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { gsap } from "gsap";
 import { Button } from "@/components/ui";
+import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import { trackCtaClick } from "@/lib/analytics";
 
 const ReactTyped = dynamic(
   () => import("react-typed").then((mod) => mod.ReactTyped),
@@ -25,7 +27,7 @@ const ReactTyped = dynamic(
   },
 );
 
-export default function HeroSection({ data, contactData: _contactData, homeContent }) {
+export default function HeroSection({ data, homeContent }) {
   const [typingComplete, setTypingComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [animationReady, setAnimationReady] = useState(false);
@@ -57,9 +59,7 @@ export default function HeroSection({ data, contactData: _contactData, homeConte
   useEffect(() => {
     if (!mounted || !typingComplete || !animationReady) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const prefersReducedMotion = getPrefersReducedMotion();
 
     if (prefersReducedMotion) {
       [titleRef, subtitleRef, descRef, ctaRef].forEach((ref) => {
@@ -250,6 +250,7 @@ export default function HeroSection({ data, contactData: _contactData, homeConte
               variant="primary"
               size="lg"
               magnetic
+              onClick={() => trackCtaClick("primary", primaryCta.href)}
               icon={
                 <svg
                   className="w-5 h-5"
@@ -269,7 +270,12 @@ export default function HeroSection({ data, contactData: _contactData, homeConte
               {primaryCta.text}
             </Button>
 
-            <Button href={secondaryCta.href} variant="secondary" size="lg">
+            <Button
+              href={secondaryCta.href}
+              variant="secondary"
+              size="lg"
+              onClick={() => trackCtaClick("secondary", secondaryCta.href)}
+            >
               {secondaryCta.text}
             </Button>
           </div>
