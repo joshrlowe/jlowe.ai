@@ -19,6 +19,9 @@ jest.mock('../../lib/prisma.js', () => ({
     pageContent: {
       findUnique: jest.fn(),
     },
+    siteSettings: {
+      findFirst: jest.fn(),
+    },
   },
 }));
 
