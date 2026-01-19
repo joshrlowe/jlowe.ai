@@ -640,6 +640,7 @@ export default function AboutSettingsSection({ onError }) {
     education: [],
     technicalCertifications: [],
     leadershipExperience: [],
+    leadershipSubtitle: "",
     hobbies: [],
   });
   const [loading, setLoading] = useState(true);
@@ -657,6 +658,7 @@ export default function AboutSettingsSection({ onError }) {
         education: data.education || [],
         technicalCertifications: data.technicalCertifications || [],
         leadershipExperience: data.leadershipExperience || [],
+        leadershipSubtitle: data.leadershipSubtitle || "",
         hobbies: data.hobbies || [],
       });
     } catch (_error) {
@@ -836,29 +838,63 @@ export default function AboutSettingsSection({ onError }) {
       />
 
       {/* Leadership Experience */}
-      <ArraySection
-        title="Leadership Experience"
-        items={aboutData.leadershipExperience}
-        onItemsChange={(items) => updateField("leadershipExperience", items)}
-        addNew={() => ({
-          organization: "",
-          role: "",
-          startDate: "",
-          endDate: "",
-          achievements: [],
-        })}
-        renderItem={(entry, index, onChange, onRemove) => (
-          <EntryForm
-            key={index}
-            entry={entry}
-            index={index}
-            onChange={onChange}
-            onRemove={onRemove}
-            fields={leadershipFields}
-            entityName="Leadership"
+      <CollapsibleSection
+        title={`Leadership Experience (${aboutData.leadershipExperience.length})`}
+        defaultOpen={aboutData.leadershipExperience.length > 0}
+      >
+        <div className="space-y-4">
+          {/* Leadership Subtitle */}
+          <FormField
+            label="Section Subtitle"
+            value={aboutData.leadershipSubtitle}
+            onChange={(e) => updateField("leadershipSubtitle", e.target.value)}
+            placeholder="Leading teams and driving organizational impact"
           />
-        )}
-      />
+          <p className="text-xs text-[var(--color-text-muted)] -mt-2">
+            Displayed below the "Leadership Experience" heading. Leave empty to hide.
+          </p>
+
+          {/* Leadership Entries */}
+          {aboutData.leadershipExperience.map((entry, index) => (
+            <EntryForm
+              key={index}
+              entry={entry}
+              index={index}
+              onChange={(newItem) => {
+                const newItems = [...aboutData.leadershipExperience];
+                newItems[index] = newItem;
+                updateField("leadershipExperience", newItems);
+              }}
+              onRemove={() => {
+                updateField(
+                  "leadershipExperience",
+                  aboutData.leadershipExperience.filter((_, i) => i !== index)
+                );
+              }}
+              fields={leadershipFields}
+              entityName="Leadership"
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              updateField("leadershipExperience", [
+                ...aboutData.leadershipExperience,
+                {
+                  organization: "",
+                  role: "",
+                  startDate: "",
+                  endDate: "",
+                  achievements: [],
+                },
+              ]);
+            }}
+            className={`w-full py-2 ${adminStyles.buttonOutline}`}
+          >
+            + Add Leadership
+          </button>
+        </div>
+      </CollapsibleSection>
 
       {/* Hobbies */}
       <CollapsibleSection
