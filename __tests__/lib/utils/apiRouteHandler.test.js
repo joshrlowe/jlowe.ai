@@ -68,6 +68,19 @@ describe("apiRouteHandler utilities", () => {
       // Error should be caught and handled (specific assertion depends on handleApiError implementation)
       expect(mockRes.status).toHaveBeenCalled();
     });
+
+    it("should forward extra arguments to method handlers", async () => {
+      const postHandler = jest.fn();
+      const mockToken = { email: "admin@example.com", name: "Admin" };
+      const handler = createApiHandler({
+        POST: postHandler,
+      });
+
+      mockReq.method = "POST";
+      await handler(mockReq, mockRes, mockToken);
+
+      expect(postHandler).toHaveBeenCalledWith(mockReq, mockRes, mockToken);
+    });
   });
 
   describe("createGetLatestHandler", () => {
