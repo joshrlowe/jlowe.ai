@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import Image from "next/image";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import StatusBadge from "./StatusBadge";
 import { parseJsonField } from "@/lib/utils/jsonUtils";
 
@@ -31,6 +33,7 @@ export default function ProjectDetail({ project }) {
   const techStack = parseJsonField(project.techStack, []);
   const features = parseJsonField(project.features, []);
   const challenges = parseJsonField(project.challenges, []);
+  const links = parseJsonField(project.links, {});
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -72,7 +75,7 @@ export default function ProjectDetail({ project }) {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-muted)]">
+          <div className="flex flex-col gap-1 text-sm text-[var(--color-text-muted)]">
             {project.startDate && (
               <span>Started: {formatDate(project.startDate)}</span>
             )}
@@ -82,28 +85,30 @@ export default function ProjectDetail({ project }) {
           </div>
 
           {/* Links */}
-          <div className="flex flex-wrap gap-4 mt-6">
-            {project.liveUrl && (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] transition-colors"
-              >
-                View Live →
-              </a>
-            )}
-            {project.repoUrl && (
-              <a
-                href={project.repoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-6 py-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
-              >
-                View Code →
-              </a>
-            )}
-          </div>
+          {(links?.live || links?.github) && (
+            <div className="flex flex-wrap gap-4 mt-6">
+              {links?.live && (
+                <a
+                  href={links.live}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] transition-colors"
+                >
+                  View Live →
+                </a>
+              )}
+              {links?.github && (
+                <a
+                  href={links.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+                >
+                  View Code →
+                </a>
+              )}
+            </div>
+          )}
         </header>
 
         {/* Image Gallery */}
@@ -147,13 +152,15 @@ export default function ProjectDetail({ project }) {
         {/* Content */}
         <div ref={contentRef} className="space-y-12">
           {/* Description */}
-          {project.description && (
+          {(project.longDescription || project.description) && (
             <section className="p-8 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
               <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-4 font-heading">
                 About This Project
               </h2>
-              <div className="text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-line">
-                {project.description}
+              <div className="prose prose-invert max-w-none text-[var(--color-text-secondary)] prose-headings:text-[var(--color-text-primary)] prose-a:text-[var(--color-primary)] prose-strong:text-[var(--color-text-primary)] prose-code:text-[var(--color-primary)] prose-code:bg-[var(--color-bg-darker)] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[var(--color-bg-darker)]">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {project.longDescription || project.description}
+                </ReactMarkdown>
               </div>
             </section>
           )}
