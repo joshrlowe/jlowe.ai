@@ -26,6 +26,7 @@ export default async function handler(req, res) {
         education,
         technicalCertifications,
         leadershipExperience,
+        leadershipSubtitle,
         hobbies,
       } = req.body;
 
@@ -45,6 +46,7 @@ export default async function handler(req, res) {
           education: education || [],
           technicalCertifications: technicalCertifications || [],
           leadershipExperience: leadershipExperience || [],
+          leadershipSubtitle: leadershipSubtitle || null,
           hobbies: hobbies || [],
         },
       });

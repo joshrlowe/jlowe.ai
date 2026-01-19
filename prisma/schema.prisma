@@ -29,6 +29,7 @@ model About {
   education              Json     // Array of { institution, degree, fieldOfStudy, relevantCoursework: [String], startDate, endDate, isOngoing: Boolean, expectedGradDate? }
   technicalCertifications Json    // Array of { organization, name, issueDate, expirationDate, credentialUrl }
   leadershipExperience   Json     // Array of { organization, role, startDate, endDate, achievements: [String] }
+  leadershipSubtitle     String?  // Optional subtitle for leadership section
   hobbies                Json     // Array of String
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
