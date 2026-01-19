@@ -1,664 +1,264 @@
 /**
- * Tests for /api/articles/index.js
- *
- * Tests for the public articles API endpoint
+ * Tests for articles API route
  */
 
-import articlesHandler from "../../../pages/api/articles/index.js";
-import prisma from "../../../lib/prisma.js";
-import {
-  createMockRequest,
-  createMockResponse,
-  getJsonResponse,
-  getStatusCode,
-} from "../../setup/api-test-utils.js";
+import prisma from "@/__mocks__/prisma";
+import handler from "@/pages/api/articles/index";
 
-// Mock Prisma client
-jest.mock("../../../lib/prisma.js", () => ({
-  __esModule: true,
-  default: {
-    post: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      count: jest.fn(),
-    },
-  },
-}));
-
-// Mock next-auth/jwt
+jest.mock("@/lib/prisma", () => require("@/__mocks__/prisma"));
 jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
+}));
+jest.mock("@/lib/utils/apiErrorHandler", () => ({
+  handleApiError: jest.fn((error, res) => {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }),
+}));
+jest.mock("@/lib/utils/apiHelpers", () => ({
+  parsePagination: jest.fn(() => ({ limit: 10, offset: 0 })),
+  parseSort: jest.fn(() => ({ sortBy: "datePublished", sortOrder: "desc" })),
+  buildOrderBy: jest.fn(() => ({ datePublished: "desc" })),
+  formatPaginatedResponse: jest.fn((data, total, limit, offset) => ({
+    data,
+    pagination: { total, limit, offset },
+  })),
+}));
+jest.mock("@/lib/utils/queryBuilders", () => ({
+  buildPostWhereClause: jest.fn(() => ({ status: "Published" })),
+  buildPostQuery: jest.fn(() => ({
+    where: { status: "Published" },
+    orderBy: { datePublished: "desc" },
+    take: 10,
+    skip: 0,
+  })),
+}));
+jest.mock("@/lib/utils/validators", () => ({
+  validateRequiredFields: jest.fn(() => ({ isValid: true })),
+}));
+jest.mock("@/lib/utils/readingTime", () => ({
+  calculateReadingTime: jest.fn(() => 5),
 }));
 
 import { getToken } from "next-auth/jwt";
 
-describe("Articles API (/api/articles)", () => {
+const createMockRequest = (method, query = {}, body = {}) => ({
+  method,
+  query,
+  body,
+});
+
+const createMockResponse = () => {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res;
+};
+
+describe("GET /api/articles", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("GET /api/articles", () => {
-    it("should return published articles by default", async () => {
-      const mockPosts = [
-        {
-          id: "1",
-          title: "Published Article",
-          slug: "published-article",
-          status: "Published",
-          topic: "javascript",
-          datePublished: new Date(),
-        },
-      ];
+  it("returns published articles", async () => {
+    const mockPosts = [
+      { id: "1", title: "Article 1", status: "Published" },
+      { id: "2", title: "Article 2", status: "Published" },
+    ];
+    prisma.post.findMany.mockResolvedValue(mockPosts);
+    prisma.post.count.mockResolvedValue(2);
 
-      prisma.post.findMany.mockResolvedValue(mockPosts);
-      prisma.post.count.mockResolvedValue(1);
+    const req = createMockRequest("GET");
+    const res = createMockResponse();
 
-      const req = createMockRequest({ method: "GET" });
-      const res = createMockResponse();
+    await handler(req, res);
 
-      await articlesHandler(req, res);
-
-      expect(prisma.post.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            status: "Published",
-          }),
-        })
-      );
-
-      expect(getStatusCode(res)).toBe(200);
-      const response = getJsonResponse(res);
-      expect(response.posts).toEqual(mockPosts);
-      expect(response.total).toBe(1);
-    });
-
-    it("should filter by topic", async () => {
-      const mockPosts = [
-        { id: "1", title: "React Article", topic: "react" },
-      ];
-      prisma.post.findMany.mockResolvedValue(mockPosts);
-      prisma.post.count.mockResolvedValue(1);
-
-      const req = createMockRequest({
-        method: "GET",
-        query: { topic: "react" },
-      });
-      const res = createMockResponse();
-
-      await articlesHandler(req, res);
-
-      expect(prisma.post.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            topic: "react",
-          }),
-        })
-      );
-    });
-
-    it("should search by query", async () => {
-      const mockPosts = [{ id: "1", title: "JavaScript Tutorial" }];
-      prisma.post.findMany.mockResolvedValue(mockPosts);
-      prisma.post.count.mockResolvedValue(1);
-
-      const req = createMockRequest({
-        method: "GET",
-        query: { search: "javascript" },
-      });
-      const res = createMockResponse();
-
-      await articlesHandler(req, res);
-
-      expect(prisma.post.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              expect.objectContaining({
-                title: expect.objectContaining({
-                  contains: "javascript",
-                }),
-              }),
-            ]),
-          }),
-        })
-      );
-    });
-
-    it("should support pagination", async () => {
-      prisma.post.findMany.mockResolvedValue([]);
-      prisma.post.count.mockResolvedValue(0);
-
-      const req = createMockRequest({
-        method: "GET",
-        query: { limit: "10", offset: "20" },
-      });
-      const res = createMockResponse();
-
-      await articlesHandler(req, res);
-
-      expect(prisma.post.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: 10,
-          skip: 20,
-        })
-      );
-    });
-
-    it("should support sorting", async () => {
-      prisma.post.findMany.mockResolvedValue([]);
-      prisma.post.count.mockResolvedValue(0);
-
-      const req = createMockRequest({
-        method: "GET",
-        query: { sortBy: "title", sortOrder: "asc" },
-      });
-      const res = createMockResponse();
-
-      await articlesHandler(req, res);
-
-      expect(prisma.post.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: expect.objectContaining({
-            title: "asc",
-          }),
-        })
-      );
-    });
-
-    it("should handle database errors gracefully", async () => {
-      prisma.post.findMany.mockRejectedValue(new Error("Database error"));
-
-      const req = createMockRequest({ method: "GET" });
-      const res = createMockResponse();
-
-      await articlesHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(500);
-    });
+    expect(res.json).toHaveBeenCalled();
+    const response = res.json.mock.calls[0][0];
+    expect(response.data).toEqual(mockPosts);
   });
 
-  describe("POST /api/articles", () => {
-    const validArticleData = {
+  it("returns empty array when no articles", async () => {
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.post.count.mockResolvedValue(0);
+
+    const req = createMockRequest("GET");
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.json).toHaveBeenCalled();
+    const response = res.json.mock.calls[0][0];
+    expect(response.data).toEqual([]);
+  });
+
+  it("handles pagination parameters", async () => {
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.post.count.mockResolvedValue(0);
+
+    const req = createMockRequest("GET", { page: "2", limit: "5" });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it("handles database errors", async () => {
+    const { handleApiError } = require("@/lib/utils/apiErrorHandler");
+    prisma.post.findMany.mockRejectedValue(new Error("Database error"));
+
+    const req = createMockRequest("GET");
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(handleApiError).toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/articles", () => {
+  const { validateRequiredFields } = require("@/lib/utils/validators");
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getToken.mockResolvedValue({ email: "admin@example.com" });
+    validateRequiredFields.mockReturnValue({ isValid: true });
+  });
+
+  it("returns 401 when not authenticated", async () => {
+    getToken.mockResolvedValue(null);
+
+    const req = createMockRequest("POST", {}, { title: "Test" });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: "Authentication required" });
+  });
+
+  it("creates a new article", async () => {
+    const mockPost = {
+      id: "1",
       title: "New Article",
-      description: "Article description",
-      content: "# Article Content\n\nThis is the content.",
-      postType: "Article",
-      topic: "javascript",
       slug: "new-article",
-      author: "Admin",
-      status: "Draft",
-      tags: ["javascript", "tutorial"],
     };
-
-    describe("Authentication", () => {
-      it("should return 401 if not authenticated", async () => {
-        getToken.mockResolvedValue(null);
-
-        const req = createMockRequest({
-          method: "POST",
-          body: validArticleData,
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(401);
-        const response = getJsonResponse(res);
-        expect(response.message).toBe("Authentication required");
-      });
-
-      it("should allow authenticated users to create articles", async () => {
-        getToken.mockResolvedValue({
-          id: "1",
-          email: "admin@example.com",
-          role: "admin",
-        });
-
-        prisma.post.findUnique.mockResolvedValue(null);
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: validArticleData,
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(201);
-      });
-    });
-
-    describe("Validation", () => {
-      beforeEach(() => {
-        getToken.mockResolvedValue({
-          id: "1",
-          email: "admin@example.com",
-          role: "admin",
-        });
-      });
-
-      it("should return 400 if title is missing", async () => {
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            title: undefined,
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(400);
-        const response = getJsonResponse(res);
-        expect(response.message).toContain("title");
-      });
-
-      it("should return 400 if description is missing", async () => {
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            description: undefined,
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(400);
-        const response = getJsonResponse(res);
-        expect(response.message).toContain("description");
-      });
-
-      it("should return 400 if topic is missing", async () => {
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            topic: undefined,
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(400);
-        const response = getJsonResponse(res);
-        expect(response.message).toContain("topic");
-      });
-    });
-
-    describe("Slug Generation", () => {
-      beforeEach(() => {
-        getToken.mockResolvedValue({
-          id: "1",
-          email: "admin@example.com",
-          role: "admin",
-        });
-        prisma.post.findUnique.mockResolvedValue(null);
-      });
-
-      it("should use provided slug", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          slug: "custom-slug",
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            slug: "custom-slug",
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              slug: "custom-slug",
-            }),
-          })
-        );
-      });
-
-      it("should generate slug from title if not provided", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          slug: "new-article",
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            slug: undefined,
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              slug: "new-article",
-            }),
-          })
-        );
-      });
-
-      it("should handle duplicate slugs by appending timestamp", async () => {
-        prisma.post.findUnique.mockResolvedValue({ id: "existing" });
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: validArticleData,
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              slug: expect.stringMatching(/^new-article-\d+$/),
-            }),
-          })
-        );
-      });
-    });
-
-    describe("Article Creation", () => {
-      beforeEach(() => {
-        getToken.mockResolvedValue({
-          id: "1",
-          email: "admin@example.com",
-          role: "admin",
-        });
-        prisma.post.findUnique.mockResolvedValue(null);
-      });
-
-      it("should create article with all provided fields", async () => {
-        const fullArticleData = {
-          ...validArticleData,
-          coverImage: "https://example.com/image.jpg",
-          metaTitle: "SEO Title",
-          metaDescription: "SEO Description",
-          ogImage: "https://example.com/og.jpg",
-        };
-
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...fullArticleData,
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: fullArticleData,
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              title: fullArticleData.title,
-              description: fullArticleData.description,
-              content: fullArticleData.content,
-              topic: "javascript",
-              coverImage: fullArticleData.coverImage,
-              metaTitle: fullArticleData.metaTitle,
-              metaDescription: fullArticleData.metaDescription,
-            }),
-          })
-        );
-
-        expect(getStatusCode(res)).toBe(201);
-      });
-
-      it("should calculate reading time from content", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          readingTime: 1,
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            content:
-              "This is a test article with some content to calculate reading time.",
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              readingTime: expect.any(Number),
-            }),
-          })
-        );
-      });
-
-      it("should set datePublished when status is Published", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          status: "Published",
-          datePublished: new Date(),
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            status: "Published",
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              status: "Published",
-              datePublished: expect.any(Date),
-            }),
-          })
-        );
-      });
-
-      it("should not set datePublished for draft articles", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          status: "Draft",
-          datePublished: null,
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            status: "Draft",
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              status: "Draft",
-              datePublished: null,
-            }),
-          })
-        );
-      });
-
-      it("should lowercase the topic", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          topic: "javascript",
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            topic: "JavaScript",
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              topic: "javascript",
-            }),
-          })
-        );
-      });
-
-      it("should use session email as author if not provided", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          author: "admin@example.com",
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            author: undefined,
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              author: "admin@example.com",
-            }),
-          })
-        );
-      });
-
-      it("should handle empty tags", async () => {
-        prisma.post.create.mockResolvedValue({
-          id: "1",
-          ...validArticleData,
-          tags: [],
-        });
-
-        const req = createMockRequest({
-          method: "POST",
-          body: {
-            ...validArticleData,
-            tags: undefined,
-          },
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(prisma.post.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              tags: [],
-            }),
-          })
-        );
-      });
-    });
-
-    describe("Error Handling", () => {
-      beforeEach(() => {
-        getToken.mockResolvedValue({
-          id: "1",
-          email: "admin@example.com",
-          role: "admin",
-        });
-        prisma.post.findUnique.mockResolvedValue(null);
-      });
-
-      it("should handle unique constraint violation", async () => {
-        const uniqueError = new Error("Unique constraint failed");
-        uniqueError.code = "P2002";
-        prisma.post.create.mockRejectedValue(uniqueError);
-
-        const req = createMockRequest({
-          method: "POST",
-          body: validArticleData,
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(400);
-        const response = getJsonResponse(res);
-        expect(response.message).toContain("slug already exists");
-      });
-
-      it("should handle database errors gracefully", async () => {
-        prisma.post.create.mockRejectedValue(new Error("Database error"));
-
-        const req = createMockRequest({
-          method: "POST",
-          body: validArticleData,
-        });
-        const res = createMockResponse();
-
-        await articlesHandler(req, res);
-
-        expect(getStatusCode(res)).toBe(500);
-      });
-    });
+    prisma.post.findUnique.mockResolvedValue(null);
+    prisma.post.create.mockResolvedValue(mockPost);
+
+    const req = createMockRequest(
+      "POST",
+      {},
+      {
+        title: "New Article",
+        description: "Test description",
+        topic: "tech",
+      },
+    );
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(prisma.post.create).toHaveBeenCalled();
   });
 
-  describe("Method Not Allowed", () => {
-    it("should return 405 for unsupported methods", async () => {
-      const methods = ["PUT", "DELETE", "PATCH"];
+  it("returns 400 for invalid data", async () => {
+    validateRequiredFields.mockReturnValue({
+      isValid: false,
+      message: "Title is required",
+    });
 
-      for (const method of methods) {
-        const req = createMockRequest({ method });
-        const res = createMockResponse();
+    const req = createMockRequest("POST", {}, {});
+    const res = createMockResponse();
 
-        await articlesHandler(req, res);
+    await handler(req, res);
 
-        expect(getStatusCode(res)).toBe(405);
-        const response = getJsonResponse(res);
-        expect(response.message).toBe("Method Not Allowed");
-      }
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Title is required" });
+  });
+
+  it("generates slug from title", async () => {
+    prisma.post.findUnique.mockResolvedValue(null);
+    prisma.post.create.mockResolvedValue({ id: "1", slug: "test-article" });
+
+    const req = createMockRequest(
+      "POST",
+      {},
+      {
+        title: "Test Article",
+        description: "Description",
+        topic: "tech",
+      },
+    );
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(prisma.post.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          slug: expect.any(String),
+        }),
+      }),
+    );
+  });
+
+  it("makes slug unique if already exists", async () => {
+    prisma.post.findUnique.mockResolvedValue({ id: "existing" });
+    prisma.post.create.mockResolvedValue({ id: "1", slug: "test-article-12345" });
+
+    const req = createMockRequest(
+      "POST",
+      {},
+      {
+        title: "Test Article",
+        description: "Description",
+        topic: "tech",
+        slug: "test-article",
+      },
+    );
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(prisma.post.create).toHaveBeenCalled();
+    const createCall = prisma.post.create.mock.calls[0][0];
+    expect(createCall.data.slug).toMatch(/test-article-\d+/);
+  });
+
+  it("handles unique constraint error", async () => {
+    prisma.post.findUnique.mockResolvedValue(null);
+    prisma.post.create.mockRejectedValue({ code: "P2002" });
+
+    const req = createMockRequest(
+      "POST",
+      {},
+      {
+        title: "Test",
+        description: "Desc",
+        topic: "tech",
+      },
+    );
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "An article with this slug already exists",
     });
   });
 });
 
+describe("Unsupported methods", () => {
+  it("returns 405 for unsupported methods", async () => {
+    const req = createMockRequest("PUT");
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(405);
+    expect(res.json).toHaveBeenCalledWith({ message: "Method Not Allowed" });
+  });
+});

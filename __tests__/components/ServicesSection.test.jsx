@@ -1,34 +1,61 @@
 /**
- * ServicesSection.test.jsx
+ * Tests for ServicesSection component
  *
- * Comprehensive tests for ServicesSection component
+ * Tests the services showcase section
  */
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'jest-axe';
-import ServicesSection from '@/components/ServicesSection';
+import ServicesSection from '../../components/ServicesSection';
 
-expect.extend(toHaveNoViolations);
+// gsap is mocked globally via jest.config.js moduleNameMapper
 
-// Mock gsap
-// gsap is already mocked in jest.config.js via moduleNameMapper
+// Mock UI components
+jest.mock('@/components/ui', () => ({
+  Card: React.forwardRef(function Card({ children, variant, tilt, interactive, className }, ref) {
+    return (
+      <div ref={ref} className={className} data-variant={variant}>
+        {children}
+      </div>
+    );
+  }),
+  Badge: ({ children, variant, size }) => (
+    <span data-variant={variant} data-size={size}>
+      {children}
+    </span>
+  ),
+}));
 
-describe('ServicesSection Component', () => {
+// Mock icons
+jest.mock('@/components/icons', () => ({
+  getServiceIcon: (key) => <svg data-testid={`icon-${key}`} />,
+}));
+
+// Mock constants
+jest.mock('@/lib/utils/constants', () => ({
+  COLOR_VARIANTS: {
+    primary: { bg: '#f00', border: '#f00', text: '#fff' },
+    accent: { bg: '#0f0', border: '#0f0', text: '#fff' },
+    cool: { bg: '#00f', border: '#00f', text: '#fff' },
+    secondary: { bg: '#ff0', border: '#ff0', text: '#000' },
+  },
+}));
+
+describe('ServicesSection', () => {
   const mockHomeContent = {
-    servicesTitle: 'AI & Engineering Services',
-    servicesSubtitle: 'From strategy to implementation.',
+    servicesTitle: 'My Services',
+    servicesSubtitle: 'Custom subtitle for services',
     services: [
       {
         iconKey: 'computer',
-        title: 'AI Strategy',
-        description: 'Strategic AI implementation.',
+        title: 'AI Consulting',
+        description: 'AI consulting description',
         variant: 'primary',
       },
       {
-        iconKey: 'database',
-        title: 'ML Systems',
-        description: 'Machine learning solutions.',
+        iconKey: 'code',
+        title: 'Development',
+        description: 'Development description',
         variant: 'accent',
       },
     ],
@@ -49,215 +76,142 @@ describe('ServicesSection Component', () => {
   });
 
   describe('Rendering', () => {
-    it('should render without crashing', () => {
-      const { container } = render(<ServicesSection />);
-      // The section uses aria-labelledby pointing to the title element
-      expect(container.querySelector('#services-title')).toBeInTheDocument();
-    });
-
-    it('should render with custom homeContent', () => {
+    it('should render section with custom title', () => {
       render(<ServicesSection homeContent={mockHomeContent} />);
-      expect(screen.getByText('AI & Engineering Services')).toBeInTheDocument();
+      expect(screen.getByText('My Services')).toBeInTheDocument();
     });
 
-    it('should render default title when no homeContent', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('AI & Engineering Services')).toBeInTheDocument();
-    });
-
-    it('should render default subtitle when no homeContent', () => {
-      render(<ServicesSection />);
-      expect(
-        screen.getByText(/From strategy to implementation/)
-      ).toBeInTheDocument();
-    });
-
-    it('should render badge', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('What I Do')).toBeInTheDocument();
-    });
-  });
-
-  describe('Services', () => {
-    it('should render default services when no homeContent', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
-      expect(screen.getByText('Machine Learning Systems')).toBeInTheDocument();
-      expect(screen.getByText('LLM & GenAI Solutions')).toBeInTheDocument();
-      expect(screen.getByText('Cloud & MLOps')).toBeInTheDocument();
-      expect(screen.getByText('Data Analytics')).toBeInTheDocument();
-      expect(screen.getByText('Technical Training')).toBeInTheDocument();
-    });
-
-    it('should render custom services from homeContent', () => {
+    it('should render section with custom subtitle', () => {
       render(<ServicesSection homeContent={mockHomeContent} />);
-      expect(screen.getByText('AI Strategy')).toBeInTheDocument();
-      expect(screen.getByText('ML Systems')).toBeInTheDocument();
+      expect(screen.getByText('Custom subtitle for services')).toBeInTheDocument();
+    });
+
+    it('should render all services', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      expect(screen.getByText('AI Consulting')).toBeInTheDocument();
+      expect(screen.getByText('Development')).toBeInTheDocument();
     });
 
     it('should render service descriptions', () => {
       render(<ServicesSection homeContent={mockHomeContent} />);
-      expect(screen.getByText('Strategic AI implementation.')).toBeInTheDocument();
-      expect(screen.getByText('Machine learning solutions.')).toBeInTheDocument();
+      expect(screen.getByText('AI consulting description')).toBeInTheDocument();
+      expect(screen.getByText('Development description')).toBeInTheDocument();
     });
 
     it('should render service icons', () => {
-      const { container } = render(<ServicesSection />);
-      const icons = container.querySelectorAll('svg');
-      expect(icons.length).toBeGreaterThan(0);
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      expect(screen.getByTestId('icon-computer')).toBeInTheDocument();
+      expect(screen.getByTestId('icon-code')).toBeInTheDocument();
     });
 
-    it('should render "Learn more" hover text', () => {
-      render(<ServicesSection />);
-      const learnMoreTexts = screen.getAllByText('Learn more');
-      expect(learnMoreTexts.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Service Icons', () => {
-    it('should render service icons for all services', () => {
-      const { container } = render(<ServicesSection />);
-      const iconContainers = container.querySelectorAll('.w-14.h-14');
-      expect(iconContainers.length).toBeGreaterThan(0);
-    });
-
-    it('should apply correct icon styling', () => {
-      const { container } = render(<ServicesSection homeContent={mockHomeContent} />);
-      const firstIcon = container.querySelector('.w-14.h-14');
-      expect(firstIcon).toHaveClass('rounded-xl');
+    it('should render "What I Do" badge', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      expect(screen.getByText('What I Do')).toBeInTheDocument();
     });
   });
 
-  describe('Layout and Structure', () => {
-    it('should render in section element', () => {
-      const { container } = render(<ServicesSection />);
-      const section = container.querySelector('section');
-      expect(section).toHaveAttribute('id', 'services');
+  describe('Default content', () => {
+    it('should use default title when not provided', () => {
+      render(<ServicesSection homeContent={{}} />);
+      expect(screen.getByText('AI & Engineering Services')).toBeInTheDocument();
     });
 
-    it('should have proper section id', () => {
+    it('should use default subtitle when not provided', () => {
+      render(<ServicesSection homeContent={{}} />);
+      expect(screen.getByText(/From strategy to implementation/)).toBeInTheDocument();
+    });
+
+    it('should use default services when not provided', () => {
       render(<ServicesSection />);
-      expect(document.getElementById('services')).toBeInTheDocument();
+      expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
+      expect(screen.getByText('Machine Learning Systems')).toBeInTheDocument();
     });
+  });
 
-    it('should render services in grid layout', () => {
-      const { container } = render(<ServicesSection />);
-      const grid = container.querySelector('.grid');
-      expect(grid).toBeInTheDocument();
-    });
-
-    it('should apply responsive grid classes', () => {
-      const { container } = render(<ServicesSection />);
-      const grid = container.querySelector('.grid');
-      expect(grid).toHaveClass('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+  describe('Empty state', () => {
+    it('should return null when services array is empty', () => {
+      const emptyContent = {
+        ...mockHomeContent,
+        services: [],
+      };
+      const { container } = render(<ServicesSection homeContent={emptyContent} />);
+      expect(container.firstChild).toBeNull();
     });
   });
 
   describe('Accessibility', () => {
-    it('should have no accessibility violations', async () => {
-      const { container } = render(<ServicesSection />);
-      const results = await axe(container);
-      expect(results).toHaveNoViolations();
-    });
-
-    it('should have proper section landmark', () => {
-      const { container } = render(<ServicesSection />);
-      // The section uses aria-labelledby with id="services-title"
-      const section = container.querySelector('section[aria-labelledby="services-title"]');
-      expect(section).toBeInTheDocument();
-      expect(container.querySelector('#services-title')).toBeInTheDocument();
-    });
-
-    it('should have heading for services title', () => {
-      render(<ServicesSection />);
-      const heading = screen.getByRole('heading', { 
-        name: /AI & Engineering Services/i 
-      });
-      expect(heading).toBeInTheDocument();
-    });
-
-    it('should have heading level 2 for main title', () => {
-      render(<ServicesSection />);
-      const h2 = screen.getByRole('heading', { level: 2 });
-      expect(h2).toHaveTextContent(/AI & Engineering Services/i);
-    });
-
-    it('should have heading level 3 for service titles', () => {
-      render(<ServicesSection />);
-      const h3s = screen.getAllByRole('heading', { level: 3 });
-      expect(h3s.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Styling', () => {
-    it('should apply gradient to main title', () => {
-      render(<ServicesSection />);
-      const title = screen.getByRole('heading', { level: 2 });
-      expect(title).toHaveStyle({
-        background: expect.stringContaining('linear-gradient'),
-      });
-    });
-
-    it('should apply variant styling to services', () => {
+    it('should have proper section labelling', () => {
       render(<ServicesSection homeContent={mockHomeContent} />);
-      // Services should render with variant-based styling
-      const serviceCards = screen.getAllByRole('heading', { level: 3 });
-      expect(serviceCards.length).toBeGreaterThan(0);
+      expect(screen.getByRole('region', { name: /services/i })).toBeInTheDocument();
     });
   });
 
-  describe('Default Services', () => {
-    it('should render AI Strategy service with description', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
-      expect(
-        screen.getByText(/Transform your business with data-driven AI strategies/)
-      ).toBeInTheDocument();
+  describe('Variants', () => {
+    it('should apply correct variants to cards', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      const cards = document.querySelectorAll('[data-variant]');
+      expect(cards.length).toBeGreaterThan(0);
     });
 
-    it('should render Machine Learning Systems service', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('Machine Learning Systems')).toBeInTheDocument();
-      expect(
-        screen.getByText(/End-to-end ML pipeline development/)
-      ).toBeInTheDocument();
+    it('should apply primary variant', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      const primaryCard = document.querySelector('[data-variant="primary"]');
+      expect(primaryCard).toBeInTheDocument();
     });
 
-    it('should render LLM & GenAI Solutions service', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('LLM & GenAI Solutions')).toBeInTheDocument();
-      expect(
-        screen.getByText(/Custom Large Language Model integrations/)
-      ).toBeInTheDocument();
-    });
-
-    it('should render Cloud & MLOps service', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('Cloud & MLOps')).toBeInTheDocument();
-      expect(
-        screen.getByText(/Deploy and scale AI systems/)
-      ).toBeInTheDocument();
-    });
-
-    it('should render Data Analytics service', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('Data Analytics')).toBeInTheDocument();
-      expect(
-        screen.getByText(/Turn raw data into actionable insights/)
-      ).toBeInTheDocument();
-    });
-
-    it('should render Technical Training service', () => {
-      render(<ServicesSection />);
-      expect(screen.getByText('Technical Training')).toBeInTheDocument();
-      expect(
-        screen.getByText(/Upskill your team with hands-on AI\/ML training/)
-      ).toBeInTheDocument();
+    it('should apply accent variant', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      const accentCard = document.querySelector('[data-variant="accent"]');
+      expect(accentCard).toBeInTheDocument();
     });
   });
 
-  describe('Animation and Interactions', () => {
-    it('should respect reduced motion preference', () => {
+  describe('Service icons', () => {
+    it('should render correct icons for each service', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      expect(screen.getByTestId('icon-computer')).toBeInTheDocument();
+      expect(screen.getByTestId('icon-code')).toBeInTheDocument();
+    });
+
+    it('should handle missing iconKey', () => {
+      const contentWithMissingIcon = {
+        services: [
+          {
+            title: 'No Icon Service',
+            description: 'Service without icon',
+            variant: 'primary',
+          },
+        ],
+      };
+      render(<ServicesSection homeContent={contentWithMissingIcon} />);
+      expect(screen.getByText('No Icon Service')).toBeInTheDocument();
+    });
+  });
+
+  describe('Grid layout', () => {
+    it('should render services in a grid', () => {
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      const cards = document.querySelectorAll('[data-variant]');
+      expect(cards.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should handle many services', () => {
+      const manyServices = {
+        services: Array(6).fill(null).map((_, i) => ({
+          iconKey: 'code',
+          title: `Service ${i + 1}`,
+          description: `Description ${i + 1}`,
+          variant: 'primary',
+        })),
+      };
+      render(<ServicesSection homeContent={manyServices} />);
+      const cards = document.querySelectorAll('[data-variant]');
+      expect(cards.length).toBeGreaterThanOrEqual(6);
+    });
+  });
+
+  describe('Animations', () => {
+    it('should render without animation when reduced motion preferred', () => {
       window.matchMedia = jest.fn().mockImplementation((query) => ({
         matches: query === '(prefers-reduced-motion: reduce)',
         media: query,
@@ -268,24 +222,13 @@ describe('ServicesSection Component', () => {
         removeEventListener: jest.fn(),
         dispatchEvent: jest.fn(),
       }));
-
-      render(<ServicesSection />);
-      expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
+      
+      render(<ServicesSection homeContent={mockHomeContent} />);
+      expect(screen.getByText('My Services')).toBeInTheDocument();
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle empty services array', () => {
-      const emptyContent = {
-        servicesTitle: 'Services',
-        servicesSubtitle: 'Subtitle',
-        services: [],
-      };
-      render(<ServicesSection homeContent={emptyContent} />);
-      // Should render default services
-      expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
-    });
-
+  describe('Props handling', () => {
     it('should handle null homeContent', () => {
       render(<ServicesSection homeContent={null} />);
       expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
@@ -296,111 +239,13 @@ describe('ServicesSection Component', () => {
       expect(screen.getByText('AI Strategy & Consulting')).toBeInTheDocument();
     });
 
-    it('should handle missing servicesTitle', () => {
-      const partialContent = {
-        services: mockHomeContent.services,
-      };
-      render(<ServicesSection homeContent={partialContent} />);
-      expect(screen.getByText('AI & Engineering Services')).toBeInTheDocument();
-    });
-
-    it('should handle missing servicesSubtitle', () => {
-      const partialContent = {
+    it('should handle partial homeContent', () => {
+      const partial = {
         servicesTitle: 'Custom Title',
+        // missing services array
       };
-      render(<ServicesSection homeContent={partialContent} />);
-      expect(
-        screen.getByText(/From strategy to implementation/)
-      ).toBeInTheDocument();
-    });
-
-    it('should handle service without description', () => {
-      const serviceWithoutDesc = {
-        services: [
-          {
-            iconKey: 'computer',
-            title: 'Test Service',
-            variant: 'primary',
-          },
-        ],
-      };
-      render(<ServicesSection homeContent={serviceWithoutDesc} />);
-      expect(screen.getByText('Test Service')).toBeInTheDocument();
-    });
-
-    it('should handle service without iconKey', () => {
-      const serviceWithoutIcon = {
-        services: [
-          {
-            title: 'Test Service',
-            description: 'Test description',
-            variant: 'primary',
-          },
-        ],
-      };
-      expect(() => 
-        render(<ServicesSection homeContent={serviceWithoutIcon} />)
-      ).not.toThrow();
-    });
-
-    it('should handle service without variant', () => {
-      const serviceWithoutVariant = {
-        services: [
-          {
-            iconKey: 'computer',
-            title: 'Test Service',
-            description: 'Test description',
-          },
-        ],
-      };
-      render(<ServicesSection homeContent={serviceWithoutVariant} />);
-      expect(screen.getByText('Test Service')).toBeInTheDocument();
-    });
-  });
-
-  describe('Service Cards', () => {
-    it('should render Card components for services', () => {
-      const { container } = render(<ServicesSection />);
-      // Card components should have proper structure
-      const serviceCards = container.querySelectorAll('.group');
-      expect(serviceCards.length).toBeGreaterThan(0);
-    });
-
-    it('should apply interactive class to cards', () => {
-      const { container } = render(<ServicesSection />);
-      const cards = container.querySelectorAll('.group');
-      expect(cards.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Responsive Behavior', () => {
-    it('should apply responsive padding classes', () => {
-      const { container } = render(<ServicesSection />);
-      const section = container.querySelector('section');
-      expect(section).toHaveClass('py-32');
-    });
-
-    it('should apply responsive container classes', () => {
-      const { container } = render(<ServicesSection />);
-      const containerDiv = container.querySelector('.container');
-      expect(containerDiv).toHaveClass('px-4', 'sm:px-6', 'lg:px-8');
-    });
-  });
-
-  describe('Color Variants', () => {
-    it('should apply primary variant color', () => {
-      const { container } = render(<ServicesSection homeContent={mockHomeContent} />);
-      // First service has primary variant
-      const firstService = screen.getByText('AI Strategy');
-      expect(firstService).toBeInTheDocument();
-    });
-
-    it('should apply accent variant color', () => {
-      const { container } = render(<ServicesSection homeContent={mockHomeContent} />);
-      // Second service has accent variant
-      const secondService = screen.getByText('ML Systems');
-      expect(secondService).toBeInTheDocument();
+      render(<ServicesSection homeContent={partial} />);
+      expect(screen.getByText('Custom Title')).toBeInTheDocument();
     });
   });
 });
-

@@ -1,104 +1,160 @@
 /**
  * Tests for SocialShare component
  */
+
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import SocialShare from "../../components/Articles/SocialShare";
+import "@testing-library/jest-dom";
+import SocialShare from "@/components/Articles/SocialShare";
 
 describe("SocialShare", () => {
   const defaultProps = {
     url: "https://example.com/article",
-    title: "Test Article",
-    description: "Test Description",
+    title: "Test Article Title",
+    description: "Test article description",
   };
-
-  // Mock clipboard API
-  const mockWriteText = jest.fn().mockResolvedValue();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.defineProperty(navigator, "clipboard", {
-      value: {
-        writeText: mockWriteText,
+    // Mock clipboard API
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: jest.fn().mockResolvedValue(undefined),
       },
-      writable: true,
-      configurable: true,
     });
   });
 
-  it("should render share buttons", () => {
+  it("renders Share label", () => {
     render(<SocialShare {...defaultProps} />);
+    expect(screen.getByText("Share:")).toBeInTheDocument();
+  });
 
-    expect(screen.getByLabelText("Share on Twitter")).toBeInTheDocument();
-    expect(screen.getByLabelText("Share on LinkedIn")).toBeInTheDocument();
-    expect(screen.getByLabelText("Share on Facebook")).toBeInTheDocument();
+  it("renders Twitter share link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const twitterLink = screen.getByLabelText("Share on Twitter");
+    expect(twitterLink).toBeInTheDocument();
+    expect(twitterLink).toHaveAttribute("href", expect.stringContaining("twitter.com"));
+    expect(twitterLink).toHaveAttribute("target", "_blank");
+  });
+
+  it("renders LinkedIn share link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const linkedinLink = screen.getByLabelText("Share on LinkedIn");
+    expect(linkedinLink).toBeInTheDocument();
+    expect(linkedinLink).toHaveAttribute("href", expect.stringContaining("linkedin.com"));
+  });
+
+  it("renders Facebook share link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const facebookLink = screen.getByLabelText("Share on Facebook");
+    expect(facebookLink).toBeInTheDocument();
+    expect(facebookLink).toHaveAttribute("href", expect.stringContaining("facebook.com"));
+  });
+
+  it("renders copy link button", () => {
+    render(<SocialShare {...defaultProps} />);
     expect(screen.getByLabelText("Copy link")).toBeInTheDocument();
   });
 
-  it("should encode URLs correctly", () => {
-    render(<SocialShare {...defaultProps} />);
+  it("encodes URL in share links", () => {
+    const propsWithSpecialChars = {
+      ...defaultProps,
+      url: "https://example.com/article?param=value",
+    };
+    render(<SocialShare {...propsWithSpecialChars} />);
 
     const twitterLink = screen.getByLabelText("Share on Twitter");
-    expect(twitterLink).toHaveAttribute(
-      "href",
-      expect.stringContaining(encodeURIComponent(defaultProps.url)),
-    );
+    expect(twitterLink.href).toContain(encodeURIComponent(propsWithSpecialChars.url));
   });
 
-  it("should handle copy link button click", async () => {
+  it("encodes title in Twitter share link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const twitterLink = screen.getByLabelText("Share on Twitter");
+    expect(twitterLink.href).toContain(encodeURIComponent(defaultProps.title));
+  });
+
+  it("copies URL to clipboard when copy button is clicked", async () => {
     render(<SocialShare {...defaultProps} />);
 
     const copyButton = screen.getByLabelText("Copy link");
     fireEvent.click(copyButton);
 
     await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalledWith(defaultProps.url);
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(defaultProps.url);
     });
   });
 
-  it("should open links in new tab", () => {
+  it("shows checkmark icon after copying", async () => {
     render(<SocialShare {...defaultProps} />);
 
-    const twitterLink = screen.getByLabelText("Share on Twitter");
-    expect(twitterLink).toHaveAttribute("target", "_blank");
-    expect(twitterLink).toHaveAttribute("rel", "noopener noreferrer");
+    const copyButton = screen.getByLabelText("Copy link");
+    fireEvent.click(copyButton);
+
+    await waitFor(() => {
+      // Button should have success styling
+      expect(copyButton.className).toContain("text-green-400");
+    });
   });
 
-  it("should show copied state after clicking copy", async () => {
+  it("resets copy state after timeout", async () => {
     jest.useFakeTimers();
     render(<SocialShare {...defaultProps} />);
 
     const copyButton = screen.getByLabelText("Copy link");
     fireEvent.click(copyButton);
 
+    // Wait for the copy state to be set
     await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalled();
+      expect(copyButton.className).toContain("text-green-400");
+    });
+
+    // Advance timers by 2 seconds
+    jest.advanceTimersByTime(2000);
+
+    // Button should reset to normal styling
+    await waitFor(() => {
+      expect(copyButton.className).not.toContain("text-green-400");
     });
 
     jest.useRealTimers();
   });
 
-  it("should render Share label", () => {
+  it("handles clipboard error gracefully", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    navigator.clipboard.writeText = jest.fn().mockRejectedValue(new Error("Copy failed"));
+
     render(<SocialShare {...defaultProps} />);
-    expect(screen.getByText("Share:")).toBeInTheDocument();
+
+    const copyButton = screen.getByLabelText("Copy link");
+    fireEvent.click(copyButton);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Failed to copy:", expect.any(Error));
+    });
+
+    consoleSpy.mockRestore();
   });
 
-  it("should have correct LinkedIn share URL", () => {
+  it("has noopener noreferrer on external links", () => {
     render(<SocialShare {...defaultProps} />);
 
-    const linkedInLink = screen.getByLabelText("Share on LinkedIn");
-    expect(linkedInLink).toHaveAttribute(
-      "href",
-      expect.stringContaining("linkedin.com"),
-    );
-  });
-
-  it("should have correct Facebook share URL", () => {
-    render(<SocialShare {...defaultProps} />);
-
+    const twitterLink = screen.getByLabelText("Share on Twitter");
+    const linkedinLink = screen.getByLabelText("Share on LinkedIn");
     const facebookLink = screen.getByLabelText("Share on Facebook");
-    expect(facebookLink).toHaveAttribute(
-      "href",
-      expect.stringContaining("facebook.com"),
-    );
+
+    expect(twitterLink).toHaveAttribute("rel", "noopener noreferrer");
+    expect(linkedinLink).toHaveAttribute("rel", "noopener noreferrer");
+    expect(facebookLink).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("renders all social icons", () => {
+    render(<SocialShare {...defaultProps} />);
+
+    // Should have 3 social links + 1 copy button
+    const buttons = screen.getAllByRole("link");
+    expect(buttons).toHaveLength(3);
+
+    const copyButton = screen.getByRole("button");
+    expect(copyButton).toBeInTheDocument();
   });
 });

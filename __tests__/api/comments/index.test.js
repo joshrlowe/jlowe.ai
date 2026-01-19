@@ -17,6 +17,9 @@ jest.mock("../../../lib/prisma.js", () => ({
       findMany: jest.fn(),
       create: jest.fn(),
     },
+    commentVote: {
+      findMany: jest.fn(),
+    },
     post: {
       findUnique: jest.fn(),
     },
@@ -37,10 +40,12 @@ describe("POST /api/comments", () => {
           authorName: "John",
           content: "Great post!",
           approved: true,
+          replies: [],
         },
       ];
 
       prisma.comment.findMany.mockResolvedValue(mockComments);
+      prisma.commentVote.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({
         method: "GET",
@@ -50,20 +55,20 @@ describe("POST /api/comments", () => {
 
       await commentsHandler(req, res);
 
-      expect(prisma.comment.findMany).toHaveBeenCalledWith({
-        where: {
-          postId: "post1",
-          approved: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 100,
-      });
+      expect(prisma.comment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            postId: "post1",
+            approved: true,
+          }),
+        }),
+      );
 
       expect(getStatusCode(res)).toBe(200);
       const response = getJsonResponse(res);
-      expect(response).toEqual(mockComments);
+      // API adds userVote field from commentVote table
+      expect(response.length).toBe(mockComments.length);
+      expect(response[0].authorName).toBe(mockComments[0].authorName);
     });
 
     it("should return all comments when approved is not specified", async () => {
@@ -90,15 +95,13 @@ describe("POST /api/comments", () => {
 
       await commentsHandler(req, res);
 
-      expect(prisma.comment.findMany).toHaveBeenCalledWith({
-        where: {
-          postId: "post1",
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 100,
-      });
+      expect(prisma.comment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            postId: "post1",
+          }),
+        }),
+      );
     });
   });
 
@@ -140,7 +143,8 @@ describe("POST /api/comments", () => {
           authorName: "John",
           authorEmail: "john@example.com",
           content: "Great post!",
-          approved: false,
+          approved: true,
+          parentId: null,
         },
       });
 

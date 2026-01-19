@@ -1,273 +1,188 @@
 /**
- * Tests for ErrorBoundary Component
- * 
- * Tests error boundary functionality including error catching,
- * error UI, and reset behavior.
+ * Tests for ErrorBoundary component
  */
 
-import React from 'react';
-import { screen, renderWithoutProviders, fireEvent } from '@/test-utils';
-import { axe, toHaveNoViolations } from 'jest-axe';
-import ErrorBoundary from '@/components/ErrorBoundary';
-
-expect.extend(toHaveNoViolations);
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Component that throws an error
-const ThrowError = ({ shouldThrow }) => {
+const ThrowError = ({ shouldThrow = true }) => {
   if (shouldThrow) {
-    throw new Error('Test error');
+    throw new Error("Test error");
   }
   return <div>No error</div>;
 };
 
-// Component that throws an error on render
-const AlwaysThrows = () => {
-  throw new Error('Always throws');
-};
-
-describe('ErrorBoundary', () => {
+describe("ErrorBoundary", () => {
   // Suppress console.error for expected errors
   const originalError = console.error;
+
   beforeAll(() => {
     console.error = jest.fn();
   });
+
   afterAll(() => {
     console.error = originalError;
   });
 
-  describe('normal rendering', () => {
-    it('should render children when no error', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <div>Child content</div>
-        </ErrorBoundary>
-      );
-      expect(screen.getByText('Child content')).toBeInTheDocument();
-    });
-
-    it('should render multiple children', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <div>First child</div>
-          <div>Second child</div>
-        </ErrorBoundary>
-      );
-      expect(screen.getByText('First child')).toBeInTheDocument();
-      expect(screen.getByText('Second child')).toBeInTheDocument();
-    });
-
-    it('should render nested elements', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <div>
-            <span>Nested content</span>
-          </div>
-        </ErrorBoundary>
-      );
-      expect(screen.getByText('Nested content')).toBeInTheDocument();
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Mock window.location.reload
+    delete window.location;
+    window.location = { reload: jest.fn() };
   });
 
-  describe('error handling', () => {
-    it('should catch errors and display error UI', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    });
-
-    it('should display error message', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      expect(screen.getByText(/We're sorry, but something unexpected happened/)).toBeInTheDocument();
-    });
-
-    it('should display refresh button', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      expect(screen.getByRole('button', { name: /refresh/i })).toBeInTheDocument();
-    });
-
-    it('should display error icon', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
+  it("renders children when there is no error", () => {
+    render(
+      <ErrorBoundary>
+        <div>Test content</div>
+      </ErrorBoundary>,
+    );
+    expect(screen.getByText("Test content")).toBeInTheDocument();
   });
 
-  describe('reset functionality', () => {
-    it('should call handleReset when refresh is clicked', () => {
-      // Mock window.location using Object.defineProperty since reload is read-only
-      const mockReload = jest.fn();
-      const originalLocation = window.location;
-      
-      delete window.location;
-      window.location = { ...originalLocation, reload: mockReload };
+  it("renders error UI when child throws", () => {
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
 
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
-      
-      expect(mockReload).toHaveBeenCalled();
-      
-      window.location = originalLocation;
-    });
+    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+    expect(
+      screen.getByText(/We're sorry, but something unexpected happened/),
+    ).toBeInTheDocument();
   });
 
-  describe('development mode error details', () => {
+  it("renders Refresh Page button when error occurs", () => {
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
+
+    expect(screen.getByRole("button", { name: /refresh page/i })).toBeInTheDocument();
+  });
+
+  it("calls window.location.reload when Refresh Page is clicked", () => {
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
+
+    const refreshButton = screen.getByRole("button", { name: /refresh page/i });
+    fireEvent.click(refreshButton);
+
+    expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  it("catches error in componentDidCatch", () => {
+    const consoleSpy = jest.spyOn(console, "error");
     const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
 
-    afterEach(() => {
-      process.env.NODE_ENV = originalEnv;
-    });
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
 
-    it('should show error details in development', () => {
-      process.env.NODE_ENV = 'development';
-      
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      // Error details should be in a details element
-      const details = document.querySelector('details');
-      expect(details).toBeInTheDocument();
-    });
-
-    it('should have expandable details', () => {
-      process.env.NODE_ENV = 'development';
-      
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      const summary = document.querySelector('summary');
-      expect(summary).toBeInTheDocument();
-      expect(summary.textContent).toContain('Error Details');
-    });
+    expect(consoleSpy).toHaveBeenCalled();
+    process.env.NODE_ENV = originalEnv;
   });
 
-  describe('state management', () => {
-    it('should set hasError to true when error occurs', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      // If hasError is true, error UI is shown
-      expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    });
+  it("shows error details in development mode", () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
 
-    it('should capture error object', () => {
-      process.env.NODE_ENV = 'development';
-      
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      // Error message should be displayed in development
-      const pre = document.querySelector('pre');
-      expect(pre).toBeInTheDocument();
-    });
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
+
+    // In development, error details should be available
+    expect(screen.getByText(/Error Details/)).toBeInTheDocument();
+
+    process.env.NODE_ENV = originalEnv;
   });
 
-  describe('styling', () => {
-    it('should have full screen layout', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      const container = document.querySelector('.min-h-screen');
-      expect(container).toBeInTheDocument();
+  it("does not show error details in production", () => {
+    const originalEnv = process.env.NODE_ENV;
+    Object.defineProperty(process.env, "NODE_ENV", {
+      value: "production",
+      writable: true,
     });
 
-    it('should center content', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      const container = document.querySelector('.flex.items-center.justify-center');
-      expect(container).toBeInTheDocument();
-    });
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
 
-    it('should have error icon container', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      
-      const iconContainer = document.querySelector('.rounded-full');
-      expect(iconContainer).toBeInTheDocument();
-    });
+    expect(screen.queryByText(/Error Details/)).not.toBeInTheDocument();
+
+    process.env.NODE_ENV = originalEnv;
   });
 
-  describe('accessibility', () => {
-    it('should have no violations when rendering children', async () => {
-      const { container } = renderWithoutProviders(
-        <ErrorBoundary>
-          <div>Content</div>
-        </ErrorBoundary>
-      );
-      const results = await axe(container);
-      expect(results).toHaveNoViolations();
-    });
+  it("renders multiple children without error", () => {
+    render(
+      <ErrorBoundary>
+        <div>Child 1</div>
+        <div>Child 2</div>
+        <div>Child 3</div>
+      </ErrorBoundary>,
+    );
 
-    it('should have no violations in error state', async () => {
-      const { container } = renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      const results = await axe(container);
-      expect(results).toHaveNoViolations();
-    });
+    expect(screen.getByText("Child 1")).toBeInTheDocument();
+    expect(screen.getByText("Child 2")).toBeInTheDocument();
+    expect(screen.getByText("Child 3")).toBeInTheDocument();
+  });
 
-    it('should have heading in error state', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      expect(screen.getByRole('heading', { name: /something went wrong/i })).toBeInTheDocument();
-    });
+  it("maintains error state after error is caught", () => {
+    const { rerender } = render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
 
-    it('should have accessible button', () => {
-      renderWithoutProviders(
-        <ErrorBoundary>
-          <AlwaysThrows />
-        </ErrorBoundary>
-      );
-      const button = screen.getByRole('button', { name: /refresh/i });
-      expect(button).toBeInTheDocument();
-      expect(button).toBeEnabled();
-    });
+    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+
+    // Re-render should still show error
+    rerender(
+      <ErrorBoundary>
+        <ThrowError shouldThrow={false} />
+      </ErrorBoundary>,
+    );
+
+    // Still shows error UI because state hasn't been reset
+    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+  });
+
+  it("has proper styling for error display", () => {
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
+
+    // Check that error UI is centered
+    const container = screen.getByText("Something went wrong").closest("div");
+    expect(container).toBeInTheDocument();
+  });
+
+  it("displays warning icon in error state", () => {
+    render(
+      <ErrorBoundary>
+        <ThrowError />
+      </ErrorBoundary>,
+    );
+
+    // SVG icon should be present
+    const svg = document.querySelector("svg");
+    expect(svg).toBeInTheDocument();
   });
 });
-

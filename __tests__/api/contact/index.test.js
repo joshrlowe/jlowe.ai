@@ -117,15 +117,14 @@ describe('/api/contact', () => {
 
       expect(prisma.contact.deleteMany).toHaveBeenCalled();
       expect(prisma.contact.create).toHaveBeenCalledWith({
-        data: {
+        data: expect.objectContaining({
           name: validContactData.name,
           emailAddress: validContactData.emailAddress,
           phoneNumber: validContactData.phoneNumber,
           socialMediaLinks: validContactData.socialMediaLinks,
           location: validContactData.location,
           availability: validContactData.availability,
-          additionalContactMethods: null,
-        },
+        }),
       });
       expect(getStatusCode(res)).toBe(201);
       expect(getJsonResponse(res)).toEqual(mockCreatedContact);

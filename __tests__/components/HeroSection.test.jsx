@@ -80,7 +80,7 @@ describe('HeroSection Component', () => {
 
     describe('Rendering', () => {
         it('should render without crashing', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByLabelText('Hero section')).toBeInTheDocument();
         });
 
@@ -90,17 +90,17 @@ describe('HeroSection Component', () => {
         });
 
         it('should render name from data prop', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
 
         it('should render tagline from data prop', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText('AI/ML Engineer')).toBeInTheDocument();
         });
 
         it('should render bio from data prop', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText(/Building production-grade AI systems/)).toBeInTheDocument();
         });
 
@@ -108,7 +108,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -116,7 +115,7 @@ describe('HeroSection Component', () => {
         });
 
         it('should render default hero title when no homeContent', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText(/production AI systems/)).toBeInTheDocument();
         });
     });
@@ -126,7 +125,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -137,7 +135,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -148,7 +145,6 @@ describe('HeroSection Component', () => {
             const { container } = render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -160,7 +156,6 @@ describe('HeroSection Component', () => {
             const { container } = render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -169,7 +164,7 @@ describe('HeroSection Component', () => {
         });
 
         it('should render default CTAs when no homeContent', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText('View My Work')).toBeInTheDocument();
             expect(screen.getByText('Get in Touch')).toBeInTheDocument();
         });
@@ -178,7 +173,6 @@ describe('HeroSection Component', () => {
             const { container } = render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -193,7 +187,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -202,7 +195,7 @@ describe('HeroSection Component', () => {
         });
 
         it('should render default tech badges when no homeContent', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText('Python')).toBeInTheDocument();
             expect(screen.getByText('TensorFlow')).toBeInTheDocument();
             expect(screen.getByText('React')).toBeInTheDocument();
@@ -214,7 +207,6 @@ describe('HeroSection Component', () => {
             const { container } = render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -226,7 +218,6 @@ describe('HeroSection Component', () => {
             const { container } = render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -237,18 +228,18 @@ describe('HeroSection Component', () => {
 
     describe('Scroll Indicator', () => {
         it('should render scroll indicator', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByLabelText('Scroll to services')).toBeInTheDocument();
         });
 
         it('should render "Explore" text in scroll indicator', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText('Explore')).toBeInTheDocument();
         });
 
         it('should render arrow icon in scroll indicator', () => {
             const { container } = render(
-                <HeroSection data={mockData} contactData={mockContactData} />
+                <HeroSection data={mockData}  />
             );
             const scrollButton = screen.getByLabelText('Scroll to services');
             const svg = scrollButton.querySelector('svg');
@@ -262,7 +253,7 @@ describe('HeroSection Component', () => {
             };
             document.getElementById = jest.fn(() => mockElement);
 
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
 
             const scrollButton = screen.getByLabelText('Scroll to services');
             fireEvent.click(scrollButton);
@@ -274,7 +265,7 @@ describe('HeroSection Component', () => {
         it('should handle missing services section gracefully', () => {
             document.getElementById = jest.fn(() => null);
 
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
 
             const scrollButton = screen.getByLabelText('Scroll to services');
             expect(() => fireEvent.click(scrollButton)).not.toThrow();
@@ -283,13 +274,13 @@ describe('HeroSection Component', () => {
 
     describe('Animation and Timing', () => {
         it('should check sessionStorage for animation state', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(mockSessionStorage.getItem).toHaveBeenCalledWith('introAnimationPlayed');
         });
 
         it('should skip animation if already played', () => {
             mockSessionStorage.getItem.mockReturnValue('true');
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             // Component should render immediately without delay
             expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
@@ -306,13 +297,13 @@ describe('HeroSection Component', () => {
                 dispatchEvent: jest.fn(),
             }));
 
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
 
         it('should set animation ready state after mount', async () => {
             mockSessionStorage.getItem.mockReturnValue('true');
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
 
             await waitFor(() => {
                 expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
@@ -330,7 +321,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -344,7 +334,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={mockHomeContent}
                 />
             );
@@ -355,7 +344,7 @@ describe('HeroSection Component', () => {
         });
 
         it('should use default typing intro when no homeContent', async () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             await waitFor(() => {
                 const typedText = screen.getByTestId('typed-text');
                 expect(typedText).toBeInTheDocument();
@@ -366,38 +355,38 @@ describe('HeroSection Component', () => {
     describe('Accessibility', () => {
         it('should have no accessibility violations', async () => {
             const { container } = render(
-                <HeroSection data={mockData} contactData={mockContactData} />
+                <HeroSection data={mockData}  />
             );
             const results = await axe(container);
             expect(results).toHaveNoViolations();
         });
 
         it('should have proper section landmark', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByLabelText('Hero section')).toBeInTheDocument();
         });
 
         it('should have h1 for main title', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             const h1 = screen.getByRole('heading', { level: 1 });
             expect(h1).toBeInTheDocument();
         });
 
         it('should have aria-label on scroll button', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByLabelText('Scroll to services')).toBeInTheDocument();
         });
     });
 
     describe('Layout and Structure', () => {
         it('should render in section element', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             expect(screen.getByLabelText('Hero section').tagName).toBe('SECTION');
         });
 
         it('should have min-h-screen class', () => {
             const { container } = render(
-                <HeroSection data={mockData} contactData={mockContactData} />
+                <HeroSection data={mockData}  />
             );
             const section = container.querySelector('section');
             expect(section).toHaveClass('min-h-screen');
@@ -405,7 +394,7 @@ describe('HeroSection Component', () => {
 
         it('should render content in centered container', () => {
             const { container } = render(
-                <HeroSection data={mockData} contactData={mockContactData} />
+                <HeroSection data={mockData}  />
             );
             const textCenter = container.querySelector('.text-center');
             expect(textCenter).toBeInTheDocument();
@@ -414,36 +403,36 @@ describe('HeroSection Component', () => {
 
     describe('Default Values', () => {
         it('should use default name when data is empty', () => {
-            render(<HeroSection data={{}} contactData={mockContactData} />);
+            render(<HeroSection data={{}}  />);
             expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
 
         it('should use default tagline when data is empty', () => {
-            render(<HeroSection data={{}} contactData={mockContactData} />);
+            render(<HeroSection data={{}}  />);
             expect(screen.getByText('AI/ML Engineer')).toBeInTheDocument();
         });
 
         it('should use default bio when data is empty', () => {
-            render(<HeroSection data={{}} contactData={mockContactData} />);
+            render(<HeroSection data={{}}  />);
             expect(
                 screen.getByText(/Building production-grade AI systems/)
             ).toBeInTheDocument();
         });
 
         it('should handle null data prop', () => {
-            render(<HeroSection data={null} contactData={mockContactData} />);
+            render(<HeroSection data={null}  />);
             expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
 
         it('should handle undefined data prop', () => {
-            render(<HeroSection contactData={mockContactData} />);
+            render(<HeroSection  />);
             expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
     });
 
     describe('Styling and Visual Elements', () => {
         it('should apply gradient to main title', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             const h1 = screen.getByRole('heading', { level: 1 });
             expect(h1).toHaveStyle({
                 background: expect.stringContaining('linear-gradient'),
@@ -451,13 +440,13 @@ describe('HeroSection Component', () => {
         });
 
         it('should render name with ember color', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             const name = screen.getByText('Josh Lowe');
             expect(name).toHaveStyle({ color: '#E85D04' });
         });
 
         it('should apply text shadow to title', () => {
-            render(<HeroSection data={mockData} contactData={mockContactData} />);
+            render(<HeroSection data={mockData}  />);
             const h1 = screen.getByRole('heading', { level: 1 });
             // JSDOM doesn't always parse complex textShadow values correctly
             // Just verify the h1 is rendered with inline styles applied
@@ -475,7 +464,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={contentWithEmptyBadges}
                 />
             );
@@ -491,7 +479,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={contentWithEmptyStrings}
                 />
             );
@@ -507,7 +494,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={contentWithoutPrimaryCta}
                 />
             );
@@ -523,7 +509,6 @@ describe('HeroSection Component', () => {
             render(
                 <HeroSection
                     data={mockData}
-                    contactData={mockContactData}
                     homeContent={contentWithoutSecondaryCta}
                 />
             );
@@ -534,13 +519,13 @@ describe('HeroSection Component', () => {
         it('should handle very long bio text', () => {
             const longBio = 'A'.repeat(500);
             const dataWithLongBio = { ...mockData, briefBio: longBio };
-            render(<HeroSection data={dataWithLongBio} contactData={mockContactData} />);
+            render(<HeroSection data={dataWithLongBio}  />);
             expect(screen.getByText(longBio)).toBeInTheDocument();
         });
 
         it('should handle special characters in name', () => {
             const dataWithSpecialChars = { ...mockData, name: "O'Brien & Smith" };
-            render(<HeroSection data={dataWithSpecialChars} contactData={mockContactData} />);
+            render(<HeroSection data={dataWithSpecialChars}  />);
             expect(screen.getByText("O'Brien & Smith")).toBeInTheDocument();
         });
     });
@@ -548,7 +533,7 @@ describe('HeroSection Component', () => {
     describe('Responsive Behavior', () => {
         it('should render responsive text classes', () => {
             const { container } = render(
-                <HeroSection data={mockData} contactData={mockContactData} />
+                <HeroSection data={mockData}  />
             );
             const h1 = container.querySelector('h1');
             expect(h1).toHaveClass('text-4xl', 'sm:text-5xl', 'md:text-6xl', 'lg:text-7xl');
@@ -556,7 +541,7 @@ describe('HeroSection Component', () => {
 
         it('should render responsive layout classes', () => {
             const { container } = render(
-                <HeroSection data={mockData} contactData={mockContactData} />
+                <HeroSection data={mockData}  />
             );
             const section = container.querySelector('section');
             expect(section).toHaveClass('px-4', 'sm:px-6', 'lg:px-8');

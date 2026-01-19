@@ -1,5 +1,5 @@
 /**
- * Tests for queryBuilders utility functions
+ * Tests for lib/utils/queryBuilders.js
  */
 
 import {
@@ -9,196 +9,215 @@ import {
   buildProjectIncludeClause,
   buildPostQuery,
   buildProjectQuery,
-} from "@/lib/utils/queryBuilders";
+} from "../../../lib/utils/queryBuilders";
 
-describe("queryBuilders utilities", () => {
+describe("queryBuilders", () => {
   describe("buildPostWhereClause", () => {
-    it("should build where clause with status filter", () => {
+    it("builds where clause with status", () => {
       const result = buildPostWhereClause({ status: "Published" });
-      expect(result.status).toBe("Published");
+      expect(result).toEqual({ status: "Published" });
     });
 
-    it("should handle 'all' status", () => {
+    it("excludes status when it is 'all'", () => {
       const result = buildPostWhereClause({ status: "all" });
-      expect(result.status).toBeUndefined();
+      expect(result).toEqual({});
     });
 
-    it("should include topic filter", () => {
-      const result = buildPostWhereClause({ topic: "React" });
-      expect(result.topic).toBe("react");
+    it("builds where clause with topic (lowercased)", () => {
+      const result = buildPostWhereClause({ topic: "REACT" });
+      expect(result).toEqual({ topic: "react" });
     });
 
-    it("should include search filter", () => {
-      const result = buildPostWhereClause({ search: "test" });
+    it("builds where clause with search", () => {
+      const result = buildPostWhereClause({ search: "hooks" });
       expect(result.OR).toBeDefined();
-      expect(result.OR.length).toBeGreaterThan(0);
+      expect(result.OR.length).toBe(3); // title, description, content
     });
 
-    it("should include tags filter", () => {
-      const result = buildPostWhereClause({ tags: ["javascript", "react"] });
-      expect(result.tags).toBeDefined();
-      expect(result.tags.hasSome).toEqual(["javascript", "react"]);
-    });
-
-    it("should handle single tag", () => {
+    it("builds where clause with single tag", () => {
       const result = buildPostWhereClause({ tags: "javascript" });
-      expect(result.tags.hasSome).toEqual(["javascript"]);
+      expect(result.tags).toEqual({ hasSome: ["javascript"] });
     });
 
-    it("should remove undefined values", () => {
+    it("builds where clause with multiple tags", () => {
+      const result = buildPostWhereClause({ tags: ["javascript", "react"] });
+      expect(result.tags).toEqual({ hasSome: ["javascript", "react"] });
+    });
+
+    it("builds where clause with all filters", () => {
+      const result = buildPostWhereClause({
+        status: "Published",
+        topic: "tech",
+        search: "hooks",
+        tags: ["react"],
+      });
+      expect(result.status).toBe("Published");
+      expect(result.topic).toBe("tech");
+      expect(result.OR).toBeDefined();
+      expect(result.tags).toBeDefined();
+    });
+
+    it("returns empty object when no filters", () => {
       const result = buildPostWhereClause({});
-      expect(result.status).toBeUndefined();
-      expect(result.topic).toBeUndefined();
+      expect(result).toEqual({});
     });
   });
 
   describe("buildProjectWhereClause", () => {
-    it("should build where clause with status filter", () => {
-      const result = buildProjectWhereClause({ status: "Published" });
-      expect(result.status).toBe("Published");
+    it("builds where clause with status", () => {
+      const result = buildProjectWhereClause({ status: "Completed" });
+      expect(result).toEqual({ status: "Completed" });
     });
 
-    it("should handle 'all' status", () => {
+    it("excludes status when it is 'all'", () => {
       const result = buildProjectWhereClause({ status: "all" });
-      expect(result.status).toBeUndefined();
+      expect(result).toEqual({});
     });
 
-    it("should include search filter", () => {
-      const result = buildProjectWhereClause({ search: "test" });
+    it("builds where clause with search", () => {
+      const result = buildProjectWhereClause({ search: "ai" });
       expect(result.OR).toBeDefined();
+      expect(result.OR.length).toBe(3); // title, description, shortDescription
     });
 
-    it("should include featured filter", () => {
+    it("builds where clause with tags", () => {
+      const result = buildProjectWhereClause({ tags: ["ai", "ml"] });
+      expect(result.tags).toEqual({ hasSome: ["ai", "ml"] });
+    });
+
+    it("builds where clause with featured true", () => {
       const result = buildProjectWhereClause({ featured: true });
       expect(result.featured).toBe(true);
+    });
+
+    it("builds where clause with featured false", () => {
+      const result = buildProjectWhereClause({ featured: false });
+      expect(result.featured).toBe(false);
+    });
+
+    it("does not include featured when undefined", () => {
+      const result = buildProjectWhereClause({});
+      expect(result.featured).toBeUndefined();
     });
   });
 
   describe("buildPostIncludeClause", () => {
-    it("should return include clause with counts when includeCounts is true", () => {
-      const result = buildPostIncludeClause(true);
+    it("includes counts by default", () => {
+      const result = buildPostIncludeClause();
       expect(result._count).toBeDefined();
       expect(result._count.select.comments).toBe(true);
       expect(result._count.select.likes).toBe(true);
     });
 
-    it("should return empty object when includeCounts is false", () => {
-      const result = buildPostIncludeClause(false);
-      expect(result).toEqual({});
+    it("includes counts when true", () => {
+      const result = buildPostIncludeClause(true);
+      expect(result._count).toBeDefined();
     });
 
-    it("should default to including counts", () => {
-      const result = buildPostIncludeClause();
-      expect(result._count).toBeDefined();
+    it("returns empty object when false", () => {
+      const result = buildPostIncludeClause(false);
+      expect(result).toEqual({});
     });
   });
 
   describe("buildProjectIncludeClause", () => {
-    it("should return include clause with teamMembers when includeTeam is true", () => {
+    it("includes team members by default", () => {
+      const result = buildProjectIncludeClause();
+      expect(result.teamMembers).toBe(true);
+    });
+
+    it("includes team members when true", () => {
       const result = buildProjectIncludeClause(true);
       expect(result.teamMembers).toBe(true);
     });
 
-    it("should return empty object when includeTeam is false", () => {
+    it("returns empty object when false", () => {
       const result = buildProjectIncludeClause(false);
       expect(result).toEqual({});
-    });
-
-    it("should default to including team", () => {
-      const result = buildProjectIncludeClause();
-      expect(result.teamMembers).toBe(true);
     });
   });
 
   describe("buildPostQuery", () => {
-    it("should build complete query with all parameters", () => {
-      const where = { status: "Published" };
-      const orderBy = { createdAt: "desc" };
+    it("builds complete query", () => {
       const result = buildPostQuery({
-        where,
-        orderBy,
+        where: { status: "Published" },
+        orderBy: { createdAt: "desc" },
         limit: 10,
-        offset: 5,
-        includeCounts: true,
+        offset: 20,
       });
 
-      expect(result.where).toEqual(where);
-      expect(result.orderBy).toEqual(orderBy);
+      expect(result.where).toEqual({ status: "Published" });
+      expect(result.orderBy).toEqual({ createdAt: "desc" });
       expect(result.take).toBe(10);
-      expect(result.skip).toBe(5);
+      expect(result.skip).toBe(20);
       expect(result.include._count).toBeDefined();
     });
 
-    it("should not include skip when offset is 0", () => {
-      const where = { status: "Published" };
-      const orderBy = { createdAt: "desc" };
+    it("excludes take when limit is undefined", () => {
       const result = buildPostQuery({
-        where,
-        orderBy,
-        limit: 10,
-        offset: 0,
-        includeCounts: true,
+        where: {},
+        orderBy: {},
       });
-
-      expect(result.skip).toBeUndefined();
-    });
-
-    it("should handle missing limit and offset", () => {
-      const where = {};
-      const orderBy = { createdAt: "desc" };
-      const result = buildPostQuery({ where, orderBy });
-
       expect(result.take).toBeUndefined();
+    });
+
+    it("excludes skip when offset is undefined", () => {
+      const result = buildPostQuery({
+        where: {},
+        orderBy: {},
+      });
       expect(result.skip).toBeUndefined();
     });
 
-    it("should handle includeCounts false", () => {
-      const where = {};
-      const orderBy = { createdAt: "desc" };
-      const result = buildPostQuery({ where, orderBy, includeCounts: false });
+    it("excludes skip when offset is 0", () => {
+      const result = buildPostQuery({
+        where: {},
+        orderBy: {},
+        offset: 0,
+      });
+      expect(result.skip).toBeUndefined();
+    });
 
+    it("respects includeCounts parameter", () => {
+      const result = buildPostQuery({
+        where: {},
+        orderBy: {},
+        includeCounts: false,
+      });
       expect(result.include).toEqual({});
     });
   });
 
   describe("buildProjectQuery", () => {
-    it("should build complete query with all parameters", () => {
-      const where = { status: "Published" };
-      const orderBy = { createdAt: "desc" };
+    it("builds complete query", () => {
       const result = buildProjectQuery({
-        where,
-        orderBy,
-        limit: 10,
-        offset: 5,
-        includeTeam: true,
+        where: { status: "Completed" },
+        orderBy: { updatedAt: "desc" },
+        limit: 5,
+        offset: 10,
       });
 
-      expect(result.where).toEqual(where);
-      expect(result.orderBy).toEqual(orderBy);
-      expect(result.take).toBe(10);
-      expect(result.skip).toBe(5);
+      expect(result.where).toEqual({ status: "Completed" });
+      expect(result.orderBy).toEqual({ updatedAt: "desc" });
+      expect(result.take).toBe(5);
+      expect(result.skip).toBe(10);
       expect(result.include.teamMembers).toBe(true);
     });
 
-    it("should not include skip when offset is 0", () => {
-      const where = { status: "Published" };
-      const orderBy = { createdAt: "desc" };
+    it("excludes take when limit is undefined", () => {
       const result = buildProjectQuery({
-        where,
-        orderBy,
-        limit: 10,
-        offset: 0,
-        includeTeam: true,
+        where: {},
+        orderBy: {},
       });
-
-      expect(result.skip).toBeUndefined();
+      expect(result.take).toBeUndefined();
     });
 
-    it("should handle includeTeam false", () => {
-      const where = {};
-      const orderBy = { createdAt: "desc" };
-      const result = buildProjectQuery({ where, orderBy, includeTeam: false });
-
+    it("respects includeTeam parameter", () => {
+      const result = buildProjectQuery({
+        where: {},
+        orderBy: {},
+        includeTeam: false,
+      });
       expect(result.include).toEqual({});
     });
   });

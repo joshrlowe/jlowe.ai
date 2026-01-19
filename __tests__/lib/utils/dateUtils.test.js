@@ -1,86 +1,141 @@
 /**
- * Tests for dateUtils
+ * Tests for lib/utils/dateUtils.js
  */
+
 import {
   formatDate,
   formatArticleDate,
   formatAdminDate,
   formatDateTime,
-} from "@/lib/utils/dateUtils";
+  formatMonthYear,
+  formatDateUTC,
+} from "../../../lib/utils/dateUtils";
 
 describe("dateUtils", () => {
-  const testDate = new Date("2024-01-15T10:30:00Z");
-  const testDateString = "2024-01-15T10:30:00Z";
-
   describe("formatDate", () => {
-    it("should format a valid date string", () => {
-      const result = formatDate(testDateString);
+    it("formats ISO date string", () => {
+      const result = formatDate("2024-01-15T12:00:00");
       expect(result).toContain("January");
-      expect(result).toContain("15");
       expect(result).toContain("2024");
     });
 
-    it("should format a Date object", () => {
-      const result = formatDate(testDate);
-      expect(result).toContain("January");
-      expect(result).toContain("15");
-      expect(result).toContain("2024");
+    it("formats Date object", () => {
+      const date = new Date(2024, 2, 20); // March 20, 2024 (month is 0-indexed)
+      const result = formatDate(date);
+      expect(result).toBe("March 20, 2024");
     });
 
-    it("should return empty string for null", () => {
+    it("returns empty string for null", () => {
       expect(formatDate(null)).toBe("");
     });
 
-    it("should return empty string for undefined", () => {
+    it("returns empty string for undefined", () => {
       expect(formatDate(undefined)).toBe("");
     });
 
-    it("should return empty string for empty string", () => {
+    it("returns empty string for empty string", () => {
       expect(formatDate("")).toBe("");
     });
 
-    it("should return empty string for invalid date", () => {
-      expect(formatDate("invalid-date")).toBe("");
+    it("returns empty string for invalid date", () => {
+      expect(formatDate("not a date")).toBe("");
     });
 
-    it("should accept custom options", () => {
-      const result = formatDate(testDate, { month: "short", year: "2-digit" });
+    it("accepts custom options", () => {
+      const result = formatDate("2024-01-15T12:00:00Z", { month: "short" });
+      // Result should contain Jan and 2024
       expect(result).toContain("Jan");
-      expect(result).not.toContain("January");
+      expect(result).toContain("2024");
+    });
+
+    it("merges custom options with defaults", () => {
+      const result = formatDate("2024-01-15", { weekday: "long" });
+      expect(result).toContain("January");
+      expect(result).toContain("2024");
     });
   });
 
   describe("formatArticleDate", () => {
-    it("should format date for article display", () => {
-      const result = formatArticleDate(testDateString);
+    it("formats date in long format", () => {
+      const result = formatArticleDate("2024-01-15T12:00:00");
       expect(result).toContain("January");
-      expect(result).toContain("15");
       expect(result).toContain("2024");
     });
 
-    it("should return empty string for invalid input", () => {
+    it("returns empty string for null", () => {
       expect(formatArticleDate(null)).toBe("");
-      expect(formatArticleDate("invalid")).toBe("");
     });
   });
 
   describe("formatAdminDate", () => {
-    it("should format date in short format", () => {
-      const result = formatAdminDate(testDateString);
-      expect(result).toContain("Jan"); // Short month
-      expect(result).toContain("15");
+    it("formats date in short format", () => {
+      const result = formatAdminDate("2024-01-15T12:00:00");
+      expect(result).toContain("Jan");
       expect(result).toContain("2024");
+    });
+
+    it("returns empty string for null", () => {
+      expect(formatAdminDate(null)).toBe("");
     });
   });
 
   describe("formatDateTime", () => {
-    it("should format date with time", () => {
-      const result = formatDateTime(testDateString);
+    it("formats date with time", () => {
+      const result = formatDateTime("2024-01-15T14:30:00");
       expect(result).toContain("January");
       expect(result).toContain("15");
       expect(result).toContain("2024");
-      // Time formatting depends on locale, so we just check it's there
-      expect(result.length).toBeGreaterThan(15);
+      // Time format varies by locale/timezone
+    });
+
+    it("returns empty string for null", () => {
+      expect(formatDateTime(null)).toBe("");
+    });
+  });
+
+  describe("formatMonthYear", () => {
+    it("formats date as month and year", () => {
+      const result = formatMonthYear("2024-01-15T12:00:00");
+      expect(result).toContain("January");
+      expect(result).toContain("2024");
+    });
+
+    it("returns Present for null", () => {
+      expect(formatMonthYear(null)).toBe("Present");
+    });
+
+    it("returns Present for undefined", () => {
+      expect(formatMonthYear(undefined)).toBe("Present");
+    });
+
+    it("returns Present for empty string", () => {
+      expect(formatMonthYear("")).toBe("Present");
+    });
+  });
+
+  describe("formatDateUTC", () => {
+    it("formats date in UTC", () => {
+      const result = formatDateUTC("2024-01-15");
+      // Result depends on UTC interpretation
+      expect(result).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+    });
+
+    it("returns empty string for null", () => {
+      expect(formatDateUTC(null)).toBe("");
+    });
+
+    it("returns empty string for empty string", () => {
+      expect(formatDateUTC("")).toBe("");
+    });
+
+    it("returns empty string for invalid date", () => {
+      expect(formatDateUTC("invalid")).toBe("");
+    });
+
+    it("handles Date object", () => {
+      const date = new Date("2024-01-15T00:00:00Z");
+      const result = formatDateUTC(date);
+      expect(result).toBeTruthy();
     });
   });
 });

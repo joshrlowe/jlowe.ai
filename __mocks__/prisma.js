@@ -61,6 +61,7 @@ const prisma = {
   playlist: createMockModel(mockPlaylists),
   playlistPost: createMockModel([]),
   comment: createMockModel(mockComments),
+  commentVote: createMockModel([]),
   like: createMockModel([]),
   newsletterSubscription: createMockModel([]),
   adminUser: createMockModel([]),

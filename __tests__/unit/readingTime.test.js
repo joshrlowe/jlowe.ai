@@ -9,16 +9,16 @@ import { calculateReadingTime } from '@/lib/utils/readingTime';
 describe('readingTime', () => {
   describe('calculateReadingTime', () => {
     it('should calculate reading time for plain text', () => {
-      // 200 words = 1 minute at default 200 WPM
-      const words = Array(200).fill('word').join(' ');
+      // 225 words = 1 minute at default 225 WPM
+      const words = Array(225).fill('word').join(' ');
       const result = calculateReadingTime(words);
       
       expect(result).toBe(1);
     });
 
     it('should round up to next minute', () => {
-      // 250 words should be 2 minutes (rounded up from 1.25)
-      const words = Array(250).fill('word').join(' ');
+      // 300 words should be 2 minutes (rounded up from 1.33)
+      const words = Array(300).fill('word').join(' ');
       const result = calculateReadingTime(words);
       
       expect(result).toBe(2);
@@ -92,8 +92,8 @@ describe('readingTime', () => {
     });
 
     it('should calculate correctly for long content', () => {
-      // 1000 words = 5 minutes
-      const words = Array(1000).fill('word').join(' ');
+      // 1125 words = 5 minutes at 225 WPM
+      const words = Array(1125).fill('word').join(' ');
       const result = calculateReadingTime(words);
       
       expect(result).toBe(5);

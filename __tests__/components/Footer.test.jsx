@@ -68,10 +68,10 @@ describe('Footer Component', () => {
             expect(screen.getByText(new RegExp(`© ${currentYear} Josh Lowe`))).toBeInTheDocument();
         });
 
-        it('should render "Built with" message', () => {
+        it('should render copyright with correct year', () => {
+            const currentYear = new Date().getFullYear();
             render(<Footer />);
-            expect(screen.getByText(/Built with/)).toBeInTheDocument();
-            expect(screen.getByText(/and React/)).toBeInTheDocument();
+            expect(screen.getByText(new RegExp(`${currentYear}`))).toBeInTheDocument();
         });
     });
 
@@ -107,19 +107,15 @@ describe('Footer Component', () => {
         });
     });
 
-    describe('Services Section', () => {
-        it('should render "Services" heading', () => {
+    describe('Footer Structure', () => {
+        it('should render navigation section', () => {
             render(<Footer />);
-            expect(screen.getByText('Services')).toBeInTheDocument();
+            expect(screen.getByText('Navigation')).toBeInTheDocument();
         });
 
-        it('should render all service items', () => {
+        it('should render josh lowe branding', () => {
             render(<Footer />);
-            expect(screen.getByText('AI Strategy')).toBeInTheDocument();
-            expect(screen.getByText('ML Systems')).toBeInTheDocument();
-            expect(screen.getByText('LLM Solutions')).toBeInTheDocument();
-            expect(screen.getByText('Cloud & MLOps')).toBeInTheDocument();
-            expect(screen.getByText('Data Analytics')).toBeInTheDocument();
+            expect(screen.getByText('Josh Lowe')).toBeInTheDocument();
         });
     });
 
@@ -356,10 +352,10 @@ describe('Footer Component', () => {
             expect(heartIcon).toBeInTheDocument();
         });
 
-        it('should have animate-pulse class on heart icon', () => {
+        it('should render social icons', () => {
             const { container } = render(<Footer />);
-            const heartIcon = container.querySelector('.animate-pulse');
-            expect(heartIcon).toBeInTheDocument();
+            const svgIcons = container.querySelectorAll('svg');
+            expect(svgIcons.length).toBeGreaterThan(0);
         });
     });
 

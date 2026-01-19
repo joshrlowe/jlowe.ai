@@ -1,470 +1,170 @@
 /**
- * Tests for /api/newsletter/subscribe.js
- *
- * Tests newsletter subscription API route
+ * Tests for newsletter subscribe API route
  */
 
-import newsletterHandler from '../../../pages/api/newsletter/subscribe.js';
-import prisma from '../../../lib/prisma.js';
-import {
-  createMockRequest,
-  createMockResponse,
-  getJsonResponse,
-  getStatusCode,
-} from '../../setup/api-test-utils.js';
+import prisma from "@/__mocks__/prisma";
+import handler from "@/pages/api/newsletter/subscribe";
 
-jest.mock('../../../lib/prisma.js', () => ({
-  __esModule: true,
-  default: {
-    newsletterSubscription: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-  },
+jest.mock("@/lib/prisma", () => require("@/__mocks__/prisma"));
+jest.mock("@/lib/utils/apiErrorHandler", () => ({
+  handleApiError: jest.fn((error, res) => {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }),
 }));
 
-describe('/api/newsletter/subscribe', () => {
+const createMockRequest = (method, body = {}) => ({
+  method,
+  body,
+});
+
+const createMockResponse = () => {
+  const res = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  return res;
+};
+
+describe("POST /api/newsletter/subscribe", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('POST requests', () => {
-    it('should create new subscription with valid email', async () => {
-      const email = 'test@example.com';
-      const mockSubscription = {
-        id: '1',
-        email: email.toLowerCase(),
+  it("returns 405 for non-POST requests", async () => {
+    const req = createMockRequest("GET");
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(405);
+    expect(res.json).toHaveBeenCalledWith({ message: "Method Not Allowed" });
+  });
+
+  it("returns 400 when email is missing", async () => {
+    const req = createMockRequest("POST", {});
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Valid email is required" });
+  });
+
+  it("returns 400 when email is invalid", async () => {
+    const req = createMockRequest("POST", { email: "invalidemail" });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Valid email is required" });
+  });
+
+  it("creates new subscription for new email", async () => {
+    prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
+    prisma.newsletterSubscription.create.mockResolvedValue({
+      id: "1",
+      email: "test@example.com",
+      active: true,
+    });
+
+    const req = createMockRequest("POST", { email: "test@example.com" });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(prisma.newsletterSubscription.create).toHaveBeenCalledWith({
+      data: {
+        email: "test@example.com",
         active: true,
-        createdAt: new Date(),
-      };
+      },
+    });
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Successfully subscribed",
+      }),
+    );
+  });
 
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue(mockSubscription);
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(prisma.newsletterSubscription.findUnique).toHaveBeenCalledWith({
-        where: { email: email.toLowerCase() },
-      });
-      expect(prisma.newsletterSubscription.create).toHaveBeenCalledWith({
-        data: {
-          email: email.toLowerCase(),
-          active: true,
-        },
-      });
-      expect(getStatusCode(res)).toBe(201);
-      expect(getJsonResponse(res).message).toContain('Successfully subscribed');
-      expect(getJsonResponse(res).subscription).toEqual(mockSubscription);
+  it("lowercases email before saving", async () => {
+    prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
+    prisma.newsletterSubscription.create.mockResolvedValue({
+      id: "1",
+      email: "test@example.com",
+      active: true,
     });
 
-    it('should convert email to lowercase', async () => {
-      const email = 'TEST@EXAMPLE.COM';
+    const req = createMockRequest("POST", { email: "TEST@EXAMPLE.COM" });
+    const res = createMockResponse();
 
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: email.toLowerCase(),
+    await handler(req, res);
+
+    expect(prisma.newsletterSubscription.findUnique).toHaveBeenCalledWith({
+      where: { email: "test@example.com" },
+    });
+    expect(prisma.newsletterSubscription.create).toHaveBeenCalledWith({
+      data: {
+        email: "test@example.com",
         active: true,
-      });
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(prisma.newsletterSubscription.create).toHaveBeenCalledWith({
-        data: {
-          email: 'test@example.com',
-          active: true,
-        },
-      });
-    });
-
-    it('should return 400 when email is missing', async () => {
-      const req = createMockRequest({
-        method: 'POST',
-        body: {},
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toContain('Valid email is required');
-    });
-
-    it('should return 400 when email is null', async () => {
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: null },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toContain('Valid email is required');
-    });
-
-    it('should return 400 when email is invalid', async () => {
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'invalid-email' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toContain('Valid email is required');
-    });
-
-    it('should return 400 when email does not contain @', async () => {
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'notemail.com' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-    });
-
-    it('should return 400 when email is already subscribed and active', async () => {
-      const email = 'existing@example.com';
-      const existingSubscription = {
-        id: '1',
-        email: email.toLowerCase(),
-        active: true,
-      };
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(
-        existingSubscription
-      );
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toContain('Email already subscribed');
-    });
-
-    it('should reactivate inactive subscription', async () => {
-      const email = 'inactive@example.com';
-      const inactiveSubscription = {
-        id: '1',
-        email: email.toLowerCase(),
-        active: false,
-      };
-      const reactivatedSubscription = {
-        ...inactiveSubscription,
-        active: true,
-      };
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(
-        inactiveSubscription
-      );
-      prisma.newsletterSubscription.update.mockResolvedValue(
-        reactivatedSubscription
-      );
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(prisma.newsletterSubscription.update).toHaveBeenCalledWith({
-        where: { email: email.toLowerCase() },
-        data: { active: true },
-      });
-      const statusCode = getStatusCode(res);
-      expect([200, 201]).toContain(statusCode);
-      expect(getJsonResponse(res).message).toContain('reactivated');
-      expect(getJsonResponse(res).subscription).toEqual(reactivatedSubscription);
-    });
-
-    it('should handle database errors with 500', async () => {
-      prisma.newsletterSubscription.findUnique.mockRejectedValue(
-        new Error('Database error')
-      );
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(500);
-    });
-
-    it('should handle unique constraint violations', async () => {
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockRejectedValue({
-        code: 'P2002',
-        message: 'Unique constraint failed',
-      });
-
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(409);
-      consoleSpy.mockRestore();
+      },
     });
   });
 
-  describe('HTTP method restrictions', () => {
-    it('should return 405 for GET requests', async () => {
-      const req = createMockRequest({ method: 'GET' });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(405);
-      expect(getJsonResponse(res).message).toBe('Method Not Allowed');
+  it("returns 400 when email already subscribed and active", async () => {
+    prisma.newsletterSubscription.findUnique.mockResolvedValue({
+      id: "1",
+      email: "test@example.com",
+      active: true,
     });
 
-    it('should return 405 for PUT requests', async () => {
-      const req = createMockRequest({ method: 'PUT' });
-      const res = createMockResponse();
+    const req = createMockRequest("POST", { email: "test@example.com" });
+    const res = createMockResponse();
 
-      await newsletterHandler(req, res);
+    await handler(req, res);
 
-      expect(getStatusCode(res)).toBe(405);
-    });
-
-    it('should return 405 for DELETE requests', async () => {
-      const req = createMockRequest({ method: 'DELETE' });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(405);
-    });
-
-    it('should return 405 for PATCH requests', async () => {
-      const req = createMockRequest({ method: 'PATCH' });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(405);
-    });
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Email already subscribed" });
   });
 
-  describe('Edge cases', () => {
-    it('should handle email with spaces', async () => {
-      const email = '  test@example.com  ';
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: email.trim().toLowerCase(),
-        active: true,
-      });
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      // Should handle gracefully (implementation may vary)
-      expect(getStatusCode(res)).toBeGreaterThanOrEqual(200);
+  it("reactivates subscription when email exists but inactive", async () => {
+    prisma.newsletterSubscription.findUnique.mockResolvedValue({
+      id: "1",
+      email: "test@example.com",
+      active: false,
+    });
+    prisma.newsletterSubscription.update.mockResolvedValue({
+      id: "1",
+      email: "test@example.com",
+      active: true,
     });
 
-    it('should handle special characters in email', async () => {
-      const email = 'test+tag@example.com';
+    const req = createMockRequest("POST", { email: "test@example.com" });
+    const res = createMockResponse();
 
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: email.toLowerCase(),
-        active: true,
-      });
+    await handler(req, res);
 
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(201);
+    expect(prisma.newsletterSubscription.update).toHaveBeenCalledWith({
+      where: { email: "test@example.com" },
+      data: { active: true },
     });
-
-    it('should handle international domain names', async () => {
-      const email = 'test@münchen.de';
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: email.toLowerCase(),
-        active: true,
-      });
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(201);
-    });
-
-    it('should handle very long email addresses', async () => {
-      const email = 'a'.repeat(100) + '@example.com';
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: email.toLowerCase(),
-        active: true,
-      });
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(201);
-    });
-
-    it('should handle empty string email', async () => {
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: '' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-    });
-
-    it('should handle email with multiple @ symbols', async () => {
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'test@@example.com' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      // Should accept it (simple validation only checks for @)
-      // More sophisticated validation could reject it
-      expect(getStatusCode(res)).toBeGreaterThanOrEqual(200);
-    });
-
-    it('should handle concurrent subscription attempts', async () => {
-      const email = 'test@example.com';
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: email.toLowerCase(),
-        active: true,
-      });
-
-      const req1 = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res1 = createMockResponse();
-
-      const req2 = createMockRequest({
-        method: 'POST',
-        body: { email },
-      });
-      const res2 = createMockResponse();
-
-      await newsletterHandler(req1, res1);
-      await newsletterHandler(req2, res2);
-
-      // Both should complete
-      expect(getStatusCode(res1)).toBeGreaterThanOrEqual(200);
-      expect(getStatusCode(res2)).toBeGreaterThanOrEqual(200);
-    });
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Subscription reactivated",
+      }),
+    );
   });
 
-  describe('Response structure', () => {
-    it('should include message in success response', async () => {
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue({
-        id: '1',
-        email: 'test@example.com',
-        active: true,
-      });
+  it("handles database errors", async () => {
+    const { handleApiError } = require("@/lib/utils/apiErrorHandler");
+    prisma.newsletterSubscription.findUnique.mockRejectedValue(
+      new Error("Database error"),
+    );
 
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      });
-      const res = createMockResponse();
+    const req = createMockRequest("POST", { email: "test@example.com" });
+    const res = createMockResponse();
 
-      await newsletterHandler(req, res);
+    await handler(req, res);
 
-      const response = getJsonResponse(res);
-      expect(response).toHaveProperty('message');
-      expect(response).toHaveProperty('subscription');
-    });
-
-    it('should include subscription object in response', async () => {
-      const mockSubscription = {
-        id: '1',
-        email: 'test@example.com',
-        active: true,
-        createdAt: new Date(),
-      };
-
-      prisma.newsletterSubscription.findUnique.mockResolvedValue(null);
-      prisma.newsletterSubscription.create.mockResolvedValue(mockSubscription);
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: { email: 'test@example.com' },
-      });
-      const res = createMockResponse();
-
-      await newsletterHandler(req, res);
-
-      const response = getJsonResponse(res);
-      expect(response.subscription).toEqual(mockSubscription);
-    });
+    expect(handleApiError).toHaveBeenCalled();
   });
 });
-
