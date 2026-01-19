@@ -45,9 +45,8 @@ export default function SocialShare({ url, title, description: _description }) {
     }
   };
 
-  const handleShareClick = (platform, shareUrl) => {
+  const handleShareClick = (platform) => {
     trackSocialShare(platform.toLowerCase(), url);
-    window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -57,14 +56,17 @@ export default function SocialShare({ url, title, description: _description }) {
       </span>
 
       {shareLinks.map((link) => (
-        <button
+        <a
           key={link.name}
-          onClick={() => handleShareClick(link.name, link.url)}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => handleShareClick(link.name)}
           className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
           aria-label={`Share on ${link.name}`}
         >
           {link.icon}
-        </button>
+        </a>
       ))}
 
       <button
