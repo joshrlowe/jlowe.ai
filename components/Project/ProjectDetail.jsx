@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import Image from "next/image";
 import Link from "next/link";
 import StatusBadge from "./StatusBadge";
+import { parseJsonField } from "@/lib/utils/jsonUtils";
 
 export default function ProjectDetail({ project }) {
   const headerRef = useRef(null);
@@ -24,18 +25,6 @@ export default function ProjectDetail({ project }) {
       );
     }
   }, []);
-
-  const parseJsonField = (field, defaultValue = []) => {
-    if (!field) return defaultValue;
-    if (typeof field === "string") {
-      try {
-        return JSON.parse(field);
-      } catch {
-        return defaultValue;
-      }
-    }
-    return Array.isArray(field) ? field : defaultValue;
-  };
 
   const images = parseJsonField(project.images, []);
   const tags = parseJsonField(project.tags, []);

@@ -1,17 +1,7 @@
+import { parseJsonField } from "@/lib/utils/jsonUtils";
+
 export default function ProjectPreview({ project, show, onHide }) {
   if (!show || !project) return null;
-
-  const parseJsonField = (field, defaultValue = []) => {
-    if (!field) return defaultValue;
-    if (typeof field === "string") {
-      try {
-        return JSON.parse(field);
-      } catch {
-        return defaultValue;
-      }
-    }
-    return Array.isArray(field) ? field : defaultValue;
-  };
 
   const tags = parseJsonField(project.tags, []);
   const techStack = parseJsonField(project.techStack, []);

@@ -13,6 +13,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import { LoadingSpinner, Modal, adminStyles, PROJECT_STATUSES } from "./shared";
 import { ProjectForm, ProjectListItem } from "./projects";
+import { parseJsonField } from "@/lib/utils/jsonUtils";
 
 const INITIAL_FORM_DATA = {
   title: "",
@@ -80,17 +81,6 @@ export default function ProjectsSettingsSection({ onError }) {
   }, [projects, searchQuery, statusFilter]);
 
 
-  const parseJsonField = (field, defaultValue = null) => {
-    if (!field) return defaultValue;
-    if (typeof field === "string") {
-      try {
-        return JSON.parse(field);
-      } catch {
-        return defaultValue;
-      }
-    }
-    return field;
-  };
 
   const handleCreate = () => {
     setEditingProject(null);
