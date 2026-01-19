@@ -9,8 +9,17 @@ import TableOfContents from "@/components/About/TableOfContents/TableOfContents"
 
 describe("TableOfContents", () => {
   beforeEach(() => {
-    // Mock scrollIntoView
-    Element.prototype.scrollIntoView = jest.fn();
+    // Mock window.scrollTo
+    window.scrollTo = jest.fn();
+    // Mock getBoundingClientRect for offset calculation
+    Element.prototype.getBoundingClientRect = jest.fn(() => ({
+      top: 500,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+    }));
   });
 
   it("renders Contents title", () => {
@@ -48,11 +57,10 @@ describe("TableOfContents", () => {
     expect(overviewLink).toHaveAttribute("href", "#section-hero");
   });
 
-  it("calls scrollIntoView on link click", () => {
+  it("calls window.scrollTo on link click", () => {
     // Create a mock element
     const mockElement = document.createElement("div");
     mockElement.id = "section-summary";
-    mockElement.scrollIntoView = jest.fn();
     document.body.appendChild(mockElement);
 
     render(<TableOfContents />);
@@ -60,9 +68,10 @@ describe("TableOfContents", () => {
     const summaryLink = screen.getByText("Summary");
     fireEvent.click(summaryLink);
     
-    expect(mockElement.scrollIntoView).toHaveBeenCalledWith({
+    // Component uses window.scrollTo with offset
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: expect.any(Number),
       behavior: "smooth",
-      block: "start",
     });
 
     // Cleanup

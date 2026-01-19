@@ -46,11 +46,23 @@ describe("LeadershipExperience", () => {
     expect(screen.getByText("Leadership Experience")).toBeInTheDocument();
   });
 
-  it("renders section subtitle", () => {
-    render(<LeadershipExperience experience={mockExperience} />);
+  it("renders section subtitle when provided", () => {
+    render(
+      <LeadershipExperience
+        experience={mockExperience}
+        subtitle="Leading teams and driving organizational impact"
+      />
+    );
     expect(
       screen.getByText("Leading teams and driving organizational impact"),
     ).toBeInTheDocument();
+  });
+
+  it("does not render subtitle when not provided", () => {
+    render(<LeadershipExperience experience={mockExperience} />);
+    expect(
+      screen.queryByText("Leading teams and driving organizational impact"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders experience role", () => {

@@ -271,6 +271,7 @@ describe("/api/admin/about", () => {
           education: validBody.education,
           technicalCertifications: validBody.technicalCertifications,
           leadershipExperience: validBody.leadershipExperience,
+          leadershipSubtitle: null,
           hobbies: validBody.hobbies,
         },
       });
@@ -325,6 +326,7 @@ describe("/api/admin/about", () => {
           education: [],
           technicalCertifications: [],
           leadershipExperience: [],
+          leadershipSubtitle: null,
           hobbies: [],
         },
       });

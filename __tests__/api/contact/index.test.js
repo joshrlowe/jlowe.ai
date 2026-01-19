@@ -37,8 +37,6 @@ describe('/api/contact', () => {
       linkedIn: 'https://linkedin.com/in/joshlowe',
       github: 'https://github.com/joshlowe',
     },
-    location: 'San Francisco, CA',
-    availability: { workingHours: 'Mon-Fri 9-5' },
   };
 
   describe('GET requests', () => {
@@ -52,8 +50,8 @@ describe('/api/contact', () => {
           linkedIn: 'https://linkedin.com/in/joshlowe',
           github: 'https://github.com/joshlowe',
         },
-        location: 'San Francisco, CA',
-        availability: { workingHours: 'Mon-Fri 9-5' },
+        heroWords: ['Amazing', 'Innovative', 'Momentous'],
+        heroSubtitle: null,
         createdAt: new Date(),
       };
 
@@ -122,8 +120,6 @@ describe('/api/contact', () => {
           emailAddress: validContactData.emailAddress,
           phoneNumber: validContactData.phoneNumber,
           socialMediaLinks: validContactData.socialMediaLinks,
-          location: validContactData.location,
-          availability: validContactData.availability,
         }),
       });
       expect(getStatusCode(res)).toBe(201);
@@ -160,38 +156,6 @@ describe('/api/contact', () => {
 
       expect(getStatusCode(res)).toBe(400);
       expect(getJsonResponse(res).message).toContain('emailAddress');
-    });
-
-    it('should return 400 when location is missing', async () => {
-      const invalidData = { ...validContactData };
-      delete invalidData.location;
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: invalidData,
-      });
-      const res = createMockResponse();
-
-      await contactHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toContain('location');
-    });
-
-    it('should return 400 when availability is missing', async () => {
-      const invalidData = { ...validContactData };
-      delete invalidData.availability;
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: invalidData,
-      });
-      const res = createMockResponse();
-
-      await contactHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toContain('availability');
     });
 
     it('should handle optional phoneNumber when explicitly null', async () => {
@@ -250,56 +214,6 @@ describe('/api/contact', () => {
       expect(getStatusCode(res)).toBe(201);
     });
 
-    it('should handle optional additionalContactMethods', async () => {
-      const dataWithAdditional = {
-        ...validContactData,
-        additionalContactMethods: { skype: 'user123' },
-      };
-
-      prisma.contact.deleteMany.mockResolvedValue({ count: 0 });
-      prisma.contact.create.mockResolvedValue({
-        id: '1',
-        ...dataWithAdditional,
-      });
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: dataWithAdditional,
-      });
-      const res = createMockResponse();
-
-      await contactHandler(req, res);
-
-      expect(prisma.contact.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          additionalContactMethods: { skype: 'user123' },
-        }),
-      });
-    });
-
-    it('should set additionalContactMethods to null when not provided', async () => {
-      prisma.contact.deleteMany.mockResolvedValue({ count: 0 });
-      prisma.contact.create.mockResolvedValue({
-        id: '1',
-        ...validContactData,
-        additionalContactMethods: null,
-      });
-
-      const req = createMockRequest({
-        method: 'POST',
-        body: validContactData,
-      });
-      const res = createMockResponse();
-
-      await contactHandler(req, res);
-
-      expect(prisma.contact.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          additionalContactMethods: null,
-        }),
-      });
-    });
-
     it('should delete existing contact before creating new one', async () => {
       prisma.contact.deleteMany.mockResolvedValue({ count: 1 });
       prisma.contact.create.mockResolvedValue({
@@ -352,8 +266,6 @@ describe('/api/contact', () => {
       const invalidData = {
         name: null,
         emailAddress: null,
-        location: null,
-        availability: null,
       };
 
       const req = createMockRequest({
