@@ -37,6 +37,7 @@ function buildUpdateData(body) {
     techStack,
     links,
     images,
+    backgroundImage,
     featured,
     status,
     startDate,
@@ -59,6 +60,7 @@ function buildUpdateData(body) {
   if (techStack !== undefined) updateData.techStack = techStack;
   if (links !== undefined) updateData.links = links;
   if (images !== undefined) updateData.images = images;
+  if (backgroundImage !== undefined) updateData.backgroundImage = backgroundImage || null;
   if (featured !== undefined) updateData.featured = featured;
   if (status !== undefined) {
     const mappedStatus = mapProjectStatus(status);

@@ -168,6 +168,17 @@ export default function ProjectForm({
         />
       </div>
 
+      {/* Background Image */}
+      <FormField
+        label="Background Image URL"
+        type="url"
+        value={formData.backgroundImage}
+        onChange={(e) =>
+          setFormData({ ...formData, backgroundImage: e.target.value })
+        }
+        placeholder="Fallback image when no thumbnail is available"
+      />
+
       {/* Featured checkbox */}
       <div className="flex items-center gap-2">
         <input

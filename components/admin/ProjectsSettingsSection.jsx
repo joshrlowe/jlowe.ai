@@ -24,6 +24,7 @@ const INITIAL_FORM_DATA = {
   techStack: [],
   links: { github: "", live: "" },
   images: [],
+  backgroundImage: "",
   featured: false,
   status: "Draft",
   startDate: "",
@@ -114,6 +115,7 @@ export default function ProjectsSettingsSection({ onError }) {
               ? { github: links.github || "", live: links.live || "" }
               : { github: "", live: "" },
           images: parseJsonField(fullProject.images, []),
+          backgroundImage: fullProject.backgroundImage || "",
           featured: fullProject.featured || false,
           status: fullProject.status || "Draft",
           startDate: fullProject.startDate

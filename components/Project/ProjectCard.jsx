@@ -62,6 +62,8 @@ export default function ProjectCard({ project, index = 0 }) {
     thumbnail = thumbnail.url || thumbnail.src || thumbnail;
   }
   const thumbnailUrl = typeof thumbnail === "string" ? thumbnail : null;
+  const backgroundImageUrl = project.backgroundImage || null;
+  const displayImageUrl = thumbnailUrl || backgroundImageUrl;
   const projectUrl = `/projects/${project.slug || project.id}`;
 
   const handleClick = () => {
@@ -88,18 +90,18 @@ export default function ProjectCard({ project, index = 0 }) {
     >
       {/* Image */}
       <div className="relative h-48 overflow-hidden bg-[var(--color-bg-darker)]">
-        {thumbnailUrl ? (
+        {displayImageUrl ? (
           <>
             <Image
-              src={thumbnailUrl}
+              src={displayImageUrl}
               alt={project.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
               unoptimized={
-                thumbnailUrl.startsWith("data:") ||
-                thumbnailUrl.startsWith("blob:")
+                displayImageUrl.startsWith("data:") ||
+                displayImageUrl.startsWith("blob:")
               }
             />
             {/* Gradient overlay */}

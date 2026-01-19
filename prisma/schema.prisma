@@ -67,6 +67,7 @@ model Project {
   tags             Json?             // Array of strings
   links            Json?             // { github?, live? }
   images           Json?             // Array of image URLs or objects
+  backgroundImage  String?           // Fallback background image URL when no thumbnail
   featured         Boolean           @default(false)
   // SEO fields
   metaTitle        String?
