@@ -14,7 +14,7 @@ import LeadershipExperience from "@/components/About/LeadershipExperience/Leader
 import ProfessionalDevelopment from "@/components/About/ProfessionalDevelopment/ProfessionalDevelopment";
 import Hobbies from "@/components/About/Hobbies/Hobbies";
 
-const AboutPage = ({ aboutData, welcomeData, contactData }) => {
+const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
   const contentRef = useRef(null);
   const [activeSection, setActiveSection] = useState("");
 
@@ -89,7 +89,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData }) => {
               {/* Hero Section */}
               <section id="section-hero" className="fade-in-on-scroll mb-12">
                 <AboutHero
-                  name={welcomeData?.name}
+                  name={ownerName}
                   briefBio={welcomeData?.briefBio}
                   contactData={contactData}
                   professionalSummary={
@@ -214,7 +214,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData }) => {
 
 export async function getStaticProps() {
   try {
-    const [aboutData, welcomeData, contactData] = await Promise.all([
+    const [aboutData, welcomeData, contactData, siteSettings] = await Promise.all([
       prisma.about.findFirst({
         orderBy: { createdAt: "desc" },
       }),
@@ -223,6 +223,9 @@ export async function getStaticProps() {
       }),
       prisma.contact.findFirst({
         orderBy: { createdAt: "desc" },
+      }),
+      prisma.siteSettings.findFirst({
+        select: { ownerName: true },
       }),
     ]);
 
@@ -255,11 +258,15 @@ export async function getStaticProps() {
         }
       : null;
 
+    // Get owner name from site settings (global setting)
+    const ownerName = siteSettings?.ownerName || null;
+
     return {
       props: {
         aboutData: serializedAboutData,
         welcomeData: serializedWelcomeData,
         contactData: serializedContactData,
+        ownerName,
       },
       revalidate: 60,
     };

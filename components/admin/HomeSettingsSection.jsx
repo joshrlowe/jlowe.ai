@@ -15,8 +15,8 @@ import { LoadingSpinner, adminStyles } from "./shared";
 import { WelcomeTab, HeroTab, ServicesTab, GitHubTab, SectionsTab, DEFAULT_ENABLED_SECTIONS } from "./home";
 
 const TABS = [
-  { key: "welcome", label: "Welcome Info" },
   { key: "hero", label: "Hero Section" },
+  { key: "welcome", label: "Welcome Info" },
   { key: "sections", label: "Sections" },
   { key: "github", label: "GitHub Section" },
   { key: "services", label: "Services" },
@@ -52,7 +52,7 @@ export default function HomeSettingsSection({ onError }) {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("welcome");
+  const [activeTab, setActiveTab] = useState("hero");
 
   const fetchAllData = useCallback(async () => {
     try {

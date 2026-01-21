@@ -151,11 +151,11 @@ describe('HomeSettingsSection', () => {
       expect(screen.getByText('Services')).toBeInTheDocument();
     });
 
-    it('should show Welcome tab by default', async () => {
+    it('should show Hero tab by default', async () => {
       render(<HomeSettingsSection onError={mockOnError} />);
 
       await waitFor(() => {
-        expect(screen.getByTestId('welcome-tab')).toBeInTheDocument();
+        expect(screen.getByTestId('hero-tab')).toBeInTheDocument();
       });
     });
 
@@ -256,6 +256,13 @@ describe('HomeSettingsSection', () => {
     it('should save welcome data successfully', async () => {
       render(<HomeSettingsSection onError={mockOnError} />);
 
+      // Wait for data to load, then switch to Welcome tab (no longer default)
+      await waitFor(() => {
+        expect(screen.getByText('Welcome Info')).toBeInTheDocument();
+      });
+      
+      fireEvent.click(screen.getByText('Welcome Info'));
+
       await waitFor(() => {
         expect(screen.getByTestId('welcome-tab')).toBeInTheDocument();
       });
@@ -287,6 +294,13 @@ describe('HomeSettingsSection', () => {
       });
 
       render(<HomeSettingsSection onError={mockOnError} />);
+
+      // Wait for data to load, then switch to Welcome tab (no longer default)
+      await waitFor(() => {
+        expect(screen.getByText('Welcome Info')).toBeInTheDocument();
+      });
+      
+      fireEvent.click(screen.getByText('Welcome Info'));
 
       await waitFor(() => {
         expect(screen.getByTestId('welcome-tab')).toBeInTheDocument();

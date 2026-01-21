@@ -283,6 +283,7 @@ model AdminUser {
 
 model SiteSettings {
   id              String   @id @default(cuid())
+  ownerName       String?  // Site owner's name (e.g., "Josh Lowe") - used on About page etc.
   siteName        String   @default("jlowe.ai")
   navLinks        Json?    // Array: [{label: String, href: String, order: Number}]
   footerText      String?

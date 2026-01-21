@@ -80,6 +80,7 @@ describe("AboutPage", () => {
         aboutData={mockAboutData}
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
+        ownerName="Josh Lowe"
       />,
     );
     expect(document.title).toContain("About");
@@ -87,7 +88,7 @@ describe("AboutPage", () => {
 
   it("renders with null props", () => {
     render(
-      <AboutPage aboutData={null} welcomeData={null} contactData={null} />,
+      <AboutPage aboutData={null} welcomeData={null} contactData={null} ownerName={null} />,
     );
     // Should render without crashing
     expect(document.body).toBeInTheDocument();
@@ -95,7 +96,7 @@ describe("AboutPage", () => {
 
   it("renders with empty aboutData", () => {
     render(
-      <AboutPage aboutData={{}} welcomeData={mockWelcomeData} contactData={mockContactData} />,
+      <AboutPage aboutData={{}} welcomeData={mockWelcomeData} contactData={mockContactData} ownerName="Josh Lowe" />,
     );
     expect(document.body).toBeInTheDocument();
   });
@@ -106,6 +107,7 @@ describe("AboutPage", () => {
         aboutData={mockAboutData}
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
+        ownerName="Josh Lowe"
       />,
     );
     // The summary is passed to ProfessionalSummary component
@@ -118,6 +120,7 @@ describe("AboutPage", () => {
         aboutData={mockAboutData}
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
+        ownerName="Josh Lowe"
       />,
     );
     // Multiple Education elements may exist (section header + table of contents link)
@@ -151,15 +154,20 @@ describe("getStaticProps", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    const mockSiteSettings = {
+      ownerName: "Josh Lowe",
+    };
 
     prisma.about.findFirst.mockResolvedValue(mockAbout);
     prisma.welcome.findFirst.mockResolvedValue(mockWelcome);
     prisma.contact.findFirst.mockResolvedValue(mockContact);
+    prisma.siteSettings.findFirst.mockResolvedValue(mockSiteSettings);
 
     const result = await getStaticProps();
 
     expect(result.props.aboutData.professionalSummary).toBe("Test summary");
     expect(result.props.welcomeData.name).toBe("Test");
+    expect(result.props.ownerName).toBe("Josh Lowe");
     expect(result.revalidate).toBe(60);
   });
 
@@ -167,6 +175,7 @@ describe("getStaticProps", () => {
     prisma.about.findFirst.mockResolvedValue(null);
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
 
     const result = await getStaticProps();
 
@@ -194,12 +203,32 @@ describe("getStaticProps", () => {
     prisma.about.findFirst.mockResolvedValue(mockAbout);
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
 
     const result = await getStaticProps();
 
     expect(result.props.aboutData.technicalSkills).toHaveLength(1);
     expect(result.props.aboutData.technicalSkills[0].category).toBe("Languages");
     expect(typeof result.props.aboutData.createdAt).toBe("string");
+  });
+
+  it("returns null ownerName when no site settings", async () => {
+    const mockAbout = {
+      id: "1",
+      professionalSummary: "Summary",
+      technicalSkills: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    prisma.about.findFirst.mockResolvedValue(mockAbout);
+    prisma.welcome.findFirst.mockResolvedValue(null);
+    prisma.contact.findFirst.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
+
+    const result = await getStaticProps();
+
+    expect(result.props.ownerName).toBeNull();
   });
 });
 

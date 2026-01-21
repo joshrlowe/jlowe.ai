@@ -20,6 +20,7 @@ global.fetch = jest.fn();
 describe('GlobalSettingsSection', () => {
   const mockOnError = jest.fn();
   const mockSettings = {
+    ownerName: 'Josh Lowe',
     siteName: 'jlowe.ai',
     footerText: 'Copyright 2024',
     navLinks: [
@@ -55,6 +56,14 @@ describe('GlobalSettingsSection', () => {
   });
 
   describe('Form rendering', () => {
+    it('should render owner name input', async () => {
+      render(<GlobalSettingsSection onError={mockOnError} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Owner Name')).toBeInTheDocument();
+      });
+    });
+
     it('should render site name input', async () => {
       render(<GlobalSettingsSection onError={mockOnError} />);
 
@@ -93,6 +102,7 @@ describe('GlobalSettingsSection', () => {
       render(<GlobalSettingsSection onError={mockOnError} />);
 
       await waitFor(() => {
+        expect(screen.getByDisplayValue('Josh Lowe')).toBeInTheDocument();
         expect(screen.getByDisplayValue('jlowe.ai')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Copyright 2024')).toBeInTheDocument();
       });

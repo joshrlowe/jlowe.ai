@@ -19,13 +19,19 @@ export default function WelcomeTab({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <FormField
-        label="Name"
-        value={welcomeData.name}
-        onChange={(e) =>
-          setWelcomeData({ ...welcomeData, name: e.target.value })
-        }
-      />
+      <div>
+        <FormField
+          label="Featured Title"
+          value={welcomeData.name}
+          onChange={(e) =>
+            setWelcomeData({ ...welcomeData, name: e.target.value })
+          }
+          placeholder="e.g., MSCS Student @ UCF"
+        />
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
+          Displayed prominently on the home page hero. Your actual name is set in Global Site Settings.
+        </p>
+      </div>
 
       <FormField
         label="Tagline / Role"

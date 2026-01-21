@@ -35,11 +35,12 @@ async function handler(req, res, _token) {
     }
   } else if (req.method === "PUT") {
     try {
-      const { siteName, navLinks, footerText, socials, seoDefaults, enabledSections } = req.body;
+      const { ownerName, siteName, navLinks, footerText, socials, seoDefaults, enabledSections } = req.body;
 
       let settings = await prisma.siteSettings.findFirst();
 
       const updateData = {
+        ownerName,
         siteName,
         navLinks,
         footerText,
@@ -51,6 +52,7 @@ async function handler(req, res, _token) {
       if (!settings) {
         settings = await prisma.siteSettings.create({
           data: {
+            ownerName: ownerName || "",
             siteName: siteName || "jlowe.ai",
             navLinks: navLinks || [],
             footerText: footerText || "",

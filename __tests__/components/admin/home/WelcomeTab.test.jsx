@@ -60,7 +60,7 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByText('Name')).toBeInTheDocument();
+      expect(screen.getByText('Featured Title')).toBeInTheDocument();
       expect(screen.getByText('Tagline / Role')).toBeInTheDocument();
       expect(screen.getByText('Brief Bio')).toBeInTheDocument();
     });
@@ -104,14 +104,14 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByTestId('input-name')).toHaveValue('Josh Lowe');
+      expect(screen.getByTestId('input-featured-title')).toHaveValue('Josh Lowe');
       expect(screen.getByTestId('input-tagline-/-role')).toHaveValue('AI Engineer & Consultant');
       expect(screen.getByTestId('input-brief-bio')).toHaveValue('AI/ML Engineer building intelligent systems');
     });
   });
 
   describe('Form interactions', () => {
-    it('should call setWelcomeData when name changes', () => {
+    it('should call setWelcomeData when featured title changes', () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -121,13 +121,13 @@ describe('WelcomeTab', () => {
         />
       );
 
-      fireEvent.change(screen.getByTestId('input-name'), {
-        target: { value: 'New Name' },
+      fireEvent.change(screen.getByTestId('input-featured-title'), {
+        target: { value: 'New Title' },
       });
 
       expect(mockSetWelcomeData).toHaveBeenCalledWith({
         ...mockWelcomeData,
-        name: 'New Name',
+        name: 'New Title',
       });
     });
 
@@ -225,7 +225,7 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByTestId('input-name')).toHaveValue('');
+      expect(screen.getByTestId('input-featured-title')).toHaveValue('');
       expect(screen.getByTestId('input-tagline-/-role')).toHaveValue('');
       expect(screen.getByTestId('input-brief-bio')).toHaveValue('');
     });

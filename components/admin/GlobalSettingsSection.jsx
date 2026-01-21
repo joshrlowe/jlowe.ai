@@ -4,6 +4,7 @@ import { useToast } from "./ToastProvider";
 export default function GlobalSettingsSection({ onError }) {
   const { showToast } = useToast();
   const [settings, setSettings] = useState({
+    ownerName: "",
     siteName: "",
     footerText: "",
     navLinks: [],
@@ -17,6 +18,7 @@ export default function GlobalSettingsSection({ onError }) {
       const res = await fetch("/api/admin/site-settings");
       const data = await res.json();
       setSettings({
+        ownerName: data.ownerName || "",
         siteName: data.siteName || "",
         footerText: data.footerText || "",
         navLinks: data.navLinks || [],
@@ -96,6 +98,24 @@ export default function GlobalSettingsSection({ onError }) {
           {message}
         </div>
       )}
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          Owner Name
+        </label>
+        <input
+          type="text"
+          value={settings.ownerName}
+          onChange={(e) =>
+            setSettings({ ...settings, ownerName: e.target.value })
+          }
+          placeholder="e.g., Josh Lowe"
+          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+        />
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
+          Your name as displayed on the About page and other places across the site.
+        </p>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
