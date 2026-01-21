@@ -1,5 +1,4 @@
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 import { withAuth } from "../../../lib/utils/authMiddleware.js";
 
 export const config = {
@@ -28,25 +27,23 @@ async function handler(req, res, _token) {
       return res.status(400).json({ message: "Invalid file type" });
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
-
     // Generate unique filename
-    const ext = path.extname(filename);
-    const baseName = path.basename(filename, ext);
+    const ext = filename.substring(filename.lastIndexOf("."));
+    const baseName = filename.substring(0, filename.lastIndexOf("."));
     const uniqueName = `${baseName}-${Date.now()}${ext}`;
-    const filePath = path.join(uploadsDir, uniqueName);
 
-    // Decode base64 and write file
+    // Decode base64 to buffer
     const base64Data = file.replace(/^data:[^;]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
-    await writeFile(filePath, buffer);
 
-    // Return the public URL
-    const publicUrl = `/uploads/${uniqueName}`;
+    // Upload to Vercel Blob
+    const blob = await put(uniqueName, buffer, {
+      access: "public",
+      contentType: type || "application/octet-stream",
+    });
 
-    res.status(200).json({ url: publicUrl, filename: uniqueName });
+    // Return the Vercel Blob CDN URL
+    res.status(200).json({ url: blob.url, filename: uniqueName });
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({ message: "Failed to upload file" });
