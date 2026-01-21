@@ -96,44 +96,6 @@ export default function ProfessionalExperience({ experience = [] }) {
                 </div>
               )}
               
-              {/* Achievements/Responsibilities */}
-              {job.achievements &&
-                Array.isArray(job.achievements) &&
-                job.achievements.length > 0 && (
-                  <ul className="mt-3 space-y-2" data-testid={`experience-achievements-${index}`}>
-                    {job.achievements.map((item, i) => (
-                      <li
-                        key={i}
-                        className="text-[var(--color-text-secondary)] flex items-start gap-2"
-                      >
-                        <span className="text-[var(--color-primary)] mt-1.5">
-                          •
-                        </span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              
-              {/* Legacy: responsibilities field (for backward compatibility) */}
-              {job.responsibilities &&
-                Array.isArray(job.responsibilities) &&
-                job.responsibilities.length > 0 && (
-                  <ul className="mt-3 space-y-2">
-                    {job.responsibilities.map((item, i) => (
-                      <li
-                        key={i}
-                        className="text-[var(--color-text-secondary)] flex items-start gap-2"
-                      >
-                        <span className="text-[var(--color-primary)] mt-1.5">
-                          •
-                        </span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              
               {/* Technologies */}
               {job.technologies &&
                 Array.isArray(job.technologies) &&

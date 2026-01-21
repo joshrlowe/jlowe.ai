@@ -108,6 +108,19 @@ function EntryForm({
               </div>
             );
           }
+          if (field.type === "markdown") {
+            return (
+              <div key={field.key} className="md:col-span-2">
+                <MarkdownEditor
+                  label={field.label}
+                  value={entry[field.key] || ""}
+                  onChange={(value) => handleFieldChange(field.key, value)}
+                  rows={4}
+                  placeholder={field.placeholder}
+                />
+              </div>
+            );
+          }
           return (
             <FormField
               key={field.key}
@@ -218,25 +231,6 @@ function ExperienceEntryForm({ entry, onChange, onRemove, index }) {
               data-testid="end-date-input"
             />
           )}
-        </div>
-        <div className="md:col-span-2">
-          <TagInput
-            label="Achievements"
-            tags={entry.achievements || []}
-            onAdd={(tag) =>
-              handleFieldChange("achievements", [
-                ...(entry.achievements || []),
-                tag,
-              ])
-            }
-            onRemove={(idx) =>
-              handleFieldChange(
-                "achievements",
-                (entry.achievements || []).filter((_, i) => i !== idx),
-              )
-            }
-            placeholder="Add achievement"
-          />
         </div>
       </div>
     </div>
@@ -713,10 +707,10 @@ export default function AboutSettingsSection({ onError }) {
     { key: "startDate", label: "Start Date", type: "date" },
     { key: "endDate", label: "End Date", type: "date" },
     {
-      key: "achievements",
-      label: "Achievements",
-      type: "achievements",
-      placeholder: "Add achievement",
+      key: "description",
+      label: "Description (Markdown)",
+      type: "markdown",
+      placeholder: "Describe your responsibilities and accomplishments. Markdown is supported...",
     },
   ];
 
@@ -885,7 +879,7 @@ export default function AboutSettingsSection({ onError }) {
                   role: "",
                   startDate: "",
                   endDate: "",
-                  achievements: [],
+                  description: "",
                 },
               ]);
             }}

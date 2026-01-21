@@ -7,22 +7,30 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import LeadershipExperience from "@/components/About/LeadershipExperience/LeadershipExperience";
 
+// Mock MarkdownContent component
+jest.mock("@/components/ui", () => ({
+  MarkdownContent: ({ content, variant }) => (
+    <div data-testid="mock-markdown-content" data-variant={variant}>
+      {content}
+    </div>
+  ),
+}));
+
 describe("LeadershipExperience", () => {
   const mockExperience = [
     {
       role: "Team Lead",
       organization: "Tech Company",
-      startYear: "2022",
-      endYear: "Present",
-      description: "Led a team of 10 engineers",
-      impact: ["Increased productivity by 30%", "Reduced bugs by 50%"],
+      startDate: "2022-01-15",
+      endDate: "",
+      description: "Led a team of 10 engineers building **core platform features**.",
     },
     {
       title: "Project Manager",
       company: "Startup Inc",
-      startYear: "2020",
-      endYear: "2022",
-      description: "Managed multiple projects",
+      startDate: "2020-06-01",
+      endDate: "2021-12-31",
+      description: "Managed multiple projects and delivered on time.",
     },
   ];
 
@@ -85,15 +93,17 @@ describe("LeadershipExperience", () => {
     expect(screen.getByText("Startup Inc")).toBeInTheDocument();
   });
 
-  it("renders description", () => {
+  it("renders description using MarkdownContent", () => {
     render(<LeadershipExperience experience={mockExperience} />);
-    expect(screen.getByText("Led a team of 10 engineers")).toBeInTheDocument();
+    const markdownContents = screen.getAllByTestId("mock-markdown-content");
+    expect(markdownContents.length).toBeGreaterThan(0);
+    expect(markdownContents[0]).toHaveTextContent("Led a team of 10 engineers");
   });
 
-  it("renders key achievements when provided", () => {
+  it("uses compact variant for MarkdownContent", () => {
     render(<LeadershipExperience experience={mockExperience} />);
-    // Check for key achievements which are rendered
-    expect(screen.getByText(/Managed multiple projects/i)).toBeInTheDocument();
+    const markdownContents = screen.getAllByTestId("mock-markdown-content");
+    expect(markdownContents[0]).toHaveAttribute("data-variant", "compact");
   });
 
   it("renders multiple experiences", () => {
@@ -103,9 +113,35 @@ describe("LeadershipExperience", () => {
   });
 
   it("renders with position field as fallback", () => {
-    const experience = [{ position: "Director", organization: "Org" }];
+    const experience = [{ position: "Director", organization: "Org", description: "Leadership role" }];
     render(<LeadershipExperience experience={experience} />);
     expect(screen.getByText("Director")).toBeInTheDocument();
   });
-});
 
+  it("renders date range with formatted dates", () => {
+    render(<LeadershipExperience experience={mockExperience} />);
+    // First entry has no end date, should show "Present"
+    expect(screen.getByText(/January 2022 - Present/)).toBeInTheDocument();
+  });
+
+  it("sorts experiences by date descending (most recent first)", () => {
+    const { container } = render(<LeadershipExperience experience={mockExperience} />);
+    const entries = container.querySelectorAll("h3");
+    // Team Lead (2022) should come before Project Manager (2020)
+    expect(entries[0]).toHaveTextContent("Team Lead");
+    expect(entries[1]).toHaveTextContent("Project Manager");
+  });
+
+  it("does not render description section when description is empty", () => {
+    const experienceWithoutDescription = [
+      {
+        role: "Lead",
+        organization: "No Desc Org",
+        startDate: "2020-01-01",
+      },
+    ];
+    
+    render(<LeadershipExperience experience={experienceWithoutDescription} />);
+    expect(screen.queryByTestId("mock-markdown-content")).not.toBeInTheDocument();
+  });
+});

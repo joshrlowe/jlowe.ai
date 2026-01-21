@@ -30,7 +30,6 @@ describe("ProfessionalExperience", () => {
       endDate: "",
       isOngoing: true,
       description: "Led development of **core platform features** and mentored junior engineers.",
-      achievements: ["Increased system efficiency by 40%", "Led team of 5 engineers"],
       location: "San Francisco, CA",
     },
     {
@@ -40,7 +39,6 @@ describe("ProfessionalExperience", () => {
       endDate: "2021-12-31",
       isOngoing: false,
       description: "Built REST APIs and implemented CI/CD pipelines.",
-      achievements: ["Launched MVP in 3 months"],
     },
   ];
 
@@ -212,28 +210,6 @@ describe("ProfessionalExperience", () => {
       expect(screen.queryByTestId("experience-description-0")).not.toBeInTheDocument();
     });
 
-    it("should not render achievements when achievements array is empty", () => {
-      const experienceWithoutAchievements = [
-        {
-          role: "Developer",
-          company: "No Ach Co",
-          startDate: "2020-01-01",
-          achievements: [],
-        },
-      ];
-      
-      render(<ProfessionalExperience experience={experienceWithoutAchievements} />);
-      expect(screen.queryByTestId("experience-achievements-0")).not.toBeInTheDocument();
-    });
-
-    it("should render achievements when present", () => {
-      render(<ProfessionalExperience experience={mockExperience} />);
-      
-      const achievements = screen.getByTestId("experience-achievements-0");
-      expect(achievements).toBeInTheDocument();
-      expect(screen.getByText("Increased system efficiency by 40%")).toBeInTheDocument();
-    });
-
     it("should display 'Present' for ongoing positions", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
       
@@ -332,7 +308,6 @@ describe("ProfessionalExperience", () => {
           startDate: "2021-01-01",
           endDate: "2022-12-31",
           description: "Built **amazing** things.",
-          achievements: ["Achievement 1", "Achievement 2"],
         },
       ];
       
