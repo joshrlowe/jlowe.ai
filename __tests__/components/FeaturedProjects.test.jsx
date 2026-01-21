@@ -94,13 +94,14 @@ describe('FeaturedProjects Component', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('should render null when no featured projects', () => {
+    it('should render recent projects when no featured projects', () => {
       const nonFeaturedProjects = mockProjects.map(p => ({ ...p, featured: false }));
-      const { container } = render(<FeaturedProjects projects={nonFeaturedProjects} />);
-      expect(container.firstChild).toBeNull();
+      render(<FeaturedProjects projects={nonFeaturedProjects} />);
+      // Falls back to showing recent projects
+      expect(screen.getByText('Featured Projects')).toBeInTheDocument();
     });
 
-    it('should render only featured projects', () => {
+    it('should render only featured projects when available', () => {
       render(<FeaturedProjects projects={mockProjects} />);
       expect(screen.getByText('AI Chatbot Platform')).toBeInTheDocument();
       expect(screen.getByText('ML Pipeline System')).toBeInTheDocument();

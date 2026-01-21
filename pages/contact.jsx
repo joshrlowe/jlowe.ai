@@ -91,11 +91,10 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
   return (
     <span
       ref={containerRef}
-      className="inline-block relative overflow-hidden whitespace-nowrap text-left"
+      className="inline-block relative overflow-hidden whitespace-nowrap"
       style={{ 
         height: "1.2em", 
         verticalAlign: "baseline",
-        minWidth: "3ch",
       }}
     >
       {/* Current word */}
@@ -287,8 +286,8 @@ export default function ContactPage() {
           {/* Header */}
           <div ref={headerRef} className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-oswald)] leading-tight">
-              <span className="block sm:inline">Let&apos;s Build Something </span>
-              {mounted && <WordCarousel words={heroWords} />}
+              <span className="block">Let&apos;s Build Something</span>
+              <span className="block">{mounted && <WordCarousel words={heroWords} />}</span>
             </h1>
             <p
               className="text-lg text-[var(--color-text-secondary)] mx-auto"

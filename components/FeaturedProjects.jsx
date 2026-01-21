@@ -136,8 +136,11 @@ export default function FeaturedProjects({ projects = [] }) {
 
   if (!projects || projects.length === 0) return null;
 
+  // Show featured projects first, fall back to most recent projects
   const featuredProjects = projects.filter((p) => p.featured).slice(0, 4);
-  if (featuredProjects.length === 0) return null;
+  const displayProjects = featuredProjects.length > 0 
+    ? featuredProjects 
+    : projects.slice(0, 4);
 
   return (
     <section
@@ -183,7 +186,7 @@ export default function FeaturedProjects({ projects = [] }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {featuredProjects.map((project, index) => {
+          {displayProjects.map((project, index) => {
             const images = parseJsonField(project.images, []);
             const techStack = parseJsonField(project.techStack, []);
             let thumbnail = images.length > 0 ? images[0] : null;
