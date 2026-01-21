@@ -19,51 +19,60 @@ const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 // Enhanced vertical carousel component with GSAP animations
 function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(1);
-  const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef(null);
-  const currentWordRef = useRef(null);
-  const nextWordRef = useRef(null);
+  const wordsRef = useRef([]);
+
+  // Find the longest word to set a stable container width
+  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b), "");
 
   useEffect(() => {
-    if (words.length <= 1 || !currentWordRef.current || !nextWordRef.current) return;
+    if (words.length <= 1) return;
 
-    // Set initial state
-    gsap.set(nextWordRef.current, { yPercent: 100, opacity: 0 });
+    // Set initial state - all words hidden except first
+    wordsRef.current.forEach((el, i) => {
+      if (el) {
+        gsap.set(el, { 
+          yPercent: i === 0 ? 0 : 100, 
+          opacity: i === 0 ? 1 : 0 
+        });
+      }
+    });
 
     const animate = () => {
-      if (isAnimating) return;
-      setIsAnimating(true);
+      const current = currentIndex;
+      const next = (current + 1) % words.length;
+      
+      const currentEl = wordsRef.current[current];
+      const nextEl = wordsRef.current[next];
+      
+      if (!currentEl || !nextEl) return;
 
+      // Create a timeline for smooth transition
       const tl = gsap.timeline({
         onComplete: () => {
-          setCurrentIndex(nextIndex);
-          setNextIndex((nextIndex + 1) % words.length);
-          setIsAnimating(false);
-          // Reset positions for next animation
-          gsap.set(currentWordRef.current, { yPercent: 0, opacity: 1 });
-          gsap.set(nextWordRef.current, { yPercent: 100, opacity: 0 });
+          setCurrentIndex(next);
         },
       });
 
       // Animate current word out (slide up and fade)
-      tl.to(currentWordRef.current, {
+      tl.to(currentEl, {
         yPercent: -100,
         opacity: 0,
-        duration: 0.5,
-        ease: "power2.in",
+        duration: 0.4,
+        ease: "power2.inOut",
       });
 
       // Animate next word in (slide up from below)
-      tl.to(
-        nextWordRef.current,
+      tl.fromTo(
+        nextEl,
+        { yPercent: 100, opacity: 0 },
         {
           yPercent: 0,
           opacity: 1,
-          duration: 0.5,
-          ease: "power2.out",
+          duration: 0.4,
+          ease: "power2.inOut",
         },
-        "-=0.3" // Overlap for smoother transition
+        "-=0.25" // Overlap for seamless transition
       );
     };
 
@@ -72,12 +81,7 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
     return () => {
       clearInterval(interval);
     };
-  }, [words.length, nextIndex, isAnimating]);
-
-  // Update next index when current changes
-  useEffect(() => {
-    setNextIndex((currentIndex + 1) % words.length);
-  }, [currentIndex, words.length]);
+  }, [words.length, currentIndex]);
 
   const wordStyle = {
     background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
@@ -97,27 +101,24 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
         verticalAlign: "baseline",
       }}
     >
-      {/* Current word */}
-      <span
-        ref={currentWordRef}
-        className="absolute left-0 top-0"
-        style={wordStyle}
-      >
-        {words[currentIndex]}
-      </span>
-      
-      {/* Next word (initially hidden below) */}
-      <span
-        ref={nextWordRef}
-        className="absolute left-0 top-0"
-        style={{ ...wordStyle, opacity: 0 }}
-      >
-        {words[nextIndex]}
-      </span>
+      {/* All words stacked - GSAP handles visibility */}
+      {words.map((word, index) => (
+        <span
+          key={word}
+          ref={(el) => (wordsRef.current[index] = el)}
+          className="absolute left-1/2 top-0 -translate-x-1/2"
+          style={{
+            ...wordStyle,
+            opacity: index === 0 ? 1 : 0,
+          }}
+        >
+          {word}
+        </span>
+      ))}
 
-      {/* Current visible word to maintain natural width */}
+      {/* Invisible longest word to maintain stable width */}
       <span className="invisible" aria-hidden="true">
-        {words[currentIndex]}
+        {longestWord}
       </span>
     </span>
   );
