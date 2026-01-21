@@ -77,7 +77,9 @@ console.error = (...args) => {
     typeof message === 'string' &&
     (message.startsWith('Error creating article:') ||
      message.startsWith('Error creating project:') ||
-     message.startsWith('Error updating'))
+     message.startsWith('Error updating') ||
+     message.startsWith('Error generating static paths:') ||
+     message.startsWith('Error fetching'))
   ) {
     return;
   }
