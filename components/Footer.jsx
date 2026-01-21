@@ -70,10 +70,10 @@ export default function Footer() {
         // Add cache-busting to ensure fresh data
         const cacheBuster = `?_t=${Date.now()}`;
         
-        // Fetch contact data and site settings in parallel
+        // Fetch contact data and site settings in parallel (using public endpoint)
         const [contactResponse, settingsResponse] = await Promise.all([
           fetch(`/api/contact${cacheBuster}`),
-          fetch(`/api/admin/site-settings${cacheBuster}`),
+          fetch(`/api/site-settings${cacheBuster}`),
         ]);
         
         if (contactResponse.ok && isMounted) {
