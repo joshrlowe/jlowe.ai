@@ -67,10 +67,13 @@ export default function Footer() {
 
     const fetchData = async () => {
       try {
+        // Add cache-busting to ensure fresh data
+        const cacheBuster = `?_t=${Date.now()}`;
+        
         // Fetch contact data and site settings in parallel
         const [contactResponse, settingsResponse] = await Promise.all([
-          fetch("/api/contact"),
-          fetch("/api/admin/site-settings"),
+          fetch(`/api/contact${cacheBuster}`),
+          fetch(`/api/admin/site-settings${cacheBuster}`),
         ]);
         
         if (contactResponse.ok && isMounted) {
@@ -89,8 +92,13 @@ export default function Footer() {
 
     fetchData();
 
+    // Re-fetch when window regains focus (e.g., after editing in admin)
+    const handleFocus = () => fetchData();
+    window.addEventListener("focus", handleFocus);
+
     return () => {
       isMounted = false;
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 

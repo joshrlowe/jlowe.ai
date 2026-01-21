@@ -124,7 +124,9 @@ describe('Footer Component', () => {
             render(<Footer />);
 
             await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith('/api/contact');
+                // Check that fetch was called with URLs containing the API endpoints (with cache-busting params)
+                const fetchCalls = global.fetch.mock.calls.map(call => call[0]);
+                expect(fetchCalls.some(url => url.startsWith('/api/contact'))).toBe(true);
             });
         });
 
