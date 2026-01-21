@@ -5,6 +5,7 @@
  */
 
 import { PROJECT_STATUSES, adminStyles } from "../shared";
+import { formatAdminDate } from "@/lib/utils/dateUtils";
 
 export default function ProjectListItem({
   project,
@@ -12,8 +13,6 @@ export default function ProjectListItem({
   onDelete,
   onStatusChange,
 }) {
-  const formatDate = (date) =>
-    date ? new Date(date).toLocaleDateString() : "-";
 
   return (
     <div className="p-4 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] flex flex-wrap items-center justify-between gap-4">
@@ -22,7 +21,7 @@ export default function ProjectListItem({
           {project.title}
         </h3>
         <div className="text-sm text-[var(--color-text-muted)]">
-          {formatDate(project.startDate)} - {formatDate(project.releaseDate)}
+          {formatAdminDate(project.startDate) || "-"} - {project.releaseDate ? formatAdminDate(project.releaseDate) : "Present"}
         </div>
       </div>
 

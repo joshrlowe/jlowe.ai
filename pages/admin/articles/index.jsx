@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth.js";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { formatAdminDate } from "@/lib/utils/dateUtils";
 
 export async function getServerSideProps(context) {
   return requireAuth(context);
@@ -82,15 +83,6 @@ export default function AdminArticles() {
       console.error("Error deleting post:", err);
       toast.error("Failed to delete post");
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Not published";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
   };
 
   if (status === "loading" || loading) {
@@ -192,7 +184,7 @@ export default function AdminArticles() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
-                    {formatDate(post.datePublished)}
+                    {formatAdminDate(post.datePublished) || "Not published"}
                   </td>
                   <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
                     {post.viewCount || 0}

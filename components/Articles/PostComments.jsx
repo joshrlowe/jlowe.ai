@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { trackCommentSubmit } from "@/lib/analytics";
+import { formatCommentDate } from "@/lib/utils/dateUtils";
 
 // Single comment component with likes, dislikes, and reply functionality
 function CommentItem({ comment, postId, onReplySubmit, depth = 0 }) {
@@ -61,21 +62,6 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }) {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const dateOptions = {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    };
-    const timeOptions = {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    };
-    return `${date.toLocaleDateString("en-US", dateOptions)} at ${date.toLocaleTimeString("en-US", timeOptions)}`;
-  };
-
   const maxDepth = 3; // Limit nesting depth
   const replies = comment.replies || [];
 
@@ -88,7 +74,7 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }) {
             {comment.authorName}
           </span>
           <span className="text-xs text-[var(--color-text-muted)]">
-            {formatDate(comment.createdAt)}
+            {formatCommentDate(comment.createdAt)}
           </span>
         </div>
 

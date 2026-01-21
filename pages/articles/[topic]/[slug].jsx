@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Image from "next/image";
 import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
+import { formatDate } from "@/lib/utils/dateUtils";
 
 const CodeBlock = ({ language, children }) => {
   return (
@@ -71,16 +72,6 @@ export default function ArticleDetailPage({ post: initialPost }) {
       </div>
     );
   }
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
 
   return (
     <>
