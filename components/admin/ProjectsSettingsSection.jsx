@@ -25,6 +25,7 @@ const INITIAL_FORM_DATA = {
   links: { github: "", live: "" },
   images: [],
   backgroundImage: "",
+  papers: [],
   featured: false,
   status: "Draft",
   startDate: "",
@@ -120,6 +121,7 @@ export default function ProjectsSettingsSection({ onError }) {
               : { github: "", live: "" },
           images: parseJsonField(fullProject.images, []),
           backgroundImage: fullProject.backgroundImage || "",
+          papers: parseJsonField(fullProject.papers, []),
           featured: fullProject.featured || false,
           status: fullProject.status || "Draft",
           startDate: fullProject.startDate

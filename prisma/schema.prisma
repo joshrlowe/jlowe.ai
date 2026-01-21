@@ -70,6 +70,7 @@ model Project {
   links            Json?             // { github?, live? }
   images           Json?             // Array of image URLs or objects
   backgroundImage  String?           // Fallback background image URL when no thumbnail
+  papers           Json?             // Array of { title, url } for associated papers/PDFs
   featured         Boolean           @default(false)
   // SEO fields
   metaTitle        String?

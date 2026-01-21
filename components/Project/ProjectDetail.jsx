@@ -39,6 +39,7 @@ export default function ProjectDetail({ project }) {
   const features = parseJsonField(project.features, []);
   const challenges = parseJsonField(project.challenges, []);
   const links = parseJsonField(project.links, {});
+  const papers = parseJsonField(project.papers, []);
 
   return (
     <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
@@ -104,6 +105,31 @@ export default function ProjectDetail({ project }) {
                   View Code →
                 </a>
               )}
+            </div>
+          )}
+
+          {/* Associated Papers */}
+          {papers.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
+                Associated Papers
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {papers.map((paper, index) => (
+                  <a
+                    key={index}
+                    href={paper.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <span>{paper.title || "View Paper"}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
         </header>

@@ -4,9 +4,87 @@
  * Refactoring: Extract Component from ProjectsSettingsSection
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FormField, TagInput, MediaUpload, adminStyles, PROJECT_STATUSES } from "../shared";
 import TeamMemberManager from "../TeamMemberManager";
+
+// Simple PDF upload component
+function PaperUpload({ onUpload }) {
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.includes("pdf")) {
+      alert("Please select a PDF file");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const response = await fetch("/api/admin/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file: reader.result,
+              filename: file.name,
+              type: file.type,
+            }),
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            onUpload(data.url, file.name);
+          } else {
+            alert(data.error || "Upload failed");
+          }
+        } catch {
+          alert("Upload failed");
+        } finally {
+          setUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      alert("Failed to read file");
+      setUploading(false);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        className={adminStyles.buttonSecondary}
+      >
+        {uploading ? "Uploading..." : "Upload PDF"}
+      </button>
+    </>
+  );
+}
 
 export default function ProjectForm({
   formData,
@@ -180,6 +258,88 @@ export default function ProjectForm({
         type="image"
         placeholder="Fallback image when no thumbnail is available"
       />
+
+      {/* Papers / PDFs */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)]">
+          Associated Papers (PDFs)
+        </label>
+        {(formData.papers || []).map((paper, index) => (
+          <div key={index} className="flex gap-2 items-start p-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)]">
+            <div className="flex-1 space-y-2">
+              <input
+                type="text"
+                value={paper.title || ""}
+                onChange={(e) => {
+                  const updated = [...(formData.papers || [])];
+                  updated[index] = { ...updated[index], title: e.target.value };
+                  setFormData({ ...formData, papers: updated });
+                }}
+                placeholder="Paper title"
+                className={adminStyles.input}
+              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={paper.url || ""}
+                  onChange={(e) => {
+                    const updated = [...(formData.papers || [])];
+                    updated[index] = { ...updated[index], url: e.target.value };
+                    setFormData({ ...formData, papers: updated });
+                  }}
+                  placeholder="PDF URL"
+                  className={`flex-1 ${adminStyles.input}`}
+                />
+                {paper.url && (
+                  <a
+                    href={paper.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--color-primary)] text-sm hover:underline"
+                  >
+                    View
+                  </a>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const updated = (formData.papers || []).filter((_, i) => i !== index);
+                setFormData({ ...formData, papers: updated });
+              }}
+              className="text-red-400 hover:text-red-300 p-1"
+              title="Remove paper"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        ))}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({
+                ...formData,
+                papers: [...(formData.papers || []), { title: "", url: "" }],
+              });
+            }}
+            className={adminStyles.buttonSecondary}
+          >
+            + Add Paper Entry
+          </button>
+          <PaperUpload
+            onUpload={(url, filename) => {
+              setFormData({
+                ...formData,
+                papers: [...(formData.papers || []), { title: filename.replace(/\.pdf$/i, ""), url }],
+              });
+            }}
+          />
+        </div>
+      </div>
 
       {/* Team Members */}
       <TeamMemberManager
