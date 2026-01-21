@@ -44,6 +44,9 @@ export default function ProjectCard({ project, index = 0 }) {
       },
     );
 
+    // Force ScrollTrigger to recalculate for client-side navigation
+    ScrollTrigger.refresh();
+
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
