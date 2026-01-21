@@ -72,6 +72,16 @@ console.error = (...args) => {
     return;
   }
   
+  // Suppress expected article/project creation error messages during error handling tests
+  if (
+    typeof message === 'string' &&
+    (message.startsWith('Error creating article:') ||
+     message.startsWith('Error creating project:') ||
+     message.startsWith('Error updating'))
+  ) {
+    return;
+  }
+  
   // Suppress jsdom "not implemented" navigation errors
   // These are triggered by libraries like react-spring when they interact with navigation
   // jsdom doesn't implement full navigation, which is expected in test environments
