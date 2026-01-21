@@ -33,7 +33,7 @@ export default function ProjectCard({ project, index = 0 }) {
     }
 
     // Set initial hidden state
-    gsap.set(card, { opacity: 0, y: 25 });
+    gsap.set(card, { opacity: 0, y: 15 });
     
     // Check if element is already in viewport (handles client-side navigation)
     const rect = card.getBoundingClientRect();
@@ -44,23 +44,23 @@ export default function ProjectCard({ project, index = 0 }) {
       gsap.to(card, {
         opacity: 1,
         y: 0,
-        duration: 0.4,
+        duration: 0.25,
         ease: "power2.out",
-        delay: (index % 3) * 0.06,
+        delay: (index % 3) * 0.03,
         overwrite: true,
       });
     } else {
       // Element below viewport - use ScrollTrigger
       const trigger = ScrollTrigger.create({
         trigger: card,
-        start: "top 88%",
+        start: "top 94%",
         onEnter: () => {
           gsap.to(card, {
             opacity: 1,
             y: 0,
-            duration: 0.5,
+            duration: 0.3,
             ease: "power2.out",
-            delay: (index % 3) * 0.06,
+            delay: (index % 3) * 0.03,
             overwrite: true,
           });
         },

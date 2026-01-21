@@ -27,19 +27,19 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
 
     elements.forEach((element, index) => {
       // Set initial state for smooth animation
-      gsap.set(element, { opacity: 0, y: 30 });
+      gsap.set(element, { opacity: 0, y: 20 });
       
       gsap.to(element, {
         opacity: 1,
         y: 0,
-        duration: 0.6,
+        duration: 0.35,
         ease: "power2.out",
         scrollTrigger: {
           trigger: element,
-          start: "top 85%",
+          start: "top 92%",
           toggleActions: "play none none none",
         },
-        delay: index * 0.08,
+        delay: index * 0.04,
         overwrite: true,
       });
     });
