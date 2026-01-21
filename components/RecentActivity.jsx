@@ -15,10 +15,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 // Activity type configurations
 const activityConfig = {
@@ -73,11 +70,7 @@ function ActivityItem({ activity, index }) {
   useEffect(() => {
     if (!itemRef.current) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     gsap.fromTo(
       itemRef.current,
@@ -212,11 +205,7 @@ export default function RecentActivity({ projects = [], articles = [] }) {
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     gsap.fromTo(
       titleRef.current,

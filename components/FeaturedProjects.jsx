@@ -18,10 +18,7 @@ import Image from "next/image";
 import { Badge, Button } from "@/components/ui";
 import { parseJsonField } from "@/lib/utils/jsonUtils";
 import { FEATURED_ACCENT_COLORS } from "@/lib/utils/constants";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 export default function FeaturedProjects({ projects = [] }) {
   const router = useRouter();
@@ -32,10 +29,7 @@ export default function FeaturedProjects({ projects = [] }) {
   useEffect(() => {
     if (!sectionRef.current || projects.length === 0) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     // Animate title
     if (titleRef.current) {

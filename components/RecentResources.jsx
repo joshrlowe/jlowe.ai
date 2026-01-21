@@ -16,10 +16,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { Badge, Button } from "@/components/ui";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { formatAdminDate } from "@/lib/utils/dateUtils";
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 export default function RecentResources({ resources = [] }) {
   const router = useRouter();
@@ -35,10 +33,7 @@ export default function RecentResources({ resources = [] }) {
   useEffect(() => {
     if (!sectionRef.current || resources.length === 0) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     // Animate title
     if (titleRef.current) {
@@ -89,16 +84,6 @@ export default function RecentResources({ resources = [] }) {
   if (!resources || resources.length === 0) return null;
 
   const recentResources = resources.slice(0, 3);
-
-  const formatDate = (dateString) => {
-    if (!dateString || !mounted) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   // Refined color map
   const colorMap = {
@@ -233,7 +218,7 @@ export default function RecentResources({ resources = [] }) {
                     style={{ color: "var(--color-text-muted)" }}
                     dateTime={resource.datePublished}
                   >
-                    {formatDate(resource.datePublished)}
+                    {mounted ? formatAdminDate(resource.datePublished) : ""}
                   </time>
                 </div>
 

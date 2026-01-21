@@ -17,10 +17,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 // Supernova theme color scale (5 levels: none → max activity)
 const supernovaTheme = {
@@ -191,7 +188,6 @@ function CalendarWrapper({ username, onDataLoaded }) {
           onDataLoadedRef.current({ total, bestDay, currentStreak });
         }
       } catch (err) {
-        console.error("[DEBUG] Direct API fetch failed:", err);
         setApiTestResult({ error: err.message });
       }
     };
@@ -234,7 +230,6 @@ function CalendarWrapper({ username, onDataLoaded }) {
     // Set timeout after 15 seconds
     const timeout = setTimeout(() => {
       if (mounted && !Calendar) {
-        console.warn("Calendar loading timeout - taking longer than expected");
         setLoadingTimeout(true);
       }
     }, 15000);
@@ -253,9 +248,8 @@ function CalendarWrapper({ username, onDataLoaded }) {
           }
         }
       })
-      .catch((err) => {
+      .catch(() => {
         clearTimeout(timeout);
-        console.error("Failed to load react-github-calendar:", err);
         if (mounted) {
           setError(true);
         }
@@ -280,20 +274,7 @@ function CalendarWrapper({ username, onDataLoaded }) {
   // transformData should be pure - use refs to avoid setState during render
   const transformData = useCallback((contributions) => {
     if (!contributions || contributions.length === 0) {
-      console.log("[DEBUG] transformData received empty contributions");
       return contributions;
-    }
-    
-    // DEBUG: Log raw data structure
-    console.log("[DEBUG] transformData received:", contributions.length, "days");
-    console.log("[DEBUG] Sample contribution:", JSON.stringify(contributions[0]));
-    console.log("[DEBUG] Total count in first 10:", contributions.slice(0, 10).reduce((sum, d) => sum + (d.count || 0), 0));
-    
-    // Find any days with actual contributions
-    const daysWithActivity = contributions.filter(d => (d.count || 0) > 0);
-    console.log("[DEBUG] Days with activity:", daysWithActivity.length);
-    if (daysWithActivity.length > 0) {
-      console.log("[DEBUG] Sample active day:", JSON.stringify(daysWithActivity[0]));
     }
     
     // Store the latest data in ref (no setState during render)
@@ -403,11 +384,7 @@ export default function GitHubContributionGraph({
   useEffect(() => {
     if (!sectionRef.current || !mounted) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     gsap.fromTo(
       contentRef.current,

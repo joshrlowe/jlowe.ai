@@ -10,13 +10,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SEO from "@/components/SEO";
 import { trackExternalLink } from "@/lib/analytics";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
@@ -165,10 +161,7 @@ export default function ContactPage() {
   useEffect(() => {
     if (!mounted) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
 

@@ -3,6 +3,8 @@ import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Analytics } from "@vercel/analytics/react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/admin/ToastProvider";
@@ -10,6 +12,11 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { spaceGrotesk, plusJakartaSans, jetbrainsMono } from "@/lib/fonts";
 
 import ScrollProgress from "@/components/ui/ScrollProgress";
+
+// Register GSAP plugins once at app level
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 import "react-toastify/dist/ReactToastify.css";
 import "@/styles/globals.css";

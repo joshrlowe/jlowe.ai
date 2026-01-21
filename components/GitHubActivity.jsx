@@ -14,10 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Badge } from "@/components/ui";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 export default function GitHubActivity({ githubUrl }) {
   const sectionRef = useRef(null);
@@ -56,10 +53,7 @@ export default function GitHubActivity({ githubUrl }) {
   useEffect(() => {
     if (!sectionRef.current || repos.length === 0) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     // Animate title
     if (titleRef.current) {

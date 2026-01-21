@@ -14,11 +14,6 @@ import LeadershipExperience from "@/components/About/LeadershipExperience/Leader
 import ProfessionalDevelopment from "@/components/About/ProfessionalDevelopment/ProfessionalDevelopment";
 import Hobbies from "@/components/About/Hobbies/Hobbies";
 
-// Only register GSAP plugin on client side
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 const AboutPage = ({ aboutData, welcomeData, contactData }) => {
   const contentRef = useRef(null);
   const [activeSection, setActiveSection] = useState("");

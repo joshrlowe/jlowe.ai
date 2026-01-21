@@ -14,12 +14,8 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import StatusBadge from "./StatusBadge";
 import { parseJsonField } from "@/lib/utils/jsonUtils";
-import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import { getPrefersReducedMotion } from "@/lib/hooks";
 import { trackProjectView } from "@/lib/analytics";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 export default function ProjectCard({ project, index = 0 }) {
   const router = useRouter();
@@ -55,7 +51,6 @@ export default function ProjectCard({ project, index = 0 }) {
 
   const images = parseJsonField(project.images, []);
   const techStack = parseJsonField(project.techStack, []);
-  const _tags = parseJsonField(project.tags, []);
 
   let thumbnail = images.length > 0 ? images[0] : null;
   if (thumbnail && typeof thumbnail === "object") {

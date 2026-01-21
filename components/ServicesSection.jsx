@@ -18,11 +18,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card, Badge } from "@/components/ui";
 import { getServiceIcon } from "@/components/icons";
-import { COLOR_VARIANTS } from "@/lib/utils/constants";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { COLOR_VARIANTS, ANIMATION } from "@/lib/utils/constants";
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 // Default services (used if no homeContent provided)
 const defaultServices = [
@@ -91,10 +88,7 @@ export default function ServicesSection({ homeContent }) {
     // Skip animations if no services or no section ref
     if (!sectionRef.current || services.length === 0) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     // Animate title
     if (titleRef.current) {
@@ -104,12 +98,12 @@ export default function ServicesSection({ homeContent }) {
         {
           opacity: 1,
           y: 0,
-          duration: 0.9,
-          ease: "power2.out",
+          duration: ANIMATION.DURATION_SLOW,
+          ease: ANIMATION.EASE_DEFAULT,
           scrollTrigger: {
             trigger: titleRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+            start: ANIMATION.SCROLL_START,
+            toggleActions: ANIMATION.SCROLL_ACTIONS,
           },
         },
       );
@@ -126,12 +120,12 @@ export default function ServicesSection({ homeContent }) {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.8,
-          ease: "power2.out",
+          duration: ANIMATION.DURATION_SLOW,
+          ease: ANIMATION.EASE_DEFAULT,
           scrollTrigger: {
             trigger: card,
             start: "top 88%",
-            toggleActions: "play none none reverse",
+            toggleActions: ANIMATION.SCROLL_ACTIONS,
           },
           delay: index * 0.1,
         },

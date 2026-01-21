@@ -15,10 +15,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Badge } from "@/components/ui";
 import { parseJsonField } from "@/lib/utils/jsonUtils";
 import { COLOR_VARIANTS } from "@/lib/utils/constants";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 // Tech categories with refined colors
 const techCategories = {
@@ -96,10 +93,7 @@ export default function TechStackShowcase({ projects = [] }) {
   useEffect(() => {
     if (!sectionRef.current || techStack.length === 0) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     // Animate title
     if (titleRef.current) {

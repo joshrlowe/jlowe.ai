@@ -10,22 +10,19 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import prisma from "../lib/prisma.js";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
 import {
   DEBOUNCE_DELAY_MS,
   INITIAL_PROJECT_DISPLAY_COUNT,
   PROJECTS_PER_PAGE,
+  ANIMATION,
 } from "@/lib/utils/constants";
+import { getPrefersReducedMotion } from "@/lib/hooks";
 import SEO from "@/components/SEO";
 import ProjectCard from "@/components/Project/ProjectCard";
 import ProjectFilters from "@/components/Project/ProjectFilters";
 import ProjectsEmptyState from "@/components/Project/ProjectsEmptyState";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 export default function ProjectsPage({ projects: initialProjects }) {
   const router = useRouter();
@@ -46,15 +43,12 @@ export default function ProjectsPage({ projects: initialProjects }) {
   useEffect(() => {
     if (!headerRef.current) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     gsap.fromTo(
       headerRef.current,
       { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+      { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT },
     );
   }, []);
 
