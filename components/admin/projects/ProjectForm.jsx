@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { FormField, TagInput, adminStyles, PROJECT_STATUSES } from "../shared";
+import { FormField, TagInput, MediaUpload, adminStyles, PROJECT_STATUSES } from "../shared";
 
 export default function ProjectForm({
   formData,
@@ -169,13 +169,14 @@ export default function ProjectForm({
       </div>
 
       {/* Background Image */}
-      <FormField
-        label="Background Image URL"
-        type="url"
+      <MediaUpload
+        label="Background Image"
         value={formData.backgroundImage}
-        onChange={(e) =>
-          setFormData({ ...formData, backgroundImage: e.target.value })
+        onChange={(url) =>
+          setFormData({ ...formData, backgroundImage: url })
         }
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        type="image"
         placeholder="Fallback image when no thumbnail is available"
       />
 
