@@ -7,6 +7,7 @@ export default function GlobalSettingsSection({ onError }) {
     ownerName: "",
     siteName: "",
     footerText: "",
+    footerTitle: "",
     navLinks: [],
   });
   const [loading, setLoading] = useState(true);
@@ -21,6 +22,7 @@ export default function GlobalSettingsSection({ onError }) {
         ownerName: data.ownerName || "",
         siteName: data.siteName || "",
         footerText: data.footerText || "",
+        footerTitle: data.footerTitle || "",
         navLinks: data.navLinks || [],
         seoDefaults: data.seoDefaults || {},
       });
@@ -133,7 +135,25 @@ export default function GlobalSettingsSection({ onError }) {
 
       <div>
         <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-          Footer Text
+          Footer Title/Role
+        </label>
+        <input
+          type="text"
+          value={settings.footerTitle}
+          onChange={(e) =>
+            setSettings({ ...settings, footerTitle: e.target.value })
+          }
+          placeholder="e.g., AI Engineer & Consultant"
+          className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+        />
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
+          Your title or role displayed in the footer below your name.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          Footer Description
         </label>
         <textarea
           rows={3}
@@ -141,8 +161,12 @@ export default function GlobalSettingsSection({ onError }) {
           onChange={(e) =>
             setSettings({ ...settings, footerText: e.target.value })
           }
+          placeholder="e.g., Building intelligent systems and production-grade AI applications..."
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
         />
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
+          A brief description displayed in the footer.
+        </p>
       </div>
 
       {/* Navigation Links */}

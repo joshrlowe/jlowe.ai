@@ -54,6 +54,7 @@ const socialIcons = {
 };
 
 const DEFAULT_FOOTER_TEXT = "Building intelligent systems and production-grade AI applications that solve real-world problems.";
+const DEFAULT_FOOTER_TITLE = "AI Engineer & Consultant";
 
 export default function Footer() {
   const [contactData, setContactData] = useState(null);
@@ -145,13 +146,13 @@ export default function Footer() {
                     fontFamily: "var(--font-family-heading)",
                   }}
                 >
-                  Josh Lowe
+                  {siteSettings?.ownerName || "Josh Lowe"}
                 </span>
                 <span
                   className="block text-xs tracking-wide"
                   style={{ color: "var(--color-text-muted)" }}
                 >
-                  AI Engineer & Consultant
+                  {siteSettings?.footerTitle || DEFAULT_FOOTER_TITLE}
                 </span>
               </div>
             </Link>
@@ -258,7 +259,7 @@ export default function Footer() {
               fontFamily: "var(--font-family-base)",
             }}
           >
-            © {currentYear} Josh Lowe. All rights reserved.
+            © {currentYear} {siteSettings?.ownerName || "Josh Lowe"}. All rights reserved.
           </p>
         </div>
       </div>

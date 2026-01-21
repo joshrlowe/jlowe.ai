@@ -35,7 +35,7 @@ async function handler(req, res, _token) {
     }
   } else if (req.method === "PUT") {
     try {
-      const { ownerName, siteName, navLinks, footerText, socials, seoDefaults, enabledSections } = req.body;
+      const { ownerName, siteName, navLinks, footerText, footerTitle, socials, seoDefaults, enabledSections } = req.body;
 
       let settings = await prisma.siteSettings.findFirst();
 
@@ -44,6 +44,7 @@ async function handler(req, res, _token) {
         siteName,
         navLinks,
         footerText,
+        footerTitle,
         socials,
         seoDefaults,
         enabledSections: Array.isArray(enabledSections) ? enabledSections : DEFAULT_ENABLED_SECTIONS,
@@ -56,6 +57,7 @@ async function handler(req, res, _token) {
             siteName: siteName || "jlowe.ai",
             navLinks: navLinks || [],
             footerText: footerText || "",
+            footerTitle: footerTitle || "",
             socials: socials || {},
             seoDefaults: seoDefaults || {},
             enabledSections: Array.isArray(enabledSections) ? enabledSections : DEFAULT_ENABLED_SECTIONS,
@@ -67,9 +69,6 @@ async function handler(req, res, _token) {
           data: updateData,
         });
       }
-
-      // Log for debugging
-      console.log("Saved enabledSections:", settings.enabledSections);
 
       res.json(settings);
     } catch (error) {

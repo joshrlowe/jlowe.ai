@@ -72,11 +72,12 @@ describe('GlobalSettingsSection', () => {
       });
     });
 
-    it('should render footer text section', async () => {
+    it('should render footer sections', async () => {
       render(<GlobalSettingsSection onError={mockOnError} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Footer Text')).toBeInTheDocument();
+        expect(screen.getByText('Footer Title/Role')).toBeInTheDocument();
+        expect(screen.getByText('Footer Description')).toBeInTheDocument();
       });
     });
 
