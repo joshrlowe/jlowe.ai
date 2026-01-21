@@ -123,6 +123,7 @@ function ActivityItem({ activity, index }) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   });
 
   const timeAgo = getTimeAgo(new Date(activity.date));

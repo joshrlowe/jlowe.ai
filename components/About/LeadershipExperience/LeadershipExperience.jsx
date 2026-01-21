@@ -6,27 +6,7 @@
  */
 
 import { MarkdownContent } from "@/components/ui";
-
-/**
- * Format a date string to "Month Year" format
- * @param {string} dateStr - ISO date string or date-like string
- * @returns {string} Formatted date like "December 2020"
- */
-function formatDate(dateStr) {
-  if (!dateStr) return null;
-  
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr; // Return as-is if invalid
-    
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr; // Return as-is if parsing fails
-  }
-}
+import { formatMonthYear } from "@/lib/utils/dateUtils";
 
 /**
  * Sort experiences by start date (most recent first)
@@ -72,8 +52,8 @@ export default function LeadershipExperience({ experience = [], subtitle = "" })
       <div className="space-y-6">
         {sortedExperience.map((item, index) => {
           // Format dates for display
-          const startFormatted = formatDate(item.startDate) || item.year;
-          const endFormatted = item.endDate ? formatDate(item.endDate) : "Present";
+          const startFormatted = item.startDate ? formatMonthYear(item.startDate) : item.year;
+          const endFormatted = item.endDate ? formatMonthYear(item.endDate) : "Present";
 
           return (
             <div

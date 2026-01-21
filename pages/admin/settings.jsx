@@ -5,7 +5,6 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import GlobalSettingsSection from "@/components/admin/GlobalSettingsSection";
 import HomeSettingsSection from "@/components/admin/HomeSettingsSection";
 import AboutSettingsSection from "@/components/admin/AboutSettingsSection";
-import ProjectsSettingsSection from "@/components/admin/ProjectsSettingsSection";
 import ContactSettingsSection from "@/components/admin/ContactSettingsSection";
 
 export async function getServerSideProps(context) {
@@ -25,7 +24,6 @@ export default function AdminSettings() {
     },
     { id: "home", label: "Home Page", Component: HomeSettingsSection },
     { id: "about", label: "About Page", Component: AboutSettingsSection },
-    { id: "projects", label: "Projects", Component: ProjectsSettingsSection },
     { id: "contact", label: "Contact", Component: ContactSettingsSection },
   ];
 

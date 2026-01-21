@@ -55,11 +55,6 @@ jest.mock("@/components/admin/AboutSettingsSection", () => {
   };
 });
 
-jest.mock("@/components/admin/ProjectsSettingsSection", () => {
-  return function MockProjectsSettings({ onError }) {
-    return <div data-testid="projects-settings">Projects Settings Section</div>;
-  };
-});
 
 jest.mock("@/components/admin/ContactSettingsSection", () => {
   return function MockContactSettings({ onError }) {
@@ -118,7 +113,6 @@ describe("AdminSettings", () => {
       expect(screen.getByText("Global Site Settings")).toBeInTheDocument();
       expect(screen.getByText("Home Page")).toBeInTheDocument();
       expect(screen.getByText("About Page")).toBeInTheDocument();
-      expect(screen.getByText("Projects")).toBeInTheDocument();
       expect(screen.getByText("Contact")).toBeInTheDocument();
     });
 
@@ -145,14 +139,6 @@ describe("AdminSettings", () => {
       fireEvent.click(screen.getByText("About Page"));
       
       expect(screen.getByTestId("about-settings")).toBeInTheDocument();
-    });
-
-    it("should switch to Projects Settings section", () => {
-      render(<AdminSettings />);
-      
-      fireEvent.click(screen.getByText("Projects"));
-      
-      expect(screen.getByTestId("projects-settings")).toBeInTheDocument();
     });
 
     it("should switch to Contact Settings section", () => {

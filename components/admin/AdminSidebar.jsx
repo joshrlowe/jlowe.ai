@@ -9,8 +9,9 @@ export default function AdminSidebar() {
 
   const navItems = [
     { href: "/admin/dashboard", label: "Dashboard" },
-    { href: "/admin/settings", label: "Settings" },
+    { href: "/admin/projects", label: "Projects" },
     { href: "/admin/articles", label: "Articles" },
+    { href: "/admin/settings", label: "Settings" },
   ];
 
   const isActive = (href) => router.pathname === href;

@@ -77,9 +77,12 @@ export default function ProjectsSettingsSection({ onError }) {
       filtered = filtered.filter((p) => p.status === statusFilter);
     }
 
-    return filtered.sort(
-      (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
-    );
+    // Sort chronologically by startDate (most recent first)
+    return filtered.sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+      return dateB - dateA;
+    });
   }, [projects, searchQuery, statusFilter]);
 
 

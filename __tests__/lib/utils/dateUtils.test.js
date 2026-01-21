@@ -116,8 +116,8 @@ describe("dateUtils", () => {
   describe("formatDateUTC", () => {
     it("formats date in UTC", () => {
       const result = formatDateUTC("2024-01-15");
-      // Result depends on UTC interpretation
-      expect(result).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+      // Should format as "January 15, 2024" in UTC
+      expect(result).toBe("January 15, 2024");
     });
 
     it("returns empty string for null", () => {

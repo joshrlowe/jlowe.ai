@@ -16,6 +16,17 @@ jest.mock("@/components/ui", () => ({
   ),
 }));
 
+// Mock dateUtils
+jest.mock("@/lib/utils/dateUtils", () => ({
+  formatMonthYear: (dateStr) => {
+    if (!dateStr) return "Present";
+    const [year, month] = dateStr.split("-");
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+    return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+  },
+}));
+
 describe("LeadershipExperience", () => {
   const mockExperience = [
     {
