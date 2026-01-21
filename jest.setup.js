@@ -72,6 +72,26 @@ console.error = (...args) => {
     return;
   }
   
+  // Suppress jsdom "not implemented" navigation errors
+  // These are triggered by libraries like react-spring when they interact with navigation
+  // jsdom doesn't implement full navigation, which is expected in test environments
+  if (
+    message &&
+    typeof message === 'object' &&
+    message.type === 'not implemented' &&
+    message.message?.includes('navigation')
+  ) {
+    return;
+  }
+  
+  // Also catch the string version of the navigation error
+  if (
+    typeof message === 'string' &&
+    message.includes('Not implemented: navigation')
+  ) {
+    return;
+  }
+  
   originalConsoleError.apply(console, args);
 };
 
@@ -305,6 +325,21 @@ jest.mock('react-typed', () => ({
   default: ({ strings, ...props }) => (
     <span data-testid="typed-text">{strings?.[0] || ''}</span>
   ),
+}));
+
+// Mock react-text-transition (word carousel animation)
+jest.mock('react-text-transition', () => ({
+  __esModule: true,
+  default: ({ children, ...props }) => (
+    <span data-testid="text-transition">{children}</span>
+  ),
+  presets: {
+    gentle: { tension: 120, friction: 14 },
+    wobbly: { tension: 180, friction: 12 },
+    stiff: { tension: 210, friction: 20 },
+    slow: { tension: 280, friction: 60 },
+    molasses: { tension: 280, friction: 120 },
+  },
 }));
 
 // Mock react-toastify
