@@ -29,51 +29,96 @@ export default function FeaturedProjects({ projects = [] }) {
   useEffect(() => {
     if (!sectionRef.current || projects.length === 0) return;
 
-    if (getPrefersReducedMotion()) return;
+    if (getPrefersReducedMotion()) {
+      // Ensure elements are visible with reduced motion
+      if (titleRef.current) {
+        gsap.set(titleRef.current, { opacity: 1, y: 0 });
+      }
+      cardsRef.current.forEach((card) => {
+        if (card) gsap.set(card, { opacity: 1, y: 0, scale: 1 });
+      });
+      return;
+    }
+
+    const triggers = [];
+
+    // Helper to check if element is in viewport
+    const isInViewport = (el) => {
+      const rect = el.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    };
 
     // Animate title
     if (titleRef.current) {
-      gsap.fromTo(
-        titleRef.current,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.9,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: titleRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+      if (isInViewport(titleRef.current)) {
+        // Already in viewport - animate immediately
+        gsap.fromTo(
+          titleRef.current,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
+        );
+      } else {
+        // Use ScrollTrigger for below-viewport elements
+        const trigger = ScrollTrigger.create({
+          trigger: titleRef.current,
+          start: "top 85%",
+          onEnter: () => {
+            gsap.fromTo(
+              titleRef.current,
+              { opacity: 0, y: 40 },
+              { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" },
+            );
           },
-        },
-      );
+          once: true,
+        });
+        triggers.push(trigger);
+      }
     }
 
     cardsRef.current.forEach((card, index) => {
       if (!card) return;
 
-      gsap.fromTo(
-        card,
-        { opacity: 0, y: 70, scale: 0.92 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: card,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+      if (isInViewport(card)) {
+        // Already in viewport - animate immediately with stagger
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 40, scale: 0.96 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.6,
+            ease: "power2.out",
+            delay: index * 0.12,
           },
-          delay: index * 0.15,
-        },
-      );
+        );
+      } else {
+        // Use ScrollTrigger for below-viewport elements
+        const trigger = ScrollTrigger.create({
+          trigger: card,
+          start: "top 85%",
+          onEnter: () => {
+            gsap.fromTo(
+              card,
+              { opacity: 0, y: 70, scale: 0.92 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.8,
+                ease: "power2.out",
+                delay: index * 0.15,
+              },
+            );
+          },
+          once: true,
+        });
+        triggers.push(trigger);
+      }
     });
 
     return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      triggers.forEach((trigger) => trigger.kill());
     };
   }, [projects]);
 

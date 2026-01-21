@@ -70,24 +70,53 @@ function ActivityItem({ activity, index }) {
   useEffect(() => {
     if (!itemRef.current) return;
 
-    if (getPrefersReducedMotion()) return;
+    if (getPrefersReducedMotion()) {
+      gsap.set(itemRef.current, { opacity: 1, x: 0 });
+      return;
+    }
 
-    gsap.fromTo(
-      itemRef.current,
-      { opacity: 0, x: -30 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: itemRef.current,
-          start: "top 90%",
-          toggleActions: "play none none reverse",
+    const item = itemRef.current;
+    const rect = item.getBoundingClientRect();
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+
+    if (isInViewport) {
+      // Already in viewport - animate immediately
+      gsap.fromTo(
+        item,
+        { opacity: 0, x: -20 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.5,
+          ease: "power2.out",
+          delay: index * 0.08,
         },
-        delay: index * 0.1,
-      },
-    );
+      );
+    } else {
+      // Use ScrollTrigger for below-viewport elements
+      const trigger = ScrollTrigger.create({
+        trigger: item,
+        start: "top 90%",
+        onEnter: () => {
+          gsap.fromTo(
+            item,
+            { opacity: 0, x: -30 },
+            {
+              opacity: 1,
+              x: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              delay: index * 0.1,
+            },
+          );
+        },
+        once: true,
+      });
+
+      return () => {
+        trigger.kill();
+      };
+    }
   }, [index]);
 
   const formattedDate = new Date(activity.date).toLocaleDateString("en-US", {
@@ -203,29 +232,43 @@ export default function RecentActivity({ projects = [], articles = [] }) {
   const titleRef = useRef(null);
 
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || !titleRef.current) return;
 
-    if (getPrefersReducedMotion()) return;
+    if (getPrefersReducedMotion()) {
+      gsap.set(titleRef.current, { opacity: 1, y: 0 });
+      return;
+    }
 
-    gsap.fromTo(
-      titleRef.current,
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.7,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
+    const title = titleRef.current;
+    const rect = title.getBoundingClientRect();
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+
+    if (isInViewport) {
+      // Already in viewport - animate immediately
+      gsap.fromTo(
+        title,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+      );
+    } else {
+      // Use ScrollTrigger for below-viewport elements
+      const trigger = ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top 80%",
+        onEnter: () => {
+          gsap.fromTo(
+            title,
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
+          );
         },
-      },
-    );
+        once: true,
+      });
 
-    return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
+      return () => {
+        trigger.kill();
+      };
+    }
   }, []);
 
   // Combine and sort activities by date

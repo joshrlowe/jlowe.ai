@@ -24,32 +24,58 @@ export default function ProjectCard({ project, index = 0 }) {
   useEffect(() => {
     if (!cardRef.current) return;
 
-    if (getPrefersReducedMotion()) return;
+    if (getPrefersReducedMotion()) {
+      // Ensure visible even with reduced motion
+      gsap.set(cardRef.current, { opacity: 1, y: 0, scale: 1 });
+      return;
+    }
 
-    gsap.fromTo(
-      cardRef.current,
-      { opacity: 0, y: 50, scale: 0.95 },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: cardRef.current,
-          start: "top 90%",
-          toggleActions: "play none none reverse",
+    const card = cardRef.current;
+    
+    // Check if element is already in viewport (handles client-side navigation)
+    const rect = card.getBoundingClientRect();
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+
+    if (isInViewport) {
+      // Element already visible - animate immediately without ScrollTrigger
+      gsap.fromTo(
+        card,
+        { opacity: 0, y: 30, scale: 0.98 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.5,
+          ease: "power2.out",
+          delay: (index % 3) * 0.08,
         },
-        delay: (index % 3) * 0.1,
-      },
-    );
+      );
+    } else {
+      // Element below viewport - use ScrollTrigger
+      const trigger = ScrollTrigger.create({
+        trigger: card,
+        start: "top 90%",
+        onEnter: () => {
+          gsap.fromTo(
+            card,
+            { opacity: 0, y: 50, scale: 0.95 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.6,
+              ease: "power2.out",
+              delay: (index % 3) * 0.1,
+            },
+          );
+        },
+        once: true, // Only trigger once
+      });
 
-    // Force ScrollTrigger to recalculate for client-side navigation
-    ScrollTrigger.refresh();
-
-    return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
+      return () => {
+        trigger.kill();
+      };
+    }
   }, [index]);
 
   const images = parseJsonField(project.images, []);
