@@ -10,116 +10,37 @@
 
 import { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
+import TextTransition, { presets } from "react-text-transition";
 import SEO from "@/components/SEO";
 import { trackExternalLink } from "@/lib/analytics";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 
 const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
-// Enhanced vertical carousel component with GSAP animations
+// Word carousel using react-text-transition for smooth spring-based animations
 function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const containerRef = useRef(null);
-  const wordsRef = useRef([]);
-
-  // Find the longest word to set a stable container width
-  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b), "");
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     if (words.length <= 1) return;
-
-    // Set initial state - all words hidden except first
-    wordsRef.current.forEach((el, i) => {
-      if (el) {
-        gsap.set(el, { 
-          yPercent: i === 0 ? 0 : 100, 
-          opacity: i === 0 ? 1 : 0 
-        });
-      }
-    });
-
-    const animate = () => {
-      const current = currentIndex;
-      const next = (current + 1) % words.length;
-      
-      const currentEl = wordsRef.current[current];
-      const nextEl = wordsRef.current[next];
-      
-      if (!currentEl || !nextEl) return;
-
-      // Create a timeline for smooth transition
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setCurrentIndex(next);
-        },
-      });
-
-      // Animate current word out (slide up and fade)
-      tl.to(currentEl, {
-        yPercent: -100,
-        opacity: 0,
-        duration: 0.4,
-        ease: "power2.inOut",
-      });
-
-      // Animate next word in (slide up from below)
-      tl.fromTo(
-        nextEl,
-        { yPercent: 100, opacity: 0 },
-        {
-          yPercent: 0,
-          opacity: 1,
-          duration: 0.4,
-          ease: "power2.inOut",
-        },
-        "-=0.25" // Overlap for seamless transition
-      );
-    };
-
-    const interval = setInterval(animate, 3000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [words.length, currentIndex]);
+    const interval = setInterval(() => {
+      setIndex((i) => (i + 1) % words.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [words.length]);
 
   const wordStyle = {
     background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
-    textShadow: "0 0 40px rgba(232, 93, 4, 0.4)",
-    fontWeight: "inherit",
   };
 
   return (
-    <span
-      ref={containerRef}
-      className="inline-block relative overflow-hidden whitespace-nowrap"
-      style={{ 
-        height: "1.2em", 
-        verticalAlign: "baseline",
-      }}
-    >
-      {/* All words stacked - GSAP handles visibility */}
-      {words.map((word, index) => (
-        <span
-          key={word}
-          ref={(el) => (wordsRef.current[index] = el)}
-          className="absolute left-1/2 top-0 -translate-x-1/2"
-          style={{
-            ...wordStyle,
-            opacity: index === 0 ? 1 : 0,
-          }}
-        >
-          {word}
-        </span>
-      ))}
-
-      {/* Invisible longest word to maintain stable width */}
-      <span className="invisible" aria-hidden="true">
-        {longestWord}
-      </span>
+    <span className="inline-block" style={wordStyle}>
+      <TextTransition springConfig={presets.gentle} direction="down">
+        {words[index]}
+      </TextTransition>
     </span>
   );
 }
