@@ -30,23 +30,23 @@ export default function LeadershipExperience({ experience = [], subtitle = "" })
   return (
     <div className="p-8 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
       <div className="mb-8">
-        <h2
-          className="text-2xl font-bold"
-          style={{
-            color: "var(--color-text-primary)",
-            fontFamily: "var(--font-family-heading)",
-          }}
-        >
-          Leadership Experience
-        </h2>
-        {subtitle && (
-          <p
-            className="text-sm mt-1"
-            style={{ color: "var(--color-text-muted)" }}
+          <h2
+            className="text-2xl font-bold"
+            style={{
+              color: "var(--color-text-primary)",
+              fontFamily: "var(--font-family-heading)",
+            }}
           >
-            {subtitle}
-          </p>
-        )}
+            Leadership Experience
+          </h2>
+          {subtitle && (
+            <p
+            className="text-sm mt-1"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              {subtitle}
+            </p>
+          )}
       </div>
 
       <div className="space-y-6">
@@ -99,8 +99,8 @@ export default function LeadershipExperience({ experience = [], subtitle = "" })
                     content={item.description}
                     variant="compact"
                   />
-                </div>
-              )}
+                  </div>
+                )}
             </div>
           );
         })}

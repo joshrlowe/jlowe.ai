@@ -933,11 +933,11 @@ export default function AboutSettingsSection({ onError }) {
                 <button
                   type="button"
                   onClick={() =>
-                    updateField(
-                      "hobbies",
-                      aboutData.hobbies.filter((_, i) => i !== index),
-                    )
-                  }
+            updateField(
+              "hobbies",
+              aboutData.hobbies.filter((_, i) => i !== index),
+            )
+          }
                   className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
                 >
                   ✕

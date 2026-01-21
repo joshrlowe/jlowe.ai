@@ -17,9 +17,9 @@ export default function CertificationCard({ certification }) {
             {certification.issuer || certification.organization}
           </div>
           {(certification.dateObtained || certification.date) && (
-            <div className="text-xs text-[var(--color-text-muted)] mt-1">
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">
               Obtained: {certification.dateObtained || certification.date}
-            </div>
+          </div>
           )}
           {certification.credentialId && (
             <div className="text-xs text-[var(--color-text-muted)] mt-1">

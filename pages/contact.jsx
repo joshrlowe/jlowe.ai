@@ -29,17 +29,19 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
     return () => clearInterval(interval);
   }, [words.length]);
 
+  // Apply gradient to the inner text element so it works with TextTransition's wrapper
   const wordStyle = {
     background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
+    display: "inline-block",
   };
 
   return (
-    <span className="inline-block" style={wordStyle}>
+    <span className="inline-block">
       <TextTransition springConfig={presets.gentle} direction="down">
-        {words[index]}
+        <span style={wordStyle}>{words[index]}</span>
       </TextTransition>
     </span>
   );
