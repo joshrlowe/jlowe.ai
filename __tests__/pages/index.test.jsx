@@ -1,7 +1,7 @@
 /**
  * Tests for pages/index.jsx
  *
- * Tests home page component and conditional rendering
+ * Tests home page component rendering
  */
 
 import React from 'react';
@@ -60,41 +60,6 @@ jest.mock('@/components/RecentActivity', () => {
   };
 });
 
-jest.mock('@/components/ServicesSection', () => {
-  return function ServicesSection({ homeContent }) {
-    return (
-      <div data-testid="services-section">
-        <span data-testid="services-title">{homeContent?.servicesTitle}</span>
-      </div>
-    );
-  };
-});
-
-jest.mock('@/components/QuickStats', () => {
-  return function QuickStats({ projects, aboutData }) {
-    return <div data-testid="quick-stats">{projects.length} projects</div>;
-  };
-});
-
-jest.mock('@/components/TechStackShowcase', () => {
-  return function TechStackShowcase({ projects }) {
-    return <div data-testid="tech-stack" />;
-  };
-});
-
-// Mock fetch for useEffect that fetches enabled sections
-beforeEach(() => {
-  global.fetch = jest.fn(() =>
-    Promise.resolve({
-      json: () => Promise.resolve({ enabledSections: ['hero', 'welcome', 'projects', 'stats', 'articles'] }),
-    })
-  );
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-
 describe('Home Page', () => {
   const defaultProps = {
     welcomeData: {
@@ -106,18 +71,14 @@ describe('Home Page', () => {
       { id: '1', title: 'Project 1', status: 'Published' },
       { id: '2', title: 'Project 2', status: 'Published' },
     ],
-    aboutData: { yearsExperience: 8 },
-    contactData: { email: 'josh@jlowe.ai' },
     resources: [
       { id: '1', title: 'Article 1' },
     ],
     homeContent: {
       heroTitle: 'intelligent AI systems',
-      servicesTitle: 'Services',
       githubSectionTitle: 'GitHub',
     },
     githubUsername: 'joshrlowe',
-    enabledSections: ['hero', 'welcome', 'projects', 'stats', 'articles'],
   };
 
   describe('SEO', () => {
@@ -144,55 +105,24 @@ describe('Home Page', () => {
   });
 
   describe('Section rendering', () => {
-    it('should render hero section when enabled', () => {
+    it('should render hero section', () => {
       render(<Home {...defaultProps} />);
       expect(screen.getByTestId('hero-section')).toBeInTheDocument();
     });
 
-    it('should not render hero section when disabled', () => {
-      render(<Home {...defaultProps} enabledSections={['welcome', 'projects']} />);
-      expect(screen.queryByTestId('hero-section')).not.toBeInTheDocument();
-    });
-
-    it('should render featured projects when enabled', () => {
+    it('should render featured projects', () => {
       render(<Home {...defaultProps} />);
       expect(screen.getByTestId('featured-projects')).toBeInTheDocument();
     });
 
-    it('should not render featured projects when disabled', () => {
-      render(<Home {...defaultProps} enabledSections={['hero', 'welcome']} />);
-      expect(screen.queryByTestId('featured-projects')).not.toBeInTheDocument();
-    });
-
-    it('should render recent activity when articles enabled', () => {
+    it('should render recent activity', () => {
       render(<Home {...defaultProps} />);
       expect(screen.getByTestId('recent-activity')).toBeInTheDocument();
     });
 
-    it('should not render recent activity when disabled', () => {
-      render(<Home {...defaultProps} enabledSections={['hero', 'welcome', 'projects']} />);
-      expect(screen.queryByTestId('recent-activity')).not.toBeInTheDocument();
-    });
-
-    it('should render services when enabled', () => {
-      render(<Home {...defaultProps} enabledSections={['services']} />);
-      expect(screen.getByTestId('services-section')).toBeInTheDocument();
-    });
-
-    it('should not render services by default (not in default sections)', () => {
+    it('should render github contribution graph', () => {
       render(<Home {...defaultProps} />);
-      expect(screen.queryByTestId('services-section')).not.toBeInTheDocument();
-    });
-
-    it('should render stats when enabled', () => {
-      render(<Home {...defaultProps} />);
-      expect(screen.getByTestId('quick-stats')).toBeInTheDocument();
-      expect(screen.getByTestId('tech-stack')).toBeInTheDocument();
-    });
-
-    it('should not render stats when disabled', () => {
-      render(<Home {...defaultProps} enabledSections={['hero']} />);
-      expect(screen.queryByTestId('quick-stats')).not.toBeInTheDocument();
+      expect(screen.getByTestId('github-graph')).toBeInTheDocument();
     });
   });
 
@@ -216,18 +146,6 @@ describe('Home Page', () => {
     it('should pass home content to hero section', () => {
       render(<Home {...defaultProps} />);
       expect(screen.getByTestId('hero-title')).toHaveTextContent('intelligent AI systems');
-    });
-  });
-
-  describe('Default enabled sections', () => {
-    it('should use default sections when not provided', () => {
-      const propsWithoutSections = { ...defaultProps };
-      delete propsWithoutSections.enabledSections;
-
-      render(<Home {...propsWithoutSections} />);
-
-      expect(screen.getByTestId('hero-section')).toBeInTheDocument();
-      expect(screen.getByTestId('featured-projects')).toBeInTheDocument();
     });
   });
 });
@@ -257,12 +175,6 @@ describe('getStaticProps', () => {
       },
     ]);
 
-    prisma.about.findFirst.mockResolvedValue({
-      id: '1',
-      yearsExperience: 8,
-      createdAt: new Date(),
-    });
-
     prisma.contact.findFirst.mockResolvedValue({
       id: '1',
       socialMediaLinks: { github: 'https://github.com/joshrlowe' },
@@ -278,55 +190,31 @@ describe('getStaticProps', () => {
       content: { heroTitle: 'Custom Hero' },
     });
 
-    prisma.siteSettings.findFirst.mockResolvedValue({
-      enabledSections: ['hero', 'projects'],
-    });
-
     const result = await getStaticProps();
 
     expect(result.props.welcomeData.name).toBe('Josh Lowe');
     expect(result.props.projects).toHaveLength(1);
-    expect(result.props.aboutData.yearsExperience).toBe(8);
     expect(result.props.githubUsername).toBe('joshrlowe');
-    expect(result.props.enabledSections).toEqual(['hero', 'projects']);
     expect(result.props.homeContent.heroTitle).toBe('Custom Hero');
     expect(result.revalidate).toBe(60);
-  });
-
-  it('should use default enabled sections when not set', async () => {
-    prisma.welcome.findFirst.mockResolvedValue(null);
-    prisma.project.findMany.mockResolvedValue([]);
-    prisma.about.findFirst.mockResolvedValue(null);
-    prisma.contact.findFirst.mockResolvedValue(null);
-    prisma.post.findMany.mockResolvedValue([]);
-    prisma.pageContent.findUnique.mockResolvedValue(null);
-    prisma.siteSettings.findFirst.mockResolvedValue(null);
-
-    const result = await getStaticProps();
-
-    expect(result.props.enabledSections).toEqual(['hero', 'welcome', 'projects', 'stats', 'articles']);
   });
 
   it('should use default homeContent when not set', async () => {
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.project.findMany.mockResolvedValue([]);
-    prisma.about.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue(null);
     prisma.post.findMany.mockResolvedValue([]);
     prisma.pageContent.findUnique.mockResolvedValue(null);
-    prisma.siteSettings.findFirst.mockResolvedValue(null);
 
     const result = await getStaticProps();
 
     expect(result.props.homeContent.typingIntro).toBe('I build...');
     expect(result.props.homeContent.heroTitle).toBe('intelligent AI systems');
-    expect(result.props.homeContent.services).toHaveLength(6);
   });
 
   it('should use default github username when not in contact data', async () => {
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.project.findMany.mockResolvedValue([]);
-    prisma.about.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue({
       id: '1',
       socialMediaLinks: {},
@@ -334,7 +222,6 @@ describe('getStaticProps', () => {
     });
     prisma.post.findMany.mockResolvedValue([]);
     prisma.pageContent.findUnique.mockResolvedValue(null);
-    prisma.siteSettings.findFirst.mockResolvedValue(null);
 
     const result = await getStaticProps();
 
@@ -348,14 +235,12 @@ describe('getStaticProps', () => {
 
     expect(result.props.welcomeData).toBeNull();
     expect(result.props.projects).toEqual([]);
-    expect(result.props.enabledSections).toEqual(['hero', 'welcome', 'projects', 'stats', 'articles']);
     expect(result.revalidate).toBe(60);
   });
 
   it('should extract github username from full URL', async () => {
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.project.findMany.mockResolvedValue([]);
-    prisma.about.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue({
       id: '1',
       socialMediaLinks: { github: 'https://github.com/customuser' },
@@ -363,7 +248,6 @@ describe('getStaticProps', () => {
     });
     prisma.post.findMany.mockResolvedValue([]);
     prisma.pageContent.findUnique.mockResolvedValue(null);
-    prisma.siteSettings.findFirst.mockResolvedValue(null);
 
     const result = await getStaticProps();
 
@@ -373,21 +257,17 @@ describe('getStaticProps', () => {
   it('should merge custom content with defaults', async () => {
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.project.findMany.mockResolvedValue([]);
-    prisma.about.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue(null);
     prisma.post.findMany.mockResolvedValue([]);
     prisma.pageContent.findUnique.mockResolvedValue({
       pageKey: 'home',
-      content: { heroTitle: 'Custom Title', servicesTitle: 'Custom Services' },
+      content: { heroTitle: 'Custom Title' },
     });
-    prisma.siteSettings.findFirst.mockResolvedValue(null);
 
     const result = await getStaticProps();
 
     expect(result.props.homeContent.heroTitle).toBe('Custom Title');
-    expect(result.props.homeContent.servicesTitle).toBe('Custom Services');
     // Default values should still be present
     expect(result.props.homeContent.typingIntro).toBe('I build...');
   });
 });
-

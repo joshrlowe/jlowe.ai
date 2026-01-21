@@ -4,14 +4,11 @@
  * Portfolio-focused landing page featuring:
  * - Three.js space background
  * - Hero section with typing animation
- * - GitHub contribution graph (shows coding activity)
- * - Featured projects (portfolio focus - ABOVE services)
  * - Recent activity timeline
- * - Services showcase (consulting - secondary)
- * - Stats and tech stack
+ * - Featured projects
+ * - GitHub contribution graph
  */
 
-import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import prisma from "../lib/prisma.js";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
@@ -19,9 +16,6 @@ import SEO from "@/components/SEO";
 import HeroSection from "@/components/HeroSection";
 import FeaturedProjects from "@/components/FeaturedProjects";
 import RecentActivity from "@/components/RecentActivity";
-import ServicesSection from "@/components/ServicesSection";
-import QuickStats from "@/components/QuickStats";
-import TechStackShowcase from "@/components/TechStackShowcase";
 
 // Dynamically import GitHubContributionGraph (uses client-only library)
 const GitHubContributionGraph = dynamic(
@@ -38,9 +32,6 @@ const GitHubContributionGraph = dynamic(
   }
 );
 
-// Note: AnimatedBackground, Welcome, WelcomeCTAs, ScrollIndicator, and SkillsTimeline
-// have been replaced by SpaceBackground, HeroSection, and ServicesSection
-
 // Dynamically import Three.js background for performance
 const SpaceBackground = dynamic(() => import("@/components/SpaceBackground"), {
   ssr: false,
@@ -49,41 +40,15 @@ const SpaceBackground = dynamic(() => import("@/components/SpaceBackground"), {
   ),
 });
 
-// Default enabled sections
-const DEFAULT_ENABLED_SECTIONS = ["hero", "welcome", "projects", "stats", "articles"];
-
 export default function Home({
   welcomeData,
   projects,
-  aboutData,
-  _contactData,
   resources,
   homeContent,
   githubUsername,
-  enabledSections: initialEnabledSections = DEFAULT_ENABLED_SECTIONS,
 }) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeResources = Array.isArray(resources) ? resources : [];
-
-  // Use state for enabledSections to allow client-side updates
-  const [enabledSections, setEnabledSections] = useState(initialEnabledSections);
-
-  // Fetch fresh enabledSections on mount for instant toggle updates
-  useEffect(() => {
-    fetch("/api/home-content")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.enabledSections) {
-          setEnabledSections(data.enabledSections);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch home content:", err);
-      });
-  }, []);
-
-  // Helper to check if a section is enabled
-  const isEnabled = (sectionId) => enabledSections.includes(sectionId);
 
   return (
     <>
@@ -98,47 +63,26 @@ export default function Home({
       {/* Three.js Space Background */}
       <SpaceBackground />
 
-      {/* Main Content - Portfolio-first ordering */}
+      {/* Main Content - Fixed section order */}
       <div className="relative z-10">
-        {/* 1. Hero - Who I am (always shown - required) */}
-        {isEnabled("hero") && (
-          <HeroSection
-            data={welcomeData}
-            homeContent={homeContent}
-          />
-        )}
+        {/* 1. Hero - Who I am */}
+        <HeroSection
+          data={welcomeData}
+          homeContent={homeContent}
+        />
 
-        {/* 2. GitHub Activity - Proof of consistent work (part of welcome) */}
-        {isEnabled("welcome") && (
-          <GitHubContributionGraph 
-            username={githubUsername || "joshrlowe"} 
-            title={homeContent?.githubSectionTitle}
-            description={homeContent?.githubSectionDescription}
-          />
-        )}
+        {/* 2. Recent Activity - Timeline of work */}
+        <RecentActivity projects={safeProjects} articles={safeResources} />
 
-        {/* 3. Featured Projects - What I've built (PORTFOLIO FOCUS) */}
-        {isEnabled("projects") && (
-          <FeaturedProjects projects={safeProjects} />
-        )}
+        {/* 3. Featured Projects - What I've built */}
+        <FeaturedProjects projects={safeProjects} />
 
-        {/* 4. Recent Activity - Timeline of work (part of articles) */}
-        {isEnabled("articles") && (
-          <RecentActivity projects={safeProjects} articles={safeResources} />
-        )}
-
-        {/* 5. Services - What I can do for you (CONSULTING) */}
-        {isEnabled("services") && (
-          <ServicesSection homeContent={homeContent} />
-        )}
-
-        {/* 6. Stats & Tech - Credibility */}
-        {isEnabled("stats") && (
-          <>
-            <QuickStats projects={safeProjects} aboutData={aboutData} />
-            <TechStackShowcase projects={safeProjects} />
-          </>
-        )}
+        {/* 4. GitHub Contributions - Proof of consistent work */}
+        <GitHubContributionGraph 
+          username={githubUsername || "joshrlowe"} 
+          title={homeContent?.githubSectionTitle}
+          description={homeContent?.githubSectionDescription}
+        />
       </div>
     </>
   );
@@ -167,53 +111,6 @@ const defaultHomeContent = {
   githubSectionTitle: "GitHub Contributions",
   githubSectionDescription:
     "A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.",
-  servicesTitle: "AI & Engineering Services",
-  servicesSubtitle:
-    "From strategy to implementation, I help businesses harness the power of AI and modern engineering practices.",
-  services: [
-    {
-      iconKey: "computer",
-      title: "AI Strategy & Consulting",
-      description:
-        "Transform your business with data-driven AI strategies. I help organizations identify opportunities and build roadmaps for AI adoption.",
-      variant: "primary",
-    },
-    {
-      iconKey: "database",
-      title: "Machine Learning Systems",
-      description:
-        "End-to-end ML pipeline development—from data engineering to model deployment. Scalable, production-ready solutions.",
-      variant: "accent",
-    },
-    {
-      iconKey: "code",
-      title: "LLM & GenAI Solutions",
-      description:
-        "Custom Large Language Model integrations, RAG systems, and generative AI applications tailored to your needs.",
-      variant: "cool",
-    },
-    {
-      iconKey: "cloud",
-      title: "Cloud & MLOps",
-      description:
-        "Deploy and scale AI systems on AWS, GCP, or Azure. Implement MLOps best practices for continuous improvement.",
-      variant: "secondary",
-    },
-    {
-      iconKey: "chart",
-      title: "Data Analytics",
-      description:
-        "Turn raw data into actionable insights. Build dashboards, pipelines, and analytics systems that drive decisions.",
-      variant: "primary",
-    },
-    {
-      iconKey: "book",
-      title: "Technical Training",
-      description:
-        "Upskill your team with hands-on AI/ML training. Workshops tailored to your tech stack and business goals.",
-      variant: "accent",
-    },
-  ],
 };
 
 export async function getStaticProps() {
@@ -231,10 +128,6 @@ export async function getStaticProps() {
 
     const projects = transformProjectsToApiFormat(projectsRaw);
 
-    const aboutData = await prisma.about.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
-
     const contactData = await prisma.contact.findFirst({
       orderBy: { createdAt: "desc" },
     });
@@ -249,17 +142,6 @@ export async function getStaticProps() {
     const pageContent = await prisma.pageContent.findUnique({
       where: { pageKey: "home" },
     });
-
-    // Fetch site settings for enabled sections
-    const siteSettings = await prisma.siteSettings.findFirst({
-      select: {
-        enabledSections: true,
-      },
-    });
-    const enabledSections = siteSettings?.enabledSections || DEFAULT_ENABLED_SECTIONS;
-    
-    // Log for debugging
-    console.log("Fetched enabledSections:", enabledSections);
 
     // Merge with defaults
     const homeContent = pageContent?.content
@@ -283,12 +165,9 @@ export async function getStaticProps() {
       props: {
         welcomeData: welcomeData ? serialize(welcomeData) : null,
         projects: serialize(projects || []),
-        aboutData: aboutData ? serialize(aboutData) : null,
-        contactData: contactData ? serialize(contactData) : null,
         resources: serialize(resources || []),
         homeContent: serialize(homeContent),
         githubUsername,
-        enabledSections: serialize(enabledSections),
       },
       revalidate: 60,
     };
@@ -298,12 +177,9 @@ export async function getStaticProps() {
       props: {
         welcomeData: null,
         projects: [],
-        aboutData: null,
-        contactData: null,
         resources: [],
         homeContent: defaultHomeContent,
         githubUsername: "joshrlowe",
-        enabledSections: DEFAULT_ENABLED_SECTIONS,
       },
       revalidate: 60,
     };

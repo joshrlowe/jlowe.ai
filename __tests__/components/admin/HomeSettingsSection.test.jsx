@@ -50,13 +50,6 @@ jest.mock('../../../components/admin/home', () => ({
       </button>
     </div>
   ),
-  ServicesTab: ({ homeContent, saving, onSave }) => (
-    <div data-testid="services-tab">
-      <button data-testid="save-services" onClick={onSave} disabled={saving}>
-        Save
-      </button>
-    </div>
-  ),
   GitHubTab: ({ homeContent, saving, onSave }) => (
     <div data-testid="github-tab">
       <button data-testid="save-github" onClick={onSave} disabled={saving}>
@@ -64,14 +57,6 @@ jest.mock('../../../components/admin/home', () => ({
       </button>
     </div>
   ),
-  SectionsTab: ({ enabledSections, setEnabledSections, saving, onSave }) => (
-    <div data-testid="sections-tab">
-      <button data-testid="save-sections" onClick={onSave} disabled={saving}>
-        Save
-      </button>
-    </div>
-  ),
-  DEFAULT_ENABLED_SECTIONS: ['hero', 'welcome', 'projects'],
 }));
 
 // Mock fetch
@@ -105,22 +90,9 @@ describe('HomeSettingsSection', () => {
               primaryCta: { text: 'View Work', href: '/projects' },
               secondaryCta: { text: 'Contact', href: '/contact' },
               techBadges: [{ name: 'React', color: '#61DAFB' }],
-              servicesTitle: 'Services',
-              services: [],
             },
           }),
         });
-      }
-      if (url.includes('/api/admin/site-settings')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            enabledSections: ['hero', 'welcome', 'projects'],
-          }),
-        });
-      }
-      if (url.includes('/api/revalidate')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
@@ -146,9 +118,7 @@ describe('HomeSettingsSection', () => {
       });
 
       expect(screen.getByText('Hero Section')).toBeInTheDocument();
-      expect(screen.getByText('Sections')).toBeInTheDocument();
       expect(screen.getByText('GitHub Section')).toBeInTheDocument();
-      expect(screen.getByText('Services')).toBeInTheDocument();
     });
 
     it('should show Hero tab by default', async () => {
@@ -159,31 +129,17 @@ describe('HomeSettingsSection', () => {
       });
     });
 
-    it('should switch to Hero tab when clicked', async () => {
+    it('should switch to Welcome tab when clicked', async () => {
       render(<HomeSettingsSection onError={mockOnError} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Hero Section')).toBeInTheDocument();
+        expect(screen.getByText('Welcome Info')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Hero Section'));
+      fireEvent.click(screen.getByText('Welcome Info'));
 
       await waitFor(() => {
-        expect(screen.getByTestId('hero-tab')).toBeInTheDocument();
-      });
-    });
-
-    it('should switch to Sections tab when clicked', async () => {
-      render(<HomeSettingsSection onError={mockOnError} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Sections')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Sections'));
-
-      await waitFor(() => {
-        expect(screen.getByTestId('sections-tab')).toBeInTheDocument();
+        expect(screen.getByTestId('welcome-tab')).toBeInTheDocument();
       });
     });
 
@@ -198,20 +154,6 @@ describe('HomeSettingsSection', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('github-tab')).toBeInTheDocument();
-      });
-    });
-
-    it('should switch to Services tab when clicked', async () => {
-      render(<HomeSettingsSection onError={mockOnError} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Services')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Services'));
-
-      await waitFor(() => {
-        expect(screen.getByTestId('services-tab')).toBeInTheDocument();
       });
     });
   });
@@ -230,14 +172,6 @@ describe('HomeSettingsSection', () => {
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith('/api/admin/page-content?pageKey=home');
-      });
-    });
-
-    it('should fetch site settings on mount', async () => {
-      render(<HomeSettingsSection onError={mockOnError} />);
-
-      await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith('/api/admin/site-settings');
       });
     });
 
@@ -343,38 +277,4 @@ describe('HomeSettingsSection', () => {
       });
     });
   });
-
-  describe('Save sections', () => {
-    it('should save sections and trigger revalidation', async () => {
-      render(<HomeSettingsSection onError={mockOnError} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Sections')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Sections'));
-
-      await waitFor(() => {
-        expect(screen.getByTestId('sections-tab')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByTestId('save-sections'));
-
-      await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith('/api/admin/site-settings', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: expect.any(String),
-        });
-      });
-
-      await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          'Sections saved! Refresh home page to see changes.',
-          'success'
-        );
-      });
-    });
-  });
 });
-
