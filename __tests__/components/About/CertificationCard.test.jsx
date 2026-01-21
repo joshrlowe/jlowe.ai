@@ -42,22 +42,22 @@ describe("CertificationCard", () => {
     expect(screen.getByText("Google Cloud")).toBeInTheDocument();
   });
 
-  it("renders dateObtained", () => {
+  it("renders dateObtained with prefix", () => {
     const cert = { name: "Cert", dateObtained: "Jan 2024" };
     render(<CertificationCard certification={cert} />);
-    expect(screen.getByText("Jan 2024")).toBeInTheDocument();
+    expect(screen.getByText("Obtained: Jan 2024")).toBeInTheDocument();
   });
 
   it("renders date when dateObtained is not available", () => {
     const cert = { name: "Cert", date: "Feb 2024" };
     render(<CertificationCard certification={cert} />);
-    expect(screen.getByText("Feb 2024")).toBeInTheDocument();
+    expect(screen.getByText("Obtained: Feb 2024")).toBeInTheDocument();
   });
 
-  it("renders expiration date when provided", () => {
-    const cert = { name: "Cert", dateObtained: "Jan 2024", expirationDate: "Jan 2027" };
+  it("does not render date section when no date is provided", () => {
+    const cert = { name: "Cert" };
     render(<CertificationCard certification={cert} />);
-    expect(screen.getByText("Jan 2024 - Jan 2027")).toBeInTheDocument();
+    expect(screen.queryByText(/Obtained:/)).not.toBeInTheDocument();
   });
 
   it("renders credential ID when provided", () => {

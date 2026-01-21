@@ -80,13 +80,6 @@ export default function MarkdownEditor({
         />
       )}
 
-      {/* Markdown help hint */}
-      {!isPreview && (
-        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-          Supports Markdown: **bold**, *italic*, [links](url), `code`, headers
-          (#, ##), lists (-, 1.), and more.
-        </p>
-      )}
     </div>
   );
 }

@@ -76,7 +76,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
   return (
     <>
       <SEO
-        title="About Me"
+        title={ownerName || "About Me"}
         description={summaryText}
         url="https://jlowe.ai/about"
         type="profile"

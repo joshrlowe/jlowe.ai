@@ -16,11 +16,11 @@ export default function CertificationCard({ certification }) {
           <div className="text-sm text-[var(--color-primary)]">
             {certification.issuer || certification.organization}
           </div>
-          <div className="text-xs text-[var(--color-text-muted)] mt-1">
-            {certification.dateObtained || certification.date}
-            {certification.expirationDate &&
-              ` - ${certification.expirationDate}`}
-          </div>
+          {(certification.dateObtained || certification.date) && (
+            <div className="text-xs text-[var(--color-text-muted)] mt-1">
+              Obtained: {certification.dateObtained || certification.date}
+            </div>
+          )}
           {certification.credentialId && (
             <div className="text-xs text-[var(--color-text-muted)] mt-1">
               ID: {certification.credentialId}

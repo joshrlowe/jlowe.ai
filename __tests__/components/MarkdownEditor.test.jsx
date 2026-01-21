@@ -50,10 +50,6 @@ describe("MarkdownEditor", () => {
       expect(screen.getByRole("button", { name: "Preview" })).toBeInTheDocument();
     });
 
-    it("should show markdown help hint in edit mode", () => {
-      renderWithoutProviders(<MarkdownEditor {...defaultProps} />);
-      expect(screen.getByText(/Supports Markdown:/)).toBeInTheDocument();
-    });
   });
 
   describe("edit mode", () => {

@@ -7,6 +7,7 @@ exports[`MarkdownContent snapshots should match snapshot for compact variant 1`]
     prose-p:text-[var(--color-text-secondary)]
     prose-p:my-2
     prose-a:text-[var(--color-primary)]
+    prose-a:underline
     prose-strong:text-[var(--color-text-primary)]
     prose-code:text-[var(--color-accent)]
     prose-code:bg-[var(--color-bg-card)]
@@ -37,6 +38,7 @@ exports[`MarkdownContent snapshots should match snapshot for default variant 1`]
     prose-headings:text-[var(--color-text-primary)]
     prose-p:text-[var(--color-text-secondary)]
     prose-a:text-[var(--color-primary)]
+    prose-a:underline
     prose-strong:text-[var(--color-text-primary)]
     prose-code:text-[var(--color-accent)]
     prose-code:bg-[var(--color-bg-card)]

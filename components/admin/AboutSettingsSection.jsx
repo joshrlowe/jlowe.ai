@@ -617,7 +617,7 @@ function ArraySection({ title, items, onItemsChange, renderItem, addNew }) {
           onClick={handleAdd}
           className={`w-full py-2 ${adminStyles.buttonOutline}`}
         >
-          + Add {title.replace(/s$/, "")}
+          + Add {title.replace(/ies$/, "y").replace(/s$/, "")}
         </button>
       </div>
     </CollapsibleSection>
@@ -895,20 +895,69 @@ export default function AboutSettingsSection({ onError }) {
         title={`Hobbies & Interests (${aboutData.hobbies.length})`}
         defaultOpen={aboutData.hobbies.length > 0}
       >
-        <TagInput
-          label="Hobbies"
-          tags={aboutData.hobbies}
-          onAdd={(hobby) =>
-            updateField("hobbies", [...aboutData.hobbies, hobby])
-          }
-          onRemove={(index) =>
-            updateField(
-              "hobbies",
-              aboutData.hobbies.filter((_, i) => i !== index),
-            )
-          }
-          placeholder="Add hobby or interest"
-        />
+        <div className="space-y-3">
+          {aboutData.hobbies.map((hobby, index) => {
+            // Handle both string and object formats
+            const hobbyName = typeof hobby === "string" ? hobby : hobby.name || "";
+            const hobbyColor = typeof hobby === "string" ? "" : hobby.color || "";
+            
+            return (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-bg-darker)]"
+              >
+                <input
+                  type="text"
+                  value={hobbyName}
+                  onChange={(e) => {
+                    const newHobbies = [...aboutData.hobbies];
+                    newHobbies[index] = { name: e.target.value, color: hobbyColor };
+                    updateField("hobbies", newHobbies);
+                  }}
+                  placeholder="Hobby name"
+                  className="flex-1 px-3 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
+                />
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-[var(--color-text-muted)]">Color:</label>
+                  <input
+                    type="color"
+                    value={hobbyColor || "#FAA307"}
+                    onChange={(e) => {
+                      const newHobbies = [...aboutData.hobbies];
+                      newHobbies[index] = { name: hobbyName, color: e.target.value };
+                      updateField("hobbies", newHobbies);
+                    }}
+                    className="w-8 h-8 rounded cursor-pointer border-0"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateField(
+                      "hobbies",
+                      aboutData.hobbies.filter((_, i) => i !== index),
+                    )
+                  }
+                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() =>
+              updateField("hobbies", [
+                ...aboutData.hobbies,
+                { name: "", color: "#FAA307" },
+              ])
+            }
+            className={`w-full py-2 ${adminStyles.buttonOutline}`}
+          >
+            + Add Hobby
+          </button>
+        </div>
       </CollapsibleSection>
 
       {/* Save Button */}

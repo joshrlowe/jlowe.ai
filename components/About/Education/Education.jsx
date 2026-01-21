@@ -165,20 +165,17 @@ export default function Education({ education = [] }) {
                       >
                         Relevant Coursework:
                       </span>
-                      <div className="flex flex-wrap gap-2 mt-1">
+                      <ul className="mt-1 space-y-1">
                         {edu.relevantCoursework.map((course, i) => (
-                          <span
+                          <li
                             key={i}
-                            className="px-2 py-1 text-xs rounded"
-                            style={{
-                              background: "var(--color-bg-card)",
-                              color: "var(--color-text-muted)",
-                            }}
+                            className="text-sm pl-3 relative before:content-['•'] before:absolute before:left-0 before:text-[var(--color-primary)]"
+                            style={{ color: "var(--color-text-muted)" }}
                           >
                             {course}
-                          </span>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   )}
               </div>

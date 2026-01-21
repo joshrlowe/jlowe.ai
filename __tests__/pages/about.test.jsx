@@ -74,7 +74,7 @@ describe("AboutPage", () => {
     jest.clearAllMocks();
   });
 
-  it("renders SEO component with page title", () => {
+  it("renders SEO component with owner name as title", () => {
     render(
       <AboutPage
         aboutData={mockAboutData}
@@ -83,7 +83,19 @@ describe("AboutPage", () => {
         ownerName="Josh Lowe"
       />,
     );
-    expect(document.title).toContain("About");
+    expect(document.title).toContain("Josh Lowe");
+  });
+
+  it("renders SEO component with fallback title when no owner name", () => {
+    render(
+      <AboutPage
+        aboutData={mockAboutData}
+        welcomeData={mockWelcomeData}
+        contactData={mockContactData}
+        ownerName={null}
+      />,
+    );
+    expect(document.title).toContain("About Me");
   });
 
   it("renders with null props", () => {

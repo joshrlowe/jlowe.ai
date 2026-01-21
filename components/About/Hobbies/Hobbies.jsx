@@ -7,22 +7,38 @@ export default function Hobbies({ hobbies = [] }) {
         Hobbies & Interests
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {hobbies.map((hobby, index) => (
-          <div
-            key={index}
-            className="p-4 rounded-lg bg-[var(--color-bg-darker)] text-center hover:bg-[var(--color-primary)]/10 transition-colors duration-300"
-          >
-            {hobby.icon && <div className="text-3xl mb-2">{hobby.icon}</div>}
-            <div className="text-[var(--color-text-primary)] font-medium">
-              {typeof hobby === "string" ? hobby : hobby.name || hobby.title}
-            </div>
-            {hobby.description && (
-              <div className="text-xs text-[var(--color-text-muted)] mt-1">
-                {hobby.description}
+        {hobbies.map((hobby, index) => {
+          const hobbyName = typeof hobby === "string" ? hobby : hobby.name || hobby.title;
+          const hobbyColor = typeof hobby === "string" ? null : hobby.color;
+          
+          return (
+            <div
+              key={index}
+              className="p-4 rounded-lg text-center transition-colors duration-300"
+              style={{
+                background: hobbyColor 
+                  ? `${hobbyColor}15` 
+                  : "var(--color-bg-darker)",
+                border: hobbyColor 
+                  ? `1px solid ${hobbyColor}30` 
+                  : "1px solid transparent",
+              }}
+            >
+              {hobby.icon && <div className="text-3xl mb-2">{hobby.icon}</div>}
+              <div 
+                className="font-medium"
+                style={{ color: hobbyColor || "var(--color-text-primary)" }}
+              >
+                {hobbyName}
               </div>
-            )}
-          </div>
-        ))}
+              {hobby.description && (
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">
+                  {hobby.description}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

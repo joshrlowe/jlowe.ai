@@ -22,6 +22,7 @@ const styleVariants = {
     prose-headings:text-[var(--color-text-primary)]
     prose-p:text-[var(--color-text-secondary)]
     prose-a:text-[var(--color-primary)]
+    prose-a:underline
     prose-strong:text-[var(--color-text-primary)]
     prose-code:text-[var(--color-accent)]
     prose-code:bg-[var(--color-bg-card)]
@@ -39,6 +40,7 @@ const styleVariants = {
     prose-p:text-[var(--color-text-secondary)]
     prose-p:my-2
     prose-a:text-[var(--color-primary)]
+    prose-a:underline
     prose-strong:text-[var(--color-text-primary)]
     prose-code:text-[var(--color-accent)]
     prose-code:bg-[var(--color-bg-card)]
@@ -58,6 +60,7 @@ const styleVariants = {
     prose-p:inline
     prose-p:text-[var(--color-text-secondary)]
     prose-a:text-[var(--color-primary)]
+    prose-a:underline
     prose-strong:text-[var(--color-text-primary)]
   `,
 };
