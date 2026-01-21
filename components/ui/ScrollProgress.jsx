@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { trackScrollDepth } from "@/lib/analytics";
+import { getPrefersReducedMotion } from "@/lib/hooks";
 
 export default function ScrollProgress() {
   const [progress, setProgress] = useState(0);
@@ -15,10 +16,7 @@ export default function ScrollProgress() {
 
   useEffect(() => {
     // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReducedMotion) return;
+    if (getPrefersReducedMotion()) return;
 
     const handleScroll = () => {
       const scrollTop = window.scrollY;
