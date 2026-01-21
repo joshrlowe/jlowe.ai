@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { FormField, TagInput, MediaUpload, adminStyles, PROJECT_STATUSES } from "../shared";
+import TeamMemberManager from "../TeamMemberManager";
 
 export default function ProjectForm({
   formData,
@@ -178,6 +179,14 @@ export default function ProjectForm({
         accept="image/jpeg,image/png,image/gif,image/webp"
         type="image"
         placeholder="Fallback image when no thumbnail is available"
+      />
+
+      {/* Team Members */}
+      <TeamMemberManager
+        teamMembers={formData.teamMembers || []}
+        onChange={(teamMembers) =>
+          setFormData({ ...formData, teamMembers })
+        }
       />
 
       {/* Featured checkbox */}

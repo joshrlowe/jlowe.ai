@@ -29,6 +29,7 @@ const INITIAL_FORM_DATA = {
   status: "Draft",
   startDate: "",
   releaseDate: "",
+  teamMembers: [],
 };
 
 export default function ProjectsSettingsSection({ onError }) {
@@ -124,6 +125,9 @@ export default function ProjectsSettingsSection({ onError }) {
           releaseDate: fullProject.releaseDate
             ? new Date(fullProject.releaseDate).toISOString().split("T")[0]
             : "",
+          teamMembers: Array.isArray(fullProject.teamMembers)
+            ? fullProject.teamMembers.map((m) => ({ name: m.name, email: m.email || null }))
+            : [],
         });
         setShowModal(true);
       }

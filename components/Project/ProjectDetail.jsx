@@ -258,7 +258,7 @@ export default function ProjectDetail({ project }) {
           {project.teamMembers && project.teamMembers.length > 0 && (
             <section className="p-8 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
               <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-4 font-heading">
-                Team
+                Collaborators
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {project.teamMembers.map((member, index) => (
@@ -269,10 +269,13 @@ export default function ProjectDetail({ project }) {
                     <div className="text-[var(--color-text-primary)] font-medium">
                       {member.name}
                     </div>
-                    {member.role && (
-                      <div className="text-sm text-[var(--color-text-muted)]">
-                        {member.role}
-                      </div>
+                    {member.email && (
+                      <a
+                        href={`mailto:${member.email}`}
+                        className="text-sm text-[var(--color-primary)] hover:underline"
+                      >
+                        {member.email}
+                      </a>
                     )}
                   </div>
                 ))}
