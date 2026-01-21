@@ -6,24 +6,29 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import StatusBadge from "./StatusBadge";
 import { parseJsonField } from "@/lib/utils/jsonUtils";
+import { formatMonthYear } from "@/lib/utils/dateUtils";
+import { getPrefersReducedMotion } from "@/lib/hooks";
+import { ANIMATION } from "@/lib/utils/constants";
 
 export default function ProjectDetail({ project }) {
   const headerRef = useRef(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
+    if (getPrefersReducedMotion()) return;
+
     if (headerRef.current) {
       gsap.fromTo(
         headerRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+        { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT },
       );
     }
     if (contentRef.current) {
       gsap.fromTo(
         contentRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, delay: 0.2, ease: "power2.out" },
+        { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, delay: 0.2, ease: ANIMATION.EASE_DEFAULT },
       );
     }
   }, []);
@@ -34,14 +39,6 @@ export default function ProjectDetail({ project }) {
   const features = parseJsonField(project.features, []);
   const challenges = parseJsonField(project.challenges, []);
   const links = parseJsonField(project.links, {});
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-    });
-  };
 
   return (
     <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
@@ -77,10 +74,10 @@ export default function ProjectDetail({ project }) {
 
           <div className="flex flex-col gap-1 text-sm text-[var(--color-text-muted)]">
             {project.startDate && (
-              <span>Started: {formatDate(project.startDate)}</span>
+              <span>Started: {formatMonthYear(project.startDate)}</span>
             )}
             {project.releaseDate && (
-              <span>Released: {formatDate(project.releaseDate)}</span>
+              <span>Released: {formatMonthYear(project.releaseDate)}</span>
             )}
           </div>
 
