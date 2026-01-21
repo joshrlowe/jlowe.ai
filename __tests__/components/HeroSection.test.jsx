@@ -439,10 +439,10 @@ describe('HeroSection Component', () => {
             });
         });
 
-        it('should render name with ember color', () => {
+        it('should render tagline with ember color', () => {
             render(<HeroSection data={mockData}  />);
-            const name = screen.getByText('Josh Lowe');
-            expect(name).toHaveStyle({ color: '#E85D04' });
+            const tagline = screen.getByText('AI/ML Engineer');
+            expect(tagline).toHaveStyle({ color: '#E85D04' });
         });
 
         it('should apply text shadow to title', () => {

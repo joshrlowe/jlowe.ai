@@ -213,7 +213,7 @@ export default function HeroSection({ data, homeContent }) {
                 textShadow: "0 0 25px rgba(232, 93, 4, 0.35)",
               }}
             >
-              {name}
+              {tagline}
             </span>
             <span
               className="text-xl sm:text-2xl lg:text-3xl hidden sm:inline"
@@ -225,7 +225,7 @@ export default function HeroSection({ data, homeContent }) {
               className="text-lg sm:text-xl lg:text-2xl font-light whitespace-nowrap"
               style={{ color: "var(--color-text-primary)" }}
             >
-              {tagline}
+              {name}
             </span>
           </div>
 
