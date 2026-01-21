@@ -5,6 +5,20 @@ import ProjectForm from '../../../../components/admin/projects/ProjectForm';
 
 // Mock the shared components
 jest.mock('../../../../components/admin/shared', () => ({
+  MediaUpload: ({ label, items, onAdd, onRemove, placeholder }) => (
+    <div data-testid="media-upload">
+      <label>{label}</label>
+      <div>
+        {items?.map((item, i) => (
+          <div key={i}>
+            <span>{typeof item === 'string' ? item : item.url}</span>
+            <button onClick={() => onRemove(i)}>Remove</button>
+          </div>
+        ))}
+        <input placeholder={placeholder} data-testid="media-input" />
+      </div>
+    </div>
+  ),
   FormField: ({ label, value, onChange, options, type = 'text', rows, required }) => {
     const id = label.toLowerCase().replace(/\s/g, '-');
     if (options) {

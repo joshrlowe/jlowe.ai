@@ -225,6 +225,12 @@ jest.mock('next/head', () => ({
   default: ({ children }) => <>{children}</>,
 }));
 
+// Mock lib/hooks - skip animations in tests by returning prefersReducedMotion as true
+jest.mock('@/lib/hooks', () => ({
+  usePrefersReducedMotion: jest.fn(() => true),
+  getPrefersReducedMotion: jest.fn(() => true),
+}));
+
 // ============================================================================
 // THREE.JS / REACT-THREE-FIBER MOCKS
 // ============================================================================

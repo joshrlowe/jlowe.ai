@@ -10,8 +10,15 @@ import { act } from 'react';
 import { screen, renderWithoutProviders, waitFor } from '@/test-utils';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import ScrollProgress from '@/components/ui/ScrollProgress';
+import { getPrefersReducedMotion } from '@/lib/hooks';
 
 expect.extend(toHaveNoViolations);
+
+// Override the global mock to allow animations in these tests
+jest.mock('@/lib/hooks', () => ({
+  usePrefersReducedMotion: jest.fn(() => false),
+  getPrefersReducedMotion: jest.fn(() => false),
+}));
 
 // Helper to dispatch scroll events wrapped in act()
 const triggerScroll = async () => {
@@ -110,6 +117,9 @@ describe('ScrollProgress', () => {
 
   describe('reduced motion preference', () => {
     it('should not render when user prefers reduced motion', () => {
+      // Override the mock to return true for reduced motion
+      getPrefersReducedMotion.mockReturnValue(true);
+      
       mockMatchMedia(true);
       mockScrollPosition(500);
       renderWithoutProviders(<ScrollProgress />);
@@ -117,6 +127,9 @@ describe('ScrollProgress', () => {
       
       const progressBar = screen.queryByRole('progressbar');
       expect(progressBar).not.toBeInTheDocument();
+      
+      // Reset mock to default
+      getPrefersReducedMotion.mockReturnValue(false);
     });
   });
 

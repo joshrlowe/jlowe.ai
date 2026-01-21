@@ -97,13 +97,15 @@ describe('ProjectListItem', () => {
     it('should handle null startDate', () => {
       const project = { ...mockProject, startDate: null };
       render(<ProjectListItem {...defaultProps} project={project} />);
-      expect(screen.getByText(/-/)).toBeInTheDocument();
+      // When startDate is null, should show em-dash
+      expect(screen.getByText(/—/)).toBeInTheDocument();
     });
 
     it('should handle null releaseDate', () => {
       const project = { ...mockProject, releaseDate: null };
       render(<ProjectListItem {...defaultProps} project={project} />);
-      expect(screen.getByText('AI Chatbot')).toBeInTheDocument();
+      // When releaseDate is null, should show "Present"
+      expect(screen.getByText(/Present/)).toBeInTheDocument();
     });
 
     it('should default status to Draft when not provided', () => {
