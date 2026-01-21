@@ -6,6 +6,7 @@
 
 import uploadHandler from '../../../pages/api/admin/upload.js';
 import { getToken } from 'next-auth/jwt';
+import { put } from '@vercel/blob';
 import {
   createMockRequest,
   createMockResponse,
@@ -18,10 +19,14 @@ jest.mock('next-auth/jwt', () => ({
   getToken: jest.fn(),
 }));
 
-// Mock fs/promises
-jest.mock('fs/promises', () => ({
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  mkdir: jest.fn().mockResolvedValue(undefined),
+// Mock @vercel/blob
+jest.mock('@vercel/blob', () => ({
+  put: jest.fn().mockImplementation((filename) => {
+    return Promise.resolve({
+      url: `https://blob.vercel-storage.com/${filename}`,
+      pathname: filename,
+    });
+  }),
 }));
 
 describe('/api/admin/upload', () => {
@@ -98,9 +103,11 @@ describe('/api/admin/upload', () => {
 
       await uploadHandler(req, res);
 
+      expect(getStatusCode(res)).toBe(200);
       const response = getJsonResponse(res);
-      expect(response.url).toMatch(/^\/uploads\/test-\d+\.jpg$/);
+      expect(response.url).toMatch(/^https:\/\/blob\.vercel-storage\.com\/test-\d+\.jpg$/);
       expect(response.filename).toMatch(/^test-\d+\.jpg$/);
+      expect(put).toHaveBeenCalled();
     });
 
     it('should return 400 when file is missing', async () => {

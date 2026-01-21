@@ -6,7 +6,8 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Home from '../../pages/index';
+import Home, { getStaticProps } from '../../pages/index';
+import prisma from '../../lib/prisma';
 
 // Mock all child components
 jest.mock('next/dynamic', () => (loader) => {
@@ -228,6 +229,165 @@ describe('Home Page', () => {
       expect(screen.getByTestId('hero-section')).toBeInTheDocument();
       expect(screen.getByTestId('featured-projects')).toBeInTheDocument();
     });
+  });
+});
+
+describe('getStaticProps', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should fetch and return all page data', async () => {
+    prisma.welcome.findFirst.mockResolvedValue({
+      id: '1',
+      name: 'Josh Lowe',
+      briefBio: 'AI Engineer',
+      callToAction: 'Building AI',
+      createdAt: new Date(),
+    });
+
+    prisma.project.findMany.mockResolvedValue([
+      {
+        id: '1',
+        title: 'Project 1',
+        status: 'Published',
+        startDate: new Date('2024-01-01'),
+        releaseDate: null,
+        teamMembers: [],
+      },
+    ]);
+
+    prisma.about.findFirst.mockResolvedValue({
+      id: '1',
+      yearsExperience: 8,
+      createdAt: new Date(),
+    });
+
+    prisma.contact.findFirst.mockResolvedValue({
+      id: '1',
+      socialMediaLinks: { github: 'https://github.com/joshrlowe' },
+      createdAt: new Date(),
+    });
+
+    prisma.post.findMany.mockResolvedValue([
+      { id: '1', title: 'Article 1', status: 'Published' },
+    ]);
+
+    prisma.pageContent.findUnique.mockResolvedValue({
+      pageKey: 'home',
+      content: { heroTitle: 'Custom Hero' },
+    });
+
+    prisma.siteSettings.findFirst.mockResolvedValue({
+      enabledSections: ['hero', 'projects'],
+    });
+
+    const result = await getStaticProps();
+
+    expect(result.props.welcomeData.name).toBe('Josh Lowe');
+    expect(result.props.projects).toHaveLength(1);
+    expect(result.props.aboutData.yearsExperience).toBe(8);
+    expect(result.props.githubUsername).toBe('joshrlowe');
+    expect(result.props.enabledSections).toEqual(['hero', 'projects']);
+    expect(result.props.homeContent.heroTitle).toBe('Custom Hero');
+    expect(result.revalidate).toBe(60);
+  });
+
+  it('should use default enabled sections when not set', async () => {
+    prisma.welcome.findFirst.mockResolvedValue(null);
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.about.findFirst.mockResolvedValue(null);
+    prisma.contact.findFirst.mockResolvedValue(null);
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.pageContent.findUnique.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
+
+    const result = await getStaticProps();
+
+    expect(result.props.enabledSections).toEqual(['hero', 'welcome', 'projects', 'stats', 'articles']);
+  });
+
+  it('should use default homeContent when not set', async () => {
+    prisma.welcome.findFirst.mockResolvedValue(null);
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.about.findFirst.mockResolvedValue(null);
+    prisma.contact.findFirst.mockResolvedValue(null);
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.pageContent.findUnique.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
+
+    const result = await getStaticProps();
+
+    expect(result.props.homeContent.typingIntro).toBe('I build...');
+    expect(result.props.homeContent.heroTitle).toBe('intelligent AI systems');
+    expect(result.props.homeContent.services).toHaveLength(6);
+  });
+
+  it('should use default github username when not in contact data', async () => {
+    prisma.welcome.findFirst.mockResolvedValue(null);
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.about.findFirst.mockResolvedValue(null);
+    prisma.contact.findFirst.mockResolvedValue({
+      id: '1',
+      socialMediaLinks: {},
+      createdAt: new Date(),
+    });
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.pageContent.findUnique.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
+
+    const result = await getStaticProps();
+
+    expect(result.props.githubUsername).toBe('joshrlowe');
+  });
+
+  it('should handle database errors gracefully', async () => {
+    prisma.welcome.findFirst.mockRejectedValue(new Error('Database error'));
+
+    const result = await getStaticProps();
+
+    expect(result.props.welcomeData).toBeNull();
+    expect(result.props.projects).toEqual([]);
+    expect(result.props.enabledSections).toEqual(['hero', 'welcome', 'projects', 'stats', 'articles']);
+    expect(result.revalidate).toBe(60);
+  });
+
+  it('should extract github username from full URL', async () => {
+    prisma.welcome.findFirst.mockResolvedValue(null);
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.about.findFirst.mockResolvedValue(null);
+    prisma.contact.findFirst.mockResolvedValue({
+      id: '1',
+      socialMediaLinks: { github: 'https://github.com/customuser' },
+      createdAt: new Date(),
+    });
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.pageContent.findUnique.mockResolvedValue(null);
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
+
+    const result = await getStaticProps();
+
+    expect(result.props.githubUsername).toBe('customuser');
+  });
+
+  it('should merge custom content with defaults', async () => {
+    prisma.welcome.findFirst.mockResolvedValue(null);
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.about.findFirst.mockResolvedValue(null);
+    prisma.contact.findFirst.mockResolvedValue(null);
+    prisma.post.findMany.mockResolvedValue([]);
+    prisma.pageContent.findUnique.mockResolvedValue({
+      pageKey: 'home',
+      content: { heroTitle: 'Custom Title', servicesTitle: 'Custom Services' },
+    });
+    prisma.siteSettings.findFirst.mockResolvedValue(null);
+
+    const result = await getStaticProps();
+
+    expect(result.props.homeContent.heroTitle).toBe('Custom Title');
+    expect(result.props.homeContent.servicesTitle).toBe('Custom Services');
+    // Default values should still be present
+    expect(result.props.homeContent.typingIntro).toBe('I build...');
   });
 });
 

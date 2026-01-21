@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import ProjectDetailPage from '../../../pages/projects/[slug]';
+import ProjectDetailPage, { getStaticPaths, getStaticProps } from '../../../pages/projects/[slug]';
+import prisma from '../../../lib/prisma';
 
 // Mock next/router
 const mockUseRouter = jest.fn(() => ({
@@ -165,6 +166,138 @@ describe('ProjectDetailPage', () => {
     render(<ProjectDetailPage project={projectWithoutImages} />);
 
     expect(screen.getByTestId('project-detail')).toBeInTheDocument();
+  });
+});
+
+describe('getStaticPaths', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return paths for all non-draft projects', async () => {
+    prisma.project.findMany.mockResolvedValue([
+      { slug: 'project-1', id: '1' },
+      { slug: 'project-2', id: '2' },
+    ]);
+
+    const result = await getStaticPaths();
+
+    expect(result.paths).toHaveLength(2);
+    expect(result.paths[0]).toEqual({ params: { slug: 'project-1' } });
+    expect(result.paths[1]).toEqual({ params: { slug: 'project-2' } });
+    expect(result.fallback).toBe('blocking');
+  });
+
+  it('should use id when slug is not available', async () => {
+    prisma.project.findMany.mockResolvedValue([
+      { slug: null, id: 'project-id-1' },
+    ]);
+
+    const result = await getStaticPaths();
+
+    expect(result.paths).toHaveLength(1);
+    expect(result.paths[0]).toEqual({ params: { slug: 'project-id-1' } });
+  });
+
+  it('should filter out projects with no slug or id', async () => {
+    prisma.project.findMany.mockResolvedValue([
+      { slug: 'valid-slug', id: '1' },
+      { slug: null, id: null },
+    ]);
+
+    const result = await getStaticPaths();
+
+    expect(result.paths).toHaveLength(1);
+  });
+
+  it('should handle database errors gracefully', async () => {
+    prisma.project.findMany.mockRejectedValue(new Error('Database error'));
+
+    const result = await getStaticPaths();
+
+    expect(result.paths).toEqual([]);
+    expect(result.fallback).toBe('blocking');
+  });
+});
+
+describe('getStaticProps', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return project when found by slug', async () => {
+    const mockProject = {
+      id: '1',
+      title: 'Test Project',
+      slug: 'test-project',
+      status: 'Published',
+      shortDescription: 'Test description',
+      startDate: new Date('2024-01-01'),
+      releaseDate: new Date('2024-06-01'),
+      teamMembers: [],
+    };
+    prisma.project.findUnique.mockResolvedValue(mockProject);
+
+    const result = await getStaticProps({ params: { slug: 'test-project' } });
+
+    expect(result.props.project).toBeDefined();
+    expect(result.props.project.title).toBe('Test Project');
+    expect(result.revalidate).toBe(60);
+  });
+
+  it('should return notFound when slug is missing', async () => {
+    const result = await getStaticProps({ params: {} });
+
+    expect(result.notFound).toBe(true);
+  });
+
+  it('should try finding by id when slug lookup fails', async () => {
+    prisma.project.findUnique
+      .mockResolvedValueOnce(null) // First call with slug returns null
+      .mockResolvedValueOnce({
+        id: 'project-id',
+        title: 'Found by ID',
+        slug: null,
+        status: 'Published',
+        startDate: new Date('2024-01-01'),
+        releaseDate: null,
+        teamMembers: [],
+      });
+
+    const result = await getStaticProps({ params: { slug: 'project-id' } });
+
+    expect(prisma.project.findUnique).toHaveBeenCalledTimes(2);
+    expect(result.props.project.title).toBe('Found by ID');
+  });
+
+  it('should return notFound when project is not found', async () => {
+    prisma.project.findUnique.mockResolvedValue(null);
+
+    const result = await getStaticProps({ params: { slug: 'nonexistent' } });
+
+    expect(result.notFound).toBe(true);
+  });
+
+  it('should return notFound when project is Draft', async () => {
+    prisma.project.findUnique.mockResolvedValue({
+      id: '1',
+      title: 'Draft Project',
+      slug: 'draft-project',
+      status: 'Draft',
+      teamMembers: [],
+    });
+
+    const result = await getStaticProps({ params: { slug: 'draft-project' } });
+
+    expect(result.notFound).toBe(true);
+  });
+
+  it('should handle database errors gracefully', async () => {
+    prisma.project.findUnique.mockRejectedValue(new Error('Database error'));
+
+    const result = await getStaticProps({ params: { slug: 'test' } });
+
+    expect(result.notFound).toBe(true);
   });
 });
 
