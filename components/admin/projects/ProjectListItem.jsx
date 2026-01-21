@@ -21,7 +21,7 @@ export default function ProjectListItem({
           {project.title}
         </h3>
         <div className="text-sm text-[var(--color-text-muted)]">
-          {formatAdminDate(project.startDate) || "-"} - {project.releaseDate ? formatAdminDate(project.releaseDate) : "Present"}
+          {formatAdminDate(project.startDate) || "—"} — {project.releaseDate ? formatAdminDate(project.releaseDate) : "Present"}
         </div>
       </div>
 
