@@ -81,7 +81,6 @@ jest.mock('@/lib/utils/dateUtils', () => ({
 
 jest.mock('@/lib/utils/constants', () => ({
   POSTS_PER_PAGE: 10,
-  PLAYLISTS_PER_PAGE: 5,
 }));
 
 describe('ArticlesPage', () => {
@@ -121,27 +120,11 @@ describe('ArticlesPage', () => {
     },
   ];
 
-  const mockPlaylists = [
-    {
-      id: 'pl1',
-      title: 'JavaScript Playlist',
-      slug: 'javascript-playlist',
-      description: 'All about JavaScript.',
-    },
-    {
-      id: 'pl2',
-      title: 'AI Playlist',
-      slug: 'ai-playlist',
-      description: 'All about AI.',
-    },
-  ];
-
   const mockTopics = ['tech', 'ai'];
   const mockTags = ['javascript', 'react', 'python', 'ml'];
 
   const defaultProps = {
     recentPosts: mockPosts,
-    playlists: mockPlaylists,
     allTopics: mockTopics,
     allTags: mockTags,
   };
@@ -213,13 +196,6 @@ describe('ArticlesPage', () => {
     }
   });
 
-  it('should render playlists section', () => {
-    render(<ArticlesPage {...defaultProps} />);
-
-    expect(screen.getByText('JavaScript Playlist')).toBeInTheDocument();
-    expect(screen.getByText('AI Playlist')).toBeInTheDocument();
-  });
-
   it('should render pagination when there are multiple pages', () => {
     // Mock many posts to trigger pagination
     const manyPosts = Array.from({ length: 15 }, (_, i) => ({
@@ -231,7 +207,6 @@ describe('ArticlesPage', () => {
 
     render(<ArticlesPage {...defaultProps} recentPosts={manyPosts} />);
 
-    // There might be multiple paginations (one for posts, one for playlists)
     const paginationElements = screen.getAllByTestId('pagination');
     expect(paginationElements.length).toBeGreaterThan(0);
   });
@@ -253,13 +228,6 @@ describe('ArticlesPage', () => {
 
   it('should handle empty posts gracefully', () => {
     render(<ArticlesPage {...defaultProps} recentPosts={[]} />);
-
-    // Should still render the page without crashing
-    expect(screen.getByTestId('seo')).toBeInTheDocument();
-  });
-
-  it('should handle empty playlists gracefully', () => {
-    render(<ArticlesPage {...defaultProps} playlists={[]} />);
 
     // Should still render the page without crashing
     expect(screen.getByTestId('seo')).toBeInTheDocument();

@@ -53,8 +53,11 @@ const socialIcons = {
   ),
 };
 
+const DEFAULT_FOOTER_TEXT = "Building intelligent systems and production-grade AI applications that solve real-world problems.";
+
 export default function Footer() {
   const [contactData, setContactData] = useState(null);
+  const [siteSettings, setSiteSettings] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -63,15 +66,23 @@ export default function Footer() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/contact");
-        if (!response.ok) return;
-        const data = await response.json();
-        // Only update state if component is still mounted
-        if (isMounted) {
+        // Fetch contact data and site settings in parallel
+        const [contactResponse, settingsResponse] = await Promise.all([
+          fetch("/api/contact"),
+          fetch("/api/admin/site-settings"),
+        ]);
+        
+        if (contactResponse.ok && isMounted) {
+          const data = await contactResponse.json();
           setContactData(data);
         }
+        
+        if (settingsResponse.ok && isMounted) {
+          const data = await settingsResponse.json();
+          setSiteSettings(data);
+        }
       } catch (_error) {
-        // Silently fail - contact data is optional
+        // Silently fail - data is optional
       }
     };
 
@@ -152,8 +163,7 @@ export default function Footer() {
                 maxWidth: "80%",
               }}
             >
-              Building intelligent systems and production-grade AI applications
-              that solve real-world problems.
+              {siteSettings?.footerText || DEFAULT_FOOTER_TEXT}
             </p>
 
             {/* Social links */}

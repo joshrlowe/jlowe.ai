@@ -26,24 +26,22 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
     if (elements.length === 0) return;
 
     elements.forEach((element, index) => {
-      gsap.set(element, { opacity: 1, y: 0 });
-      gsap.fromTo(
-        element,
-        { opacity: 0, y: 50 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: element,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-          delay: index * 0.1,
-          immediateRender: false,
+      // Set initial state for smooth animation
+      gsap.set(element, { opacity: 0, y: 30 });
+      
+      gsap.to(element, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: element,
+          start: "top 85%",
+          toggleActions: "play none none none",
         },
-      );
+        delay: index * 0.08,
+        overwrite: true,
+      });
     });
 
     const sections = document.querySelectorAll("[id^='section-']");

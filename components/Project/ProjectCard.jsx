@@ -24,13 +24,16 @@ export default function ProjectCard({ project, index = 0 }) {
   useEffect(() => {
     if (!cardRef.current) return;
 
+    const card = cardRef.current;
+
     if (getPrefersReducedMotion()) {
       // Ensure visible even with reduced motion
-      gsap.set(cardRef.current, { opacity: 1, y: 0, scale: 1 });
+      gsap.set(card, { opacity: 1, y: 0, scale: 1 });
       return;
     }
 
-    const card = cardRef.current;
+    // Set initial hidden state
+    gsap.set(card, { opacity: 0, y: 25 });
     
     // Check if element is already in viewport (handles client-side navigation)
     const rect = card.getBoundingClientRect();
@@ -38,36 +41,28 @@ export default function ProjectCard({ project, index = 0 }) {
 
     if (isInViewport) {
       // Element already visible - animate immediately without ScrollTrigger
-      gsap.fromTo(
-        card,
-        { opacity: 0, y: 30, scale: 0.98 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.5,
-          ease: "power2.out",
-          delay: (index % 3) * 0.08,
-        },
-      );
+      gsap.to(card, {
+        opacity: 1,
+        y: 0,
+        duration: 0.4,
+        ease: "power2.out",
+        delay: (index % 3) * 0.06,
+        overwrite: true,
+      });
     } else {
       // Element below viewport - use ScrollTrigger
       const trigger = ScrollTrigger.create({
         trigger: card,
-        start: "top 90%",
+        start: "top 88%",
         onEnter: () => {
-          gsap.fromTo(
-            card,
-            { opacity: 0, y: 50, scale: 0.95 },
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: 0.6,
-              ease: "power2.out",
-              delay: (index % 3) * 0.1,
-            },
-          );
+          gsap.to(card, {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            ease: "power2.out",
+            delay: (index % 3) * 0.06,
+            overwrite: true,
+          });
         },
         once: true, // Only trigger once
       });

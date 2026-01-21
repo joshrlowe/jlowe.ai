@@ -11,11 +11,10 @@ import {
   calculateTotalPages,
 } from "@/lib/utils/postFilters";
 import { formatArticleDate } from "@/lib/utils/dateUtils";
-import { POSTS_PER_PAGE, PLAYLISTS_PER_PAGE } from "@/lib/utils/constants";
+import { POSTS_PER_PAGE } from "@/lib/utils/constants";
 
 export default function ArticlesPage({
   recentPosts,
-  playlists,
   allTopics,
   allTags,
 }) {
@@ -25,7 +24,6 @@ export default function ArticlesPage({
   const [sortBy, setSortBy] = useState("datePublished");
   const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [playlistPage, setPlaylistPage] = useState(1);
 
   const filteredPosts = useMemo(() => {
     return filterAndSortPosts(recentPosts, {
@@ -41,15 +39,7 @@ export default function ArticlesPage({
     return paginate(filteredPosts, currentPage, POSTS_PER_PAGE);
   }, [filteredPosts, currentPage]);
 
-  const paginatedPlaylists = useMemo(() => {
-    return paginate(playlists, playlistPage, PLAYLISTS_PER_PAGE);
-  }, [playlists, playlistPage]);
-
   const totalPages = calculateTotalPages(filteredPosts.length, POSTS_PER_PAGE);
-  const totalPlaylistPages = calculateTotalPages(
-    playlists.length,
-    PLAYLISTS_PER_PAGE,
-  );
 
   return (
     <>
@@ -214,62 +204,6 @@ export default function ArticlesPage({
             />
           </section>
 
-          {/* Playlists */}
-          <section className="mb-16">
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-[family-name:var(--font-oswald)]">
-              Playlists
-            </h2>
-
-            {paginatedPlaylists.length === 0 ? (
-              <p className="text-[var(--color-text-secondary)] text-center py-12">
-                No playlists available.
-              </p>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {paginatedPlaylists.map((playlist) => (
-                    <Link
-                      key={playlist.id}
-                      href={`/articles/playlist/${playlist.slug}`}
-                      className="group p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] hover:border-[var(--color-primary)] transition-all duration-300"
-                    >
-                      {playlist.coverImage && (
-                        <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden">
-                          <Image
-                            src={playlist.coverImage}
-                            alt={playlist.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 400px"
-                          />
-                        </div>
-                      )}
-                      <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">
-                        {playlist.title}
-                      </h3>
-                      {playlist.description && (
-                        <p className="text-sm text-[var(--color-text-secondary)] mb-4 line-clamp-2">
-                          {playlist.description}
-                        </p>
-                      )}
-                      <span className="text-xs text-[var(--color-text-muted)]">
-                        {playlist._count?.playlistPosts || 0} articles
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-
-                {/* Playlist Pagination */}
-                <Pagination
-                  currentPage={playlistPage}
-                  totalPages={totalPlaylistPages}
-                  onPageChange={setPlaylistPage}
-                  className="mt-8"
-                />
-              </>
-            )}
-          </section>
-
           {/* Newsletter */}
           <NewsletterSubscription />
         </div>
@@ -281,7 +215,6 @@ export default function ArticlesPage({
 export async function getStaticProps() {
   try {
     let recentPosts = [];
-    let playlists = [];
     let topics = [];
     let tags = [];
 
@@ -296,19 +229,6 @@ export async function getStaticProps() {
               comments: { where: { approved: true } },
               likes: true,
             },
-          },
-        },
-      });
-
-      playlists = await prisma.playlist.findMany({
-        orderBy: [
-          { featured: "desc" },
-          { order: "asc" },
-          { createdAt: "desc" },
-        ],
-        include: {
-          _count: {
-            select: { playlistPosts: true },
           },
         },
       });
@@ -330,7 +250,6 @@ export async function getStaticProps() {
     return {
       props: {
         recentPosts: JSON.parse(JSON.stringify(recentPosts)),
-        playlists: JSON.parse(JSON.stringify(playlists)),
         allTopics: topics,
         allTags: tags,
       },
@@ -341,7 +260,6 @@ export async function getStaticProps() {
     return {
       props: {
         recentPosts: [],
-        playlists: [],
         allTopics: [],
         allTags: [],
       },

@@ -79,30 +79,30 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
     setNextIndex((currentIndex + 1) % words.length);
   }, [currentIndex, words.length]);
 
-  // Find the longest word for width calculation
-  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b));
+  const wordStyle = {
+    background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    textShadow: "0 0 40px rgba(232, 93, 4, 0.4)",
+    fontWeight: "inherit",
+  };
 
   return (
     <span
       ref={containerRef}
-      className="inline-flex relative overflow-hidden whitespace-nowrap"
+      className="inline-block relative overflow-hidden whitespace-nowrap text-left"
       style={{ 
-        height: "1.3em", 
-        verticalAlign: "bottom",
+        height: "1.2em", 
+        verticalAlign: "baseline",
+        minWidth: "3ch",
       }}
     >
       {/* Current word */}
       <span
         ref={currentWordRef}
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-          textShadow: "0 0 40px rgba(232, 93, 4, 0.4)",
-          fontWeight: "inherit",
-        }}
+        className="absolute left-0 top-0"
+        style={wordStyle}
       >
         {words[currentIndex]}
       </span>
@@ -110,23 +110,15 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
       {/* Next word (initially hidden below) */}
       <span
         ref={nextWordRef}
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-          textShadow: "0 0 40px rgba(232, 93, 4, 0.4)",
-          fontWeight: "inherit",
-          opacity: 0,
-        }}
+        className="absolute left-0 top-0"
+        style={{ ...wordStyle, opacity: 0 }}
       >
         {words[nextIndex]}
       </span>
 
-      {/* Invisible text to maintain width based on longest word */}
+      {/* Current visible word to maintain natural width */}
       <span className="invisible" aria-hidden="true">
-        {longestWord}
+        {words[currentIndex]}
       </span>
     </span>
   );
@@ -294,8 +286,8 @@ export default function ContactPage() {
         <div className="container mx-auto max-w-4xl">
           {/* Header */}
           <div ref={headerRef} className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-oswald)]">
-              Let's Build Something{" "}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-oswald)] leading-tight">
+              <span className="block sm:inline">Let&apos;s Build Something </span>
               {mounted && <WordCarousel words={heroWords} />}
             </h1>
             <p
