@@ -88,8 +88,7 @@ console.error = (...args) => {
   if (
     message &&
     typeof message === 'object' &&
-    message.type === 'not implemented' &&
-    message.message?.includes('navigation')
+    message.type === 'not implemented'
   ) {
     return;
   }
@@ -98,6 +97,14 @@ console.error = (...args) => {
   if (
     typeof message === 'string' &&
     message.includes('Not implemented: navigation')
+  ) {
+    return;
+  }
+  
+  // Catch Error objects with navigation messages
+  if (
+    message instanceof Error &&
+    message.message?.includes('Not implemented: navigation')
   ) {
     return;
   }
