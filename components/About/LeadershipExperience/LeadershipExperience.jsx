@@ -64,8 +64,7 @@ export default function LeadershipExperience({ experience = [], subtitle = "" })
                 border: "1px solid var(--color-border)",
               }}
             >
-              {/* Role Badge */}
-              <div className="flex items-start justify-between gap-4 mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3">
                 <div>
                   <h3
                     className="text-xl font-semibold"
@@ -81,7 +80,7 @@ export default function LeadershipExperience({ experience = [], subtitle = "" })
                   </div>
                 </div>
                 <div
-                  className="text-sm px-3 py-1 rounded-full shrink-0"
+                  className="text-sm px-3 py-1 rounded-full shrink-0 self-start sm:self-auto"
                   style={{
                     background: "rgba(250, 163, 7, 0.1)",
                     color: "#FAA307",
