@@ -20,15 +20,36 @@ import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
 
 // Supernova theme color scale (5 levels: none → max activity)
+const SUPERNOVA_COLORS = [
+  "#161b22", // Level 0: No contributions (GitHub's default dark)
+  "#3d1308", // Level 1: Light activity (dark ember)
+  "#9d0208", // Level 2: Moderate (crimson)
+  "#e85d04", // Level 3: Good activity (ember orange)
+  "#ffba08", // Level 4: High activity (gold)
+];
+
 const supernovaTheme = {
-  dark: [
-    "#161b22", // Level 0: No contributions (GitHub's default dark)
-    "#3d1308", // Level 1: Light activity (dark ember)
-    "#9d0208", // Level 2: Moderate (crimson)
-    "#e85d04", // Level 3: Good activity (ember orange)
-    "#ffba08", // Level 4: High activity (gold)
-  ],
+  dark: SUPERNOVA_COLORS,
 };
+
+// Mobile color legend component (rendered below the graph)
+function MobileColorLegend() {
+  return (
+    <div className="flex items-center justify-center gap-2 mt-4">
+      <span className="text-xs text-[var(--color-text-muted)]">Less</span>
+      <div className="flex gap-1">
+        {SUPERNOVA_COLORS.map((color, index) => (
+          <div
+            key={index}
+            className="w-3 h-3 rounded-sm"
+            style={{ backgroundColor: color }}
+          />
+        ))}
+      </div>
+      <span className="text-xs text-[var(--color-text-muted)]">More</span>
+    </div>
+  );
+}
 
 // Stats card component
 function StatCard({ label, value, icon, color = "primary" }) {
@@ -297,10 +318,44 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
       }
     }, delay);
     
-    // Mobile: show only last 49 days (7x7 grid like iPhone widget)
+    // Mobile: show 14 full weeks (98 days) with leftmost week always full
     // Desktop: show full calendar
     if (isMobile) {
-      return contributions.slice(-49);
+      // Sort contributions by date (oldest first)
+      const sorted = [...contributions].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      );
+      
+      if (sorted.length === 0) return contributions;
+      
+      // Get the last date in the data
+      const lastDate = new Date(sorted[sorted.length - 1].date);
+      
+      // Find the Saturday of the current week (end of week, since week starts Sunday)
+      const dayOfWeek = lastDate.getDay(); // 0 = Sunday, 6 = Saturday
+      const daysUntilSaturday = 6 - dayOfWeek;
+      const endOfWeek = new Date(lastDate);
+      endOfWeek.setDate(lastDate.getDate() + daysUntilSaturday);
+      
+      // Go back 14 weeks (98 days) from the end of the current week
+      // Then find the Sunday at the start of that week
+      const startDate = new Date(endOfWeek);
+      startDate.setDate(endOfWeek.getDate() - 97); // 98 days = 14 weeks, -97 to include start day
+      
+      // Adjust to the previous Sunday if not already Sunday
+      const startDayOfWeek = startDate.getDay();
+      if (startDayOfWeek !== 0) {
+        startDate.setDate(startDate.getDate() - startDayOfWeek);
+      }
+      
+      // Filter contributions to only include dates from startDate to endOfWeek
+      const startTime = startDate.getTime();
+      const endTime = endOfWeek.getTime();
+      
+      return sorted.filter((contribution) => {
+        const contribDate = new Date(contribution.date).getTime();
+        return contribDate >= startTime && contribDate <= endTime;
+      });
     }
     
     return contributions;
@@ -350,7 +405,7 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
   }
 
   return (
-    <div className={isMobile ? "flex justify-center" : "min-w-[750px]"}>
+    <div className={isMobile ? "flex flex-col items-center" : "min-w-[750px]"}>
       <Calendar
         username={username}
         theme={supernovaTheme}
@@ -360,9 +415,10 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
         blockMargin={isMobile ? 3 : 4}
         blockRadius={2}
         transformData={transformData}
+        showColorLegend={!isMobile}
         labels={{
           totalCount: isMobile 
-            ? "{{count}} contributions (last 7 weeks)" 
+            ? "{{count}} contributions (last 14 weeks)" 
             : "{{count}} contributions in the last year",
         }}
         style={{
@@ -371,6 +427,7 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
         throwOnError={false}
         errorMessage="Failed to load contributions. Check browser console."
       />
+      {isMobile && <MobileColorLegend />}
     </div>
   );
 }
