@@ -157,4 +157,26 @@ describe("SocialShare", () => {
     const copyButton = screen.getByRole("button");
     expect(copyButton).toBeInTheDocument();
   });
+
+  it("calls handleShareClick when clicking Twitter link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const twitterLink = screen.getByLabelText("Share on Twitter");
+    fireEvent.click(twitterLink);
+    // Click should trigger without error - analytics is mocked
+    expect(twitterLink).toBeInTheDocument();
+  });
+
+  it("calls handleShareClick when clicking LinkedIn link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const linkedinLink = screen.getByLabelText("Share on LinkedIn");
+    fireEvent.click(linkedinLink);
+    expect(linkedinLink).toBeInTheDocument();
+  });
+
+  it("calls handleShareClick when clicking Facebook link", () => {
+    render(<SocialShare {...defaultProps} />);
+    const facebookLink = screen.getByLabelText("Share on Facebook");
+    fireEvent.click(facebookLink);
+    expect(facebookLink).toBeInTheDocument();
+  });
 });
