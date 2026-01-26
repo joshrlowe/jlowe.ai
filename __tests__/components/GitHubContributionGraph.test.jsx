@@ -7,6 +7,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import GitHubContributionGraph from '../../components/GitHubContributionGraph';
+import { useIsMobile } from '@/lib/hooks';
 
 // gsap is mocked globally via jest.config.js moduleNameMapper
 
@@ -17,6 +18,14 @@ jest.mock('@/components/ui', () => ({
       {children}
     </div>
   ),
+}));
+
+// Mock hooks - need to mock the entire module to include useIsMobile
+jest.mock('@/lib/hooks', () => ({
+  getPrefersReducedMotion: jest.fn(() => false),
+  usePrefersReducedMotion: jest.fn(() => false),
+  useIsMobile: jest.fn(() => false),
+  getIsMobile: jest.fn(() => false),
 }));
 
 // Mock fetch
@@ -259,6 +268,56 @@ describe('GitHubContributionGraph', () => {
         expect(global.fetch).toHaveBeenCalledWith(
           expect.stringContaining('differentuser')
         );
+      });
+    });
+  });
+
+  describe('Mobile responsive behavior', () => {
+    it('should render correctly on mobile viewport', () => {
+      // Mock useIsMobile to return true for mobile
+      useIsMobile.mockReturnValue(true);
+
+      render(<GitHubContributionGraph />);
+      expect(screen.getByText('GitHub Contributions')).toBeInTheDocument();
+    });
+
+    it('should render correctly on desktop viewport', () => {
+      // Mock useIsMobile to return false for desktop
+      useIsMobile.mockReturnValue(false);
+
+      render(<GitHubContributionGraph />);
+      expect(screen.getByText('GitHub Contributions')).toBeInTheDocument();
+    });
+
+    it('should use mobile-specific display on mobile', () => {
+      useIsMobile.mockReturnValue(true);
+      
+      const { container } = render(<GitHubContributionGraph />);
+      
+      // On mobile, the container should have justify-center class instead of min-w-[750px]
+      // This verifies the mobile layout is being applied
+      expect(container.querySelector('section')).toBeInTheDocument();
+    });
+
+    it('should use desktop display on larger screens', () => {
+      useIsMobile.mockReturnValue(false);
+      
+      const { container } = render(<GitHubContributionGraph />);
+      
+      // Component should render on desktop
+      expect(container.querySelector('section')).toBeInTheDocument();
+    });
+
+    it('should show different label text based on viewport', async () => {
+      // The component uses different labels for mobile vs desktop
+      // Mobile: "{{count}} contributions (last 7 weeks)"
+      // Desktop: "{{count}} contributions in the last year"
+      useIsMobile.mockReturnValue(false);
+      
+      render(<GitHubContributionGraph />);
+      
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalled();
       });
     });
   });

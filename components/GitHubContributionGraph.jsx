@@ -17,7 +17,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
-import { getPrefersReducedMotion } from "@/lib/hooks";
+import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
 
 // Supernova theme color scale (5 levels: none → max activity)
 const supernovaTheme = {
@@ -126,7 +126,7 @@ function StatsRow({ stats }) {
 }
 
 // Client-only calendar component wrapper
-function CalendarWrapper({ username, onDataLoaded }) {
+function CalendarWrapper({ username, onDataLoaded, isMobile }) {
   const [Calendar, setCalendar] = useState(null);
   const [error, setError] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
@@ -278,6 +278,7 @@ function CalendarWrapper({ username, onDataLoaded }) {
     }
     
     // Store the latest data in ref (no setState during render)
+    // Always use full data for stats calculation
     if (!contributionsRef.current || contributions.length >= contributionsRef.current.length) {
       contributionsRef.current = contributions;
     }
@@ -296,9 +297,14 @@ function CalendarWrapper({ username, onDataLoaded }) {
       }
     }, delay);
     
-    // Always return the contributions so the graph displays
+    // Mobile: show only last 49 days (7x7 grid like iPhone widget)
+    // Desktop: show full calendar
+    if (isMobile) {
+      return contributions.slice(-49);
+    }
+    
     return contributions;
-  }, [calculateStats]);
+  }, [calculateStats, isMobile]);
 
   if (error) {
     return (
@@ -344,18 +350,20 @@ function CalendarWrapper({ username, onDataLoaded }) {
   }
 
   return (
-    <div className="min-w-[750px]">
+    <div className={isMobile ? "flex justify-center" : "min-w-[750px]"}>
       <Calendar
         username={username}
         theme={supernovaTheme}
         colorScheme="dark"
-        fontSize={12}
-        blockSize={12}
-        blockMargin={4}
+        fontSize={isMobile ? 10 : 12}
+        blockSize={isMobile ? 14 : 12}
+        blockMargin={isMobile ? 3 : 4}
         blockRadius={2}
         transformData={transformData}
         labels={{
-          totalCount: "{{count}} contributions in the last year",
+          totalCount: isMobile 
+            ? "{{count}} contributions (last 7 weeks)" 
+            : "{{count}} contributions in the last year",
         }}
         style={{
           color: "var(--color-text-secondary)",
@@ -376,6 +384,7 @@ export default function GitHubContributionGraph({
   const contentRef = useRef(null);
   const [stats, setStats] = useState({ total: 0, bestDay: 0, currentStreak: 0 });
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setMounted(true);
@@ -454,7 +463,7 @@ export default function GitHubContributionGraph({
             }}
           >
             {mounted ? (
-              <CalendarWrapper username={username} onDataLoaded={handleDataLoaded} />
+              <CalendarWrapper username={username} onDataLoaded={handleDataLoaded} isMobile={isMobile} />
             ) : (
               <div className="h-32 animate-pulse bg-[var(--color-surface)] rounded-lg flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
