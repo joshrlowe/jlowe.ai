@@ -8,7 +8,7 @@ export default function ContactSettingsSection({ onError }) {
   const [contactData, setContactData] = useState({
     emailAddress: "",
     phoneNumber: "",
-    socialMediaLinks: { linkedIn: "", github: "", X: "" },
+    socialMediaLinks: { linkedIn: "", github: "", X: "", handshake: "" },
     heroWords: DEFAULT_HERO_WORDS,
     heroSubtitle: "",
   });
@@ -27,6 +27,7 @@ export default function ContactSettingsSection({ onError }) {
           linkedIn: "",
           github: "",
           X: "",
+          handshake: "",
         },
         heroWords: data.heroWords || DEFAULT_HERO_WORDS,
         heroSubtitle: data.heroSubtitle || "",
@@ -198,10 +199,10 @@ export default function ContactSettingsSection({ onError }) {
           Social Media Links
         </h3>
         <div className="space-y-4">
-          {["linkedIn", "github", "X"].map((platform) => (
+          {["linkedIn", "github", "X", "handshake"].map((platform) => (
             <div key={platform}>
               <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1 capitalize">
-                {platform === "X" ? "X (Twitter)" : platform}
+                {platform === "X" ? "X (Twitter)" : platform === "handshake" ? "Handshake" : platform}
               </label>
               <input
                 type="text"

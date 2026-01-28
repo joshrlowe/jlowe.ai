@@ -18,6 +18,7 @@ const STATIC_SOCIAL_ITEMS = [
   { key: "linkedIn", label: "LinkedIn", icon: "linkedin" },
   { key: "github", label: "GitHub", icon: "github" },
   { key: "x", label: "X (Twitter)", icon: "x" },
+  { key: "handshake", label: "Handshake", icon: "handshake" },
 ];
 
 const socialIcons = {
@@ -49,6 +50,11 @@ const socialIcons = {
   x: (
     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  ),
+  handshake: (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
     </svg>
   ),
 };
@@ -118,6 +124,8 @@ export default function Footer() {
         return socialLinks.github || "#";
       case "x":
         return socialLinks.X || "#";
+      case "handshake":
+        return socialLinks.handshake || "#";
       default:
         return "#";
     }
