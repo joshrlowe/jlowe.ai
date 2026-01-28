@@ -183,7 +183,7 @@ describe("getStaticProps", () => {
     expect(result.revalidate).toBe(60);
   });
 
-  it("returns notFound when no about data exists", async () => {
+  it("returns null aboutData when no about data exists", async () => {
     prisma.about.findFirst.mockResolvedValue(null);
     prisma.welcome.findFirst.mockResolvedValue(null);
     prisma.contact.findFirst.mockResolvedValue(null);
@@ -191,7 +191,10 @@ describe("getStaticProps", () => {
 
     const result = await getStaticProps();
 
-    expect(result.notFound).toBe(true);
+    // Should return props with null values instead of notFound
+    expect(result.props).toBeDefined();
+    expect(result.props.aboutData).toBeNull();
+    expect(result.revalidate).toBe(60);
   });
 
   it("handles database errors gracefully", async () => {
@@ -199,8 +202,10 @@ describe("getStaticProps", () => {
 
     const result = await getStaticProps();
 
-    // Should return notFound or a fallback on error
-    expect(result.notFound || result.props).toBeTruthy();
+    // Should return fallback props on error instead of notFound
+    expect(result.props).toBeDefined();
+    expect(result.props.aboutData).toBeNull();
+    expect(result.revalidate).toBe(60);
   });
 
   it("serializes dates correctly", async () => {

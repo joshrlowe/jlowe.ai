@@ -71,6 +71,38 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
         .substring(0, 160)
     : "Full stack developer with extensive experience in modern web technologies";
 
+  // Show empty state when no about data is available
+  if (!aboutData) {
+    return (
+      <>
+        <SEO
+          title={ownerName || "About Me"}
+          description="Learn more about my experience and skills"
+          url="https://jlowe.ai/about"
+          type="profile"
+        />
+        <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto max-w-7xl">
+            <div className="text-center py-16">
+              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">
+                About Me
+              </h1>
+              <p className="text-[var(--color-text-secondary)] mb-8">
+                Content is currently being updated. Please check back soon.
+              </p>
+              <a
+                href="/"
+                className="inline-flex items-center px-6 py-3 rounded-lg bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+              >
+                Return Home
+              </a>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <SEO
@@ -227,17 +259,14 @@ export async function getStaticProps() {
       }),
     ]);
 
-    if (!aboutData) {
-      return {
-        notFound: true,
-      };
-    }
-
-    const serializedAboutData = {
-      ...aboutData,
-      createdAt: aboutData.createdAt.toISOString(),
-      updatedAt: aboutData.updatedAt.toISOString(),
-    };
+    // Serialize aboutData if it exists, otherwise return null
+    const serializedAboutData = aboutData
+      ? {
+          ...aboutData,
+          createdAt: aboutData.createdAt.toISOString(),
+          updatedAt: aboutData.updatedAt.toISOString(),
+        }
+      : null;
 
     const serializedWelcomeData = welcomeData
       ? {
@@ -270,8 +299,16 @@ export async function getStaticProps() {
     };
   } catch (error) {
     console.error("Error fetching about page data:", error);
+    // Return empty props instead of notFound to prevent 404 errors
+    // The component will show a fallback UI when aboutData is null
     return {
-      notFound: true,
+      props: {
+        aboutData: null,
+        welcomeData: null,
+        contactData: null,
+        ownerName: null,
+      },
+      revalidate: 60,
     };
   }
 }
