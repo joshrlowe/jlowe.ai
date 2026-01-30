@@ -114,28 +114,7 @@ export default function Header({ style = {} }) {
               </Link>
             ))}
 
-            {/* CTA Button */}
-            <Link
-              href="/contact"
-              className="ml-5 px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 hover:-translate-y-0.5"
-              style={{
-                background: "linear-gradient(135deg, #E85D04 0%, #C04A03 100%)",
-                color: "#FAFAFA",
-                boxShadow: "0 0 25px rgba(232, 93, 4, 0.3)",
-                fontFamily: "var(--font-family-base)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow =
-                  "0 0 40px rgba(232, 93, 4, 0.5)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow =
-                  "0 0 25px rgba(232, 93, 4, 0.3)";
-              }}
-            >
-              Let's Talk
-            </Link>
-          </div>
+            </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -205,25 +184,7 @@ export default function Header({ style = {} }) {
               </Link>
             ))}
 
-            <div
-              className="pt-3 mt-3"
-              style={{ borderTop: "1px solid rgba(232, 93, 4, 0.12)" }}
-            >
-              <Link
-                href="/contact"
-                onClick={closeMenu}
-                className="block w-full text-center px-5 py-3.5 text-base font-semibold rounded-lg"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #E85D04 0%, #C04A03 100%)",
-                  color: "#FAFAFA",
-                  fontFamily: "var(--font-family-base)",
-                }}
-              >
-                Let's Talk
-              </Link>
             </div>
-          </div>
         </div>
       </nav>
     </header>
