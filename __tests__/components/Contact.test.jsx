@@ -142,7 +142,7 @@ describe('Contact Page Component', () => {
       render(<ContactPage />);
 
       await waitFor(() => {
-        const linkedInLink = screen.getByText(/Connect on LinkedIn/);
+        const linkedInLink = screen.getByText(/Connect with me on LinkedIn/);
         expect(linkedInLink.closest('a')).toHaveAttribute(
           'href',
           'https://linkedin.com/in/joshlowe'
@@ -154,7 +154,7 @@ describe('Contact Page Component', () => {
       render(<ContactPage />);
 
       await waitFor(() => {
-        const githubLink = screen.getByText(/Connect on GitHub/);
+        const githubLink = screen.getByText(/Check out my GitHub/);
         expect(githubLink.closest('a')).toHaveAttribute(
           'href',
           'https://github.com/joshlowe'
@@ -166,7 +166,7 @@ describe('Contact Page Component', () => {
       render(<ContactPage />);
 
       await waitFor(() => {
-        const xLink = screen.getByText(/Connect on X \(Twitter\)/);
+        const xLink = screen.getByText(/Follow me on X/);
         expect(xLink.closest('a')).toHaveAttribute(
           'href',
           'https://x.com/joshlowe'
@@ -190,9 +190,9 @@ describe('Contact Page Component', () => {
       render(<ContactPage />);
 
       await waitFor(() => {
-        const linkedInLink = screen.getByText(/Connect on LinkedIn/).closest('a');
-        const githubLink = screen.getByText(/Connect on GitHub/).closest('a');
-        const xLink = screen.getByText(/Connect on X/).closest('a');
+        const linkedInLink = screen.getByText(/Connect with me on LinkedIn/).closest('a');
+        const githubLink = screen.getByText(/Check out my GitHub/).closest('a');
+        const xLink = screen.getByText(/Follow me on X/).closest('a');
 
         expect(linkedInLink).toHaveAttribute('target', '_blank');
         expect(githubLink).toHaveAttribute('target', '_blank');
@@ -204,9 +204,9 @@ describe('Contact Page Component', () => {
       render(<ContactPage />);
 
       await waitFor(() => {
-        const linkedInLink = screen.getByText(/Connect on LinkedIn/).closest('a');
-        const githubLink = screen.getByText(/Connect on GitHub/).closest('a');
-        const xLink = screen.getByText(/Connect on X/).closest('a');
+        const linkedInLink = screen.getByText(/Connect with me on LinkedIn/).closest('a');
+        const githubLink = screen.getByText(/Check out my GitHub/).closest('a');
+        const xLink = screen.getByText(/Follow me on X/).closest('a');
 
         expect(linkedInLink).toHaveAttribute('rel', 'noopener noreferrer');
         expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer');
@@ -307,7 +307,7 @@ describe('Contact Page Component', () => {
       await waitFor(() => {
         expect(screen.getByLabelText('LinkedIn')).toBeInTheDocument();
         expect(screen.getByLabelText('GitHub')).toBeInTheDocument();
-        expect(screen.getByLabelText('X (Twitter)')).toBeInTheDocument();
+        expect(screen.getByLabelText('X')).toBeInTheDocument();
         expect(screen.getByLabelText('Email')).toBeInTheDocument();
       });
     });
