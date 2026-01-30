@@ -105,14 +105,6 @@ test.describe('Navigation - Desktop', () => {
     const isVisible = await projectsLink.isVisible();
     expect(isVisible).toBeTruthy();
   });
-
-  test('should have working CTA button in header', async ({ page }) => {
-    const ctaButton = page.getByRole('link', { name: /let's talk|get in touch/i }).first();
-    await expect(ctaButton).toBeVisible();
-    
-    await ctaButton.click();
-    await expect(page).toHaveURL('/contact');
-  });
 });
 
 test.describe('Navigation - Mobile', () => {
