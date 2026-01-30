@@ -120,12 +120,9 @@ describe('dateUtils', () => {
   });
 
   describe('formatMonthYear', () => {
-    it('should format date with month and year', () => {
+    it('should format date with month and year only (no day)', () => {
       const result = formatMonthYear(testDateString);
-      expect(result).toContain('January');
-      expect(result).toContain('2024');
-      // Note: Due to how options are merged, day may still be included
-      // The function is intended for month/year display
+      expect(result).toBe('January 2024');
     });
 
     it('should return "Present" for null', () => {
@@ -142,8 +139,11 @@ describe('dateUtils', () => {
 
     it('should handle Date object', () => {
       const result = formatMonthYear(testDate);
-      expect(result).toContain('January');
-      expect(result).toContain('2024');
+      expect(result).toBe('January 2024');
+    });
+
+    it('should return empty string for invalid date', () => {
+      expect(formatMonthYear('invalid-date')).toBe('');
     });
   });
 

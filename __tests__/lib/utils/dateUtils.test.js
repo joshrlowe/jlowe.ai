@@ -94,10 +94,9 @@ describe("dateUtils", () => {
   });
 
   describe("formatMonthYear", () => {
-    it("formats date as month and year", () => {
+    it("formats date as month and year only (no day)", () => {
       const result = formatMonthYear("2024-01-15T12:00:00");
-      expect(result).toContain("January");
-      expect(result).toContain("2024");
+      expect(result).toBe("January 2024");
     });
 
     it("returns Present for null", () => {
@@ -110,6 +109,10 @@ describe("dateUtils", () => {
 
     it("returns Present for empty string", () => {
       expect(formatMonthYear("")).toBe("Present");
+    });
+
+    it("returns empty string for invalid date", () => {
+      expect(formatMonthYear("invalid-date")).toBe("");
     });
   });
 
