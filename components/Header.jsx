@@ -114,7 +114,7 @@ export default function Header({ style = {} }) {
               </Link>
             ))}
 
-            </div>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -141,8 +141,8 @@ export default function Header({ style = {} }) {
               />
               <span
                 className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${isMenuOpen
-                    ? "top-1/2 -translate-y-1/2 -rotate-45"
-                    : "bottom-0"
+                  ? "top-1/2 -translate-y-1/2 -rotate-45"
+                  : "bottom-0"
                   }`}
                 style={{ background: isMenuOpen ? "#E85D04" : "currentColor" }}
               />
@@ -153,8 +153,8 @@ export default function Header({ style = {} }) {
         {/* Mobile Navigation */}
         <div
           className={`md:hidden absolute left-0 right-0 top-full px-4 pb-4 transition-all duration-300 ${isMenuOpen
-              ? "opacity-100 translate-y-0 pointer-events-auto"
-              : "opacity-0 -translate-y-4 pointer-events-none"
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-4 pointer-events-none"
             }`}
         >
           <div
@@ -184,7 +184,7 @@ export default function Header({ style = {} }) {
               </Link>
             ))}
 
-            </div>
+          </div>
         </div>
       </nav>
     </header>

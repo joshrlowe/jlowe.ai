@@ -69,7 +69,7 @@ describe('Contact Page Component', () => {
 
     it('should show loading state initially', () => {
       // Don't resolve fetch immediately to see loading state
-      global.fetch.mockImplementationOnce(() => new Promise(() => {}));
+      global.fetch.mockImplementationOnce(() => new Promise(() => { }));
       render(<ContactPage />);
       expect(screen.getByText('Loading contact info...')).toBeInTheDocument();
     });
