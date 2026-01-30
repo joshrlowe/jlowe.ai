@@ -26,7 +26,7 @@ test.describe('Contact Page', () => {
     await page.waitForSelector('text=/Loading contact info/i', { state: 'hidden', timeout: 10000 });
     
     // Check for social links section
-    await expect(page.getByText(/Connect With Me/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Connect With Me/i })).toBeVisible();
     
     // Social links should be present
     const socialLinks = await page.locator('a[href*="linkedin"], a[href*="github"], a[href*="twitter"]').count();
@@ -116,7 +116,7 @@ test.describe('Contact Page - Mobile', () => {
     await expect(page.getByText(/Contact Information/i)).toBeVisible();
     
     // Layout should stack vertically (not check specific layout but verify elements are visible)
-    await expect(page.getByText(/Connect With Me/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Connect With Me/i })).toBeVisible();
   });
 
   test('should have touch-friendly social links', async ({ page }) => {
