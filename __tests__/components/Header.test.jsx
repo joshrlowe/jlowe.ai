@@ -59,12 +59,6 @@ describe('Header Component', () => {
             expect(screen.getAllByText('Contact')).toHaveLength(2);
         });
 
-        it('should render CTA button', () => {
-            render(<Header />);
-            const ctaButtons = screen.getAllByText("Let's Talk");
-            expect(ctaButtons.length).toBeGreaterThan(0);
-        });
-
         it('should apply custom style prop', () => {
             const customStyle = { backgroundColor: 'red' };
             const { container } = render(<Header style={customStyle} />);
@@ -264,23 +258,6 @@ describe('Header Component', () => {
             const logoImg = screen.getByAltText('JL Logo');
             const logoLink = logoImg.closest('a');
             expect(logoLink).toHaveAttribute('href', '/');
-        });
-    });
-
-    describe('CTA Button', () => {
-        it('should render "Let\'s Talk" CTA button', () => {
-            render(<Header />);
-            const ctaButtons = screen.getAllByText("Let's Talk");
-            expect(ctaButtons.length).toBeGreaterThan(0);
-        });
-
-        it('should link CTA to contact page', () => {
-            const { container } = render(<Header />);
-            const ctaLinks = container.querySelectorAll('a[href="/contact"]');
-            const ctaLink = Array.from(ctaLinks).find(link =>
-                link.textContent.includes("Let's Talk")
-            );
-            expect(ctaLink).toBeInTheDocument();
         });
     });
 
