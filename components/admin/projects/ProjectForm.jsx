@@ -7,6 +7,7 @@
 import { useState, useRef } from "react";
 import { FormField, TagInput, MediaUpload, adminStyles, PROJECT_STATUSES } from "../shared";
 import TeamMemberManager from "../TeamMemberManager";
+import ImageUploader from "../ImageUploader";
 
 // Simple PDF upload component
 function PaperUpload({ onUpload }) {
@@ -246,6 +247,14 @@ export default function ProjectForm({
           }
         />
       </div>
+
+      {/* Project Images / Thumbnails */}
+      <ImageUploader
+        label="Project Images (Thumbnail)"
+        images={formData.images}
+        onChange={(images) => setFormData({ ...formData, images })}
+        maxImages={10}
+      />
 
       {/* Background Image */}
       <MediaUpload

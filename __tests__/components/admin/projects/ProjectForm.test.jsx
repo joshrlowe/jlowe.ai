@@ -3,6 +3,39 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ProjectForm from '../../../../components/admin/projects/ProjectForm';
 
+// Mock ImageUploader
+jest.mock('../../../../components/admin/ImageUploader', () => {
+  return function MockImageUploader({ label, images, onChange, maxImages }) {
+    return (
+      <div data-testid="image-uploader">
+        <label>{label}</label>
+        <span data-testid="images-count">{images?.length || 0}/{maxImages || 10}</span>
+        <div data-testid="images-list">
+          {images?.map((img, i) => (
+            <div key={i} data-testid={`image-${i}`}>
+              <span>{typeof img === 'string' ? img : img.url}</span>
+              <button 
+                type="button" 
+                onClick={() => onChange(images.filter((_, idx) => idx !== i))}
+                data-testid={`remove-image-${i}`}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange([...(images || []), 'https://test.com/new-image.jpg'])}
+          data-testid="add-image"
+        >
+          Add Image
+        </button>
+      </div>
+    );
+  };
+});
+
 // Mock the shared components
 jest.mock('../../../../components/admin/shared', () => ({
   MediaUpload: ({ label, items, onAdd, onRemove, placeholder }) => (
@@ -104,6 +137,8 @@ describe('ProjectForm', () => {
     tags: [],
     techStack: [],
     links: { github: '', live: '' },
+    images: [],
+    backgroundImage: '',
     featured: false,
   };
 
@@ -553,5 +588,84 @@ describe('ProjectForm', () => {
         longDescription: 'A long description',
       })
     );
+  });
+
+  describe('ImageUploader Integration', () => {
+    it('should render ImageUploader component', () => {
+      render(
+        <ProjectForm
+          formData={defaultFormData}
+          setFormData={mockSetFormData}
+          onSave={mockOnSave}
+          onCancel={mockOnCancel}
+        />
+      );
+
+      expect(screen.getByTestId('image-uploader')).toBeInTheDocument();
+      expect(screen.getByText(/Project Images/i)).toBeInTheDocument();
+    });
+
+    it('should display existing images', () => {
+      const formDataWithImages = {
+        ...defaultFormData,
+        images: ['/images/test1.jpg', '/images/test2.jpg'],
+      };
+      render(
+        <ProjectForm
+          formData={formDataWithImages}
+          setFormData={mockSetFormData}
+          onSave={mockOnSave}
+          onCancel={mockOnCancel}
+        />
+      );
+
+      expect(screen.getByTestId('images-count')).toHaveTextContent('2/10');
+      expect(screen.getByTestId('image-0')).toBeInTheDocument();
+      expect(screen.getByTestId('image-1')).toBeInTheDocument();
+    });
+
+    it('should call setFormData when adding an image', async () => {
+      const user = userEvent.setup();
+      render(
+        <ProjectForm
+          formData={defaultFormData}
+          setFormData={mockSetFormData}
+          onSave={mockOnSave}
+          onCancel={mockOnCancel}
+        />
+      );
+
+      await user.click(screen.getByTestId('add-image'));
+
+      expect(mockSetFormData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          images: ['https://test.com/new-image.jpg'],
+        })
+      );
+    });
+
+    it('should call setFormData when removing an image', async () => {
+      const user = userEvent.setup();
+      const formDataWithImages = {
+        ...defaultFormData,
+        images: ['/images/test1.jpg', '/images/test2.jpg'],
+      };
+      render(
+        <ProjectForm
+          formData={formDataWithImages}
+          setFormData={mockSetFormData}
+          onSave={mockOnSave}
+          onCancel={mockOnCancel}
+        />
+      );
+
+      await user.click(screen.getByTestId('remove-image-0'));
+
+      expect(mockSetFormData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          images: ['/images/test2.jpg'],
+        })
+      );
+    });
   });
 });
