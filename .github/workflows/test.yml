@@ -165,7 +165,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nextjs-build
           path: .next/
@@ -232,7 +232,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload coverage report as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: coverage-report
@@ -352,7 +352,7 @@ jobs:
       
       - name: Upload Lighthouse results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lighthouse-results
           path: .lighthouseci/
@@ -438,7 +438,7 @@ jobs:
       
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-results-${{ matrix.browser }}-${{ strategy.job-index }}
           path: test-results/
@@ -446,7 +446,7 @@ jobs:
       
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report-${{ matrix.browser }}-${{ strategy.job-index }}
           path: playwright-report/
@@ -454,7 +454,7 @@ jobs:
       
       - name: Upload screenshots on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: screenshots-${{ matrix.browser }}-${{ strategy.job-index }}
           path: test-results/**/*.png
@@ -462,7 +462,7 @@ jobs:
       
       - name: Upload videos on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: videos-${{ matrix.browser }}-${{ strategy.job-index }}
           path: test-results/**/*.webm
@@ -495,7 +495,7 @@ jobs:
           done
       
       - name: Upload merged report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report-merged
           path: merged-report/
@@ -574,7 +574,7 @@ jobs:
       
       - name: Upload visual diffs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: visual-diffs
           path: test-results/**/diff-*.png
@@ -653,7 +653,7 @@ jobs:
       
       - name: Upload accessibility report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: accessibility-report
           path: test-results/
@@ -732,7 +732,7 @@ jobs:
       
       - name: Upload performance report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: performance-report
           path: test-results/
