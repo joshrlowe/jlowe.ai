@@ -58,6 +58,20 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        // Permanent redirect from the deprecated public article-creation
+        // route to the admin-gated equivalent. The old /articles/new page
+        // sat outside the /admin/* middleware gate and relied on a
+        // client-side useSession redirect inside useEffect, briefly
+        // exposing the form to unauthenticated visitors.
+        source: "/articles/new",
+        destination: "/admin/articles/new",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
