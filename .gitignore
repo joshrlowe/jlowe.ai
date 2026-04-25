@@ -48,3 +48,6 @@ next-env.d.ts
 
 # uploads
 /public/uploads
+
+# Design export archive (extracted to design-reference/)
+/jlowe.ai.zip

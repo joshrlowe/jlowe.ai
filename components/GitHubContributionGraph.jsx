@@ -19,13 +19,13 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
 
-// Supernova theme color scale (5 levels: none → max activity)
+// Editorial Cool color scale (5 levels: none → max activity)
 const SUPERNOVA_COLORS = [
-  "#161b22", // Level 0: No contributions (GitHub's default dark)
-  "#3d1308", // Level 1: Light activity (dark ember)
-  "#9d0208", // Level 2: Moderate (crimson)
-  "#e85d04", // Level 3: Good activity (ember orange)
-  "#ffba08", // Level 4: High activity (gold)
+  "#0a0e14", // Level 0: No contributions (void-020)
+  "#1e3a8a", // Level 1: Light activity (deep navy)
+  "#3B82F6", // Level 2: Moderate (electric blue)
+  "#22D3EE", // Level 3: Good activity (cyan)
+  "#A5F3FC", // Level 4: High activity (ice cyan)
 ];
 
 const supernovaTheme = {

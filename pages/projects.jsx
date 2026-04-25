@@ -1,381 +1,495 @@
 /**
  * Projects Page
  *
- * Portfolio showcase with:
- * - Space-themed design
- * - Filtering and search
- * - Infinite scroll
+ * Editorial Cool redesign — section header + asymmetric featured grid
+ * + archive list with tag-chip filter.
+ *
+ * Data layer preserved: getStaticProps still pulls transformed Project
+ * rows via Prisma + projectTransformer.
  */
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { gsap } from "gsap";
 import prisma from "../lib/prisma.js";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer.js";
-import {
-  DEBOUNCE_DELAY_MS,
-  INITIAL_PROJECT_DISPLAY_COUNT,
-  PROJECTS_PER_PAGE,
-  ANIMATION,
-} from "@/lib/utils/constants";
+import { parseJsonField } from "@/lib/utils/jsonUtils";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 import SEO from "@/components/SEO";
-import ProjectCard from "@/components/Project/ProjectCard";
-import ProjectFilters from "@/components/Project/ProjectFilters";
-import ProjectsEmptyState from "@/components/Project/ProjectsEmptyState";
+
+const FEATURED_SPANS = [
+  { col: "span 7", row: "span 2", big: true },
+  { col: "span 5", row: "span 1", big: false },
+  { col: "span 5", row: "span 1", big: false },
+  { col: "span 12", row: "span 1", big: false },
+];
+
+function normalizeTech(techStack) {
+  const parsed = parseJsonField(techStack, []);
+  if (Array.isArray(parsed)) {
+    return parsed
+      .map((t) => (typeof t === "string" ? t : t?.name || null))
+      .filter(Boolean);
+  }
+  if (parsed && typeof parsed === "object") {
+    return Object.values(parsed)
+      .flat()
+      .map((t) => (typeof t === "string" ? t : t?.name || null))
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function primaryTag(tags) {
+  const parsed = parseJsonField(tags, []);
+  if (Array.isArray(parsed) && parsed.length > 0) return String(parsed[0]);
+  if (typeof parsed === "string") return parsed;
+  return "project";
+}
+
+function formatStatus(status) {
+  if (!status) return "Draft";
+  return String(status).replace(/([a-z])([A-Z])/g, "$1 $2");
+}
 
 export default function ProjectsPage({ projects: initialProjects }) {
   const router = useRouter();
-  const headerRef = useRef(null);
-  const [projects] = useState(initialProjects || []);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [tagFilter, setTagFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("startDate");
-  const [sortOrder, setSortOrder] = useState("desc");
-  const [displayCount, setDisplayCount] = useState(
-    INITIAL_PROJECT_DISPLAY_COUNT,
-  );
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const loadMoreRef = useRef(null);
+  const sectionRef = useRef(null);
+  const projects = useMemo(() => initialProjects || [], [initialProjects]);
+  const [filter, setFilter] = useState("All");
 
-  // Header animation
   useEffect(() => {
-    if (!headerRef.current) return;
-
-    if (getPrefersReducedMotion()) return;
-
-    gsap.fromTo(
-      headerRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT },
-    );
-  }, []);
-
-  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, DEBOUNCE_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  const { availableTags, availableStatuses } = useMemo(() => {
-    const tags = new Set();
-    const statuses = new Set();
-
-    projects.forEach((project) => {
-      let projectTags = [];
-      if (Array.isArray(project.tags)) {
-        projectTags = project.tags;
-      } else if (typeof project.tags === "string") {
-        try {
-          projectTags = JSON.parse(project.tags || "[]");
-        } catch {
-          projectTags = [];
-        }
-      }
-      if (Array.isArray(projectTags)) {
-        projectTags.forEach((tag) => {
-          if (tag) tags.add(String(tag));
-        });
-      }
-
-      if (project.status) {
-        statuses.add(project.status);
+    if (!sectionRef.current) return;
+    const reduce = getPrefersReducedMotion();
+    const reveals = sectionRef.current.querySelectorAll(".reveal");
+    reveals.forEach((el, i) => {
+      if (reduce) {
+        el.classList.add("in");
+      } else {
+        setTimeout(() => el.classList.add("in"), 80 + i * 100);
       }
     });
-
-    return {
-      availableTags: Array.from(tags).sort(),
-      availableStatuses: Array.from(statuses).sort(),
-    };
   }, [projects]);
 
-  const filteredAndSortedProjects = useMemo(() => {
-    let filtered = [...projects];
-
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((p) => {
-        // Search in title
-        if (p.title?.toLowerCase().includes(query)) return true;
-        // Search in short description
-        if (p.shortDescription?.toLowerCase().includes(query)) return true;
-        // Search in long description
-        if (p.description?.toLowerCase().includes(query)) return true;
-        if (p.longDescription?.toLowerCase().includes(query)) return true;
-        // Search in tags
-        if (
-          Array.isArray(p.tags) &&
-          p.tags.some((tag) => tag.toLowerCase().includes(query))
-        )
-          return true;
-        // Search in tech stack (skills)
-        let techStack = [];
-        if (Array.isArray(p.techStack)) {
-          techStack = p.techStack;
-        } else if (typeof p.techStack === "string") {
-          try {
-            techStack = JSON.parse(p.techStack || "[]");
-          } catch {
-            techStack = [];
-          }
-        }
-        if (
-          Array.isArray(techStack) &&
-          techStack.some((tech) => {
-            const techName =
-              typeof tech === "string" ? tech : tech.name || "";
-            return techName.toLowerCase().includes(query);
-          })
-        )
-          return true;
-        return false;
-      });
-    }
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((p) => p.status === statusFilter);
-    }
-
-    if (tagFilter !== "all") {
-      filtered = filtered.filter((p) => {
-        let tags = [];
-        if (Array.isArray(p.tags)) {
-          tags = p.tags;
-        } else if (typeof p.tags === "string") {
-          try {
-            tags = JSON.parse(p.tags || "[]");
-          } catch {
-            tags = [];
-          }
-        }
-        return Array.isArray(tags) && tags.includes(tagFilter);
-      });
-    }
-
-    filtered.sort((a, b) => {
-      let aVal = a[sortBy];
-      let bVal = b[sortBy];
-
-      if (sortBy === "startDate" || sortBy === "releaseDate") {
-        aVal = aVal ? new Date(aVal).getTime() : 0;
-        bVal = bVal ? new Date(bVal).getTime() : 0;
-      } else if (typeof aVal === "string") {
-        aVal = aVal.toLowerCase();
-        bVal = (bVal || "").toLowerCase();
-      }
-
-      if (sortOrder === "asc") {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
+  const allTags = useMemo(() => {
+    const tags = new Set();
+    projects.forEach((p) => {
+      const tag = primaryTag(p.tags);
+      if (tag && tag !== "project") tags.add(tag);
     });
+    return ["All", ...Array.from(tags).sort()];
+  }, [projects]);
 
-    return filtered;
-  }, [projects, debouncedSearch, statusFilter, tagFilter, sortBy, sortOrder]);
+  const filtered = useMemo(() => {
+    if (filter === "All") return projects;
+    return projects.filter((p) => primaryTag(p.tags) === filter);
+  }, [projects, filter]);
 
-  const displayedProjects = useMemo(() => {
-    return filteredAndSortedProjects.slice(0, displayCount);
-  }, [filteredAndSortedProjects, displayCount]);
+  const featured = useMemo(
+    () => projects.filter((p) => p.featured).slice(0, 4),
+    [projects],
+  );
 
-  const hasMore = filteredAndSortedProjects.length > displayCount;
-
-  useEffect(() => {
-    setDisplayCount(INITIAL_PROJECT_DISPLAY_COUNT);
-  }, [debouncedSearch, statusFilter, tagFilter, sortBy, sortOrder]);
-
-  useEffect(() => {
-    const currentRef = loadMoreRef.current;
-    if (!currentRef || !hasMore || isLoadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          setIsLoadingMore(true);
-          setTimeout(() => {
-            setDisplayCount((prev) =>
-              Math.min(
-                prev + PROJECTS_PER_PAGE,
-                filteredAndSortedProjects.length,
-              ),
-            );
-            setIsLoadingMore(false);
-          }, DEBOUNCE_DELAY_MS);
-        }
-      },
-      { threshold: 0.1, rootMargin: "100px" },
-    );
-
-    observer.observe(currentRef);
-
-    return () => {
-      observer.unobserve(currentRef);
-    };
-  }, [hasMore, isLoadingMore, filteredAndSortedProjects.length]);
-
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("all");
-    setTagFilter("all");
-    router.push("/projects", undefined, { shallow: true });
+  const goToProject = (project) => {
+    router.push(`/projects/${project.slug || project.id}`);
   };
-
-  const hasActiveFilters =
-    searchQuery || statusFilter !== "all" || tagFilter !== "all";
 
   return (
     <>
       <SEO
         title="Projects - Josh Lowe"
-        description="Explore my portfolio of AI, machine learning, and full-stack development projects."
+        description="AI systems, web applications, and engineering experiments — built for clients, research, and the thrill of learning."
+        path="/projects"
       />
 
-      <div className="section relative z-10">
-        <div className="container mx-auto max-w-7xl">
-          {/* Header */}
-          <div ref={headerRef} className="mb-12">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 font-[family-name:var(--font-oswald)]">
-              <span className="gradient-text">Projects</span>
+      <section
+        ref={sectionRef}
+        id="projects"
+        className="section"
+        style={{ padding: "160px 0" }}
+      >
+        <div className="container">
+          {/* Section header */}
+          <div className="reveal">
+            <div className="eyebrow" style={{ marginBottom: 28 }}>
+              <span className="num">02</span>
+              <span className="bar" />
+              <span>Projects</span>
+            </div>
+            <h1
+              className="display"
+              style={{
+                fontSize: "clamp(48px, 6.2vw, 104px)",
+                margin: 0,
+                marginBottom: 22,
+                lineHeight: 0.98,
+              }}
+            >
+              Selected <em className="italic">work</em>.
             </h1>
             <p
-              className="text-lg text-[var(--color-text-secondary)]"
-              style={{ maxWidth: "80%" }}
+              style={{
+                fontSize: "clamp(17px, 1.4vw, 20px)",
+                lineHeight: 1.55,
+                color: "var(--ink-70)",
+                margin: 0,
+                maxWidth: 680,
+                textWrap: "pretty",
+              }}
             >
-              A collection of AI systems, web applications, and engineering
-              solutions I've built for clients and personal exploration.
+              AI systems, web applications, and engineering experiments — built
+              for clients, research, and the thrill of learning.
             </p>
           </div>
 
-          {/* Filters */}
-          <ProjectFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            tagFilter={tagFilter}
-            onTagFilterChange={setTagFilter}
-            availableTags={availableTags}
-            availableStatuses={availableStatuses}
-            onClearFilters={handleClearFilters}
-          />
+          {/* Featured grid */}
+          {featured.length > 0 && (
+            <div
+              className="reveal"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(12, 1fr)",
+                gap: 20,
+                marginTop: 88,
+              }}
+              data-feat
+            >
+              {featured.map((p, i) => {
+                const span = FEATURED_SPANS[i] || FEATURED_SPANS[3];
+                const tech = normalizeTech(p.techStack);
+                const tag = primaryTag(p.tags);
+                const status = formatStatus(p.status);
+                const short = p.shortDescription || p.description || "";
 
-          {/* Sort Options */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div className="text-sm text-[var(--color-text-muted)]">
-              <span className="text-[var(--color-text-primary)] font-medium">
-                {filteredAndSortedProjects.length}
-              </span>{" "}
-              project{filteredAndSortedProjects.length !== 1 ? "s" : ""} found
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-[var(--color-text-muted)] whitespace-nowrap">
-                  Sort by:
-                </label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
-                  aria-label="Sort by"
-                >
-                  <option value="startDate">Start Date</option>
-                  <option value="releaseDate">Release Date</option>
-                  <option value="title">Title</option>
-                  <option value="status">Status</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-[var(--color-text-muted)] whitespace-nowrap">
-                  Order:
-                </label>
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value)}
-                  className="px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
-                  aria-label="Sort order"
-                >
-                  <option value="desc">Newest First</option>
-                  <option value="asc">Oldest First</option>
-                </select>
-              </div>
-            </div>
-          </div>
+                return (
+                  <a
+                    key={p.id}
+                    href={`/projects/${p.slug || p.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToProject(p);
+                    }}
+                    className="card card-hover"
+                    style={{
+                      gridColumn: span.col,
+                      gridRow: span.row,
+                      padding: span.big ? 40 : 28,
+                      position: "relative",
+                      minHeight: span.big ? 460 : 230,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      overflow: "hidden",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {span.big && (
+                      <div
+                        aria-hidden="true"
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background:
+                            "radial-gradient(circle at 78% 24%, rgba(34, 211, 238, 0.16), transparent 55%), radial-gradient(circle at 16% 84%, rgba(59, 130, 246, 0.18), transparent 50%)",
+                          opacity: 0.95,
+                          pointerEvents: "none",
+                        }}
+                      />
+                    )}
 
-          {/* Projects Grid */}
-          {filteredAndSortedProjects.length === 0 ? (
-            <ProjectsEmptyState
-              hasFilters={hasActiveFilters}
-              onClearFilters={handleClearFilters}
-            />
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedProjects.map((project, index) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    index={index}
-                  />
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "start",
+                        gap: 12,
+                      }}
+                    >
+                      <div className="label-mono">{tag}</div>
+                      <span
+                        className={
+                          "chip " + (status === "Completed" ? "on" : "")
+                        }
+                        style={{ fontSize: 10 }}
+                      >
+                        {status}
+                      </span>
+                    </div>
+
+                    <div style={{ position: "relative" }}>
+                      <h3
+                        className="display"
+                        style={{
+                          fontSize: span.big ? "clamp(32px, 3.8vw, 52px)" : 24,
+                          fontWeight: 400,
+                          color: "var(--ink-100)",
+                          margin: 0,
+                          marginBottom: 14,
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {p.title}
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: span.big ? 16.5 : 14,
+                          color: "var(--ink-70)",
+                          margin: 0,
+                          lineHeight: 1.6,
+                          maxWidth: span.big ? 620 : "100%",
+                          textWrap: "pretty",
+                        }}
+                      >
+                        {short}
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginTop: 26,
+                          gap: 16,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div
+                          style={{ display: "flex", gap: 6, flexWrap: "wrap" }}
+                        >
+                          {tech.slice(0, span.big ? 4 : 3).map((t) => (
+                            <span
+                              key={t}
+                              className="chip"
+                              style={{ fontSize: 10 }}
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <span
+                          style={{
+                            fontFamily: "var(--font-serif)",
+                            fontStyle: "italic",
+                            fontSize: 15,
+                            color: "var(--sn-pink)",
+                          }}
+                        >
+                          View details →
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Archive */}
+          <div style={{ marginTop: 140 }}>
+            <div
+              className="reveal"
+              style={{
+                display: "flex",
+                alignItems: "end",
+                justifyContent: "space-between",
+                marginBottom: 36,
+                flexWrap: "wrap",
+                gap: 20,
+              }}
+            >
+              <div>
+                <div className="label-mono" style={{ marginBottom: 10 }}>
+                  All projects
+                </div>
+                <div
+                  className="display"
+                  style={{
+                    fontSize: "clamp(32px, 3.4vw, 48px)",
+                    fontWeight: 400,
+                    color: "var(--ink-100)",
+                  }}
+                >
+                  {filtered.length}{" "}
+                  <em className="italic" style={{ color: "var(--ink-70)" }}>
+                    in total
+                  </em>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
+                {allTags.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setFilter(t)}
+                    className={"chip " + (filter === t ? "on" : "")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {t}
+                  </button>
                 ))}
               </div>
+            </div>
 
-              {/* Load More Trigger */}
-              {hasMore && (
+            <div
+              className="reveal"
+              style={{ borderTop: "1px solid var(--rule)" }}
+            >
+              {filtered.length === 0 ? (
                 <div
-                  ref={loadMoreRef}
-                  className="h-24 flex justify-center items-center mt-8"
+                  style={{
+                    padding: "80px 4px",
+                    textAlign: "center",
+                    color: "var(--ink-60)",
+                  }}
                 >
-                  {isLoadingMore && (
-                    <div className="flex items-center gap-3 text-[var(--color-text-muted)]">
-                      <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                      <span>Loading more...</span>
-                    </div>
-                  )}
+                  No projects match this filter yet.
                 </div>
+              ) : (
+                filtered.map((p) => (
+                  <ArchiveRow
+                    key={p.id}
+                    p={p}
+                    onClick={() => goToProject(p)}
+                  />
+                ))
               )}
+            </div>
+          </div>
+        </div>
+      </section>
 
-              {/* End of results */}
-              {!hasMore && displayedProjects.length > 0 && (
-                <div className="text-center mt-12 py-8 border-t border-[var(--color-border)]">
-                  <p className="text-[var(--color-text-muted)] text-sm">
-                    You've seen all {filteredAndSortedProjects.length} project
-                    {filteredAndSortedProjects.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
+      <style jsx>{`
+        @media (max-width: 880px) {
+          [data-feat] > :global(*) {
+            grid-column: span 12 !important;
+            grid-row: span 1 !important;
+            min-height: 260px !important;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
+
+function ArchiveRow({ p, onClick }) {
+  const tech = normalizeTech(p.techStack);
+  const tag = primaryTag(p.tags);
+  const status = formatStatus(p.status);
+  const short = p.shortDescription || p.description || "";
+
+  return (
+    <a
+      href={`/projects/${p.slug || p.id}`}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "minmax(0, 2.4fr) minmax(0, 0.9fr) minmax(0, 1.3fr) 140px 40px",
+        gap: 24,
+        alignItems: "start",
+        padding: "28px 4px",
+        borderBottom: "1px solid var(--rule)",
+        textDecoration: "none",
+        transition: "background 0.3s var(--ease-out-expo), padding-left 0.3s var(--ease-out-expo)",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "rgba(180, 220, 255, 0.03)";
+        e.currentTarget.style.paddingLeft = "24px";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "transparent";
+        e.currentTarget.style.paddingLeft = "4px";
+      }}
+      data-row
+    >
+      <div>
+        <div
+          className="display"
+          style={{
+            fontSize: "clamp(20px, 1.9vw, 26px)",
+            color: "var(--ink-100)",
+            marginBottom: 6,
+            fontWeight: 400,
+          }}
+        >
+          {p.title}
+        </div>
+        <div
+          style={{
+            fontSize: 14.5,
+            color: "var(--ink-70)",
+            lineHeight: 1.5,
+            textWrap: "pretty",
+          }}
+        >
+          {short}
         </div>
       </div>
-    </>
+      <div className="label-mono">{tag}</div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {tech.slice(0, 3).map((t) => (
+          <span key={t} className="chip" style={{ fontSize: 10 }}>
+            {t}
+          </span>
+        ))}
+      </div>
+      <div>
+        <span
+          className={"chip " + (status === "Completed" ? "on" : "")}
+          style={{ fontSize: 10 }}
+        >
+          {status}
+        </span>
+      </div>
+      <div
+        aria-hidden="true"
+        style={{
+          textAlign: "right",
+          fontFamily: "var(--font-serif)",
+          fontStyle: "italic",
+          color: "var(--sn-pink)",
+          fontSize: 22,
+        }}
+      >
+        →
+      </div>
+
+      <style jsx>{`
+        @media (max-width: 880px) {
+          [data-row] {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+          }
+          [data-row] > :global(*:nth-child(5)) {
+            display: none;
+          }
+        }
+      `}</style>
+    </a>
   );
 }
 
 export async function getStaticProps() {
   try {
     const projectsRaw = await prisma.project.findMany({
-      where: {
-        status: {
-          not: "Draft",
-        },
-      },
-      orderBy: {
-        startDate: "desc",
-      },
-      include: {
-        teamMembers: true,
-      },
+      where: { status: { not: "Draft" } },
+      orderBy: { startDate: "desc" },
+      include: { teamMembers: true },
     });
 
     const projects = transformProjectsToApiFormat(projectsRaw);
 
     return {
-      props: {
-        projects: JSON.parse(JSON.stringify(projects)),
-      },
+      props: { projects: JSON.parse(JSON.stringify(projects)) },
       revalidate: 60,
     };
   } catch (error) {
@@ -383,9 +497,7 @@ export async function getStaticProps() {
       console.error("Error in getStaticProps:", error);
     }
     return {
-      props: {
-        projects: [],
-      },
+      props: { projects: [] },
       revalidate: 60,
     };
   }

@@ -88,21 +88,25 @@ export default function Home({
   );
 }
 
-// Default home content (used as fallback when PageContent.home is empty)
+// Default home content (used as fallback)
 const defaultHomeContent = {
-  heroFocus: "privacy-preserving ML",
-  subroleLead: "MSCS student",
-  subroleBody:
-    "at UCF, researching privacy-preserving ML at the AI MIND Lab. Building production intelligence for teams who need results, not prototypes.",
-  primaryCta: { text: "Let's talk", href: "/contact" },
-  secondaryCta: { text: "See the work", href: "/projects" },
+  typingIntro: "I build...",
+  heroTitle: "intelligent AI systems",
+  typingStrings: [
+    "intelligent AI systems",
+    "production ML pipelines",
+    "custom LLM solutions",
+    "scalable data platforms",
+    "next-gen applications",
+  ],
+  primaryCta: { text: "Start a Project", href: "/contact" },
+  secondaryCta: { text: "View My Work", href: "/projects" },
   techBadges: [
-    { name: "Python" },
-    { name: "PyTorch" },
-    { name: "AWS" },
-    { name: "Next.js" },
-    { name: "React.js" },
-    { name: "Flask" },
+    { name: "Python", color: "#E85D04" },
+    { name: "TensorFlow", color: "#FAA307" },
+    { name: "React", color: "#4CC9F0" },
+    { name: "AWS", color: "#F48C06" },
+    { name: "LLMs", color: "#3B82F6" },
   ],
   githubSectionTitle: "GitHub Contributions",
   githubSectionDescription:

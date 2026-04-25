@@ -105,7 +105,7 @@ export default function ArticleDetailPage({ post: initialPost }) {
                 )}
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] mb-4 font-[family-name:var(--font-oswald)]">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] mb-4 font-[family-name:var(--font-serif)]">
                 {post.title}
               </h1>
 
@@ -199,12 +199,12 @@ export default function ArticleDetailPage({ post: initialPost }) {
                       );
                     },
                     h1: ({ children }) => (
-                      <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
+                      <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-serif)]">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
+                      <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-serif)]">
                         {children}
                       </h2>
                     ),

@@ -9,7 +9,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/admin/ToastProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { spaceGrotesk, plusJakartaSans, jetbrainsMono } from "@/lib/fonts";
+import { instrumentSerif, inter, jetbrainsMono } from "@/lib/fonts";
 
 import ScrollProgress from "@/components/ui/ScrollProgress";
 
@@ -31,7 +31,7 @@ export default function App({
   const [introComplete, setIntroComplete] = useState(false);
 
   // Combine font variables for className
-  const fontVariables = `${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`;
+  const fontVariables = `${inter.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`;
 
   // Register service worker for PWA and listen for intro complete
   useEffect(() => {

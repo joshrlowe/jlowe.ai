@@ -52,7 +52,7 @@ export default function ArticlesPage({
         <div className="w-full max-w-6xl mx-auto">
           {/* Page Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl sm:text-5xl font-bold text-[var(--color-primary)] mb-4 font-[family-name:var(--font-oswald)]">
+            <h1 className="text-4xl sm:text-5xl font-bold text-[var(--color-primary)] mb-4 font-[family-name:var(--font-serif)]">
               Articles
             </h1>
             <p
@@ -131,7 +131,7 @@ export default function ArticlesPage({
 
           {/* Latest Articles */}
           <section className="mb-16">
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-[family-name:var(--font-oswald)]">
+            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 font-[family-name:var(--font-serif)]">
               Latest Articles
             </h2>
 

@@ -1,13 +1,8 @@
 /**
  * Header.jsx
  *
- * SUPERNOVA v2.0 - Navigation Header
- *
- * Features:
- * - Space Grotesk typography
- * - Refined ember color palette
- * - Glass morphism with dark backdrop
- * - Smooth scroll-based transitions
+ * Editorial Cool redesign — fixed header with scroll-triggered backdrop,
+ * serif wordmark, mono-labeled nav, ink palette.
  */
 
 import { useState, useEffect } from "react";
@@ -23,7 +18,6 @@ export default function Header({ style = {} }) {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -40,150 +34,248 @@ export default function Header({ style = {} }) {
   ];
 
   const isActive = (href) => {
-    const pathname = router?.pathname || '';
+    const pathname = router?.pathname || "";
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "py-2 backdrop-blur-xl border-b" : "py-5 bg-transparent"
-        }`}
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: isScrolled ? "rgba(0, 0, 0, 0.88)" : "transparent",
-        borderColor: isScrolled ? "rgba(232, 93, 4, 0.12)" : "transparent",
+        paddingTop: isScrolled ? 12 : 20,
+        paddingBottom: isScrolled ? 12 : 20,
+        background: isScrolled ? "rgba(0, 0, 0, 0.82)" : "transparent",
+        borderBottom: isScrolled
+          ? "1px solid var(--rule)"
+          : "1px solid transparent",
+        backdropFilter: isScrolled ? "blur(16px)" : "none",
+        WebkitBackdropFilter: isScrolled ? "blur(16px)" : "none",
         ...style,
       }}
     >
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
+      <nav className="container">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 24,
+          }}
+        >
+          {/* Wordmark */}
           <Link
             href="/"
-            className="flex items-center gap-3 group"
             aria-label="Home"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 12,
+              textDecoration: "none",
+            }}
           >
-            {/* Logo mark - custom image */}
-            <div className="relative w-18 h-18 rounded-xl overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_25px_rgba(232,93,4,0.45)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/logo.png"
-                alt="JL Logo"
-                className="w-full h-full object-contain"
-              />
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <span
+              aria-hidden="true"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background:
+                  "radial-gradient(circle at 30% 30%, #FFFFFF 0%, #DBEAFE 22%, #22D3EE 48%, #3B82F6 80%, #0a1428 100%)",
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.18)",
+                flexShrink: 0,
+              }}
+            />
+            <div>
+              <span
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: 18,
+                  color: "var(--ink-100)",
+                  fontWeight: 400,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Josh Lowe
+              </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
-            {navLinks.map((link) => (
+          {/* Desktop navigation */}
+          <div
+            className="hidden md:flex"
+            style={{ alignItems: "center", gap: 28 }}
+          >
+            {navLinks.map((link, i) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-5 py-2.5 text-base font-medium transition-all duration-200 rounded-lg"
                 style={{
-                  color: isActive(link.href)
-                    ? "#E85D04"
-                    : "var(--color-text-secondary)",
-                  fontFamily: "var(--font-family-base)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive(link.href)) {
-                    e.currentTarget.style.color = "var(--color-text-primary)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive(link.href)) {
-                    e.currentTarget.style.color = "var(--color-text-secondary)";
-                  }
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: isActive(link.href) ? "var(--ink-100)" : "var(--ink-60)",
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  transition: "color 0.3s var(--ease-out-expo)",
+                  paddingBottom: 4,
+                  borderBottom: isActive(link.href)
+                    ? "1px solid var(--sn-cyan-hi)"
+                    : "1px solid transparent",
                 }}
               >
-                {link.label}
-                {/* Active indicator */}
-                {isActive(link.href) && (
-                  <span
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full"
-                    style={{
-                      background: "#E85D04",
-                      boxShadow: "0 0 10px rgba(232, 93, 4, 0.7)",
-                    }}
-                  />
-                )}
+                <span
+                  style={{
+                    color: isActive(link.href)
+                      ? "var(--sn-fuchsia)"
+                      : "var(--ink-40)",
+                    fontSize: 10,
+                  }}
+                >
+                  0{i + 1}
+                </span>
+                <span>{link.label}</span>
               </Link>
             ))}
-
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
-            style={{
-              color: "var(--color-text-secondary)",
-              background: isMenuOpen ? "rgba(232, 93, 4, 0.1)" : "transparent",
-            }}
+            className="md:hidden"
             onClick={toggleMenu}
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation menu"
+            style={{
+              position: "relative",
+              width: 40,
+              height: 40,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: isMenuOpen
+                ? "rgba(255,255,255,0.06)"
+                : "transparent",
+              border: "1px solid var(--rule)",
+              borderRadius: 8,
+              color: "var(--ink-80)",
+            }}
           >
             <span className="sr-only">Menu</span>
-            <div className="relative w-5 h-4">
+            <div style={{ position: "relative", width: 18, height: 14 }}>
               <span
-                className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${isMenuOpen ? "top-1/2 -translate-y-1/2 rotate-45" : "top-0"
-                  }`}
-                style={{ background: isMenuOpen ? "#E85D04" : "currentColor" }}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: isMenuOpen ? "50%" : 0,
+                  width: "100%",
+                  height: 1.5,
+                  background: "currentColor",
+                  transition: "all 0.3s var(--ease-out-expo)",
+                  transform: isMenuOpen
+                    ? "translateY(-50%) rotate(45deg)"
+                    : "none",
+                }}
               />
               <span
-                className={`absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? "opacity-0 scale-0" : "opacity-100 scale-100"
-                  }`}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: "50%",
+                  width: "100%",
+                  height: 1.5,
+                  background: "currentColor",
+                  transition: "all 0.3s var(--ease-out-expo)",
+                  transform: "translateY(-50%)",
+                  opacity: isMenuOpen ? 0 : 1,
+                }}
               />
               <span
-                className={`absolute left-0 w-full h-0.5 transition-all duration-300 ${isMenuOpen
-                  ? "top-1/2 -translate-y-1/2 -rotate-45"
-                  : "bottom-0"
-                  }`}
-                style={{ background: isMenuOpen ? "#E85D04" : "currentColor" }}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: isMenuOpen ? "50%" : "auto",
+                  bottom: isMenuOpen ? "auto" : 0,
+                  width: "100%",
+                  height: 1.5,
+                  background: "currentColor",
+                  transition: "all 0.3s var(--ease-out-expo)",
+                  transform: isMenuOpen
+                    ? "translateY(-50%) rotate(-45deg)"
+                    : "none",
+                }}
               />
             </div>
           </button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile navigation */}
         <div
-          className={`md:hidden absolute left-0 right-0 top-full px-4 pb-4 transition-all duration-300 ${isMenuOpen
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 -translate-y-4 pointer-events-none"
-            }`}
+          className="md:hidden"
+          style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            top: "100%",
+            paddingTop: 8,
+            transition: "all 0.3s var(--ease-out-expo)",
+            opacity: isMenuOpen ? 1 : 0,
+            transform: isMenuOpen ? "translateY(0)" : "translateY(-8px)",
+            pointerEvents: isMenuOpen ? "auto" : "none",
+          }}
         >
           <div
-            className="rounded-xl p-4 space-y-1 backdrop-blur-xl"
+            className="card"
             style={{
-              background: "rgba(8, 8, 8, 0.96)",
-              border: "1px solid rgba(232, 93, 4, 0.15)",
+              padding: 8,
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              background: "rgba(5, 7, 10, 0.96)",
             }}
           >
-            {navLinks.map((link) => (
+            {navLinks.map((link, i) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
-                className="block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200"
                 style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 16px",
+                  borderRadius: 8,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
                   color: isActive(link.href)
-                    ? "#E85D04"
-                    : "var(--color-text-secondary)",
+                    ? "var(--ink-100)"
+                    : "var(--ink-70)",
                   background: isActive(link.href)
-                    ? "rgba(232, 93, 4, 0.1)"
+                    ? "rgba(255,255,255,0.04)"
                     : "transparent",
-                  fontFamily: "var(--font-family-base)",
+                  textDecoration: "none",
                 }}
               >
-                {link.label}
+                <span
+                  style={{
+                    color: isActive(link.href)
+                      ? "var(--sn-fuchsia)"
+                      : "var(--ink-40)",
+                    fontSize: 10,
+                  }}
+                >
+                  0{i + 1}
+                </span>
+                <span>{link.label}</span>
               </Link>
             ))}
-
           </div>
         </div>
       </nav>

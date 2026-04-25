@@ -1,339 +1,277 @@
 /**
  * HeroSection.jsx
  *
- * SUPERNOVA v2.2 - Portfolio-focused Hero
+ * Editorial Cool redesign — massive serif display with supernova-gradient accent,
+ * availability chip, subrole paragraph, CTA pair, specialty row.
  *
- * Reframed for portfolio positioning (vs pure consulting):
- * - Lead with identity and achievements
- * - Primary CTA: View Projects (portfolio focus)
- * - Secondary CTA: Contact (still available)
- * - Shows what you've built, not just what you offer
+ * Data contract:
+ * - props.data: Welcome row (name, briefBio, callToAction)
+ * - props.homeContent: PageContent.home JSON (heroFocus, primaryCta, secondaryCta, techBadges, subrole)
+ *   Falls back to design defaults for any unset field.
  */
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { gsap } from "gsap";
-import { Button } from "@/components/ui";
 import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { trackCtaClick } from "@/lib/analytics";
 
-const ReactTyped = dynamic(
-  () => import("react-typed").then((mod) => mod.ReactTyped),
-  {
-    ssr: false,
-    loading: () => (
-      <span className="text-[var(--color-text-secondary)]">I build</span>
-    ),
-  },
-);
-
 export default function HeroSection({ data, homeContent }) {
-  const [typingComplete, setTypingComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [animationReady, setAnimationReady] = useState(false);
 
-  const containerRef = useRef(null);
-  const titleRef = useRef(null);
-  const subtitleRef = useRef(null);
-  const descRef = useRef(null);
-  const ctaRef = useRef(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
-
-    // Check if intro animation has already played this session
     const hasPlayed = sessionStorage.getItem("introAnimationPlayed") === "true";
-
     if (hasPlayed) {
-      // Start immediately on subsequent visits
       setAnimationReady(true);
     } else {
-      // Wait for supernova animation to complete (3.3s) then start typing
-      const timer = setTimeout(() => {
-        setAnimationReady(true);
-      }, 3300);
+      const timer = setTimeout(() => setAnimationReady(true), 3300);
       return () => clearTimeout(timer);
     }
   }, []);
 
   useEffect(() => {
-    if (!mounted || !typingComplete || !animationReady) return;
+    if (!mounted || !animationReady || !sectionRef.current) return;
+    const reveals = Array.from(
+      sectionRef.current.querySelectorAll(".reveal"),
+    );
 
-    const prefersReducedMotion = getPrefersReducedMotion();
-
-    if (prefersReducedMotion) {
-      [titleRef, subtitleRef, descRef, ctaRef].forEach((ref) => {
-        if (ref.current) {
-          gsap.set(ref.current, { opacity: 1, y: 0 });
-        }
-      });
+    if (getPrefersReducedMotion()) {
+      reveals.forEach((el) => el.classList.add("in"));
       return;
     }
 
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-    tl.fromTo(
-      titleRef.current,
-      { opacity: 0, y: 50, scale: 0.95 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.9 },
-    )
-      .fromTo(
-        subtitleRef.current,
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.7 },
-        "-=0.5",
-      )
-      .fromTo(
-        descRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        "-=0.3",
-      )
-      .fromTo(
-        ctaRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5 },
-        "-=0.2",
+    reveals.forEach((el, i) => {
+      el.classList.add("in");
+      tl.fromTo(
+        el,
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.9 },
+        i === 0 ? 0 : "-=0.65",
       );
+    });
 
     return () => tl.kill();
-  }, [mounted, typingComplete, animationReady]);
+  }, [mounted, animationReady]);
 
-  const name = data?.name || "Josh Lowe";
-  const tagline = data?.callToAction || "AI/ML Engineer";
-  const bio =
-    data?.briefBio ||
-    "Building production-grade AI systems and leading engineering teams. MSCS candidate crafting intelligent solutions that drive real-world impact.";
+  // Data with fallbacks matching the design language
+  const focus = homeContent?.heroFocus || "privacy-preserving ML";
+  const subroleLead =
+    homeContent?.subroleLead || data?.subrole || "MSCS student";
+  const subroleBody =
+    homeContent?.subroleBody ||
+    "at UCF, researching privacy-preserving ML at the AI MIND Lab. Building production intelligence for teams who need results, not prototypes.";
 
-  // Get content from homeContent prop (from database) or use defaults
-  // Portfolio-focused: Lead with what you've built
-  const typingIntro = homeContent?.typingIntro || "I build...";
-  const typingStrings =
-    homeContent?.typingStrings?.length > 0
-      ? homeContent.typingStrings
-      : [
-        "production AI systems",
-        "scalable ML pipelines",
-        "full-stack applications",
-        "data-driven solutions",
-        "intelligent platforms",
-      ];
-
-  // Portfolio-first CTAs: Projects primary, Contact secondary
   const primaryCta = homeContent?.primaryCta || {
-    text: "View My Work",
-    href: "/projects",
+    text: "Let's talk",
+    href: "/contact",
   };
   const secondaryCta = homeContent?.secondaryCta || {
-    text: "Get in Touch",
-    href: "/contact",
+    text: "See the work",
+    href: "/projects",
   };
 
   const techBadges =
     homeContent?.techBadges?.length > 0
       ? homeContent.techBadges
       : [
-        { name: "Python", color: "#E85D04" },
-        { name: "TensorFlow", color: "#FAA307" },
-        { name: "React", color: "#4CC9F0" },
-        { name: "AWS", color: "#F48C06" },
-        { name: "LLMs", color: "#F72585" },
-      ];
+          { name: "Python" },
+          { name: "PyTorch" },
+          { name: "AWS" },
+          { name: "Next.js" },
+          { name: "React.js" },
+          { name: "Flask" },
+        ];
 
   return (
     <section
-      ref={containerRef}
-      className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-32"
+      ref={sectionRef}
+      id="home"
+      className="relative min-h-screen flex items-center"
+      style={{ padding: "160px 0 100px" }}
       aria-label="Hero section"
     >
-      <div className="w-full max-w-6xl mx-auto">
-        <div className="text-center">
-          {/* Typing intro - starts after stars appear */}
-          <p
-            className={`text-lg sm:text-xl mb-4 h-8 transition-opacity duration-500 font-light tracking-wide ${animationReady ? "opacity-100" : "opacity-0"
-              }`}
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            {typingComplete ? (
-              <span>{typingIntro}</span>
-            ) : (
-              mounted &&
-              animationReady && (
-                <ReactTyped
-                  strings={[typingIntro]}
-                  typeSpeed={60}
-                  loop={false}
-                  onComplete={() => setTypingComplete(true)}
-                  showCursor={true}
-                  cursorChar="|"
-                />
-              )
-            )}
-          </p>
-
-          {/* Main title - with typing animation */}
-          <h1
-            ref={titleRef}
-            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
-            style={{
-              background:
-                "linear-gradient(135deg, #FAFAFA 0%, #FFBA08 30%, #E85D04 60%, #9D0208 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              textShadow: "0 0 80px rgba(232, 93, 4, 0.2)",
-            }}
-          >
-            {mounted && typingComplete ? (
-              <ReactTyped
-                strings={typingStrings}
-                typeSpeed={50}
-                backSpeed={30}
-                backDelay={2000}
-                loop={true}
-                showCursor={true}
-                cursorChar="|"
-              />
-            ) : (
-              typingStrings[0]
-            )}
-          </h1>
-
-          {/* Subtitle / Role - single line, flexible width */}
+      <div className="container" style={{ width: "100%" }}>
+        <div style={{ maxWidth: 1100 }}>
+          {/* Availability chip */}
           <div
-            ref={subtitleRef}
-            className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-6 transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
+            className="reveal"
+            style={{ marginBottom: 44 }}
           >
             <span
-              className="text-xl sm:text-2xl lg:text-3xl font-semibold whitespace-nowrap"
               style={{
-                color: "#E85D04",
-                textShadow: "0 0 25px rgba(232, 93, 4, 0.35)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "9px 16px 9px 14px",
+                border: "1px solid var(--rule-mid)",
+                borderRadius: 999,
+                fontSize: 13,
+                color: "var(--ink-80)",
+                background: "rgba(10,10,14,0.5)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
               }}
             >
-              {name}
-            </span>
-            <span
-              className="text-xl sm:text-2xl lg:text-3xl hidden sm:inline"
-              style={{ color: "rgba(250, 163, 7, 0.4)" }}
-            >
-              •
-            </span>
-            <span
-              className="text-lg sm:text-xl lg:text-2xl font-light whitespace-nowrap"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              {tagline}
+              <span className="live-dot" />
+              <span style={{ color: "var(--ink-60)" }}>Currently</span>
+              <span style={{ color: "var(--ink-100)" }}>{focus}</span>
             </span>
           </div>
 
-          {/* Description */}
-          <p
-            ref={descRef}
-            className={`text-base sm:text-lg lg:text-xl w-full mx-auto mb-10 leading-relaxed transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
-            style={{ color: "var(--color-text-secondary)", maxWidth: "80%" }}
+          {/* Massive serif display */}
+          <h1
+            className="reveal display"
+            style={{
+              fontSize: "clamp(64px, 11vw, 176px)",
+              margin: 0,
+              marginBottom: 36,
+              lineHeight: 0.92,
+            }}
           >
-            {bio}
-          </p>
+            <span style={{ color: "var(--ink-100)" }}>Building</span>{" "}
+            <em style={{ color: "var(--ink-80)" }}>what&apos;s</em>
+            <br />
+            <span className="sn-gradient">next</span>
+            <span style={{ color: "var(--ink-100)" }}>.</span>
+          </h1>
+
+          {/* Subrole — serif italic lead-in + role */}
+          <div
+            className="reveal"
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontSize: "clamp(18px, 1.5vw, 22px)",
+              color: "var(--ink-70)",
+              lineHeight: 1.5,
+              marginBottom: 52,
+              maxWidth: 720,
+              textWrap: "pretty",
+              fontWeight: 400,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontStyle: "italic",
+                color: "var(--ink-90)",
+                fontSize: "1.1em",
+              }}
+            >
+              {subroleLead}
+            </span>{" "}
+            {subroleBody}
+          </div>
 
           {/* CTAs */}
           <div
-            ref={ctaRef}
-            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
+            className="reveal"
+            style={{
+              display: "flex",
+              gap: 14,
+              flexWrap: "wrap",
+              marginBottom: 72,
+            }}
           >
-            <Button
+            <a
               href={primaryCta.href}
-              variant="primary"
-              size="lg"
-              magnetic
               onClick={() => trackCtaClick("primary", primaryCta.href)}
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              }
+              className="btn btn-primary"
             >
               {primaryCta.text}
-            </Button>
-
-            <Button
+              <span style={{ fontSize: 14 }}>→</span>
+            </a>
+            <a
               href={secondaryCta.href}
-              variant="secondary"
-              size="lg"
               onClick={() => trackCtaClick("secondary", secondaryCta.href)}
+              className="btn btn-ghost"
             >
               {secondaryCta.text}
-            </Button>
+            </a>
           </div>
 
-          {/* Tech badges */}
+          {/* Specialty row */}
           <div
-            className={`flex flex-wrap items-center justify-center gap-2 mt-12 transition-opacity duration-500 delay-300 ${typingComplete ? "opacity-100" : "opacity-0"
-              }`}
+            className="reveal"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 20,
+              paddingTop: 28,
+              borderTop: "1px solid var(--rule)",
+              flexWrap: "wrap",
+            }}
           >
-            {techBadges.map((tech) => (
-              <span
-                key={tech.name}
-                className="px-3 py-1 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 hover:scale-105"
-                style={{
-                  background: `${tech.color}15`,
-                  color: tech.color,
-                  border: `1px solid ${tech.color}30`,
-                }}
-              >
-                {tech.name}
-              </span>
-            ))}
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "var(--ink-50)",
+              }}
+            >
+              Specialties
+            </span>
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              {techBadges.map((t, i) => (
+                <span key={t.name || t} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 14, color: "var(--ink-80)" }}>
+                    {t.name || t}
+                  </span>
+                  {i < techBadges.length - 1 && (
+                    <span style={{ color: "var(--ink-30)" }}>·</span>
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Gentle scroll indicator */}
       <div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${typingComplete ? "opacity-100" : "opacity-0"
-          }`}
+        style={{
+          position: "absolute",
+          bottom: 36,
+          right: 40,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 10,
+          opacity: 0.55,
+        }}
+        aria-hidden="true"
       >
-        <button
-          onClick={() => {
-            document
-              .getElementById("services")
-              ?.scrollIntoView({ behavior: "smooth" });
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 10,
+            color: "var(--ink-60)",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            writingMode: "vertical-rl",
           }}
-          className="flex flex-col items-center gap-2 transition-colors group"
-          style={{ color: "var(--color-text-muted)" }}
-          aria-label="Scroll to services"
         >
-          <span className="text-xs uppercase tracking-[0.15em] font-medium group-hover:text-[#E85D04] transition-colors">
-            Explore
-          </span>
-          <svg
-            className="w-4 h-4 animate-bounce group-hover:text-[#E85D04] transition-colors"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 14l-7 7m0 0l-7-7m7 7V3"
-            />
-          </svg>
-        </button>
+          Scroll
+        </span>
+        <span
+          style={{
+            width: 1,
+            height: 44,
+            background: "linear-gradient(to bottom, var(--ink-50), transparent)",
+          }}
+        />
       </div>
     </section>
   );
