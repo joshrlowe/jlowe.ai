@@ -1,124 +1,79 @@
 /**
- * SpaceBackground - Main entry point
+ * SpaceBackground — vanilla Three.js mount for the editorial-cool supernova.
+ * Ports design-reference/src/supernova.js into the project; no @react-three/fiber.
  *
- * SUPERNOVA v2.3 - Stars explode from center
- * - White 3D ring collapsing on fuchsia star
- * - Stars burst outward from explosion center
- * - Realistic night sky colors
- * - Highly reactive to mouse movement
+ * Listens for the supernova:complete CustomEvent and broadcasts the existing
+ * `introAnimationComplete` event so HeroSection's reveal gate continues to work.
  */
-import { useState, useEffect, useCallback } from "react";
-import { Canvas } from "@react-three/fiber";
-import CosmicStarfield from "./CosmicStarfield";
-import CameraController from "./CameraController";
-import SupernovaFlash from "./SupernovaFlash";
-import ReducedMotionFallback from "./ReducedMotionFallback";
-import { STAR_COUNT, CAMERA_POSITION_Z, CAMERA_FOV } from "./constants";
 
-function SpaceScene({ triggerExplosion, skipAnimation }) {
-  return (
-    <>
-      <CosmicStarfield
-        count={STAR_COUNT}
-        explode={triggerExplosion}
-        skipAnimation={skipAnimation}
-      />
-      <CameraController />
-    </>
-  );
-}
+import { useEffect, useRef, useState } from "react";
 
 export default function SpaceBackground() {
+  const mountRef = useRef(null);
   const [mounted, setMounted] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
-  const [triggerExplosion, setTriggerExplosion] = useState(false);
-  const [skipAnimation, setSkipAnimation] = useState(false);
-
-  const handleFlash = useCallback(() => {
-    setTriggerExplosion(true);
-  }, []);
-
-  const handleAnimationComplete = useCallback(() => {
-    setAnimationComplete(true);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("introAnimationPlayed", "true");
-      window.dispatchEvent(new CustomEvent("introAnimationComplete"));
-    }
-  }, []);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
 
-    // Check if animation has already played this session
-    const hasPlayed = sessionStorage.getItem("introAnimationPlayed") === "true";
+  useEffect(() => {
+    if (!mounted || !mountRef.current) return;
+
+    let cleanup = () => {};
+    let cancelled = false;
+
+    // Bridge the new "supernova:complete" event into the legacy
+    // "introAnimationComplete" event the rest of the app already listens for.
+    const onComplete = () => {
+      try {
+        sessionStorage.setItem("introAnimationPlayed", "true");
+      } catch (_e) {
+        /* sessionStorage might be blocked */
+      }
+      window.dispatchEvent(new CustomEvent("introAnimationComplete"));
+    };
+    window.addEventListener("supernova:complete", onComplete);
+
+    // If the intro has already played this session, the imported scene
+    // checks window.__SN_TWEAKS.disableEvent and skips straight to ambient.
+    const hasPlayed =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("introAnimationPlayed") === "true";
     if (hasPlayed) {
-      setSkipAnimation(true);
-      setAnimationComplete(true);
-      setTriggerExplosion(true);
+      window.__SN_TWEAKS = { ...(window.__SN_TWEAKS || {}), disableEvent: true };
+      // Fire the bridge event immediately so the gate doesn't wait.
       window.dispatchEvent(new CustomEvent("introAnimationComplete"));
     }
 
-    // Check for reduced motion preference
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mediaQuery.matches);
-    if (mediaQuery.matches) {
-      setAnimationComplete(true);
-      setTriggerExplosion(true);
-    }
+    // Dynamic import keeps the ~35 KB scene + Three.js out of the SSR bundle.
+    import("./supernovaScene").then(({ initSupernova }) => {
+      if (cancelled || !mountRef.current) return;
+      cleanup = initSupernova(mountRef.current) || (() => {});
+    });
 
-    const handler = (e) => setReducedMotion(e.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
+    return () => {
+      cancelled = true;
+      cleanup();
+      window.removeEventListener("supernova:complete", onComplete);
+    };
+  }, [mounted]);
 
-  // Loading placeholder
   if (!mounted) {
-    return <div className="fixed inset-0 z-0 bg-black" />;
-  }
-
-  // Accessibility: static fallback for reduced motion
-  if (reducedMotion) {
-    return <ReducedMotionFallback />;
+    return <div className="fixed inset-0 z-0 bg-black" aria-hidden="true" />;
   }
 
   return (
-    <>
-      {!animationComplete && (
-        <SupernovaFlash
-          onFlash={handleFlash}
-          onComplete={handleAnimationComplete}
-        />
-      )}
-
-      <div className="fixed inset-0 z-0">
-        <Canvas
-          camera={{ position: [0, 0, CAMERA_POSITION_Z], fov: CAMERA_FOV }}
-          dpr={[1, 2]}
-          gl={{
-            antialias: true,
-            alpha: false,
-            powerPreference: "high-performance",
-          }}
-          style={{ background: "#000000" }}
-        >
-          <color attach="background" args={["#000000"]} />
-          <SpaceScene
-            triggerExplosion={triggerExplosion}
-            skipAnimation={skipAnimation}
-          />
-        </Canvas>
-
-        {/* Subtle vignette */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)",
-          }}
-        />
-      </div>
-    </>
+    <div
+      ref={mountRef}
+      id="supernova-canvas"
+      aria-hidden="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        background: "#000000",
+      }}
+    />
   );
 }
-
