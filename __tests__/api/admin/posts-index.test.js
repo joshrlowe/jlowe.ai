@@ -4,8 +4,8 @@
  * Tests admin posts API route (GET/POST)
  */
 
-import postsHandler from '../../../pages/api/admin/posts/index.js';
-import prisma from '../../../lib/prisma.js';
+import postsHandler from '../../../pages/api/admin/posts/index';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     post: {
@@ -32,7 +32,7 @@ jest.mock('next-auth/jwt', () => ({
 }));
 
 // Mock readingTime utility
-jest.mock('../../../lib/utils/readingTime.js', () => ({
+jest.mock('../../../lib/utils/readingTime', () => ({
   calculateReadingTime: jest.fn(() => '5 min read'),
 }));
 

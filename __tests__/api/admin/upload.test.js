@@ -4,7 +4,7 @@
  * Tests admin file upload API route (POST)
  */
 
-import uploadHandler from '../../../pages/api/admin/upload.js';
+import uploadHandler from '../../../pages/api/admin/upload';
 import { getToken } from 'next-auth/jwt';
 import { put } from '@vercel/blob';
 import {

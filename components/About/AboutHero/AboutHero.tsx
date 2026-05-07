@@ -1,0 +1,143 @@
+import type { MouseEvent } from "react";
+
+interface SocialMediaLinks {
+  linkedIn?: string;
+  github?: string;
+  handshake?: string;
+  [key: string]: string | undefined;
+}
+
+interface ContactData {
+  socialMediaLinks?: SocialMediaLinks | null;
+  emailAddress?: string;
+}
+
+interface AboutHeroProps {
+  name?: string;
+  briefBio?: string;
+  contactData?: ContactData | null;
+  professionalSummary?: string;
+}
+
+export default function AboutHero({
+  name,
+  briefBio,
+  contactData,
+  professionalSummary: _professionalSummary,
+}: AboutHeroProps) {
+  const socialLinks: SocialMediaLinks = contactData?.socialMediaLinks || {};
+
+  const onMouseEnter = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.currentTarget.style.background = "var(--color-primary)";
+    e.currentTarget.style.borderColor = "var(--color-primary)";
+    e.currentTarget.style.boxShadow = "0 0 25px rgba(232, 93, 4, 0.4)";
+  };
+  const onMouseLeave = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.currentTarget.style.background = "rgba(232, 93, 4, 0.08)";
+    e.currentTarget.style.borderColor = "rgba(232, 93, 4, 0.15)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
+  const linkClasses =
+    "w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110 hover:-translate-y-1";
+  const linkStyle = {
+    background: "rgba(232, 93, 4, 0.08)",
+    border: "1px solid rgba(232, 93, 4, 0.15)",
+  };
+
+  return (
+    <div className="text-center py-12">
+      <h1
+        className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 font-heading"
+        style={{ color: "var(--color-primary)" }}
+      >
+        {name || "About Me"}
+      </h1>
+      {briefBio && (
+        <p
+          className="text-lg sm:text-xl mx-auto mb-8 leading-relaxed"
+          style={{ color: "var(--color-text-secondary)", maxWidth: "80%" }}
+        >
+          {briefBio}
+        </p>
+      )}
+
+      <div className="flex justify-center gap-4">
+        {socialLinks.linkedIn && (
+          <a
+            href={socialLinks.linkedIn}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClasses}
+            style={linkStyle}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            aria-label="LinkedIn"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/linkedin-logo.png"
+              alt="LinkedIn"
+              className="w-5 h-5 object-contain filter brightness-0 invert opacity-80"
+            />
+          </a>
+        )}
+        {socialLinks.github && (
+          <a
+            href={socialLinks.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClasses}
+            style={linkStyle}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            aria-label="GitHub"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/github-logo.png"
+              alt="GitHub"
+              className="w-5 h-5 object-contain filter brightness-0 invert opacity-80"
+            />
+          </a>
+        )}
+        {contactData?.emailAddress && (
+          <a
+            href={`mailto:${contactData.emailAddress}`}
+            className={linkClasses}
+            style={linkStyle}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            aria-label="Email"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/email-logo.png"
+              alt="Email"
+              className="w-5 h-5 object-contain filter brightness-0 invert opacity-80"
+            />
+          </a>
+        )}
+        {socialLinks.handshake && (
+          <a
+            href={socialLinks.handshake}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClasses}
+            style={linkStyle}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            aria-label="Handshake"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/handshake-logo.png"
+              alt="Handshake"
+              className="w-5 h-5 object-contain filter brightness-0 invert opacity-80"
+            />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}

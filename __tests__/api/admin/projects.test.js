@@ -4,7 +4,7 @@
  * Tests admin projects API route (GET/POST)
  */
 
-import prisma from '../../../lib/prisma.js';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -14,7 +14,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     project: {
@@ -34,12 +34,12 @@ jest.mock('next-auth/jwt', () => ({
 }));
 
 // Mock activity logger
-jest.mock('../../../lib/utils/activityLogger.js', () => ({
+jest.mock('../../../lib/utils/activityLogger', () => ({
   logActivity: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock withAuth middleware
-jest.mock('../../../lib/utils/authMiddleware.js', () => ({
+jest.mock('../../../lib/utils/authMiddleware', () => ({
   withAuth: (handler) => async (req, res) => {
     const token = await require('next-auth/jwt').getToken({ req });
     if (!token) {
@@ -51,7 +51,7 @@ jest.mock('../../../lib/utils/authMiddleware.js', () => ({
 }));
 
 // Mock createApiHandler
-jest.mock('../../../lib/utils/apiRouteHandler.js', () => ({
+jest.mock('../../../lib/utils/apiRouteHandler', () => ({
   createApiHandler: (handlers) => async (req, res, token) => {
     const handler = handlers[req.method];
     if (!handler) {

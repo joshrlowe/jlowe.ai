@@ -1,0 +1,32 @@
+import React from "react";
+import Link from "next/link";
+import styles from "@/styles/ProjectsPage.module.css";
+
+interface ProjectHeaderProps {
+  title: string;
+  repositoryLink?: string;
+}
+
+function ProjectHeader({ title, repositoryLink }: ProjectHeaderProps) {
+  return (
+    <>
+      <h2 className="h3">{title}</h2>
+      {repositoryLink && (
+        <Link
+          href={repositoryLink}
+          target="_blank"
+          className={`text-decoration-none ${styles.oswald} ${styles.redText} ${styles.link}`}
+        >
+          Source Code
+        </Link>
+      )}
+      {!repositoryLink && (
+        <p className={`text-decoration-none ${styles.oswald}`}>
+          Source code not available - Contact me for a demo.
+        </p>
+      )}
+    </>
+  );
+}
+
+export default React.memo(ProjectHeader);

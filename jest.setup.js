@@ -384,7 +384,6 @@ jest.mock('react-toastify', () => ({
 
 // Mock Prisma client
 jest.mock('./lib/prisma', () => require('./__mocks__/prisma'));
-jest.mock('./lib/prisma.js', () => require('./__mocks__/prisma'));
 
 // ============================================================================
 // BROWSER API POLYFILLS / MOCKS

@@ -4,8 +4,8 @@
  * Tests admin page content API route (GET/PUT)
  */
 
-import pageContentHandler from '../../../pages/api/admin/page-content.js';
-import prisma from '../../../lib/prisma.js';
+import pageContentHandler from '../../../pages/api/admin/page-content';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     pageContent: {

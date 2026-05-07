@@ -8,7 +8,7 @@ import {
   transformProjectToApiFormat,
   transformProjectsToApiFormat,
   transformTeamToTeamMembers,
-} from '../../../lib/utils/projectTransformer.js';
+} from '../../../lib/utils/projectTransformer';
 
 describe('projectTransformer', () => {
   describe('transformProjectToApiFormat', () => {

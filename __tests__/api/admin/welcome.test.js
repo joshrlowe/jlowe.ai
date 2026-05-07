@@ -4,8 +4,8 @@
  * Tests admin welcome data API route (PUT only)
  */
 
-import welcomeHandler from '../../../pages/api/admin/welcome.js';
-import prisma from '../../../lib/prisma.js';
+import welcomeHandler from '../../../pages/api/admin/welcome';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     welcome: {

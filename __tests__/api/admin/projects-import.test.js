@@ -4,8 +4,8 @@
  * Tests admin projects import API route (POST)
  */
 
-import importHandler from '../../../pages/api/admin/projects/import.js';
-import prisma from '../../../lib/prisma.js';
+import importHandler from '../../../pages/api/admin/projects/import';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     project: {

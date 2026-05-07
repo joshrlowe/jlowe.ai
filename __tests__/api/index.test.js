@@ -4,7 +4,7 @@
  * Tests root API endpoint
  */
 
-import apiHandler from '../../pages/api/index.js';
+import apiHandler from '../../pages/api/index';
 import {
   createMockRequest,
   createMockResponse,

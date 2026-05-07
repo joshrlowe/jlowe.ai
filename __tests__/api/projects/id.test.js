@@ -4,8 +4,8 @@
  * Tests public project detail API route (GET)
  */
 
-import projectHandler from '../../../pages/api/projects/[id].js';
-import prisma from '../../../lib/prisma.js';
+import projectHandler from '../../../pages/api/projects/[id]';
+import prisma from '../../../lib/prisma';
 import {
   createMockRequest,
   createMockResponse,
@@ -14,7 +14,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     project: {
@@ -24,7 +24,7 @@ jest.mock('../../../lib/prisma.js', () => ({
 }));
 
 // Mock project transformer
-jest.mock('../../../lib/utils/projectTransformer.js', () => ({
+jest.mock('../../../lib/utils/projectTransformer', () => ({
   transformProjectToApiFormat: jest.fn((project) => ({
     ...project,
     transformed: true,

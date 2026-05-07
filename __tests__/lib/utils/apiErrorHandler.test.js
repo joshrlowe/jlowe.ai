@@ -4,14 +4,14 @@
  * Tests centralized error handling for API routes
  */
 
-import { handleApiError } from '../../../lib/utils/apiErrorHandler.js';
+import { handleApiError } from '../../../lib/utils/apiErrorHandler';
 
 // Mock the config module
-jest.mock('../../../lib/config.js', () => ({
+jest.mock('../../../lib/config', () => ({
   isDevelopment: jest.fn(() => false),
 }));
 
-import { isDevelopment } from '../../../lib/config.js';
+import { isDevelopment } from '../../../lib/config';
 
 describe('apiErrorHandler', () => {
   let mockRes;

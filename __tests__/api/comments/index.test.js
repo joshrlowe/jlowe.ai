@@ -1,8 +1,8 @@
 /**
  * Tests for /api/comments/index.js
  */
-import commentsHandler from "../../../pages/api/comments/index.js";
-import prisma from "../../../lib/prisma.js";
+import commentsHandler from "../../../pages/api/comments/index";
+import prisma from "../../../lib/prisma";
 import {
   createMockRequest,
   createMockResponse,
@@ -10,7 +10,7 @@ import {
   getStatusCode,
 } from "../../setup/api-test-utils.js";
 
-jest.mock("../../../lib/prisma.js", () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     comment: {

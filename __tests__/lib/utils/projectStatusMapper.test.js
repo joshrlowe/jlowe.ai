@@ -4,7 +4,7 @@
  * Tests project status mapping between MongoDB and Prisma formats
  */
 
-import { mapProjectStatus } from '../../../lib/utils/projectStatusMapper.js';
+import { mapProjectStatus } from '../../../lib/utils/projectStatusMapper';
 
 describe('projectStatusMapper', () => {
   describe('mapProjectStatus', () => {

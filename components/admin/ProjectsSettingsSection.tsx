@@ -1,0 +1,319 @@
+import { useState, useEffect, useMemo, useCallback, type FormEvent } from "react";
+import { useToast } from "./ToastProvider";
+import { LoadingSpinner, Modal, adminStyles, PROJECT_STATUSES } from "./shared";
+import { ProjectForm, ProjectListItem } from "./projects";
+import { parseJsonField } from "@/lib/utils/jsonUtils";
+
+interface ProjectRow {
+  id: string;
+  title: string;
+  slug?: string;
+  status?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  startDate?: string | Date | null;
+  releaseDate?: string | Date | null;
+  featured?: boolean;
+  tags?: unknown;
+  techStack?: unknown;
+  links?: unknown;
+  images?: unknown;
+  papers?: unknown;
+  backgroundImage?: string | null;
+  teamMembers?: { name: string; email?: string | null }[];
+}
+
+interface FormDataState {
+  title: string;
+  slug: string;
+  shortDescription: string;
+  longDescription: string;
+  tags: string[];
+  techStack: string[];
+  links: { github: string; live: string };
+  images: Array<string | { url?: string; src?: string }>;
+  backgroundImage: string;
+  papers: { title: string; url: string }[];
+  featured: boolean;
+  status: string;
+  startDate: string;
+  releaseDate: string;
+  teamMembers: { name: string; email?: string | null }[];
+}
+
+const INITIAL_FORM_DATA: FormDataState = {
+  title: "",
+  slug: "",
+  shortDescription: "",
+  longDescription: "",
+  tags: [],
+  techStack: [],
+  links: { github: "", live: "" },
+  images: [],
+  backgroundImage: "",
+  papers: [],
+  featured: false,
+  status: "Draft",
+  startDate: "",
+  releaseDate: "",
+  teamMembers: [],
+};
+
+interface ProjectsSettingsSectionProps {
+  onError: (msg: string) => void;
+}
+
+export default function ProjectsSettingsSection({ onError }: ProjectsSettingsSectionProps) {
+  const { showToast } = useToast();
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingProject, setEditingProject] = useState<ProjectRow | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [formData, setFormData] = useState<FormDataState>(INITIAL_FORM_DATA);
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/projects");
+      const data = await res.json();
+      setProjects(data);
+    } catch (_error) {
+      showToast("Failed to load projects", "error");
+      onError("Failed to load projects");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast, onError]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const filteredProjects = useMemo(() => {
+    let filtered = [...projects];
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.title?.toLowerCase().includes(query) ||
+          p.shortDescription?.toLowerCase().includes(query),
+      );
+    }
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((p) => p.status === statusFilter);
+    }
+
+    return filtered.sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [projects, searchQuery, statusFilter]);
+
+  const handleCreate = () => {
+    setEditingProject(null);
+    setFormData({
+      ...INITIAL_FORM_DATA,
+      startDate: new Date().toISOString().split("T")[0],
+    });
+    setShowModal(true);
+  };
+
+  type JsonField = string | unknown[] | Record<string, unknown> | null | undefined;
+
+  const handleEdit = async (project: ProjectRow) => {
+    try {
+      const res = await fetch(`/api/admin/projects/${project.id}`);
+      if (res.ok) {
+        const fullProject = await res.json();
+        setEditingProject(fullProject);
+
+        const techStack = parseJsonField(fullProject.techStack as JsonField, []) as string[];
+        const tags = parseJsonField(fullProject.tags as JsonField, []) as string[];
+        const links = parseJsonField(fullProject.links as JsonField, { github: "", live: "" }) as {
+          github?: string;
+          live?: string;
+        };
+
+        setFormData({
+          title: fullProject.title || "",
+          slug: fullProject.slug || "",
+          shortDescription: fullProject.shortDescription || "",
+          longDescription: fullProject.longDescription || "",
+          tags: Array.isArray(tags) ? tags : [],
+          techStack: Array.isArray(techStack) ? techStack : [],
+          links:
+            typeof links === "object" && links !== null
+              ? { github: links.github || "", live: links.live || "" }
+              : { github: "", live: "" },
+          images: parseJsonField(fullProject.images as JsonField, []) as Array<
+            string | { url?: string; src?: string }
+          >,
+          backgroundImage: fullProject.backgroundImage || "",
+          papers: parseJsonField(fullProject.papers as JsonField, []) as {
+            title: string;
+            url: string;
+          }[],
+          featured: fullProject.featured || false,
+          status: fullProject.status || "Draft",
+          startDate: fullProject.startDate
+            ? new Date(fullProject.startDate).toISOString().split("T")[0]
+            : "",
+          releaseDate: fullProject.releaseDate
+            ? new Date(fullProject.releaseDate).toISOString().split("T")[0]
+            : "",
+          teamMembers: Array.isArray(fullProject.teamMembers)
+            ? fullProject.teamMembers.map((m: { name: string; email?: string | null }) => ({
+                name: m.name,
+                email: m.email || null,
+              }))
+            : [],
+        });
+        setShowModal(true);
+      }
+    } catch (_error) {
+      showToast("Failed to load project details", "error");
+    }
+  };
+
+  const handleSave = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!formData.title || !formData.slug) {
+      showToast("Title and slug are required", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const url = editingProject
+        ? `/api/admin/projects/${editingProject.id}`
+        : "/api/admin/projects";
+      const method = editingProject ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to save");
+      }
+
+      showToast(
+        editingProject ? "Project updated!" : "Project created!",
+        "success",
+      );
+      setShowModal(false);
+      fetchProjects();
+    } catch (error) {
+      showToast((error as Error).message || "Failed to save project", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+      const res = await fetch(`/api/admin/projects/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      showToast("Project deleted", "success");
+      fetchProjects();
+    } catch (_error) {
+      showToast("Failed to delete project", "error");
+    }
+  };
+
+  const handleStatusChange = async (projectId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/admin/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        showToast("Status updated", "success");
+        fetchProjects();
+      }
+    } catch (_error) {
+      showToast("Failed to update status", "error");
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-4">
+        <input
+          type="text"
+          placeholder="Search projects..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className={`flex-1 min-w-[200px] ${adminStyles.inputSmall}`}
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className={adminStyles.inputSmall}
+        >
+          <option value="all">All Statuses</option>
+          {PROJECT_STATUSES.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
+        </select>
+        <button onClick={handleCreate} className={adminStyles.buttonPrimary}>
+          Create Project
+        </button>
+      </div>
+
+      {filteredProjects.length === 0 ? (
+        <div className="text-center py-12 text-[var(--color-text-muted)]">
+          <p>No projects found.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredProjects.map((project) => (
+            <ProjectListItem
+              key={project.id}
+              project={project}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onStatusChange={handleStatusChange}
+            />
+          ))}
+        </div>
+      )}
+
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingProject ? "Edit Project" : "Create Project"}
+        maxWidth="max-w-6xl"
+      >
+        <ProjectForm
+          formData={formData}
+          setFormData={setFormData}
+          saving={saving}
+          onSave={handleSave}
+          onCancel={() => setShowModal(false)}
+          isEditing={!!editingProject}
+        />
+      </Modal>
+    </div>
+  );
+}

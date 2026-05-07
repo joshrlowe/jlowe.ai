@@ -37,7 +37,7 @@ jest.mock("@/components/admin/AdminLayout", () => {
 });
 
 // Mock auth
-jest.mock("@/lib/auth.js", () => ({
+jest.mock("@/lib/auth", () => ({
   requireAuth: jest.fn(() => Promise.resolve({ props: {} })),
 }));
 

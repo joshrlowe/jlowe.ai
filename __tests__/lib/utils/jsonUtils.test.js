@@ -4,7 +4,7 @@
  * Tests JSON utility functions for handling MongoDB fields and parsing
  */
 
-import { deepClone, cleanMongoFields, parseJsonField } from '../../../lib/utils/jsonUtils.js';
+import { deepClone, cleanMongoFields, parseJsonField } from '../../../lib/utils/jsonUtils';
 
 describe('jsonUtils', () => {
   describe('deepClone', () => {

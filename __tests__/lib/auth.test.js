@@ -17,14 +17,14 @@ jest.mock('next-auth/next', () => ({
 
 // Mock lib/config
 const mockGetConfigValue = jest.fn(() => 'test-secret');
-jest.mock('../../lib/config.js', () => ({
+jest.mock('../../lib/config', () => ({
   getConfigValue: mockGetConfigValue,
 }));
 
 // Mock next-auth handler
-jest.mock('../../pages/api/auth/[...nextauth].js', () => ({}), { virtual: true });
+jest.mock('../../pages/api/auth/[...nextauth]', () => ({}), { virtual: true });
 
-import { requireAuth, getAdminSession } from '../../lib/auth.js';
+import { requireAuth, getAdminSession } from '../../lib/auth';
 
 describe('auth', () => {
   beforeEach(() => {

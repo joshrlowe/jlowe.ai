@@ -4,8 +4,8 @@
  * Tests admin activity log API route (GET)
  */
 
-import activityLogHandler from '../../../pages/api/admin/activity-log.js';
-import prisma from '../../../lib/prisma.js';
+import activityLogHandler from '../../../pages/api/admin/activity-log';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     activityLog: {

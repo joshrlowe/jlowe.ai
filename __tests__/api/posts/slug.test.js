@@ -4,8 +4,8 @@
  * Tests public post API route (GET/PUT/DELETE)
  */
 
-import postHandler from '../../../pages/api/posts/[topic]/[slug].js';
-import prisma from '../../../lib/prisma.js';
+import postHandler from '../../../pages/api/posts/[topic]/[slug]';
+import prisma from '../../../lib/prisma';
 import {
   createMockRequest,
   createMockResponse,
@@ -14,7 +14,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     post: {
@@ -26,7 +26,7 @@ jest.mock('../../../lib/prisma.js', () => ({
 }));
 
 // Mock readingTime utility
-jest.mock('../../../lib/utils/readingTime.js', () => ({
+jest.mock('../../../lib/utils/readingTime', () => ({
   calculateReadingTime: jest.fn(() => '5 min read'),
 }));
 

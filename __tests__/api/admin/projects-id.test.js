@@ -4,8 +4,8 @@
  * Tests admin projects CRUD by ID API route
  */
 
-import projectsIdHandler from '../../../pages/api/admin/projects/[id].js';
-import prisma from '../../../lib/prisma.js';
+import projectsIdHandler from '../../../pages/api/admin/projects/[id]';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     project: {
@@ -36,12 +36,12 @@ jest.mock('next-auth/jwt', () => ({
 }));
 
 // Mock projectStatusMapper
-jest.mock('../../../lib/utils/projectStatusMapper.js', () => ({
+jest.mock('../../../lib/utils/projectStatusMapper', () => ({
   mapProjectStatus: jest.fn((status) => status),
 }));
 
 // Mock activityLogger
-jest.mock('../../../lib/utils/activityLogger.js', () => ({
+jest.mock('../../../lib/utils/activityLogger', () => ({
   logActivity: jest.fn().mockResolvedValue(undefined),
 }));
 

@@ -68,6 +68,26 @@ const prisma = {
   siteSettings: createMockModel([mockSiteSettings], mockSiteSettings),
   pageContent: createMockModel([]),
   activityLog: createMockModel(mockActivityLogs),
+  chatSession: {
+    ...createMockModel([]),
+    upsert: jest.fn().mockImplementation(({ create }) =>
+      Promise.resolve({
+        id: `mock-${Date.now()}`,
+        qualified: false,
+        bookingOffered: false,
+        capturedEmail: null,
+        capturedName: null,
+        langfuseTraceIds: [],
+        emailedToOwner: false,
+        topIntent: null,
+        ...create,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    ),
+  },
+  chatMessageRow: createMockModel([]),
+  knowledgeChunk: createMockModel([]),
 
   // Connection methods
   $connect: jest.fn().mockResolvedValue(undefined),
