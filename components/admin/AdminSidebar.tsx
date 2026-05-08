@@ -11,6 +11,7 @@ export default function AdminSidebar() {
     { href: "/admin/dashboard", label: "Dashboard" },
     { href: "/admin/projects", label: "Projects" },
     { href: "/admin/articles", label: "Articles" },
+    { href: "/admin/comments", label: "Comments" },
     { href: "/admin/settings", label: "Settings" },
   ];
 

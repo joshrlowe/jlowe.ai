@@ -157,7 +157,7 @@ describe('/api/posts/[topic]/[slug]', () => {
           include: expect.objectContaining({
             _count: expect.objectContaining({
               select: expect.objectContaining({
-                comments: { where: { approved: true } },
+                comments: { where: { moderationStatus: "approved" } },
                 likes: true,
               }),
             }),

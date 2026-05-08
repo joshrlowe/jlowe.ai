@@ -33,7 +33,7 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
           select: {
             comments: {
               where: {
-                approved: true,
+                moderationStatus: "approved",
               },
             },
             likes: true,

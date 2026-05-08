@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { Prisma } from "@prisma/client";
 import prisma from "../../../lib/prisma";
 import { createApiHandler } from "../../../lib/utils/apiRouteHandler";
 import {
@@ -8,6 +9,10 @@ import {
   validateRequiredFields,
 } from "../../../lib/utils/validators";
 import { checkRateLimit } from "../../../lib/utils/rateLimit";
+import { scoreComment } from "@/lib/moderation/comment";
+import { decide } from "@/lib/moderation/policy";
+import { ModerationError } from "@/lib/moderation/types";
+import { MODERATION_MODEL_ID } from "@/lib/bedrock/client";
 
 const COMMENTS_PER_PAGE_LIMIT = 100;
 
@@ -29,10 +34,19 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   const { postId, approved = "true" } = req.query;
   const userIP = getUserIP(req);
 
+  // Public read: filter on the moderation pipeline column. The legacy
+  // `approved` query param is preserved for backwards compat — when a
+  // caller explicitly opts out of filtering by passing `approved=false`
+  // we return everything (admin tooling does this).
+  const publicOnly = approved === "true";
+  const moderationFilter = publicOnly
+    ? { moderationStatus: "approved" as const }
+    : {};
+
   const where = {
     postId: postId as string,
     parentId: null as string | null,
-    ...(approved === "true" && { approved: true }),
+    ...moderationFilter,
   };
 
   const comments = await prisma.comment.findMany({
@@ -41,11 +55,11 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     take: COMMENTS_PER_PAGE_LIMIT,
     include: {
       replies: {
-        where: approved === "true" ? { approved: true } : {},
+        where: moderationFilter,
         orderBy: { createdAt: "asc" },
         include: {
           replies: {
-            where: approved === "true" ? { approved: true } : {},
+            where: moderationFilter,
             orderBy: { createdAt: "asc" },
           },
         },
@@ -119,6 +133,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const post = await prisma.post.findUnique({
     where: { id: postId },
+    select: { id: true, title: true, topic: true },
   });
 
   if (!post) {
@@ -128,10 +143,43 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   if (parentId) {
     const parentComment = await prisma.comment.findUnique({
       where: { id: parentId },
+      select: { id: true },
     });
 
     if (!parentComment) {
       return res.status(404).json({ message: "Parent comment not found" });
+    }
+  }
+
+  // Moderate. On any failure (timeout, Bedrock outage, malformed model
+  // output) we fail open to "held" so an admin can release the comment.
+  // We never auto-reject due to infrastructure failure.
+  let moderationStatus: "approved" | "held" | "rejected" = "held";
+  let moderationScores: Prisma.InputJsonValue | null = null;
+  let moderationModel: string = "error";
+  const moderatedAt = new Date();
+
+  try {
+    const scores = await scoreComment({
+      content,
+      authorName,
+      postTitle: post.title,
+      postTopic: post.topic,
+    });
+    const decision = decide(scores);
+    moderationStatus = decision.status;
+    moderationScores = {
+      ...scores,
+      decisionReason: decision.status === "approved" ? null : decision.reason,
+    };
+    moderationModel = MODERATION_MODEL_ID;
+  } catch (err) {
+    // ModerationError is expected — anything else is unexpected and
+    // also fails open, but we log it loud so ops can investigate.
+    if (!(err instanceof ModerationError)) {
+      console.error("[comments] unexpected moderation error:", err);
+    } else {
+      console.warn("[comments] moderation fail-open hold:", err.kind, err.message);
     }
   }
 
@@ -141,11 +189,20 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
       authorName,
       authorEmail: authorEmail || null,
       content,
-      approved: true,
+      approved: moderationStatus === "approved",
+      moderationStatus,
+      moderationScores:
+        moderationScores === null ? Prisma.JsonNull : moderationScores,
+      moderationModel,
+      moderatedAt,
       parentId: parentId || null,
     },
+    select: { id: true, createdAt: true },
   });
 
+  // Don't leak moderation status to the client. Approved comments will
+  // appear on the next GET; held / rejected ones won't. The caller's
+  // UX shows "Comment posted successfully!" either way.
   res.status(201).json(comment);
 };
 

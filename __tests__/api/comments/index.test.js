@@ -1,8 +1,14 @@
 /**
- * Tests for /api/comments/index.js
+ * Tests for /api/comments/index.ts
+ *
+ * Covers GET (public moderation filter), POST happy path (approved /
+ * held / rejected via mocked scoreComment), POST validation, and the
+ * fail-open behavior when scoreComment throws.
  */
 import commentsHandler from "../../../pages/api/comments/index";
 import prisma from "../../../lib/prisma";
+import { scoreComment } from "../../../lib/moderation/comment";
+import { ModerationError } from "../../../lib/moderation/types";
 import {
   createMockRequest,
   createMockResponse,
@@ -15,6 +21,7 @@ jest.mock("../../../lib/prisma", () => ({
   default: {
     comment: {
       findMany: jest.fn(),
+      findUnique: jest.fn(),
       create: jest.fn(),
     },
     commentVote: {
@@ -26,25 +33,66 @@ jest.mock("../../../lib/prisma", () => ({
   },
 }));
 
-describe("POST /api/comments", () => {
+jest.mock("../../../lib/moderation/comment", () => ({
+  __esModule: true,
+  scoreComment: jest.fn(),
+}));
+
+// Bypass Upstash rate limit in tests — env vars not set, so the helper
+// returns true on its own, but stub explicitly for clarity.
+jest.mock("../../../lib/utils/rateLimit", () => ({
+  __esModule: true,
+  checkRateLimit: jest.fn().mockResolvedValue(true),
+}));
+
+const cleanScores = {
+  spam: 0.05,
+  toxicity: 0.05,
+  offTopic: 0.1,
+  pii: 0.0,
+  summary: "Friendly on-topic comment.",
+};
+
+const spammyScores = {
+  spam: 0.55, // ≥ 0.4 hold band
+  toxicity: 0.05,
+  offTopic: 0.1,
+  pii: 0.0,
+  summary: "Promotional content with link.",
+};
+
+const toxicScores = {
+  spam: 0.1,
+  toxicity: 0.92, // ≥ 0.8 reject band
+  offTopic: 0.0,
+  pii: 0.0,
+  summary: "Severe personal attack.",
+};
+
+describe("/api/comments", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mimic Prisma's `select` projection so our response-shape assertion
+    // reflects what the real client returns. The route uses
+    // `select: { id: true, createdAt: true }` on create.
+    prisma.comment.create.mockImplementation(async ({ data, select }) => {
+      const full = {
+        id: "c1",
+        createdAt: new Date("2026-05-08T12:00:00Z"),
+        ...data,
+      };
+      if (!select) return full;
+      const projected = {};
+      for (const key of Object.keys(select)) {
+        if (select[key]) projected[key] = full[key];
+      }
+      return projected;
+    });
   });
 
-  describe("GET requests", () => {
-    it("should return approved comments for a post", async () => {
-      const mockComments = [
-        {
-          id: "1",
-          postId: "post1",
-          authorName: "John",
-          content: "Great post!",
-          approved: true,
-          replies: [],
-        },
-      ];
-
-      prisma.comment.findMany.mockResolvedValue(mockComments);
+  describe("GET", () => {
+    it("filters on moderationStatus=approved when approved=true", async () => {
+      prisma.comment.findMany.mockResolvedValue([]);
       prisma.commentVote.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({
@@ -52,175 +100,162 @@ describe("POST /api/comments", () => {
         query: { postId: "post1", approved: "true" },
       });
       const res = createMockResponse();
-
       await commentsHandler(req, res);
 
       expect(prisma.comment.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             postId: "post1",
-            approved: true,
+            moderationStatus: "approved",
           }),
         }),
       );
-
       expect(getStatusCode(res)).toBe(200);
-      const response = getJsonResponse(res);
-      // API adds userVote field from commentVote table
-      expect(response.length).toBe(mockComments.length);
-      expect(response[0].authorName).toBe(mockComments[0].authorName);
     });
 
-    it("should return all comments when approved is not specified", async () => {
-      const mockComments = [
-        {
-          id: "1",
-          postId: "post1",
-          approved: false,
-        },
-        {
-          id: "2",
-          postId: "post1",
-          approved: true,
-        },
-      ];
-
-      prisma.comment.findMany.mockResolvedValue(mockComments);
+    it("does NOT apply the moderation filter when approved=false", async () => {
+      prisma.comment.findMany.mockResolvedValue([]);
+      prisma.commentVote.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({
         method: "GET",
         query: { postId: "post1", approved: "false" },
       });
       const res = createMockResponse();
-
       await commentsHandler(req, res);
 
-      expect(prisma.comment.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            postId: "post1",
-          }),
-        }),
-      );
+      const callArg = prisma.comment.findMany.mock.calls[0][0];
+      expect(callArg.where.moderationStatus).toBeUndefined();
     });
   });
 
-  describe("POST requests", () => {
-    it("should create a new comment", async () => {
-      const mockPost = { id: "post1", title: "Test Post" };
-      const mockComment = {
-        id: "1",
-        postId: "post1",
-        authorName: "John",
-        authorEmail: "john@example.com",
-        content: "Great post!",
-        approved: false,
-      };
+  describe("POST", () => {
+    const baseBody = {
+      postId: "post1",
+      authorName: "John",
+      authorEmail: "john@example.com",
+      content: "Great post!",
+    };
 
-      prisma.post.findUnique.mockResolvedValue(mockPost);
-      prisma.comment.create.mockResolvedValue(mockComment);
-
-      const req = createMockRequest({
-        method: "POST",
-        body: {
-          postId: "post1",
-          authorName: "John",
-          authorEmail: "john@example.com",
-          content: "Great post!",
-        },
+    beforeEach(() => {
+      prisma.post.findUnique.mockResolvedValue({
+        id: "post1",
+        title: "AI From Scratch",
+        topic: "ai",
       });
-      const res = createMockResponse();
-
-      await commentsHandler(req, res);
-
-      expect(prisma.post.findUnique).toHaveBeenCalledWith({
-        where: { id: "post1" },
-      });
-
-      expect(prisma.comment.create).toHaveBeenCalledWith({
-        data: {
-          postId: "post1",
-          authorName: "John",
-          authorEmail: "john@example.com",
-          content: "Great post!",
-          approved: true,
-          parentId: null,
-        },
-      });
-
-      expect(getStatusCode(res)).toBe(201);
-      const response = getJsonResponse(res);
-      expect(response).toEqual(mockComment);
     });
 
-    it("should return 400 if required fields are missing", async () => {
+    it("approves a clean comment and persists status='approved'", async () => {
+      scoreComment.mockResolvedValue(cleanScores);
+
+      const req = createMockRequest({ method: "POST", body: baseBody });
+      const res = createMockResponse();
+      await commentsHandler(req, res);
+
+      expect(scoreComment).toHaveBeenCalledWith({
+        content: baseBody.content,
+        authorName: baseBody.authorName,
+        postTitle: "AI From Scratch",
+        postTopic: "ai",
+      });
+      expect(prisma.comment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            moderationStatus: "approved",
+            approved: true,
+            moderationModel: expect.stringContaining("claude-haiku"),
+          }),
+        }),
+      );
+      expect(getStatusCode(res)).toBe(201);
+      // Response shape: { id, createdAt } only — no leak of moderation state.
+      const body = getJsonResponse(res);
+      expect(body).toEqual(
+        expect.objectContaining({ id: expect.any(String) }),
+      );
+      expect(body.moderationStatus).toBeUndefined();
+      expect(body.moderationScores).toBeUndefined();
+    });
+
+    it("holds a comment that crosses the spam hold threshold", async () => {
+      scoreComment.mockResolvedValue(spammyScores);
+
+      const req = createMockRequest({ method: "POST", body: baseBody });
+      const res = createMockResponse();
+      await commentsHandler(req, res);
+
+      expect(prisma.comment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            moderationStatus: "held",
+            approved: false,
+          }),
+        }),
+      );
+      expect(getStatusCode(res)).toBe(201);
+    });
+
+    it("rejects a comment that crosses the toxicity reject threshold", async () => {
+      scoreComment.mockResolvedValue(toxicScores);
+
+      const req = createMockRequest({ method: "POST", body: baseBody });
+      const res = createMockResponse();
+      await commentsHandler(req, res);
+
+      expect(prisma.comment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            moderationStatus: "rejected",
+            approved: false,
+          }),
+        }),
+      );
+      expect(getStatusCode(res)).toBe(201);
+    });
+
+    it("fails open to 'held' when scoreComment throws ModerationError", async () => {
+      scoreComment.mockRejectedValue(
+        new ModerationError("timeout", "exceeded 5000ms"),
+      );
+
+      const req = createMockRequest({ method: "POST", body: baseBody });
+      const res = createMockResponse();
+      await commentsHandler(req, res);
+
+      expect(prisma.comment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            moderationStatus: "held",
+            approved: false,
+            moderationModel: "error",
+          }),
+        }),
+      );
+      expect(getStatusCode(res)).toBe(201);
+    });
+
+    it("returns 400 if required fields are missing", async () => {
       const req = createMockRequest({
         method: "POST",
-        body: {
-          postId: "post1",
-          // Missing authorName and content
-        },
+        body: { postId: "post1" }, // missing authorName, content
       });
       const res = createMockResponse();
-
       await commentsHandler(req, res);
 
       expect(getStatusCode(res)).toBe(400);
-      const response = getJsonResponse(res);
-      expect(response.message).toContain("Missing required fields");
+      expect(scoreComment).not.toHaveBeenCalled();
+      expect(prisma.comment.create).not.toHaveBeenCalled();
     });
 
-    it("should return 404 if post does not exist", async () => {
+    it("returns 404 if the post does not exist", async () => {
       prisma.post.findUnique.mockResolvedValue(null);
 
-      const req = createMockRequest({
-        method: "POST",
-        body: {
-          postId: "nonexistent",
-          authorName: "John",
-          content: "Comment",
-        },
-      });
+      const req = createMockRequest({ method: "POST", body: baseBody });
       const res = createMockResponse();
-
       await commentsHandler(req, res);
 
       expect(getStatusCode(res)).toBe(404);
-      const response = getJsonResponse(res);
-      expect(response.message).toContain("Post not found");
-    });
-
-    it("should allow optional email field", async () => {
-      const mockPost = { id: "post1" };
-      const mockComment = {
-        id: "1",
-        postId: "post1",
-        authorName: "John",
-        authorEmail: null,
-        content: "Comment",
-        approved: false,
-      };
-
-      prisma.post.findUnique.mockResolvedValue(mockPost);
-      prisma.comment.create.mockResolvedValue(mockComment);
-
-      const req = createMockRequest({
-        method: "POST",
-        body: {
-          postId: "post1",
-          authorName: "John",
-          content: "Comment",
-        },
-      });
-      const res = createMockResponse();
-
-      await commentsHandler(req, res);
-
-      expect(prisma.comment.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          authorEmail: null,
-        }),
-      });
+      expect(scoreComment).not.toHaveBeenCalled();
     });
   });
 });

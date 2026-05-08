@@ -6,10 +6,18 @@
 
 import {
   BedrockRuntimeClient,
+  InvokeModelCommand,
   InvokeModelWithResponseStreamCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 
 const CLAUDE_MODEL_ID = 'anthropic.claude-3-5-sonnet-20241022-v2:0';
+
+/**
+ * Default model id for the comment moderation pipeline. Cheap, fast,
+ * good at multi-axis classification + tool use. See lib/moderation/README.md.
+ */
+export const MODERATION_MODEL_ID =
+  'anthropic.claude-haiku-4-5-20251001-v1:0';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -223,4 +231,131 @@ export async function* streamChatResponse(
     }
     throw err;
   }
+}
+
+// ============================================================================
+// Non-streaming JSON tool-use helper (added Phase 4 / 05).
+// Used by lib/moderation for synchronous classification — single round-trip,
+// structured output enforced via tool-use, no event-stream parsing.
+// ============================================================================
+
+export interface JsonToolSpec {
+  name: string;
+  description: string;
+  input_schema: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required?: string[];
+    additionalProperties?: boolean;
+  };
+}
+
+export interface InvokeJsonToolParams {
+  modelId?: string;
+  systemPrompt: string;
+  userMessage: string;
+  tool: JsonToolSpec;
+  maxTokens?: number;
+  temperature?: number;
+  abortSignal?: AbortSignal;
+}
+
+export interface InvokeJsonToolResult<T> {
+  input: T;
+  usage: StreamUsage;
+  modelId: string;
+}
+
+/**
+ * Invoke a Bedrock-hosted Claude model and force it to call a single named
+ * tool. The tool's input is parsed and returned as a typed object. Throws
+ * on any AWS error, on a non-tool response, or on JSON parse failure.
+ *
+ * The caller is expected to have its own timeout — we do NOT race against
+ * a deadline here. Pass an AbortSignal if cancellation is desired.
+ */
+export async function invokeJsonTool<T>(
+  params: InvokeJsonToolParams,
+): Promise<InvokeJsonToolResult<T>> {
+  const {
+    modelId = MODERATION_MODEL_ID,
+    systemPrompt,
+    userMessage,
+    tool,
+    maxTokens = 512,
+    temperature = 0,
+    abortSignal,
+  } = params;
+
+  assertCredentials();
+
+  const requestBody = {
+    anthropic_version: 'bedrock-2023-05-31',
+    max_tokens: maxTokens,
+    temperature,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: [{ type: 'text', text: userMessage }],
+      },
+    ],
+    tools: [tool],
+    // Force the model to invoke this exact tool; no free-form text reply.
+    tool_choice: { type: 'tool', name: tool.name },
+  };
+
+  let response;
+  try {
+    response = await bedrockClient.send(
+      new InvokeModelCommand({
+        modelId,
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: new TextEncoder().encode(JSON.stringify(requestBody)),
+      }),
+      { abortSignal },
+    );
+  } catch (err: unknown) {
+    const error = err as Error & { name?: string };
+    if (error.name === 'AccessDeniedException') {
+      throw new Error(
+        `Access denied to Bedrock model ${modelId}. Verify IAM permissions for bedrock:InvokeModel and that the model is enabled in the region.`,
+      );
+    }
+    throw err;
+  }
+
+  if (!response.body) {
+    throw new Error('Empty response body from Bedrock');
+  }
+
+  const decoded = JSON.parse(new TextDecoder().decode(response.body)) as {
+    content?: Array<
+      | { type: 'tool_use'; name: string; input: unknown }
+      | { type: 'text'; text: string }
+    >;
+    usage?: { input_tokens?: number; output_tokens?: number };
+    stop_reason?: string;
+  };
+
+  const toolBlock = decoded.content?.find(
+    (block): block is { type: 'tool_use'; name: string; input: unknown } =>
+      block.type === 'tool_use' && block.name === tool.name,
+  );
+
+  if (!toolBlock) {
+    throw new Error(
+      `Bedrock did not return a ${tool.name} tool call (stop_reason=${decoded.stop_reason ?? 'unknown'})`,
+    );
+  }
+
+  return {
+    input: toolBlock.input as T,
+    usage: {
+      inputTokens: decoded.usage?.input_tokens,
+      outputTokens: decoded.usage?.output_tokens,
+    },
+    modelId,
+  };
 }
