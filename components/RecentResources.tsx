@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * RecentResources.jsx
  *
@@ -20,14 +19,24 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { Badge, Button } from "@/components/ui";
+import type { BadgeVariant } from "@/components/ui/Badge";
 import { formatAdminDate } from "@/lib/utils/dateUtils";
 import { getPrefersReducedMotion } from "@/lib/hooks";
+import type { Post } from "@/lib/types";
 
-export default function RecentResources({ resources = [] }) {
+type ColorKey = "primary" | "cool" | "fuchsia";
+
+interface RecentResourcesProps {
+  resources?: Post[];
+}
+
+export default function RecentResources({
+  resources = [],
+}: RecentResourcesProps) {
   const router = useRouter();
-  const sectionRef = useRef(null);
-  const titleRef = useRef(null);
-  const cardsRef = useRef([]);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const cardsRef = useRef<(HTMLElement | null)[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -90,7 +99,7 @@ export default function RecentResources({ resources = [] }) {
   const recentResources = resources.slice(0, 3);
 
   // Refined color map
-  const colorMap = {
+  const colorMap: Record<ColorKey, { bg: string; border: string; text: string }> = {
     primary: {
       bg: "rgba(232, 93, 4, 0.12)",
       border: "rgba(232, 93, 4, 0.25)",
@@ -108,7 +117,7 @@ export default function RecentResources({ resources = [] }) {
     },
   };
 
-  const getTypeColor = (type) => {
+  const getTypeColor = (type: string | null | undefined): ColorKey => {
     switch (type?.toLowerCase()) {
       case "tutorial":
         return "primary";
@@ -184,7 +193,9 @@ export default function RecentResources({ resources = [] }) {
             return (
               <article
                 key={resource.id}
-                ref={(el) => (cardsRef.current[index] = el)}
+                ref={(el) => {
+                  cardsRef.current[index] = el;
+                }}
                 className="group relative overflow-hidden rounded-xl p-7 cursor-pointer transition-all duration-300 hover:-translate-y-2"
                 style={{
                   background: "rgba(12, 12, 12, 0.92)",
@@ -214,15 +225,23 @@ export default function RecentResources({ resources = [] }) {
 
                 {/* Meta */}
                 <div className="flex items-center gap-3 mb-5">
-                  <Badge variant={typeColor} size="sm">
+                  <Badge variant={typeColor as BadgeVariant} size="sm">
                     {resource.postType}
                   </Badge>
                   <time
                     className="text-xs"
                     style={{ color: "var(--color-text-muted)" }}
-                    dateTime={resource.datePublished}
+                    dateTime={
+                      resource.datePublished
+                        ? new Date(resource.datePublished).toISOString()
+                        : undefined
+                    }
                   >
-                    {mounted ? formatAdminDate(resource.datePublished) : ""}
+                    {mounted && resource.datePublished
+                      ? formatAdminDate(
+                          resource.datePublished as Date | string,
+                        )
+                      : ""}
                   </time>
                 </div>
 

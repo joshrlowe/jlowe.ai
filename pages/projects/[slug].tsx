@@ -1,14 +1,20 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
 import { transformProjectToApiFormat } from "../../lib/utils/projectTransformer";
 import SEO from "@/components/SEO";
 import ProjectDetail from "@/components/Project/ProjectDetail";
+import type { ProjectLike } from "@/components/Project/types";
 import Link from "next/link";
 
-const ProjectDetailPage = ({ project, error }) => {
+interface ProjectDetailPageProps {
+  project?: ProjectLike | null;
+  error?: string;
+}
+
+const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
   const router = useRouter();
 
   if (router.isFallback) {
@@ -69,7 +75,11 @@ const ProjectDetailPage = ({ project, error }) => {
         title={project.title}
         description={project.shortDescription || project.description || ""}
         image={
-          project.images && project.images[0] ? project.images[0] : undefined
+          Array.isArray(project.images) && project.images[0]
+            ? typeof project.images[0] === "string"
+              ? project.images[0]
+              : undefined
+            : undefined
         }
       />
       <ProjectDetail project={project} />
@@ -77,7 +87,7 @@ const ProjectDetailPage = ({ project, error }) => {
   );
 };
 
-export async function getStaticPaths() {
+export const getStaticPaths: GetStaticPaths = async () => {
   try {
     const projects = await prisma.project.findMany({
       where: { status: { not: "Draft" } },
@@ -95,11 +105,13 @@ export async function getStaticPaths() {
     console.error("Error generating static paths:", error);
     return { paths: [], fallback: "blocking" };
   }
-}
+};
 
-export async function getStaticProps({ params }) {
+export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({
+  params,
+}) => {
   try {
-    const { slug } = params;
+    const slug = params?.slug as string | undefined;
 
     if (!slug) {
       return { notFound: true };
@@ -124,13 +136,17 @@ export async function getStaticProps({ params }) {
     const transformedProject = transformProjectToApiFormat(project);
 
     return {
-      props: { project: JSON.parse(JSON.stringify(transformedProject)) },
+      props: {
+        project: JSON.parse(
+          JSON.stringify(transformedProject),
+        ) as ProjectLike,
+      },
       revalidate: 60,
     };
   } catch (error) {
     console.error("Error fetching project:", error);
     return { notFound: true };
   }
-}
+};
 
 export default ProjectDetailPage;

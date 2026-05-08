@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * Header.jsx
  *
@@ -13,11 +12,15 @@
  * - Smooth scroll-based transitions
  */
 
-import { useState, useEffect } from "react";
+import { CSSProperties, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-export default function Header({ style = {} }) {
+interface HeaderProps {
+  style?: CSSProperties;
+}
+
+export default function Header({ style = {} }: HeaderProps) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,7 +45,7 @@ export default function Header({ style = {} }) {
     { href: "/contact", label: "Contact" },
   ];
 
-  const isActive = (href) => {
+  const isActive = (href: string): boolean => {
     const pathname = router?.pathname || '';
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);

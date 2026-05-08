@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import { useEffect, useRef, useState } from "react";
+import type { GetStaticProps } from "next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import prisma from "@/lib/prisma";
@@ -17,8 +17,38 @@ import LeadershipExperience from "@/components/About/LeadershipExperience/Leader
 import ProfessionalDevelopment from "@/components/About/ProfessionalDevelopment/ProfessionalDevelopment";
 import Hobbies from "@/components/About/Hobbies/Hobbies";
 
-const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
-  const contentRef = useRef(null);
+// Loose shapes here: aboutData / welcomeData / contactData all come
+// from getStaticProps after `JSON` serialization, which converts Prisma
+// Date fields to strings and untypes the JSON columns. The child
+// components have their own stricter Props types and accept the
+// destructured arrays.
+interface AboutData {
+  professionalSummary?: string;
+  technicalSkills?: any[];
+  professionalExperience?: any[];
+  education?: any[];
+  technicalCertifications?: any[];
+  leadershipExperience?: any[];
+  leadershipSubtitle?: string;
+  professionalDevelopment?: any[];
+  hobbies?: any[];
+  [key: string]: unknown;
+}
+
+interface AboutPageProps {
+  aboutData: AboutData | null;
+  welcomeData: { name?: string; briefBio?: string } | null;
+  contactData: any | null;
+  ownerName: string | null;
+}
+
+const AboutPage = ({
+  aboutData,
+  welcomeData,
+  contactData,
+  ownerName,
+}: AboutPageProps) => {
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
@@ -122,8 +152,8 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
               {/* Hero Section */}
               <section id="section-hero" className="fade-in-on-scroll mb-12">
                 <AboutHero
-                  name={ownerName}
-                  briefBio={welcomeData?.briefBio}
+                  name={ownerName || undefined}
+                  briefBio={welcomeData?.briefBio || undefined}
                   contactData={contactData}
                   professionalSummary={
                     serializedData?.professionalSummary || ""
@@ -245,7 +275,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }) => {
   );
 };
 
-export async function getStaticProps() {
+export const getStaticProps: GetStaticProps<AboutPageProps> = async () => {
   try {
     const [aboutData, welcomeData, contactData, siteSettings] = await Promise.all([
       prisma.about.findFirst({
@@ -293,8 +323,10 @@ export async function getStaticProps() {
 
     return {
       props: {
-        aboutData: serializedAboutData,
-        welcomeData: serializedWelcomeData,
+        aboutData: serializedAboutData as unknown as AboutData | null,
+        welcomeData: serializedWelcomeData as unknown as
+          | { name?: string; briefBio?: string }
+          | null,
         contactData: serializedContactData,
         ownerName,
       },
@@ -314,6 +346,6 @@ export async function getStaticProps() {
       revalidate: 60,
     };
   }
-}
+};
 
 export default AboutPage;

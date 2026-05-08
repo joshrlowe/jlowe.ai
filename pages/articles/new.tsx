@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * New Article Page
  *
@@ -8,12 +7,24 @@
  * Requires authentication via session check.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { ChangeEvent, FormEvent, useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import SEO from "@/components/SEO";
 import slugify from "slugify";
+
+interface ArticleFormData {
+  title: string;
+  description: string;
+  content: string;
+  topic: string;
+  tags: string;
+  coverImage: string;
+  metaTitle: string;
+  metaDescription: string;
+  status: string;
+}
 
 // Default topics for articles
 const TOPIC_OPTIONS = [
@@ -36,7 +47,7 @@ export default function NewArticlePage() {
   const router = useRouter();
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ArticleFormData>({
     title: "",
     description: "",
     content: "",
@@ -73,23 +84,33 @@ export default function NewArticlePage() {
     }
   }, [status, router]);
 
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }, []);
+  const handleInputChange = useCallback(
+    (
+      e: ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    },
+    [],
+  );
 
-  const handleSlugChange = useCallback((e) => {
-    setAutoSlug(false);
-    setSlug(
-      slugify(e.target.value, {
-        lower: true,
-        strict: true,
-        trim: true,
-      })
-    );
-  }, []);
+  const handleSlugChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setAutoSlug(false);
+      setSlug(
+        slugify(e.target.value, {
+          lower: true,
+          strict: true,
+          trim: true,
+        }),
+      );
+    },
+    [],
+  );
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -161,7 +182,7 @@ export default function NewArticlePage() {
       }, 1500);
     } catch (err) {
       console.error("Error creating article:", err);
-      setError(err.message || "Failed to create article");
+      setError(err instanceof Error ? err.message : "Failed to create article");
     } finally {
       setLoading(false);
     }
@@ -206,7 +227,6 @@ export default function NewArticlePage() {
       <SEO
         title="Create New Article - Josh Lowe"
         description="Create a new article"
-        noIndex={true}
       />
 
       <div className="min-h-screen bg-[var(--color-bg-dark)] pt-24 pb-12 px-4 sm:px-6 lg:px-8">

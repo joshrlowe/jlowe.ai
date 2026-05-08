@@ -1,21 +1,36 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import { useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { gsap } from "gsap";
+import type { Contact } from "@/lib/types";
 import styles from "@/styles/SocialLinks.module.css";
 
-export default function SocialLinks({ contactData, vertical = false }) {
-  const containerRef = useRef(null);
+interface SocialMediaLinks {
+  linkedIn?: string;
+  X?: string;
+  github?: string;
+  other?: string[];
+}
+
+interface SocialLinksProps {
+  contactData?: Contact | null;
+  vertical?: boolean;
+}
+
+export default function SocialLinks({
+  contactData,
+  vertical = false,
+}: SocialLinksProps) {
+  const containerRef = useRef<HTMLElement | null>(null);
 
   // Extract links directly from contactData prop to avoid state-based hydration issues
   // Memoize to prevent useEffect dependency from changing on every render
-  const socialLinks = useMemo(() => {
+  const socialLinks = useMemo<SocialMediaLinks>(() => {
     return contactData?.socialMediaLinks &&
       typeof contactData.socialMediaLinks === "object"
-      ? contactData.socialMediaLinks
+      ? (contactData.socialMediaLinks as SocialMediaLinks)
       : {};
   }, [contactData]);
 

@@ -64,7 +64,10 @@ jobs:
       
       - name: Run ESLint
         run: npm run lint
-      
+
+      - name: Check for @ts-nocheck in source
+        run: npm run lint:nocheck
+
       - name: Check formatting (if prettier is configured)
         run: |
           if grep -q "prettier" package.json; then

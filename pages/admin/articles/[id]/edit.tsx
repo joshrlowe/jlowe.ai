@@ -1,7 +1,14 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
-import { useState, useEffect } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  KeyboardEvent,
+  MouseEvent,
+  useState,
+  useEffect,
+} from "react";
+import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
@@ -9,7 +16,23 @@ import { requireAuth } from "@/lib/auth";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { MediaUpload } from "@/components/admin/shared";
 
-export async function getServerSideProps(context) {
+interface AdminArticleFormData {
+  title: string;
+  description: string;
+  postType: string;
+  url: string;
+  content: string;
+  tags: string[];
+  topic: string;
+  slug: string;
+  author: string;
+  status: string;
+  coverImage: string;
+  metaTitle: string;
+  metaDescription: string;
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   return requireAuth(context);
 }
 
@@ -19,7 +42,7 @@ export default function EditArticle() {
   const { id } = router.query;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AdminArticleFormData>({
     title: "",
     description: "",
     postType: "Article",
@@ -46,7 +69,7 @@ export default function EditArticle() {
         if (!response.ok) {
           throw new Error("Article not found");
         }
-        const data = await response.json();
+        const data = (await response.json()) as Partial<AdminArticleFormData>;
         setFormData({
           title: data.title || "",
           description: data.description || "",
@@ -74,7 +97,11 @@ export default function EditArticle() {
     fetchArticle();
   }, [id, router]);
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -90,7 +117,9 @@ export default function EditArticle() {
     }
   };
 
-  const handleAddTag = (e) => {
+  const handleAddTag = (
+    e: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLInputElement>,
+  ) => {
     e.preventDefault();
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
       setFormData((prev) => ({
@@ -101,14 +130,14 @@ export default function EditArticle() {
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
+  const handleRemoveTag = (tagToRemove: string) => {
     setFormData((prev) => ({
       ...prev,
       tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
 

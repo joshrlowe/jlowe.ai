@@ -1,21 +1,35 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import { useEffect, useState } from "react";
+import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { requireAuth } from "@/lib/auth";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
 
-export async function getServerSideProps(context) {
+interface DashboardStats {
+  totalProjects: number;
+  published: number;
+  drafts: number;
+  other: number;
+}
+
+interface ActivityRow {
+  type: string;
+  title: string;
+  status: string;
+  updatedAt: string;
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   return requireAuth(context);
 }
 
 export default function AdminDashboard() {
   const { status } = useSession();
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recentActivity, setRecentActivity] = useState([]);
+  const [recentActivity, setRecentActivity] = useState<ActivityRow[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -24,14 +38,22 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const projectsRes = await fetch("/api/admin/projects");
-      const projects = await projectsRes.json();
+      const projects = (await projectsRes.json()) as Array<{
+        title: string;
+        status: string;
+        updatedAt: string;
+      }>;
 
       const published = projects.filter((p) => p.status === "Published").length;
       const drafts = projects.filter((p) => p.status === "Draft").length;
       const recent = projects
-        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() -
+            new Date(a.updatedAt).getTime(),
+        )
         .slice(0, 5)
-        .map((p) => ({
+        .map<ActivityRow>((p) => ({
           type: "project",
           title: p.title,
           status: p.status,

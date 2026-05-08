@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * Contact Page
  *
@@ -11,17 +10,33 @@
  * - Vertical word carousel
  */
 
-import { useEffect, useState, useRef } from "react";
+import { ReactNode, useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import TextTransition, { presets } from "react-text-transition";
 import SEO from "@/components/SEO";
 import { trackExternalLink } from "@/lib/analytics";
 import { getPrefersReducedMotion } from "@/lib/hooks";
+import type { Contact } from "@/lib/types";
+
+type ContactColorKey = "linkedin" | "github" | "x" | "email" | "handshake";
+
+interface SocialItem {
+  key: string;
+  href: string;
+  label: string;
+  description: string;
+  icon: ReactNode;
+  color: ContactColorKey;
+}
 
 const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
 // Word carousel using react-text-transition for smooth spring-based animations
-function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
+interface WordCarouselProps {
+  words?: string[];
+}
+
+function WordCarousel({ words = DEFAULT_HERO_WORDS }: WordCarouselProps) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -51,11 +66,11 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }) {
 }
 
 export default function ContactPage() {
-  const [contactData, setContactData] = useState(null);
+  const [contactData, setContactData] = useState<Contact | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  const headerRef = useRef(null);
-  const contentRef = useRef(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -63,7 +78,7 @@ export default function ContactPage() {
     const fetchData = async () => {
       try {
         const response = await fetch("/api/contact");
-        const data = await response.json();
+        const data = (await response.json()) as Contact;
         setContactData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -74,7 +89,8 @@ export default function ContactPage() {
   }, []);
 
   // Get hero words from contact data or use defaults
-  const heroWords = contactData?.heroWords || DEFAULT_HERO_WORDS;
+  const heroWords =
+    (contactData?.heroWords as string[] | null) || DEFAULT_HERO_WORDS;
 
   useEffect(() => {
     if (!mounted) return;
@@ -92,9 +108,11 @@ export default function ContactPage() {
     }
   }, [mounted]);
 
-  const socialLinks = contactData?.socialMediaLinks || {};
+  const socialLinks =
+    (contactData?.socialMediaLinks as Record<string, string | undefined>) ||
+    {};
 
-  const socialItems = [
+  const socialItems: SocialItem[] = [
     {
       key: "email",
       href: contactData?.emailAddress
@@ -174,7 +192,10 @@ export default function ContactPage() {
   ];
 
   // Brand-specific color schemes
-  const colorMap = {
+  const colorMap: Record<
+    ContactColorKey,
+    { bg: string; border: string; text: string; hover: string }
+  > = {
     linkedin: {
       bg: "rgba(10, 102, 194, 0.1)",
       border: "rgba(10, 102, 194, 0.3)",
@@ -313,7 +334,7 @@ export default function ContactPage() {
               </h2>
 
               <div className="space-y-4">
-                {socialItems.map((item) => {
+                {socialItems.map((item: SocialItem) => {
                   const colors = colorMap[item.color];
                   const isDisabled = item.href === "#";
 

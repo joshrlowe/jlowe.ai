@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * FeaturedProjects.jsx
  *
@@ -13,7 +12,7 @@
  * - GSAP scroll animations
  */
 
-import { useEffect, useRef, useCallback } from "react";
+import { MouseEvent, useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRouter } from "next/router";
@@ -22,12 +21,22 @@ import { Badge, Button } from "@/components/ui";
 import { parseJsonField } from "@/lib/utils/jsonUtils";
 import { FEATURED_ACCENT_COLORS } from "@/lib/utils/constants";
 import { getPrefersReducedMotion } from "@/lib/hooks";
+import type { Project } from "@/lib/types";
 
-export default function FeaturedProjects({ projects = [] }) {
+type ProjectImage = string | { url?: string; src?: string };
+type ProjectTech = string | { name?: string };
+
+interface FeaturedProjectsProps {
+  projects?: Project[];
+}
+
+export default function FeaturedProjects({
+  projects = [],
+}: FeaturedProjectsProps) {
   const router = useRouter();
-  const sectionRef = useRef(null);
-  const cardsRef = useRef([]);
-  const titleRef = useRef(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const cardsRef = useRef<(HTMLElement | null)[]>([]);
+  const titleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!sectionRef.current || projects.length === 0) return;
@@ -43,10 +52,10 @@ export default function FeaturedProjects({ projects = [] }) {
       return;
     }
 
-    const triggers = [];
+    const triggers: ScrollTrigger[] = [];
 
     // Helper to check if element is in viewport
-    const isInViewport = (el) => {
+    const isInViewport = (el: Element): boolean => {
       const rect = el.getBoundingClientRect();
       return rect.top < window.innerHeight && rect.bottom > 0;
     };
@@ -126,14 +135,17 @@ export default function FeaturedProjects({ projects = [] }) {
   }, [projects]);
 
   // 3D tilt effect
-  const handleMouseMove = useCallback((e, card) => {
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    card.style.transform = `perspective(1000px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateZ(8px)`;
-  }, []);
+  const handleMouseMove = useCallback(
+    (e: MouseEvent<HTMLElement>, card: HTMLElement) => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `perspective(1000px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateZ(8px)`;
+    },
+    [],
+  );
 
-  const handleMouseLeave = useCallback((card) => {
+  const handleMouseLeave = useCallback((card: HTMLElement) => {
     card.style.transform = "";
   }, []);
 
@@ -190,9 +202,16 @@ export default function FeaturedProjects({ projects = [] }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {displayProjects.map((project, index) => {
-            const images = parseJsonField(project.images, []);
-            const techStack = parseJsonField(project.techStack, []);
-            let thumbnail = images.length > 0 ? images[0] : null;
+            const images = parseJsonField<ProjectImage>(
+              project.images as ProjectImage[] | null | undefined,
+              [],
+            ) as ProjectImage[];
+            const techStack = parseJsonField<ProjectTech>(
+              project.techStack as ProjectTech[] | null | undefined,
+              [],
+            ) as ProjectTech[];
+            let thumbnail: ProjectImage | null =
+              images.length > 0 ? images[0] : null;
             if (thumbnail && typeof thumbnail === "object") {
               thumbnail = thumbnail.url || thumbnail.src || thumbnail;
             }
@@ -205,7 +224,9 @@ export default function FeaturedProjects({ projects = [] }) {
             return (
               <article
                 key={project.id}
-                ref={(el) => (cardsRef.current[index] = el)}
+                ref={(el) => {
+                  cardsRef.current[index] = el;
+                }}
                 className="group relative overflow-hidden rounded-2xl transition-all duration-500 cursor-pointer"
                 style={{
                   background: "rgba(12, 12, 12, 0.92)",
@@ -322,7 +343,9 @@ export default function FeaturedProjects({ projects = [] }) {
                             border: "1px solid rgba(232, 93, 4, 0.15)",
                           }}
                         >
-                          {typeof tech === "string" ? tech : tech.name || tech}
+                          {typeof tech === "string"
+                            ? tech
+                            : tech.name || String(tech)}
                         </span>
                       ))}
                       {techStack.length > 4 && (

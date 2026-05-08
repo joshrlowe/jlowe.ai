@@ -1,7 +1,14 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import Head from "next/head";
+
+interface SEOProps {
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  type?: string;
+}
 
 export default function SEO({
   title = "Josh Lowe",
@@ -9,7 +16,7 @@ export default function SEO({
   image = "/images/logo.png",
   url = "https://jlowe.ai",
   type = "website",
-}) {
+}: SEOProps) {
   const fullTitle = title.includes("Josh Lowe")
     ? title
     : `${title} | Josh Lowe`;

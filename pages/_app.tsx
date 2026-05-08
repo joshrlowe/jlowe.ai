@@ -1,10 +1,11 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
+import type { AppProps } from "next/app";
+import type { Session } from "next-auth";
 import { Analytics } from "@vercel/analytics/react";
 import { ToastContainer } from "react-toastify";
 import { gsap } from "gsap";
@@ -30,7 +31,7 @@ import "@/styles/toast.css";
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
-}) {
+}: AppProps<{ session?: Session }>) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
@@ -72,13 +73,14 @@ export default function App({
   useEffect(() => {
     if (!mounted) return;
 
-    const handleLinkMouseEnter = (e) => {
+    const handleLinkMouseEnter = (e: MouseEvent) => {
+      const target = e.target as Element | null;
       // Check if target is a DOM element
-      if (!e.target || typeof e.target.closest !== "function") {
+      if (!target || typeof target.closest !== "function") {
         return;
       }
 
-      const link = e.target.closest("a");
+      const link = target.closest("a");
       if (link && link instanceof HTMLAnchorElement) {
         const href = link.getAttribute("href");
         if (href && href.startsWith("/") && !href.startsWith("/api")) {

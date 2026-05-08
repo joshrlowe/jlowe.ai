@@ -8,6 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
+    "lint:nocheck": "! grep -rln '@ts-nocheck' --include='*.ts' --include='*.tsx' components/ pages/ lib/ middleware.ts 2>/dev/null || (echo 'Found @ts-nocheck in source files'; exit 1)",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

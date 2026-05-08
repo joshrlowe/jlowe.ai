@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * GitHubActivity.jsx
  *
@@ -19,13 +18,29 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Badge } from "@/components/ui";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 
-export default function GitHubActivity({ githubUrl }) {
-  const sectionRef = useRef(null);
-  const titleRef = useRef(null);
-  const [repos, setRepos] = useState([]);
+interface GitHubRepo {
+  id: number;
+  name: string;
+  description: string | null;
+  html_url: string;
+  language: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  fork: boolean;
+  updated_at: string;
+}
+
+interface GitHubActivityProps {
+  githubUrl?: string;
+}
+
+export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const cardsRef = useRef([]);
+  const [error, setError] = useState<string | null>(null);
+  const cardsRef = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     if (!githubUrl) return;
@@ -41,11 +56,11 @@ export default function GitHubActivity({ githubUrl }) {
           throw new Error("Failed to fetch GitHub activity");
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as GitHubRepo[];
         setRepos(data.filter((repo) => !repo.fork).slice(0, 4));
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : String(err));
         setLoading(false);
       }
     };
@@ -211,7 +226,9 @@ export default function GitHubActivity({ githubUrl }) {
           {repos.map((repo, index) => (
             <a
               key={repo.id}
-              ref={(el) => (cardsRef.current[index] = el)}
+              ref={(el) => {
+                cardsRef.current[index] = el;
+              }}
               href={repo.html_url}
               target="_blank"
               rel="noopener noreferrer"

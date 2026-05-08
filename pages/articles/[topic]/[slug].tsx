@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
-import { useState, useEffect, useMemo, useRef } from "react";
+import { ReactNode, useState, useEffect, useMemo, useRef } from "react";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import prisma from "../../../lib/prisma";
 import SEO from "@/components/SEO";
@@ -13,8 +13,22 @@ import remarkGfm from "remark-gfm";
 import Image from "next/image";
 import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
 import { formatDate } from "@/lib/utils/dateUtils";
+import type { Post } from "@/lib/types";
 
-const CodeBlock = ({ language, children }) => {
+type ArticlePost = Post & {
+  _count?: { comments?: number; likes?: number };
+};
+
+interface ArticleDetailPageProps {
+  post: ArticlePost | null;
+}
+
+interface CodeBlockProps {
+  language?: string;
+  children?: ReactNode;
+}
+
+const CodeBlock = ({ language, children }: CodeBlockProps) => {
   return (
     <pre className="bg-[var(--color-bg-darker)] p-4 rounded-lg overflow-x-auto my-4">
       <code
@@ -26,19 +40,21 @@ const CodeBlock = ({ language, children }) => {
   );
 };
 
-export default function ArticleDetailPage({ post: initialPost }) {
+export default function ArticleDetailPage({
+  post: initialPost,
+}: ArticleDetailPageProps) {
   const router = useRouter();
-  const [post] = useState(initialPost);
-  const [_likeData, setLikeData] = useState(null);
-  const articleRef = useRef(null);
+  const [post] = useState<ArticlePost | null>(initialPost);
+  const [_likeData, setLikeData] = useState<unknown>(null);
+  const articleRef = useRef<HTMLElement | null>(null);
 
   // Track reading analytics (scroll depth, duration, article view)
   useReadingAnalytics({
     articleRef,
     slug: post?.slug,
     topic: post?.topic,
-    readingTime: post?.readingTime,
-  });
+    readingTime: post?.readingTime ?? undefined,
+  } as any);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {
@@ -81,7 +97,7 @@ export default function ArticleDetailPage({ post: initialPost }) {
       <SEO
         title={post.metaTitle || post.title}
         description={post.metaDescription || post.description}
-        image={post.ogImage || post.coverImage}
+        image={post.ogImage || post.coverImage || undefined}
         url={articleUrl}
       />
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
@@ -94,7 +110,9 @@ export default function ArticleDetailPage({ post: initialPost }) {
                   {post.topic}
                 </span>
                 <span className="text-sm text-[var(--color-text-muted)]">
-                  {formatDate(post.datePublished)}
+                  {post.datePublished
+                    ? formatDate(post.datePublished as Date | string)
+                    : ""}
                 </span>
                 {post.readingTime && (
                   <span className="text-sm text-[var(--color-text-muted)]">
@@ -182,81 +200,107 @@ export default function ArticleDetailPage({ post: initialPost }) {
               {post.postType === "Article" && post.content ? (
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({ node: _node, inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      if (!inline && match) {
+                  components={
+                    {
+                      code({
+                        node: _node,
+                        inline,
+                        className,
+                        children,
+                        ...props
+                      }: any) {
+                        const match = /language-(\w+)/.exec(className || "");
+                        if (!inline && match) {
+                          return (
+                            <CodeBlock language={match[1]} {...props}>
+                              {String(children).replace(/\n$/, "")}
+                            </CodeBlock>
+                          );
+                        }
                         return (
-                          <CodeBlock language={match[1]} {...props}>
-                            {String(children).replace(/\n$/, "")}
-                          </CodeBlock>
+                          <code
+                            className="bg-[var(--color-bg-card)] px-1.5 py-0.5 rounded text-[var(--color-primary)]"
+                            {...props}
+                          >
+                            {children}
+                          </code>
                         );
-                      }
-                      return (
-                        <code
-                          className="bg-[var(--color-bg-card)] px-1.5 py-0.5 rounded text-[var(--color-primary)]"
-                          {...props}
+                      },
+                      h1: ({ children }: { children?: ReactNode }) => (
+                        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
+                          {children}
+                        </h1>
+                      ),
+                      h2: ({ children }: { children?: ReactNode }) => (
+                        <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children }: { children?: ReactNode }) => (
+                        <h3 className="text-xl font-bold text-[var(--color-text-primary)] mt-6 mb-3">
+                          {children}
+                        </h3>
+                      ),
+                      p: ({ children }: { children?: ReactNode }) => (
+                        <p className="text-[var(--color-text-secondary)] mb-4 leading-relaxed">
+                          {children}
+                        </p>
+                      ),
+                      ul: ({ children }: { children?: ReactNode }) => (
+                        <ul className="list-disc pl-6 mb-4 text-[var(--color-text-secondary)]">
+                          {children}
+                        </ul>
+                      ),
+                      ol: ({ children }: { children?: ReactNode }) => (
+                        <ol className="list-decimal pl-6 mb-4 text-[var(--color-text-secondary)]">
+                          {children}
+                        </ol>
+                      ),
+                      li: ({ children }: { children?: ReactNode }) => (
+                        <li className="mb-2">{children}</li>
+                      ),
+                      a: ({
+                        children,
+                        href,
+                      }: {
+                        children?: ReactNode;
+                        href?: string;
+                      }) => (
+                        <a
+                          href={href}
+                          className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] underline"
                         >
                           {children}
-                        </code>
-                      );
-                    },
-                    h1: ({ children }) => (
-                      <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-xl font-bold text-[var(--color-text-primary)] mt-6 mb-3">
-                        {children}
-                      </h3>
-                    ),
-                    p: ({ children }) => (
-                      <p className="text-[var(--color-text-secondary)] mb-4 leading-relaxed">
-                        {children}
-                      </p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc pl-6 mb-4 text-[var(--color-text-secondary)]">
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal pl-6 mb-4 text-[var(--color-text-secondary)]">
-                        {children}
-                      </ol>
-                    ),
-                    li: ({ children }) => <li className="mb-2">{children}</li>,
-                    a: ({ children, href }) => (
-                      <a
-                        href={href}
-                        className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] underline"
-                      >
-                        {children}
-                      </a>
-                    ),
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[var(--color-primary)] pl-4 my-4 italic text-[var(--color-text-secondary)]">
-                        {children}
-                      </blockquote>
-                    ),
-                    img: ({ src, alt }) => (
-                      <span className="block my-8">
-                        <Image
-                          src={src}
-                          alt={alt || ""}
-                          width={800}
-                          height={400}
-                          className="rounded-lg"
-                        />
-                      </span>
-                    ),
-                  }}
+                        </a>
+                      ),
+                      blockquote: ({
+                        children,
+                      }: {
+                        children?: ReactNode;
+                      }) => (
+                        <blockquote className="border-l-4 border-[var(--color-primary)] pl-4 my-4 italic text-[var(--color-text-secondary)]">
+                          {children}
+                        </blockquote>
+                      ),
+                      img: ({
+                        src,
+                        alt,
+                      }: {
+                        src?: string;
+                        alt?: string;
+                      }) => (
+                        <span className="block my-8">
+                          <Image
+                            src={src || ""}
+                            alt={alt || ""}
+                            width={800}
+                            height={400}
+                            className="rounded-lg"
+                          />
+                        </span>
+                      ),
+                    } as any
+                  }
                 >
                   {post.content}
                 </ReactMarkdown>
@@ -285,7 +329,7 @@ export default function ArticleDetailPage({ post: initialPost }) {
   );
 }
 
-export async function getStaticPaths() {
+export const getStaticPaths: GetStaticPaths = async () => {
   try {
     const posts = await prisma.post.findMany({
       where: { status: "Published" },
@@ -301,11 +345,18 @@ export async function getStaticPaths() {
     console.error("Error generating static paths:", error);
     return { paths: [], fallback: "blocking" };
   }
-}
+};
 
-export async function getStaticProps({ params }) {
+export const getStaticProps: GetStaticProps<ArticleDetailPageProps> = async ({
+  params,
+}) => {
   try {
-    const { topic, slug } = params;
+    const topic = params?.topic as string | undefined;
+    const slug = params?.slug as string | undefined;
+
+    if (!topic || !slug) {
+      return { notFound: true };
+    }
 
     const post = await prisma.post.findUnique({
       where: { slug, topic: topic.toLowerCase() },
@@ -324,11 +375,13 @@ export async function getStaticProps({ params }) {
     }
 
     return {
-      props: { post: JSON.parse(JSON.stringify(post)) },
+      props: {
+        post: JSON.parse(JSON.stringify(post)) as ArticlePost,
+      },
       revalidate: 60,
     };
   } catch (error) {
     console.error("Error fetching article:", error);
     return { notFound: true };
   }
-}
+};

@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * Projects Page
  *
@@ -11,6 +10,7 @@
  */
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import type { GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { gsap } from "gsap";
 import prisma from "../lib/prisma";
@@ -26,11 +26,18 @@ import SEO from "@/components/SEO";
 import ProjectCard from "@/components/Project/ProjectCard";
 import ProjectFilters from "@/components/Project/ProjectFilters";
 import ProjectsEmptyState from "@/components/Project/ProjectsEmptyState";
+import type { ProjectLike } from "@/components/Project/types";
 
-export default function ProjectsPage({ projects: initialProjects }) {
+interface ProjectsPageProps {
+  projects: ProjectLike[];
+}
+
+export default function ProjectsPage({
+  projects: initialProjects,
+}: ProjectsPageProps) {
   const router = useRouter();
-  const headerRef = useRef(null);
-  const [projects] = useState(initialProjects || []);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const [projects] = useState<ProjectLike[]>(initialProjects || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
@@ -64,11 +71,11 @@ export default function ProjectsPage({ projects: initialProjects }) {
   }, [searchQuery]);
 
   const { availableTags, availableStatuses } = useMemo(() => {
-    const tags = new Set();
-    const statuses = new Set();
+    const tags = new Set<string>();
+    const statuses = new Set<string>();
 
     projects.forEach((project) => {
-      let projectTags = [];
+      let projectTags: unknown[] = [];
       if (Array.isArray(project.tags)) {
         projectTags = project.tags;
       } else if (typeof project.tags === "string") {
@@ -111,11 +118,14 @@ export default function ProjectsPage({ projects: initialProjects }) {
         // Search in tags
         if (
           Array.isArray(p.tags) &&
-          p.tags.some((tag) => tag.toLowerCase().includes(query))
+          p.tags.some(
+            (tag: unknown) =>
+              typeof tag === "string" && tag.toLowerCase().includes(query),
+          )
         )
           return true;
         // Search in tech stack (skills)
-        let techStack = [];
+        let techStack: unknown[] = [];
         if (Array.isArray(p.techStack)) {
           techStack = p.techStack;
         } else if (typeof p.techStack === "string") {
@@ -127,9 +137,9 @@ export default function ProjectsPage({ projects: initialProjects }) {
         }
         if (
           Array.isArray(techStack) &&
-          techStack.some((tech) => {
+          techStack.some((tech: any) => {
             const techName =
-              typeof tech === "string" ? tech : tech.name || "";
+              typeof tech === "string" ? tech : tech?.name || "";
             return techName.toLowerCase().includes(query);
           })
         )
@@ -144,7 +154,7 @@ export default function ProjectsPage({ projects: initialProjects }) {
 
     if (tagFilter !== "all") {
       filtered = filtered.filter((p) => {
-        let tags = [];
+        let tags: unknown[] = [];
         if (Array.isArray(p.tags)) {
           tags = p.tags;
         } else if (typeof p.tags === "string") {
@@ -159,8 +169,10 @@ export default function ProjectsPage({ projects: initialProjects }) {
     }
 
     filtered.sort((a, b) => {
-      let aVal = a[sortBy];
-      let bVal = b[sortBy];
+      const aRec = a as unknown as Record<string, any>;
+      const bRec = b as unknown as Record<string, any>;
+      let aVal: any = aRec[sortBy];
+      let bVal: any = bRec[sortBy];
 
       if (sortBy === "startDate" || sortBy === "releaseDate") {
         aVal = aVal ? new Date(aVal).getTime() : 0;
@@ -227,7 +239,7 @@ export default function ProjectsPage({ projects: initialProjects }) {
   };
 
   const hasActiveFilters =
-    searchQuery || statusFilter !== "all" || tagFilter !== "all";
+    Boolean(searchQuery) || statusFilter !== "all" || tagFilter !== "all";
 
   return (
     <>
@@ -357,7 +369,7 @@ export default function ProjectsPage({ projects: initialProjects }) {
   );
 }
 
-export async function getStaticProps() {
+export const getStaticProps: GetStaticProps<ProjectsPageProps> = async () => {
   try {
     const projectsRaw = await prisma.project.findMany({
       where: {
@@ -377,7 +389,7 @@ export async function getStaticProps() {
 
     return {
       props: {
-        projects: JSON.parse(JSON.stringify(projects)),
+        projects: JSON.parse(JSON.stringify(projects)) as ProjectLike[],
       },
       revalidate: 60,
     };
@@ -392,4 +404,4 @@ export async function getStaticProps() {
       revalidate: 60,
     };
   }
-}
+};

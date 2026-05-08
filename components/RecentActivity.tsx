@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * RecentActivity.jsx
  *
@@ -14,14 +13,32 @@
  * - GSAP scroll animations
  */
 
-import { useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getPrefersReducedMotion } from "@/lib/hooks";
+import type { Project, Post } from "@/lib/types";
+
+type ActivityType = "project" | "article" | "update";
+
+interface Activity {
+  type: ActivityType;
+  title: string;
+  description?: string | null;
+  date: string | Date;
+  href?: string;
+  tags?: string[];
+}
+
+interface ActivityConfigEntry {
+  icon: ReactNode;
+  color: string;
+  label: string;
+}
 
 // Activity type configurations
-const activityConfig = {
+const activityConfig: Record<ActivityType, ActivityConfigEntry> = {
   project: {
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,8 +83,13 @@ const activityConfig = {
   },
 };
 
-function ActivityItem({ activity, index }) {
-  const itemRef = useRef(null);
+interface ActivityItemProps {
+  activity: Activity;
+  index: number;
+}
+
+function ActivityItem({ activity, index }: ActivityItemProps) {
+  const itemRef = useRef<HTMLDivElement | null>(null);
   const config = activityConfig[activity.type] || activityConfig.update;
 
   useEffect(() => {
@@ -218,9 +240,9 @@ function ActivityItem({ activity, index }) {
   );
 }
 
-function getTimeAgo(date) {
+function getTimeAgo(date: Date): string {
   const now = new Date();
-  const diffMs = now - date;
+  const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return "Today";
@@ -231,9 +253,17 @@ function getTimeAgo(date) {
   return `${Math.floor(diffDays / 365)} years ago`;
 }
 
-export default function RecentActivity({ projects = [], articles = [] }) {
-  const sectionRef = useRef(null);
-  const titleRef = useRef(null);
+interface RecentActivityProps {
+  projects?: Project[];
+  articles?: Post[];
+}
+
+export default function RecentActivity({
+  projects = [],
+  articles = [],
+}: RecentActivityProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const titleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!sectionRef.current || !titleRef.current) return;
@@ -276,25 +306,27 @@ export default function RecentActivity({ projects = [], articles = [] }) {
   }, []);
 
   // Combine and sort activities by date
-  const activities = [
-    ...projects.slice(0, 5).map((p) => ({
+  const activities: Activity[] = [
+    ...projects.slice(0, 5).map<Activity>((p) => ({
       type: "project",
       title: p.title,
       description: p.shortDescription,
       date: p.releaseDate || p.startDate || p.createdAt,
       href: `/projects/${p.slug}`,
-      tags: p.tags || [],
+      tags: (p.tags as string[] | null) || [],
     })),
-    ...articles.slice(0, 5).map((a) => ({
+    ...articles.slice(0, 5).map<Activity>((a) => ({
       type: "article",
       title: a.title,
-      description: a.excerpt || a.description,
+      description: a.description,
       date: a.datePublished || a.createdAt,
       href: `/articles/${a.topic}/${a.slug}`,
-      tags: a.tags || [],
+      tags: (a.tags as string[] | null) || [],
     })),
   ]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    )
     .slice(0, 6);
 
   if (activities.length === 0) return null;

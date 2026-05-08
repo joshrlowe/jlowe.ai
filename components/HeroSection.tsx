@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * HeroSection.jsx
  *
@@ -20,6 +19,30 @@ import { gsap } from "gsap";
 import { Button } from "@/components/ui";
 import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { trackCtaClick } from "@/lib/analytics";
+import type { Welcome } from "@/lib/types";
+
+interface HomeCta {
+  text: string;
+  href: string;
+}
+
+interface TechBadge {
+  name: string;
+  color: string;
+}
+
+interface HomePageContent {
+  typingIntro?: string;
+  typingStrings?: string[];
+  primaryCta?: HomeCta;
+  secondaryCta?: HomeCta;
+  techBadges?: TechBadge[];
+}
+
+interface HeroSectionProps {
+  data?: Welcome | null;
+  homeContent?: HomePageContent | null;
+}
 
 const ReactTyped = dynamic(
   () => import("react-typed").then((mod) => mod.ReactTyped),
@@ -31,16 +54,16 @@ const ReactTyped = dynamic(
   },
 );
 
-export default function HeroSection({ data, homeContent }) {
+export default function HeroSection({ data, homeContent }: HeroSectionProps) {
   const [typingComplete, setTypingComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [animationReady, setAnimationReady] = useState(false);
 
-  const containerRef = useRef(null);
-  const titleRef = useRef(null);
-  const subtitleRef = useRef(null);
-  const descRef = useRef(null);
-  const ctaRef = useRef(null);
+  const containerRef = useRef<HTMLElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
+  const subtitleRef = useRef<HTMLDivElement | null>(null);
+  const descRef = useRef<HTMLParagraphElement | null>(null);
+  const ctaRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -100,7 +123,9 @@ export default function HeroSection({ data, homeContent }) {
         "-=0.2",
       );
 
-    return () => tl.kill();
+    return () => {
+      tl.kill();
+    };
   }, [mounted, typingComplete, animationReady]);
 
   const name = data?.name || "Josh Lowe";
@@ -112,8 +137,8 @@ export default function HeroSection({ data, homeContent }) {
   // Get content from homeContent prop (from database) or use defaults
   // Portfolio-focused: Lead with what you've built
   const typingIntro = homeContent?.typingIntro || "I build...";
-  const typingStrings =
-    homeContent?.typingStrings?.length > 0
+  const typingStrings: string[] =
+    homeContent?.typingStrings && homeContent.typingStrings.length > 0
       ? homeContent.typingStrings
       : [
         "production AI systems",
@@ -124,17 +149,17 @@ export default function HeroSection({ data, homeContent }) {
       ];
 
   // Portfolio-first CTAs: Projects primary, Contact secondary
-  const primaryCta = homeContent?.primaryCta || {
+  const primaryCta: HomeCta = homeContent?.primaryCta || {
     text: "View My Work",
     href: "/projects",
   };
-  const secondaryCta = homeContent?.secondaryCta || {
+  const secondaryCta: HomeCta = homeContent?.secondaryCta || {
     text: "Get in Touch",
     href: "/contact",
   };
 
-  const techBadges =
-    homeContent?.techBadges?.length > 0
+  const techBadges: TechBadge[] =
+    homeContent?.techBadges && homeContent.techBadges.length > 0
       ? homeContent.techBadges
       : [
         { name: "Python", color: "#E85D04" },

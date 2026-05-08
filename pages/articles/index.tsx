@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import { useState, useMemo } from "react";
+import type { GetStaticProps } from "next";
 import prisma from "../../lib/prisma";
 import SEO from "@/components/SEO";
 import Link from "next/link";
@@ -15,12 +15,19 @@ import {
 } from "@/lib/utils/postFilters";
 import { formatArticleDate } from "@/lib/utils/dateUtils";
 import { POSTS_PER_PAGE } from "@/lib/utils/constants";
+import type { Post } from "@/lib/types";
+
+interface ArticlesPageProps {
+  recentPosts: Post[];
+  allTopics: string[];
+  allTags: string[];
+}
 
 export default function ArticlesPage({
   recentPosts,
   allTopics,
   allTags,
-}) {
+}: ArticlesPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -29,7 +36,7 @@ export default function ArticlesPage({
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredPosts = useMemo(() => {
-    return filterAndSortPosts(recentPosts, {
+    return filterAndSortPosts(recentPosts as any, {
       searchQuery,
       topic: selectedTopic,
       tag: selectedTag,
@@ -39,7 +46,11 @@ export default function ArticlesPage({
   }, [recentPosts, searchQuery, selectedTopic, selectedTag, sortBy, sortOrder]);
 
   const paginatedPosts = useMemo(() => {
-    return paginate(filteredPosts, currentPage, POSTS_PER_PAGE);
+    return paginate(
+      filteredPosts,
+      currentPage,
+      POSTS_PER_PAGE,
+    ) as unknown as Post[];
   }, [filteredPosts, currentPage]);
 
   const totalPages = calculateTotalPages(filteredPosts.length, POSTS_PER_PAGE);
@@ -167,7 +178,11 @@ export default function ArticlesPage({
                             {post.topic}
                           </span>
                           <span className="text-xs text-[var(--color-text-muted)]">
-                            {formatArticleDate(post.datePublished)}
+                            {post.datePublished
+                              ? formatArticleDate(
+                                  post.datePublished as Date | string,
+                                )
+                              : ""}
                           </span>
                           {post.readingTime && (
                             <span className="text-xs text-[var(--color-text-muted)]">
@@ -215,11 +230,11 @@ export default function ArticlesPage({
   );
 }
 
-export async function getStaticProps() {
+export const getStaticProps: GetStaticProps<ArticlesPageProps> = async () => {
   try {
-    let recentPosts = [];
-    let topics = [];
-    let tags = [];
+    let recentPosts: any[] = [];
+    let topics: string[] = [];
+    let tags: string[] = [];
 
     try {
       recentPosts = await prisma.post.findMany({
@@ -246,13 +261,13 @@ export async function getStaticProps() {
     } catch (dbError) {
       console.warn(
         "Post model not found - database may need migration:",
-        dbError.message,
+        dbError instanceof Error ? dbError.message : String(dbError),
       );
     }
 
     return {
       props: {
-        recentPosts: JSON.parse(JSON.stringify(recentPosts)),
+        recentPosts: JSON.parse(JSON.stringify(recentPosts)) as Post[],
         allTopics: topics,
         allTags: tags,
       },
@@ -269,4 +284,4 @@ export async function getStaticProps() {
       revalidate: 60,
     };
   }
-}
+};

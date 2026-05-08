@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * AboutSettingsSection - Comprehensive About page editor
  *
@@ -14,15 +13,106 @@
  * - Hobbies
  */
 
-import { useState, useEffect, useCallback } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  ReactNode,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useToast } from "./ToastProvider";
 import MarkdownEditor from "./MarkdownEditor";
 import FormField from "./shared/FormField";
 import TagInput from "./shared/TagInput";
 import { adminStyles } from "./shared/styles";
 
+// Domain shapes for the JSON columns on the About model.
+// These match the schema comments in prisma/schema.prisma.
+interface SkillProject {
+  name: string;
+  repositoryLink: string;
+}
+interface Skill {
+  name: string;
+  expertiseLevel: string;
+  projects: SkillProject[];
+}
+interface SkillCategory {
+  category: string;
+  skills: Skill[];
+}
+interface Experience {
+  company: string;
+  role: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  isOngoing: boolean;
+  achievements: string[];
+}
+interface Education {
+  institution: string;
+  degree: string;
+  fieldOfStudy: string;
+  startDate: string;
+  endDate: string;
+  isOngoing: boolean;
+  expectedGradDate: string;
+  relevantCoursework: string[];
+}
+interface Certification {
+  organization: string;
+  name: string;
+  issueDate: string;
+  expirationDate: string;
+  credentialUrl: string;
+}
+interface Leadership {
+  organization: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+}
+type Hobby = string | { name: string; color: string };
+
+interface AboutEditableShape {
+  professionalSummary: string;
+  technicalSkills: SkillCategory[];
+  professionalExperience: Experience[];
+  education: Education[];
+  technicalCertifications: Certification[];
+  leadershipExperience: Leadership[];
+  leadershipSubtitle: string;
+  hobbies: Hobby[];
+}
+
+// EntryForm/SkillItem etc. work with arbitrary keyed records driven by
+// FieldDef metadata. Using a loose Record type here is intentional —
+// the alternative is per-shape generics and unsafe casts at every
+// access site, which would be far harder to read.
+type DynamicEntry = Record<string, any>;
+
+interface FieldDef {
+  key: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+}
+
 // Collapsible section component
-function CollapsibleSection({ title, children, defaultOpen = false }) {
+interface CollapsibleSectionProps {
+  title: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}
+
+function CollapsibleSection({
+  title,
+  children,
+  defaultOpen = false,
+}: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -47,6 +137,15 @@ function CollapsibleSection({ title, children, defaultOpen = false }) {
 }
 
 // Experience/Education entry form component
+interface EntryFormProps {
+  entry: DynamicEntry;
+  onChange: (entry: DynamicEntry) => void;
+  onRemove: () => void;
+  fields: FieldDef[];
+  index: number;
+  entityName?: string;
+}
+
 function EntryForm({
   entry,
   onChange,
@@ -54,8 +153,8 @@ function EntryForm({
   fields,
   index,
   entityName = "Entry",
-}) {
-  const handleFieldChange = (field, value) => {
+}: EntryFormProps) {
+  const handleFieldChange = (field: string, value: unknown) => {
     onChange({ ...entry, [field]: value });
   };
 
@@ -90,7 +189,9 @@ function EntryForm({
                   onRemove={(idx) =>
                     handleFieldChange(
                       field.key,
-                      (entry[field.key] || []).filter((_, i) => i !== idx),
+                      (entry[field.key] || []).filter(
+                        (_: unknown, i: number) => i !== idx,
+                      ),
                     )
                   }
                   placeholder={field.placeholder || "Add item"}
@@ -141,13 +242,28 @@ function EntryForm({
 }
 
 // Professional Experience entry component with Ongoing toggle
-function ExperienceEntryForm({ entry, onChange, onRemove, index }) {
-  const handleFieldChange = (field, value) => {
+interface ExperienceEntryFormProps {
+  entry: Experience;
+  onChange: (entry: Experience) => void;
+  onRemove: () => void;
+  index: number;
+}
+
+function ExperienceEntryForm({
+  entry,
+  onChange,
+  onRemove,
+  index,
+}: ExperienceEntryFormProps) {
+  const handleFieldChange = <K extends keyof Experience>(
+    field: K,
+    value: Experience[K],
+  ) => {
     onChange({ ...entry, [field]: value });
   };
 
-  const handleOngoingToggle = (checked) => {
-    const updates = { isOngoing: checked };
+  const handleOngoingToggle = (checked: boolean) => {
+    const updates: Partial<Experience> = { isOngoing: checked };
     // Clear end date when marking as ongoing
     if (checked) {
       updates.endDate = "";
@@ -241,13 +357,28 @@ function ExperienceEntryForm({ entry, onChange, onRemove, index }) {
 }
 
 // Education entry component with Ongoing toggle and Expected Graduation Date
-function EducationEntryForm({ entry, onChange, onRemove, index }) {
-  const handleFieldChange = (field, value) => {
+interface EducationEntryFormProps {
+  entry: Education;
+  onChange: (entry: Education) => void;
+  onRemove: () => void;
+  index: number;
+}
+
+function EducationEntryForm({
+  entry,
+  onChange,
+  onRemove,
+  index,
+}: EducationEntryFormProps) {
+  const handleFieldChange = <K extends keyof Education>(
+    field: K,
+    value: Education[K],
+  ) => {
     onChange({ ...entry, [field]: value });
   };
 
-  const handleOngoingToggle = (checked) => {
-    const updates = { isOngoing: checked };
+  const handleOngoingToggle = (checked: boolean) => {
+    const updates: Partial<Education> = { isOngoing: checked };
     // Clear end date when marking as ongoing, keep expectedGradDate
     if (checked) {
       updates.endDate = "";
@@ -379,12 +510,26 @@ const expertiseLevels = [
 ];
 
 // Individual skill within a category
-function SkillItem({ skill, onChange, onRemove, skillIndex }) {
-  const handleFieldChange = (field, value) => {
+interface SkillItemProps {
+  skill: Skill;
+  onChange: (skill: Skill) => void;
+  onRemove: () => void;
+  skillIndex: number;
+}
+
+function SkillItem({ skill, onChange, onRemove, skillIndex }: SkillItemProps) {
+  const handleFieldChange = <K extends keyof Skill>(
+    field: K,
+    value: Skill[K],
+  ) => {
     onChange({ ...skill, [field]: value });
   };
 
-  const handleProjectChange = (projectIndex, field, value) => {
+  const handleProjectChange = <K extends keyof SkillProject>(
+    projectIndex: number,
+    field: K,
+    value: SkillProject[K],
+  ) => {
     const newProjects = [...(skill.projects || [])];
     newProjects[projectIndex] = {
       ...newProjects[projectIndex],
@@ -400,7 +545,7 @@ function SkillItem({ skill, onChange, onRemove, skillIndex }) {
     ]);
   };
 
-  const removeProject = (projectIndex) => {
+  const removeProject = (projectIndex: number) => {
     handleFieldChange(
       "projects",
       (skill.projects || []).filter((_, i) => i !== projectIndex),
@@ -489,12 +634,24 @@ function SkillItem({ skill, onChange, onRemove, skillIndex }) {
 }
 
 // Skill Category entry component with nested skills
-function SkillCategoryEntry({ category, onChange, onRemove, index }) {
-  const handleCategoryNameChange = (name) => {
+interface SkillCategoryEntryProps {
+  category: SkillCategory;
+  onChange: (category: SkillCategory) => void;
+  onRemove: () => void;
+  index: number;
+}
+
+function SkillCategoryEntry({
+  category,
+  onChange,
+  onRemove,
+  index,
+}: SkillCategoryEntryProps) {
+  const handleCategoryNameChange = (name: string) => {
     onChange({ ...category, category: name });
   };
 
-  const handleSkillChange = (skillIndex, updatedSkill) => {
+  const handleSkillChange = (skillIndex: number, updatedSkill: Skill) => {
     const newSkills = [...(category.skills || [])];
     newSkills[skillIndex] = updatedSkill;
     onChange({ ...category, skills: newSkills });
@@ -510,7 +667,7 @@ function SkillCategoryEntry({ category, onChange, onRemove, index }) {
     });
   };
 
-  const removeSkill = (skillIndex) => {
+  const removeSkill = (skillIndex: number) => {
     onChange({
       ...category,
       skills: (category.skills || []).filter((_, i) => i !== skillIndex),
@@ -589,16 +746,35 @@ function SkillCategoryEntry({ category, onChange, onRemove, index }) {
 }
 
 // Array section with add/remove functionality
-function ArraySection({ title, items, onItemsChange, renderItem, addNew }) {
+interface ArraySectionProps<T> {
+  title: string;
+  items: T[];
+  onItemsChange: (items: T[]) => void;
+  renderItem: (
+    item: T,
+    index: number,
+    onChange: (newItem: T) => void,
+    onRemove: () => void,
+  ) => ReactNode;
+  addNew: () => T;
+}
+
+function ArraySection<T>({
+  title,
+  items,
+  onItemsChange,
+  renderItem,
+  addNew,
+}: ArraySectionProps<T>) {
   const handleAdd = () => {
     onItemsChange([...items, addNew()]);
   };
 
-  const handleRemove = (index) => {
+  const handleRemove = (index: number) => {
     onItemsChange(items.filter((_, i) => i !== index));
   };
 
-  const handleChange = (index, newItem) => {
+  const handleChange = (index: number, newItem: T) => {
     const newItems = [...items];
     newItems[index] = newItem;
     onItemsChange(newItems);
@@ -628,9 +804,15 @@ function ArraySection({ title, items, onItemsChange, renderItem, addNew }) {
 }
 
 // Main component
-export default function AboutSettingsSection({ onError }) {
+interface AboutSettingsSectionProps {
+  onError?: (message: string) => void;
+}
+
+export default function AboutSettingsSection({
+  onError,
+}: AboutSettingsSectionProps) {
   const { showToast } = useToast();
-  const [aboutData, setAboutData] = useState({
+  const [aboutData, setAboutData] = useState<AboutEditableShape>({
     professionalSummary: "",
     technicalSkills: [],
     professionalExperience: [],
@@ -647,7 +829,7 @@ export default function AboutSettingsSection({ onError }) {
     try {
       const res = await fetch("/api/about");
       if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
+      const data = (await res.json()) as Partial<AboutEditableShape>;
       setAboutData({
         professionalSummary: data.professionalSummary || "",
         technicalSkills: data.technicalSkills || [],
@@ -669,7 +851,7 @@ export default function AboutSettingsSection({ onError }) {
     fetchAboutData();
   }, [fetchAboutData]);
 
-  const handleSave = async (e) => {
+  const handleSave = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
 
@@ -691,7 +873,10 @@ export default function AboutSettingsSection({ onError }) {
     }
   };
 
-  const updateField = (field, value) => {
+  const updateField = <K extends keyof AboutEditableShape>(
+    field: K,
+    value: AboutEditableShape[K],
+  ) => {
     setAboutData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -739,7 +924,7 @@ export default function AboutSettingsSection({ onError }) {
       </CollapsibleSection>
 
       {/* Technical Skills - Nested by Category */}
-      <ArraySection
+      <ArraySection<SkillCategory>
         title="Skill Categories"
         items={aboutData.technicalSkills}
         onItemsChange={(items) => updateField("technicalSkills", items)}
@@ -759,7 +944,7 @@ export default function AboutSettingsSection({ onError }) {
       />
 
       {/* Professional Experience */}
-      <ArraySection
+      <ArraySection<Experience>
         title="Professional Experience"
         items={aboutData.professionalExperience}
         onItemsChange={(items) => updateField("professionalExperience", items)}
@@ -784,7 +969,7 @@ export default function AboutSettingsSection({ onError }) {
       />
 
       {/* Education */}
-      <ArraySection
+      <ArraySection<Education>
         title="Education"
         items={aboutData.education}
         onItemsChange={(items) => updateField("education", items)}
@@ -810,7 +995,7 @@ export default function AboutSettingsSection({ onError }) {
       />
 
       {/* Technical Certifications */}
-      <ArraySection
+      <ArraySection<Certification>
         title="Technical Certifications"
         items={aboutData.technicalCertifications}
         onItemsChange={(items) => updateField("technicalCertifications", items)}
@@ -824,9 +1009,9 @@ export default function AboutSettingsSection({ onError }) {
         renderItem={(entry, index, onChange, onRemove) => (
           <EntryForm
             key={index}
-            entry={entry}
+            entry={entry as DynamicEntry}
             index={index}
-            onChange={onChange}
+            onChange={(updated) => onChange(updated as Certification)}
             onRemove={onRemove}
             fields={certificationFields}
             entityName="Certification"
@@ -855,17 +1040,19 @@ export default function AboutSettingsSection({ onError }) {
           {aboutData.leadershipExperience.map((entry, index) => (
             <EntryForm
               key={index}
-              entry={entry}
+              entry={entry as DynamicEntry}
               index={index}
               onChange={(newItem) => {
                 const newItems = [...aboutData.leadershipExperience];
-                newItems[index] = newItem;
+                newItems[index] = newItem as Leadership;
                 updateField("leadershipExperience", newItems);
               }}
               onRemove={() => {
                 updateField(
                   "leadershipExperience",
-                  aboutData.leadershipExperience.filter((_, i) => i !== index)
+                  aboutData.leadershipExperience.filter(
+                    (_, i) => i !== index,
+                  ),
                 );
               }}
               fields={leadershipFields}

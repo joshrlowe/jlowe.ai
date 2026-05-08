@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 import { useState, useEffect } from "react";
+import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { requireAuth } from "@/lib/auth";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -9,13 +9,22 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { formatAdminDate } from "@/lib/utils/dateUtils";
 
-export async function getServerSideProps(context) {
+interface AdminPost {
+  id: string;
+  title: string;
+  topic: string;
+  status: string;
+  datePublished: string | null;
+  viewCount: number;
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   return requireAuth(context);
 }
 
 export default function AdminArticles() {
   const { status } = useSession();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<AdminPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,7 +37,10 @@ export default function AdminArticles() {
   const fetchPosts = async () => {
     try {
       const response = await fetch("/api/admin/posts?status=all");
-      const data = await response.json();
+      const data = (await response.json()) as {
+        posts?: AdminPost[];
+        message?: string;
+      };
 
       if (response.ok) {
         setPosts(data.posts || []);
@@ -43,7 +55,7 @@ export default function AdminArticles() {
     }
   };
 
-  const handleStatusToggle = async (postId, currentStatus) => {
+  const handleStatusToggle = async (postId: string, currentStatus: string) => {
     const newStatus = currentStatus === "Published" ? "Draft" : "Published";
 
     try {
@@ -67,7 +79,7 @@ export default function AdminArticles() {
     }
   };
 
-  const handleDelete = async (postId) => {
+  const handleDelete = async (postId: string) => {
     if (!confirm("Are you sure you want to delete this post?")) return;
 
     try {
@@ -187,7 +199,9 @@ export default function AdminArticles() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
-                    {formatAdminDate(post.datePublished) || "Not published"}
+                    {post.datePublished
+                      ? formatAdminDate(post.datePublished)
+                      : "Not published"}
                   </td>
                   <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
                     {post.viewCount || 0}

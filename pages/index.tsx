@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * Home Page
  *
@@ -12,6 +11,7 @@
  * - GitHub contribution graph
  */
 
+import type { GetStaticProps } from "next";
 import dynamic from "next/dynamic";
 import prisma from "../lib/prisma";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer";
@@ -19,6 +19,26 @@ import SEO from "@/components/SEO";
 import HeroSection from "@/components/HeroSection";
 import FeaturedProjects from "@/components/FeaturedProjects";
 import RecentActivity from "@/components/RecentActivity";
+import type { Project, Post, Welcome } from "@/lib/types";
+
+interface HomeContent {
+  typingIntro?: string;
+  heroTitle?: string;
+  typingStrings?: string[];
+  primaryCta?: { text: string; href: string };
+  secondaryCta?: { text: string; href: string };
+  techBadges?: { name: string; color: string }[];
+  githubSectionTitle?: string;
+  githubSectionDescription?: string;
+}
+
+interface HomeProps {
+  welcomeData: Welcome | null;
+  projects: Project[];
+  resources: Post[];
+  homeContent: HomeContent;
+  githubUsername: string;
+}
 
 // Dynamically import GitHubContributionGraph (uses client-only library)
 const GitHubContributionGraph = dynamic(
@@ -49,7 +69,7 @@ export default function Home({
   resources,
   homeContent,
   githubUsername,
-}) {
+}: HomeProps) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeResources = Array.isArray(resources) ? resources : [];
 
@@ -92,7 +112,7 @@ export default function Home({
 }
 
 // Default home content (used as fallback)
-const defaultHomeContent = {
+const defaultHomeContent: HomeContent = {
   typingIntro: "I build...",
   heroTitle: "intelligent AI systems",
   typingStrings: [
@@ -116,7 +136,7 @@ const defaultHomeContent = {
     "A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.",
 };
 
-export async function getStaticProps() {
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
   try {
     const welcomeData = await prisma.welcome.findFirst({
       orderBy: { createdAt: "desc" },
@@ -147,13 +167,13 @@ export async function getStaticProps() {
     });
 
     // Merge with defaults
-    const homeContent = pageContent?.content
-      ? { ...defaultHomeContent, ...pageContent.content }
+    const homeContent: HomeContent = pageContent?.content
+      ? { ...defaultHomeContent, ...(pageContent.content as HomeContent) }
       : defaultHomeContent;
 
-    const serialize = (data) => {
+    const serialize = <T,>(data: T): T => {
       try {
-        return JSON.parse(JSON.stringify(data));
+        return JSON.parse(JSON.stringify(data)) as T;
       } catch (error) {
         console.error("Serialization error:", error);
         return data;
@@ -161,14 +181,17 @@ export async function getStaticProps() {
     };
 
     // Extract GitHub username from contact data
-    const githubUrl = contactData?.socialMediaLinks?.github || "";
-    const githubUsername = githubUrl.split("/").filter(Boolean).pop() || "joshrlowe";
+    const socialMediaLinks =
+      (contactData?.socialMediaLinks as { github?: string } | null) || {};
+    const githubUrl = socialMediaLinks.github || "";
+    const githubUsername =
+      githubUrl.split("/").filter(Boolean).pop() || "joshrlowe";
 
     return {
       props: {
         welcomeData: welcomeData ? serialize(welcomeData) : null,
-        projects: serialize(projects || []),
-        resources: serialize(resources || []),
+        projects: serialize(projects || []) as unknown as Project[],
+        resources: serialize(resources || []) as unknown as Post[],
         homeContent: serialize(homeContent),
         githubUsername,
       },
@@ -187,4 +210,4 @@ export async function getStaticProps() {
       revalidate: 60,
     };
   }
-}
+};

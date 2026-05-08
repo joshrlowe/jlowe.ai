@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * Footer.jsx
  *
@@ -14,8 +13,9 @@
  * - Quick navigation
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import Link from "next/link";
+import type { Contact, SiteSettings } from "@/lib/types";
 
 const STATIC_SOCIAL_ITEMS = [
   { key: "email", label: "Email", icon: "email" },
@@ -25,7 +25,7 @@ const STATIC_SOCIAL_ITEMS = [
   { key: "handshake", label: "Handshake", icon: "handshake" },
 ];
 
-const socialIcons = {
+const socialIcons: Record<string, ReactNode> = {
   email: (
     <svg
       className="w-5 h-5"
@@ -70,8 +70,8 @@ const DEFAULT_FOOTER_TEXT = "Building intelligent systems and production-grade A
 const DEFAULT_FOOTER_TITLE = "AI Engineer & Consultant";
 
 export default function Footer() {
-  const [contactData, setContactData] = useState(null);
-  const [siteSettings, setSiteSettings] = useState(null);
+  const [contactData, setContactData] = useState<Contact | null>(null);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -82,20 +82,20 @@ export default function Footer() {
       try {
         // Add cache-busting to ensure fresh data
         const cacheBuster = `?_t=${Date.now()}`;
-        
+
         // Fetch contact data and site settings in parallel (using public endpoint)
         const [contactResponse, settingsResponse] = await Promise.all([
           fetch(`/api/contact${cacheBuster}`),
           fetch(`/api/site-settings${cacheBuster}`),
         ]);
-        
+
         if (contactResponse.ok && isMounted) {
-          const data = await contactResponse.json();
+          const data = (await contactResponse.json()) as Contact;
           setContactData(data);
         }
-        
+
         if (settingsResponse.ok && isMounted) {
-          const data = await settingsResponse.json();
+          const data = (await settingsResponse.json()) as SiteSettings;
           setSiteSettings(data);
         }
       } catch (_error) {
@@ -115,10 +115,12 @@ export default function Footer() {
     };
   }, []);
 
-  const getHref = (key) => {
+  const getHref = (key: string): string => {
     if (!mounted || !contactData) return "#";
 
-    const socialLinks = contactData.socialMediaLinks || {};
+    const socialLinks =
+      (contactData.socialMediaLinks as Record<string, string | undefined>) ||
+      {};
 
     switch (key) {
       case "email":

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
-import { useState } from "react";
+import { ComponentType, useState } from "react";
+import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { requireAuth } from "@/lib/auth";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -10,7 +10,17 @@ import HomeSettingsSection from "@/components/admin/HomeSettingsSection";
 import AboutSettingsSection from "@/components/admin/AboutSettingsSection";
 import ContactSettingsSection from "@/components/admin/ContactSettingsSection";
 
-export async function getServerSideProps(context) {
+interface SettingsSectionProps {
+  onError: (message: string) => void;
+}
+
+interface SettingsSection {
+  id: string;
+  label: string;
+  Component: ComponentType<SettingsSectionProps>;
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   return requireAuth(context);
 }
 
@@ -19,15 +29,27 @@ export default function AdminSettings() {
   const [error, setError] = useState("");
   const [activeSection, setActiveSection] = useState("global");
 
-  const sections = [
+  const sections: SettingsSection[] = [
     {
       id: "global",
       label: "Global Site Settings",
-      Component: GlobalSettingsSection,
+      Component: GlobalSettingsSection as ComponentType<SettingsSectionProps>,
     },
-    { id: "home", label: "Home Page", Component: HomeSettingsSection },
-    { id: "about", label: "About Page", Component: AboutSettingsSection },
-    { id: "contact", label: "Contact", Component: ContactSettingsSection },
+    {
+      id: "home",
+      label: "Home Page",
+      Component: HomeSettingsSection as ComponentType<SettingsSectionProps>,
+    },
+    {
+      id: "about",
+      label: "About Page",
+      Component: AboutSettingsSection,
+    },
+    {
+      id: "contact",
+      label: "Contact",
+      Component: ContactSettingsSection as ComponentType<SettingsSectionProps>,
+    },
   ];
 
   if (status === "loading" || !session) {

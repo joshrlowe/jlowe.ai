@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck
 /**
  * GitHubContributionGraph.jsx
  *
@@ -17,11 +16,32 @@
 
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  ComponentType,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
+
+interface ContributionDay {
+  date: string;
+  count: number;
+  level?: number;
+}
+
+interface ContributionStats {
+  total: number;
+  bestDay: number;
+  currentStreak: number;
+}
+
+type StatColor = "primary" | "accent" | "cool";
 
 // Supernova theme color scale (5 levels: none → max activity)
 const SUPERNOVA_COLORS = [
@@ -56,8 +76,15 @@ function MobileColorLegend() {
 }
 
 // Stats card component
-function StatCard({ label, value, icon, color = "primary" }) {
-  const colorMap = {
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  icon: ReactNode;
+  color?: StatColor;
+}
+
+function StatCard({ label, value, icon, color = "primary" }: StatCardProps) {
+  const colorMap: Record<StatColor, string> = {
     primary: "#E85D04",
     accent: "#FAA307",
     cool: "#4CC9F0",
@@ -98,7 +125,11 @@ function StatCard({ label, value, icon, color = "primary" }) {
   );
 }
 
-function StatsRow({ stats }) {
+interface StatsRowProps {
+  stats: ContributionStats;
+}
+
+function StatsRow({ stats }: StatsRowProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
       <StatCard
@@ -151,14 +182,36 @@ function StatsRow({ stats }) {
 }
 
 // Client-only calendar component wrapper
-function CalendarWrapper({ username, onDataLoaded, isMobile }) {
-  const [Calendar, setCalendar] = useState(null);
+interface CalendarWrapperProps {
+  username: string;
+  onDataLoaded: (stats: ContributionStats) => void;
+  isMobile: boolean;
+}
+
+interface ApiTestResult {
+  success?: boolean;
+  total?: number;
+  activeDays?: number;
+  rawTotal?: number;
+  error?: string;
+}
+
+type CalendarComponent = ComponentType<any>;
+
+function CalendarWrapper({
+  username,
+  onDataLoaded,
+  isMobile,
+}: CalendarWrapperProps) {
+  const [Calendar, setCalendar] = useState<CalendarComponent | null>(null);
   const [error, setError] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [apiTestResult, setApiTestResult] = useState(null);
-  const contributionsRef = useRef(null);
+  const [apiTestResult, setApiTestResult] = useState<ApiTestResult | null>(null);
+  const contributionsRef = useRef<ContributionDay[] | null>(null);
   const statsCalculatedRef = useRef(false);
-  const calculationTimeoutRef = useRef(null);
+  const calculationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const onDataLoadedRef = useRef(onDataLoaded);
 
   // Keep ref in sync
@@ -177,25 +230,29 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
           setApiTestResult({ error: `HTTP ${response.status}` });
           return;
         }
-        const data = await response.json();
-        const daysWithActivity = data.contributions?.filter(d => (d.count || 0) > 0) || [];
+        const data = (await response.json()) as {
+          contributions?: ContributionDay[];
+          total?: number;
+        };
+        const daysWithActivity =
+          data.contributions?.filter((d) => (d.count || 0) > 0) || [];
         const total = daysWithActivity.reduce((sum, d) => sum + d.count, 0);
         console.log("[DEBUG] Direct API fetch successful!");
         console.log("[DEBUG] Total contributions:", total);
         console.log("[DEBUG] Days with activity:", daysWithActivity.length);
         console.log("[DEBUG] Sample recent day:", daysWithActivity.slice(-5));
-        setApiTestResult({ 
-          success: true, 
-          total, 
+        setApiTestResult({
+          success: true,
+          total,
           activeDays: daysWithActivity.length,
-          rawTotal: data.total 
+          rawTotal: data.total,
         });
-        
+
         // If direct API works but calendar doesn't, calculate stats from direct fetch
         if (total > 0 && !statsCalculatedRef.current) {
           console.log("[DEBUG] Using direct API data for stats");
           const sorted = [...(data.contributions || [])].sort(
-            (a, b) => new Date(b.date) - new Date(a.date)
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
           );
           let currentStreak = 0;
           let bestDay = 0;
@@ -213,15 +270,21 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
           onDataLoadedRef.current({ total, bestDay, currentStreak });
         }
       } catch (err) {
-        setApiTestResult({ error: err.message });
+        setApiTestResult({
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     };
     testAPI();
   }, [username]);
 
   // Calculate stats function
-  const calculateStats = useCallback((contributions) => {
-    if (!contributions || contributions.length === 0 || statsCalculatedRef.current) {
+  const calculateStats = useCallback((contributions: ContributionDay[]) => {
+    if (
+      !contributions ||
+      contributions.length === 0 ||
+      statsCalculatedRef.current
+    ) {
       return;
     }
 
@@ -231,7 +294,7 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
     let streakCounting = true;
 
     const sorted = [...contributions].sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
     sorted.forEach((day) => {
@@ -260,14 +323,17 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
     }, 15000);
 
     import("react-github-calendar")
-      .then((module) => {
+      .then((module: any) => {
         clearTimeout(timeout);
         if (mounted) {
           // The library exports GitHubCalendar as a named export
-          const CalendarComponent = module.GitHubCalendar;
+          const Component = module.GitHubCalendar;
           // Check if it's a valid React component (can be function or forwardRef object)
-          if (CalendarComponent && (typeof CalendarComponent === "function" || CalendarComponent.$$typeof)) {
-            setCalendar(() => CalendarComponent);
+          if (
+            Component &&
+            (typeof Component === "function" || Component.$$typeof)
+          ) {
+            setCalendar(() => Component);
           } else {
             setError(true);
           }
@@ -297,38 +363,42 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
   }, []);
 
   // transformData should be pure - use refs to avoid setState during render
-  const transformData = useCallback((contributions) => {
-    if (!contributions || contributions.length === 0) {
-      return contributions;
-    }
-    
-    // Store the latest data in ref (no setState during render)
-    // Always use full data for stats calculation
-    if (!contributionsRef.current || contributions.length >= contributionsRef.current.length) {
-      contributionsRef.current = contributions;
-    }
-    
-    // Schedule stats calculation after render completes
-    if (calculationTimeoutRef.current) {
-      clearTimeout(calculationTimeoutRef.current);
-    }
-    
-    // Calculate quickly once we have data
-    const delay = contributions.length >= 200 ? 100 : 500;
-    
-    calculationTimeoutRef.current = setTimeout(() => {
-      if (contributionsRef.current && !statsCalculatedRef.current) {
-        calculateStats(contributionsRef.current);
+  const transformData = useCallback(
+    (contributions: ContributionDay[]): ContributionDay[] => {
+      if (!contributions || contributions.length === 0) {
+        return contributions;
       }
-    }, delay);
-    
-    // Mobile: show 14 full weeks (98 days) with leftmost week always full
-    // Desktop: show full calendar
-    if (isMobile) {
-      // Sort contributions by date (oldest first)
-      const sorted = [...contributions].sort(
-        (a, b) => new Date(a.date) - new Date(b.date)
-      );
+
+      // Store the latest data in ref (no setState during render)
+      // Always use full data for stats calculation
+      if (
+        !contributionsRef.current ||
+        contributions.length >= contributionsRef.current.length
+      ) {
+        contributionsRef.current = contributions;
+      }
+
+      // Schedule stats calculation after render completes
+      if (calculationTimeoutRef.current) {
+        clearTimeout(calculationTimeoutRef.current);
+      }
+
+      // Calculate quickly once we have data
+      const delay = contributions.length >= 200 ? 100 : 500;
+
+      calculationTimeoutRef.current = setTimeout(() => {
+        if (contributionsRef.current && !statsCalculatedRef.current) {
+          calculateStats(contributionsRef.current);
+        }
+      }, delay);
+
+      // Mobile: show 14 full weeks (98 days) with leftmost week always full
+      // Desktop: show full calendar
+      if (isMobile) {
+        // Sort contributions by date (oldest first)
+        const sorted = [...contributions].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        );
       
       if (sorted.length === 0) return contributions;
       
@@ -357,13 +427,15 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
       const endTime = endOfWeek.getTime();
       
       return sorted.filter((contribution) => {
-        const contribDate = new Date(contribution.date).getTime();
-        return contribDate >= startTime && contribDate <= endTime;
-      });
-    }
-    
-    return contributions;
-  }, [calculateStats, isMobile]);
+          const contribDate = new Date(contribution.date).getTime();
+          return contribDate >= startTime && contribDate <= endTime;
+        });
+      }
+
+      return contributions;
+    },
+    [calculateStats, isMobile],
+  );
 
   if (error) {
     return (
@@ -436,14 +508,24 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }) {
   );
 }
 
-export default function GitHubContributionGraph({ 
+interface GitHubContributionGraphProps {
+  username?: string;
+  title?: string;
+  description?: string;
+}
+
+export default function GitHubContributionGraph({
   username = "joshrlowe",
   title = "GitHub Contributions",
   description = "A visual representation of my coding journey. Every square represents a day of building, learning, and shipping.",
-}) {
-  const sectionRef = useRef(null);
-  const contentRef = useRef(null);
-  const [stats, setStats] = useState({ total: 0, bestDay: 0, currentStreak: 0 });
+}: GitHubContributionGraphProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [stats, setStats] = useState<ContributionStats>({
+    total: 0,
+    bestDay: 0,
+    currentStreak: 0,
+  });
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
 
@@ -477,7 +559,7 @@ export default function GitHubContributionGraph({
     };
   }, [mounted]);
 
-  const handleDataLoaded = useCallback((newStats) => {
+  const handleDataLoaded = useCallback((newStats: ContributionStats) => {
     setStats(newStats);
   }, []);
 
