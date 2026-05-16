@@ -62,6 +62,12 @@ export default [
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
       "no-unused-vars": "off",
+      // Disable React Compiler rules (same rationale as js/jsx block:
+      // too strict for existing codebase patterns). eslint-plugin-react-hooks
+      // 7.1+ applies these to .ts/.tsx where 7.0 did not.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/preserve-manual-memoization": "off",
     },
   },
 ];
