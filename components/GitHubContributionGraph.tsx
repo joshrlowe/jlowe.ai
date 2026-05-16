@@ -20,18 +20,11 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
-
-interface ContributionDay {
-  date: string;
-  count: number;
-  level?: number;
-}
-
-interface ContributionStats {
-  total: number;
-  bestDay: number;
-  currentStreak: number;
-}
+import {
+  calculateContributionStats,
+  type ContributionDay,
+  type ContributionStats,
+} from "@/lib/github/calendar-stats";
 
 type StatColor = "primary" | "accent" | "cool";
 
@@ -218,23 +211,8 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperPr
         const total = daysWithActivity.reduce((sum, d) => sum + d.count, 0);
 
         if (total > 0 && !statsCalculatedRef.current) {
-          const sorted = [...(data.contributions || [])].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          let currentStreak = 0;
-          let bestDay = 0;
-          let streakCounting = true;
-          sorted.forEach((day) => {
-            const count = day.count || 0;
-            if (count > bestDay) bestDay = count;
-            if (streakCounting && count > 0) {
-              currentStreak++;
-            } else if (count === 0 && streakCounting) {
-              streakCounting = false;
-            }
-          });
           statsCalculatedRef.current = true;
-          onDataLoadedRef.current({ total, bestDay, currentStreak });
+          onDataLoadedRef.current(calculateContributionStats(data.contributions || []));
         }
       } catch {
         // Silent — the calendar's own loader will surface its error UI.
@@ -243,34 +221,13 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperPr
     fetchAndCalc();
   }, [username]);
 
-  // Calculate stats function
+  // Forward stats from a contribution stream to the host component.
   const calculateStats = useCallback((contributions: ContributionDay[]) => {
     if (!contributions || contributions.length === 0 || statsCalculatedRef.current) {
       return;
     }
-
-    let total = 0;
-    let bestDay = 0;
-    let currentStreak = 0;
-    let streakCounting = true;
-
-    const sorted = [...contributions].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-
-    sorted.forEach((day) => {
-      const count = day.count || 0;
-      total += count;
-      if (count > bestDay) bestDay = count;
-      if (streakCounting && count > 0) {
-        currentStreak++;
-      } else if (count === 0 && streakCounting) {
-        streakCounting = false;
-      }
-    });
-
     statsCalculatedRef.current = true;
-    onDataLoadedRef.current({ total, bestDay, currentStreak });
+    onDataLoadedRef.current(calculateContributionStats(contributions));
   }, []);
 
   useEffect(() => {
