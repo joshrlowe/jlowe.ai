@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 /**
  * Header.jsx
  *
@@ -68,7 +68,7 @@ export default function Header({ style = {} }: HeaderProps) {
           <Link href="/" className="flex items-center gap-3 group" aria-label="Home">
             {/* Logo mark - custom image */}
             <div className="relative w-18 h-18 rounded-xl overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_25px_rgba(232,93,4,0.45)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {}
               <img src="/images/logo.png" alt="JL Logo" className="w-full h-full object-contain" />
               {/* Shimmer effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />

@@ -49,7 +49,7 @@ export function useReadDuration({
     startTimeRef.current = Date.now();
     accumulatedTimeRef.current = 0;
     // Resets active state when slug changes (article navigation).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setIsActive(true);
 
     intervalRef.current = setInterval(updateDuration, 1000);

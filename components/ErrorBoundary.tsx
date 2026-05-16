@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
+
 import React, { ErrorInfo, ReactNode } from "react";
 
 interface ErrorBoundaryProps {

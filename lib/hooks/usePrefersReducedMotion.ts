@@ -8,7 +8,7 @@ export function usePrefersReducedMotion(): boolean {
   useEffect(() => {
     const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
     // SSR-safe hydration: render `false` on server, update on mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setPrefersReducedMotion(mediaQuery.matches);
 
     const handler = (event: MediaQueryListEvent) => setPrefersReducedMotion(event.matches);

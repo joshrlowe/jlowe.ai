@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";

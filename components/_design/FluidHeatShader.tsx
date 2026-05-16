@@ -243,16 +243,15 @@ export default function FluidHeatShader({
     // SSR-safe hydration boundary — flip mounted on client so the
     // canvas only mounts after first paint. Same pattern as
     // components/SpaceBackground/index.tsx:48 in this repo.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setMounted(true);
     if (forceStatic) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReducedMotion(true);
       return;
     }
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setReducedMotion(mq.matches);
     const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mq.addEventListener("change", onChange);

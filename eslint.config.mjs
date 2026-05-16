@@ -25,6 +25,12 @@ export default [
   },
   // Next.js recommended config (flat config format)
   ...nextConfig,
+  // Treat dead eslint-disable directives as errors so they can't accumulate
+  {
+    linterOptions: {
+      reportUnusedDisableDirectives: "error",
+    },
+  },
   // Project-specific overrides
   {
     files: ["**/*.{js,jsx}"],

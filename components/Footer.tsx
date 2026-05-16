@@ -1,6 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 /**
  * Footer.jsx
  *
@@ -52,7 +51,6 @@ const socialIcons: Record<string, ReactNode> = {
     </svg>
   ),
   handshake: (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src="/images/handshake-logo.png"
       alt="Handshake"
@@ -148,7 +146,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-5">
               <div className="w-11 h-11 rounded-xl overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {}
                 <img
                   src="/images/logo.png"
                   alt="JL Logo"

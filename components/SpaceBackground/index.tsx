@@ -45,7 +45,7 @@ export default function SpaceBackground() {
 
   useEffect(() => {
     // SSR-safe hydration: set client-only state on mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setMounted(true);
 
     const hasPlayed = sessionStorage.getItem("introAnimationPlayed") === "true";

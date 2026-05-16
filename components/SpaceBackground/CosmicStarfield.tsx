@@ -89,14 +89,13 @@ export default function CosmicStarfield({
       const positionsAttr = geometry.attributes.position as THREE.BufferAttribute;
       const positions = positionsAttr.array as Float32Array;
       for (let i = 0; i < count; i++) {
-        // eslint-disable-next-line react-hooks/immutability
         positions[i * 3] = finalPositions[i * 3];
-        // eslint-disable-next-line react-hooks/immutability
+
         positions[i * 3 + 1] = finalPositions[i * 3 + 1];
-        // eslint-disable-next-line react-hooks/immutability
+
         positions[i * 3 + 2] = finalPositions[i * 3 + 2];
       }
-      // eslint-disable-next-line react-hooks/immutability
+
       positionsAttr.needsUpdate = true;
     } else if (explode && !isAnimating.current) {
       isAnimating.current = true;
@@ -117,19 +116,16 @@ export default function CosmicStarfield({
       const positions = positionsAttr.array as Float32Array;
 
       for (let i = 0; i < count; i++) {
-        // eslint-disable-next-line react-hooks/immutability
         positions[i * 3] = finalPositions[i * 3] * eased;
-        // eslint-disable-next-line react-hooks/immutability
+
         positions[i * 3 + 1] = finalPositions[i * 3 + 1] * eased;
-        // eslint-disable-next-line react-hooks/immutability
+
         positions[i * 3 + 2] = finalPositions[i * 3 + 2] * eased;
       }
 
-      // eslint-disable-next-line react-hooks/immutability
       positionsAttr.needsUpdate = true;
     }
 
-    // eslint-disable-next-line react-hooks/immutability
     points.current.rotation.y = state.clock.elapsedTime * AMBIENT_ROTATION_SPEED;
   });
 

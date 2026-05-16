@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 /**
  * Contact Page
  *
@@ -145,7 +145,6 @@ export default function ContactPage() {
       label: "Handshake",
       description: "Connect with me on Handshake",
       icon: (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src="/images/handshake-logo.png"
           alt="Handshake"
