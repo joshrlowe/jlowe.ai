@@ -16,7 +16,6 @@ jest.mock("../../../lib/prisma", () => ({
     post: {
       findMany: jest.fn(),
       count: jest.fn(),
-      create: jest.fn(),
     },
   },
 }));
@@ -125,91 +124,29 @@ describe("POST /api/posts", () => {
     });
   });
 
-  describe("POST requests", () => {
-    it("should create a new post", async () => {
-      const mockPost = {
-        id: "1",
-        title: "New Post",
-        description: "Description",
-        postType: "Article",
-        topic: "react",
-        slug: "new-post",
-        author: "John Doe",
-        status: "Draft",
-      };
-
-      prisma.post.create.mockResolvedValue(mockPost);
-
+  describe("HTTP method restrictions", () => {
+    it("returns 405 for unauthenticated POST (handler removed for security; use /api/admin/posts)", async () => {
       const req = createMockRequest({
         method: "POST",
-        body: {
-          title: "New Post",
-          description: "Description",
-          postType: "Article",
-          topic: "react",
-          slug: "new-post",
-          author: "John Doe",
-          content: "Post content",
-        },
+        body: { title: "x", description: "y", postType: "Article", topic: "t", slug: "s", author: "a" },
       });
       const res = createMockResponse();
-
       await postsHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(201);
-      const response = getJsonResponse(res);
-      expect(response).toEqual(mockPost);
+      expect(getStatusCode(res)).toBe(405);
     });
 
-    it("should return 400 if required fields are missing", async () => {
-      const req = createMockRequest({
-        method: "POST",
-        body: {
-          title: "New Post",
-          // Missing required fields
-        },
-      });
+    it("returns 405 for PUT", async () => {
+      const req = createMockRequest({ method: "PUT" });
       const res = createMockResponse();
-
       await postsHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(400);
-      const response = getJsonResponse(res);
-      expect(response.message).toContain("Missing required fields");
+      expect(getStatusCode(res)).toBe(405);
     });
 
-    it("should calculate reading time for content", async () => {
-      const mockPost = {
-        id: "1",
-        title: "New Post",
-        readingTime: 5,
-      };
-
-      prisma.post.create.mockResolvedValue(mockPost);
-
-      const req = createMockRequest({
-        method: "POST",
-        body: {
-          title: "New Post",
-          description: "Description",
-          postType: "Article",
-          topic: "react",
-          slug: "new-post",
-          author: "John Doe",
-          content: "This is a test content with many words to calculate reading time properly.",
-        },
-      });
+    it("returns 405 for DELETE", async () => {
+      const req = createMockRequest({ method: "DELETE" });
       const res = createMockResponse();
-
       await postsHandler(req, res);
-
-      expect(prisma.post.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            readingTime: expect.any(Number),
-          }),
-        })
-      );
+      expect(getStatusCode(res)).toBe(405);
     });
   });
 });
