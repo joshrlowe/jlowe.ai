@@ -68,12 +68,10 @@ export interface AboutEditableShape {
 }
 
 // EntryForm/SkillItem etc. operate over arbitrary keyed records driven
-// by FieldDef metadata. The loose Record type is intentional — the
-// alternative is per-shape generics and unsafe casts at every access
-// site, which would be far harder to read. The cast is confined to
-// EntryForm consumers (Certification + Leadership) only.
-//
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// by FieldDef metadata. The loose Record<string, any> is intentional —
+// the alternative is per-shape generics and unsafe casts at every
+// access site, which would be far harder to read. The cast is confined
+// to EntryForm consumers (Certification + Leadership) only.
 export type DynamicEntry = Record<string, any>;
 
 export interface FieldDef {
