@@ -15,18 +15,17 @@
 
 "use client";
 
-import { ComponentType, ReactNode, useEffect, useRef, useState, useCallback } from "react";
+import { ComponentType, useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
+import StatsCards from "@/components/GitHub/StatsCards";
 import {
   calculateContributionStats,
   type ContributionDay,
   type ContributionStats,
 } from "@/lib/github/calendar-stats";
-
-type StatColor = "primary" | "accent" | "cool";
 
 // Supernova theme color scale (5 levels: none → max activity)
 const SUPERNOVA_COLORS = [
@@ -52,112 +51,6 @@ function MobileColorLegend() {
         ))}
       </div>
       <span className="text-xs text-[var(--color-text-muted)]">More</span>
-    </div>
-  );
-}
-
-// Stats card component
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  icon: ReactNode;
-  color?: StatColor;
-}
-
-function StatCard({ label, value, icon, color = "primary" }: StatCardProps) {
-  const colorMap: Record<StatColor, string> = {
-    primary: "#E85D04",
-    accent: "#FAA307",
-    cool: "#4CC9F0",
-  };
-
-  return (
-    <div
-      className="flex items-center gap-3 px-4 py-3 rounded-lg"
-      style={{
-        background: "rgba(12, 12, 12, 0.8)",
-        border: `1px solid ${colorMap[color]}25`,
-      }}
-    >
-      <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center"
-        style={{
-          background: `${colorMap[color]}15`,
-          color: colorMap[color],
-        }}
-      >
-        {icon}
-      </div>
-      <div>
-        <p
-          className="text-2xl font-bold"
-          style={{ color: colorMap[color], fontFamily: "var(--font-family-heading)" }}
-        >
-          {value}
-        </p>
-        <p
-          className="text-xs uppercase tracking-wider"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          {label}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-interface StatsRowProps {
-  stats: ContributionStats;
-}
-
-function StatsRow({ stats }: StatsRowProps) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-      <StatCard
-        label="Total Contributions"
-        value={stats.total.toLocaleString()}
-        color="primary"
-        icon={
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        }
-      />
-      <StatCard
-        label="Current Streak"
-        value={`${stats.currentStreak} days`}
-        color="accent"
-        icon={
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
-            />
-          </svg>
-        }
-      />
-      <StatCard
-        label="Best Day"
-        value={`${stats.bestDay} commits`}
-        color="cool"
-        icon={
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
-        }
-      />
     </div>
   );
 }
@@ -523,7 +416,7 @@ export default function GitHubContributionGraph({
           </Card>
 
           {/* Stats Row */}
-          {stats.total > 0 && <StatsRow stats={stats} />}
+          {stats.total > 0 && <StatsCards stats={stats} />}
 
           {/* View on GitHub link */}
           <div className="text-center mt-8">
