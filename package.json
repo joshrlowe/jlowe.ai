@@ -30,7 +30,8 @@
     "seed:all": "npm run seed:admin && npm run seed:content",
     "build:embeddings": "tsx scripts/regenerate-embeddings.ts",
     "build:embeddings:legacy": "tsx scripts/generate-embeddings.ts",
-    "jobs:dev": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest"
+    "jobs:dev": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest",
+    "postbuild": "next-sitemap --config next-sitemap.config.cjs"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^4.0.50",
@@ -90,6 +91,7 @@
     "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "msw": "^2.12.7",
+    "next-sitemap": "^4.2.3",
     "postcss": "^8.5.6",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.1.18",
