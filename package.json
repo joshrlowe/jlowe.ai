@@ -41,7 +41,7 @@
     "@react-three/fiber": "^8.18.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
-    "@vercel/analytics": "^1.6.1",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.0.0",
     "@vercel/kv": "^3.0.0",
     "ai": "^6.0.73",
