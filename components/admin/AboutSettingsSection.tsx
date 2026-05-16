@@ -14,6 +14,7 @@
 import { ChangeEvent, FormEvent, ReactNode, useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import MarkdownEditor from "./MarkdownEditor";
+import ArraySection from "./shared/ArraySection";
 import CollapsibleSection from "./shared/CollapsibleSection";
 import FormField from "./shared/FormField";
 import TagInput from "./shared/TagInput";
@@ -646,64 +647,6 @@ function SkillCategoryEntry({ category, onChange, onRemove, index }: SkillCatego
         </button>
       </div>
     </div>
-  );
-}
-
-// Array section with add/remove functionality
-interface ArraySectionProps<T> {
-  title: string;
-  items: T[];
-  onItemsChange: (items: T[]) => void;
-  renderItem: (
-    item: T,
-    index: number,
-    onChange: (newItem: T) => void,
-    onRemove: () => void
-  ) => ReactNode;
-  addNew: () => T;
-}
-
-function ArraySection<T>({
-  title,
-  items,
-  onItemsChange,
-  renderItem,
-  addNew,
-}: ArraySectionProps<T>) {
-  const handleAdd = () => {
-    onItemsChange([...items, addNew()]);
-  };
-
-  const handleRemove = (index: number) => {
-    onItemsChange(items.filter((_, i) => i !== index));
-  };
-
-  const handleChange = (index: number, newItem: T) => {
-    const newItems = [...items];
-    newItems[index] = newItem;
-    onItemsChange(newItems);
-  };
-
-  return (
-    <CollapsibleSection title={`${title} (${items.length})`} defaultOpen={items.length > 0}>
-      <div className="space-y-4">
-        {items.map((item, index) =>
-          renderItem(
-            item,
-            index,
-            (newItem) => handleChange(index, newItem),
-            () => handleRemove(index)
-          )
-        )}
-        <button
-          type="button"
-          onClick={handleAdd}
-          className={`w-full py-2 ${adminStyles.buttonOutline}`}
-        >
-          + Add {title.replace(/ies$/, "y").replace(/s$/, "")}
-        </button>
-      </div>
-    </CollapsibleSection>
   );
 }
 
