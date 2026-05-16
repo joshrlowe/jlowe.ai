@@ -10,9 +10,11 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import JsonLd from "@/components/JsonLd";
 import ToastProvider from "@/components/admin/ToastProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ChatWidget } from "@/components/Chat";
+import { personSchema, websiteSchema } from "@/lib/seo/schema";
 import {
   spaceGrotesk,
   plusJakartaSans,
@@ -129,6 +131,7 @@ export default function App({
         <ToastProvider>
           <Head>
             <title>Admin - Josh Lowe</title>
+            <meta name="robots" content="noindex,nofollow" />
           </Head>
           <div className={`${fontVariables} min-h-screen w-full`}>
             <Component {...pageProps} />
@@ -153,6 +156,8 @@ export default function App({
             <meta name="mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           </Head>
+          <JsonLd data={websiteSchema} id="website" />
+          <JsonLd data={personSchema} id="person" />
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--color-primary)] focus:text-white focus:rounded"

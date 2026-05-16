@@ -5,7 +5,9 @@ import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
 import { transformProjectToApiFormat } from "../../lib/utils/projectTransformer";
 import SEO from "@/components/SEO";
+import JsonLd from "@/components/JsonLd";
 import ProjectDetail from "@/components/Project/ProjectDetail";
+import { projectSchema } from "@/lib/seo/schema";
 import type { ProjectLike } from "@/components/Project/types";
 import Link from "next/link";
 
@@ -79,6 +81,21 @@ const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
               : undefined
             : undefined
         }
+      />
+      <JsonLd
+        data={projectSchema({
+          title: project.title,
+          description: project.shortDescription || project.description || "",
+          slug: project.slug || project.id || "",
+          image:
+            Array.isArray(project.images) && project.images[0]
+              ? typeof project.images[0] === "string"
+                ? project.images[0]
+                : undefined
+              : undefined,
+          dateCreated: project.startDate ?? undefined,
+        })}
+        id="project"
       />
       <ProjectDetail project={project} />
     </>

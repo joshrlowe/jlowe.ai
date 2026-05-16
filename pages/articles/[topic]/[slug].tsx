@@ -3,6 +3,7 @@ import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import prisma from "../../../lib/prisma";
 import SEO from "@/components/SEO";
+import JsonLd from "@/components/JsonLd";
 import SocialShare from "@/components/Articles/SocialShare";
 import PostComments from "@/components/Articles/PostComments";
 import PostLikeButton from "@/components/Articles/PostLikeButton";
@@ -11,6 +12,7 @@ import remarkGfm from "remark-gfm";
 import Image from "next/image";
 import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
 import { formatDate } from "@/lib/utils/dateUtils";
+import { blogPostingSchema } from "@/lib/seo/schema";
 import type { Post } from "@/lib/types";
 
 type ArticlePost = Post & {
@@ -93,6 +95,19 @@ export default function ArticleDetailPage({ post: initialPost }: ArticleDetailPa
         description={post.metaDescription || post.description}
         image={post.ogImage || post.coverImage || undefined}
         url={articleUrl}
+      />
+      <JsonLd
+        data={blogPostingSchema({
+          title: post.title,
+          description: post.metaDescription || post.description,
+          slug: post.slug,
+          topic: post.topic,
+          author: post.author,
+          datePublished: post.datePublished ?? undefined,
+          dateModified: post.updatedAt ?? post.datePublished ?? undefined,
+          image: post.ogImage || post.coverImage || undefined,
+        })}
+        id="blog-posting"
       />
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl">
