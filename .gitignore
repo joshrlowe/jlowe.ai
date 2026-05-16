@@ -58,3 +58,5 @@ FUTURE_PLANS.md
 # verification / audit run artifacts (ephemeral)
 /verification-*/
 /.audit-baseline/
+/.audit-post-phase1/
+/.audit-final/
