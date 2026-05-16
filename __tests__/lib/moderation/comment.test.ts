@@ -89,7 +89,7 @@ describe("scoreComment", () => {
 
   it("throws ModerationError('timeout') when the invoke promise hangs past the deadline", async () => {
     jest.useFakeTimers();
-    const invoke = jest.fn(
+    const invoke = jest.fn().mockImplementation(
       () => new Promise(() => undefined) // never resolves
     );
 

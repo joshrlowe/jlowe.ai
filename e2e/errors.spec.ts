@@ -69,7 +69,8 @@ test.describe("Error Handling - 404 Page", () => {
         response = await page.goto(route, { waitUntil: "domcontentloaded", timeout: 10000 });
       } catch (error) {
         // Navigation may fail due to redirects, continue checking page state
-        console.log(`Navigation to ${route} failed: ${error.message}`);
+        const message = error instanceof Error ? error.message : String(error);
+        console.log(`Navigation to ${route} failed: ${message}`);
       }
       await page.waitForTimeout(500); // Allow page to settle
 

@@ -26,7 +26,7 @@ const articleChunk = {
   score: 0.39,
 };
 
-const intentMock = jest.fn(async () => "researching");
+const intentMock = jest.fn<Promise<string>, unknown[]>(async () => "researching");
 jest.mock("@/lib/chat/intent", () => ({
   classifyIntent: (...args: unknown[]) => intentMock(...args),
   highestPriorityIntent: jest.requireActual("@/lib/chat/intent").highestPriorityIntent,
@@ -60,7 +60,10 @@ jest.mock("@/lib/bedrock/client", () => {
   return { streamChatResponse: mock, __streamMock: mock };
 });
 
-import { __streamMock as streamMock } from "@/lib/bedrock/client";
+const { __streamMock: streamMock } = jest.requireMock<{
+  streamChatResponse: jest.Mock;
+  __streamMock: jest.Mock;
+}>("@/lib/bedrock/client");
 
 jest.mock("@/lib/utils/rateLimit", () => ({
   checkRateLimit: jest.fn(async () => true),

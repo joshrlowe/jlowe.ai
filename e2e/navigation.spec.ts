@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-// Skip Firefox in CI - WebGL failures cause DOM instability
-const skipFirefoxCI = process.env.CI && test.info ? false : false; // Will use test.skip in beforeEach
+// Firefox skip happens inside beforeEach via test.skip(); see below.
 
 test.describe("Navigation - Desktop", () => {
   test.beforeEach(async ({ page, browserName }) => {
