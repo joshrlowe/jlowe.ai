@@ -14,6 +14,7 @@
 import { ChangeEvent, FormEvent, ReactNode, useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import MarkdownEditor from "./MarkdownEditor";
+import CollapsibleSection from "./shared/CollapsibleSection";
 import FormField from "./shared/FormField";
 import TagInput from "./shared/TagInput";
 import { adminStyles } from "./shared/styles";
@@ -90,31 +91,6 @@ interface FieldDef {
   label: string;
   type?: string;
   placeholder?: string;
-}
-
-// Collapsible section component
-interface CollapsibleSectionProps {
-  title: string;
-  children: ReactNode;
-  defaultOpen?: boolean;
-}
-
-function CollapsibleSection({ title, children, defaultOpen = false }: CollapsibleSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 flex items-center justify-between bg-[var(--color-bg-darker)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
-      >
-        <span className="font-medium text-[var(--color-text-primary)]">{title}</span>
-        <span className={`transform transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
-      </button>
-      {isOpen && <div className="p-4 space-y-4">{children}</div>}
-    </div>
-  );
 }
 
 // Experience/Education entry form component
