@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { JWT } from "next-auth/jwt";
 import prisma from "../../../lib/prisma";
 import { createApiHandler } from "../../../lib/utils/apiRouteHandler";
+import { withAuth } from "../../../lib/utils/authMiddleware";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler";
 import {
   parsePagination,
@@ -57,47 +59,49 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 };
 
-const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    const { title, description, slug, coverImage, featured, order, postIds } = req.body;
+const handlePostRequest = withAuth(
+  async (req: NextApiRequest, res: NextApiResponse, _token: JWT) => {
+    try {
+      const { title, description, slug, coverImage, postIds } = req.body;
 
-    const validation = validateRequiredFields(req.body, ["title", "slug"]);
-    if (!validation.isValid) {
-      return res.status(400).json({ message: validation.message });
-    }
+      const validation = validateRequiredFields(req.body, ["title", "slug"]);
+      if (!validation.isValid) {
+        return res.status(400).json({ message: validation.message });
+      }
 
-    const playlist = await prisma.playlist.create({
-      data: {
-        title,
-        description: description || null,
-        slug,
-        coverImage: coverImage || null,
-        featured: featured || false,
-        order: order || 0,
-        ...(postIds &&
-          postIds.length > 0 && {
-            playlistPosts: {
-              create: postIds.map((postId: string, index: number) => ({
-                postId,
-                order: index,
-              })),
+      const playlist = await prisma.playlist.create({
+        data: {
+          title,
+          description: description || null,
+          slug,
+          coverImage: coverImage || null,
+          featured: false,
+          order: 0,
+          ...(postIds &&
+            postIds.length > 0 && {
+              playlistPosts: {
+                create: postIds.map((postId: string, index: number) => ({
+                  postId,
+                  order: index,
+                })),
+              },
+            }),
+        },
+        include: {
+          playlistPosts: {
+            include: {
+              post: true,
             },
-          }),
-      },
-      include: {
-        playlistPosts: {
-          include: {
-            post: true,
           },
         },
-      },
-    });
+      });
 
-    res.status(201).json(playlist);
-  } catch (error) {
-    handleApiError(error as Error, res);
+      res.status(201).json(playlist);
+    } catch (error) {
+      handleApiError(error as Error, res);
+    }
   }
-};
+);
 
 export default createApiHandler({
   GET: handleGetRequest,

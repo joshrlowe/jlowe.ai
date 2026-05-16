@@ -3,6 +3,7 @@
  */
 import playlistsHandler from "../../../pages/api/playlists/index";
 import prisma from "../../../lib/prisma";
+import { getToken } from "next-auth/jwt";
 import {
   createMockRequest,
   createMockResponse,
@@ -19,6 +20,10 @@ jest.mock("../../../lib/prisma", () => ({
       create: jest.fn(),
     },
   },
+}));
+
+jest.mock("next-auth/jwt", () => ({
+  getToken: jest.fn(),
 }));
 
 describe("GET /api/playlists", () => {
@@ -139,6 +144,40 @@ describe("GET /api/playlists", () => {
 });
 
 describe("POST /api/playlists", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Default to an authenticated caller; individual tests override for 401.
+    getToken.mockResolvedValue({ email: "admin@test.com" });
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    getToken.mockResolvedValue(null);
+    const req = createMockRequest({
+      method: "POST",
+      body: { title: "x", slug: "y" },
+    });
+    const res = createMockResponse();
+    await playlistsHandler(req, res);
+    expect(getStatusCode(res)).toBe(401);
+    expect(prisma.playlist.create).not.toHaveBeenCalled();
+  });
+
+  it("ignores body.featured and body.order from authenticated callers", async () => {
+    prisma.playlist.create.mockResolvedValue({ id: "p1", featured: false, order: 0 });
+    const req = createMockRequest({
+      method: "POST",
+      body: { title: "spam", slug: "spam", featured: true, order: 999 },
+    });
+    const res = createMockResponse();
+    await playlistsHandler(req, res);
+    expect(getStatusCode(res)).toBe(201);
+    expect(prisma.playlist.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ featured: false, order: 0 }),
+      })
+    );
+  });
+
   it("should create a new playlist", async () => {
     const mockPlaylist = {
       id: "1",
