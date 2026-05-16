@@ -1,23 +1,17 @@
 /**
- * AboutSettingsSection - Comprehensive About page editor
+ * AboutSettingsSection — admin editor shell for the About page.
  *
- * Provides full editing capabilities for:
- * - Professional Summary (Markdown)
- * - Technical Skills (categorized list)
- * - Professional Experience (timeline entries)
- * - Education (academic history)
- * - Technical Certifications
- * - Leadership Experience
- * - Hobbies
+ * Composes the editor primitives in components/admin/about/* and the
+ * load/save loop in lib/hooks/useAboutForm. Itself only owns the form
+ * tag, the loading spinner, and the wiring between fields and child
+ * components — no fetch, no persistence, no field-shape knowledge.
  */
 
-import { ChangeEvent, FormEvent, ReactNode, useState, useEffect, useCallback } from "react";
+import type { FormEvent } from "react";
 import { useToast } from "./ToastProvider";
 import MarkdownEditor from "./MarkdownEditor";
 import ArraySection from "./shared/ArraySection";
 import CollapsibleSection from "./shared/CollapsibleSection";
-import FormField from "./shared/FormField";
-import TagInput from "./shared/TagInput";
 import { adminStyles } from "./shared/styles";
 import EducationEntryForm from "./about/EducationEntryForm";
 import EntryForm from "./about/EntryForm";
@@ -25,105 +19,40 @@ import ExperienceEntryForm from "./about/ExperienceEntryForm";
 import HobbiesEditor from "./about/HobbiesEditor";
 import LeadershipEditor from "./about/LeadershipEditor";
 import SkillCategoryCard from "./about/SkillsEditor";
+import { useAboutForm } from "@/lib/hooks/useAboutForm";
 import type {
-  AboutEditableShape,
   Certification,
   DynamicEntry,
   Education,
   Experience,
   FieldDef,
-  Hobby,
-  Leadership,
-  Skill,
   SkillCategory,
-  SkillProject,
 } from "./about/types";
 
-// Experience/Education entry form component
-
-// Main component
 interface AboutSettingsSectionProps {
   onError?: (message: string) => void;
 }
 
+const certificationFields: FieldDef[] = [
+  { key: "organization", label: "Organization", placeholder: "e.g., AWS" },
+  { key: "name", label: "Certification Name", placeholder: "e.g., Solutions Architect" },
+  { key: "issueDate", label: "Issue Date", type: "date" },
+  { key: "expirationDate", label: "Expiration Date", type: "date" },
+  { key: "credentialUrl", label: "Credential URL", type: "url", placeholder: "https://..." },
+];
+
 export default function AboutSettingsSection({ onError }: AboutSettingsSectionProps) {
   const { showToast } = useToast();
-  const [aboutData, setAboutData] = useState<AboutEditableShape>({
-    professionalSummary: "",
-    technicalSkills: [],
-    professionalExperience: [],
-    education: [],
-    technicalCertifications: [],
-    leadershipExperience: [],
-    leadershipSubtitle: "",
-    hobbies: [],
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  const fetchAboutData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/about");
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = (await res.json()) as Partial<AboutEditableShape>;
-      setAboutData({
-        professionalSummary: data.professionalSummary || "",
-        technicalSkills: data.technicalSkills || [],
-        professionalExperience: data.professionalExperience || [],
-        education: data.education || [],
-        technicalCertifications: data.technicalCertifications || [],
-        leadershipExperience: data.leadershipExperience || [],
-        leadershipSubtitle: data.leadershipSubtitle || "",
-        hobbies: data.hobbies || [],
-      });
-    } catch (_error) {
-      onError?.("Failed to load about page data");
-    } finally {
-      setLoading(false);
-    }
-  }, [onError]);
-
-  useEffect(() => {
-    fetchAboutData();
-  }, [fetchAboutData]);
+  const { data, loading, saving, updateField, save } = useAboutForm({ onError });
 
   const handleSave = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSaving(true);
-
-    try {
-      const res = await fetch("/api/admin/about", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(aboutData),
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-
-      showToast("About page settings saved!", "success");
-    } catch (_error) {
-      showToast("Failed to save settings", "error");
-      onError?.("Failed to save settings");
-    } finally {
-      setSaving(false);
-    }
+    const ok = await save();
+    showToast(
+      ok ? "About page settings saved!" : "Failed to save settings",
+      ok ? "success" : "error"
+    );
   };
-
-  const updateField = <K extends keyof AboutEditableShape>(
-    field: K,
-    value: AboutEditableShape[K]
-  ) => {
-    setAboutData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  // Field definitions for different entry types
-  const certificationFields = [
-    { key: "organization", label: "Organization", placeholder: "e.g., AWS" },
-    { key: "name", label: "Certification Name", placeholder: "e.g., Solutions Architect" },
-    { key: "issueDate", label: "Issue Date", type: "date" },
-    { key: "expirationDate", label: "Expiration Date", type: "date" },
-    { key: "credentialUrl", label: "Credential URL", type: "url", placeholder: "https://..." },
-  ];
 
   if (loading) {
     return (
@@ -139,7 +68,7 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
       <CollapsibleSection title="Professional Summary" defaultOpen={true}>
         <MarkdownEditor
           label="Summary (Markdown)"
-          value={aboutData.professionalSummary}
+          value={data.professionalSummary}
           onChange={(value) => updateField("professionalSummary", value)}
           placeholder="Write your professional summary here. Markdown is supported..."
           rows={10}
@@ -149,7 +78,7 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
       {/* Technical Skills - Nested by Category */}
       <ArraySection<SkillCategory>
         title="Skill Categories"
-        items={aboutData.technicalSkills}
+        items={data.technicalSkills}
         onItemsChange={(items) => updateField("technicalSkills", items)}
         addNew={() => ({
           category: "",
@@ -169,7 +98,7 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
       {/* Professional Experience */}
       <ArraySection<Experience>
         title="Professional Experience"
-        items={aboutData.professionalExperience}
+        items={data.professionalExperience}
         onItemsChange={(items) => updateField("professionalExperience", items)}
         addNew={() => ({
           company: "",
@@ -194,7 +123,7 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
       {/* Education */}
       <ArraySection<Education>
         title="Education"
-        items={aboutData.education}
+        items={data.education}
         onItemsChange={(items) => updateField("education", items)}
         addNew={() => ({
           institution: "",
@@ -220,7 +149,7 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
       {/* Technical Certifications */}
       <ArraySection<Certification>
         title="Technical Certifications"
-        items={aboutData.technicalCertifications}
+        items={data.technicalCertifications}
         onItemsChange={(items) => updateField("technicalCertifications", items)}
         addNew={() => ({
           organization: "",
@@ -244,15 +173,15 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
 
       {/* Leadership Experience */}
       <LeadershipEditor
-        entries={aboutData.leadershipExperience}
-        subtitle={aboutData.leadershipSubtitle}
+        entries={data.leadershipExperience}
+        subtitle={data.leadershipSubtitle}
         onEntriesChange={(entries) => updateField("leadershipExperience", entries)}
         onSubtitleChange={(subtitle) => updateField("leadershipSubtitle", subtitle)}
       />
 
       {/* Hobbies */}
       <HobbiesEditor
-        hobbies={aboutData.hobbies}
+        hobbies={data.hobbies}
         onChange={(hobbies) => updateField("hobbies", hobbies)}
       />
 
