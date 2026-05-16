@@ -1,0 +1,193 @@
+interface EducationEntry {
+  degree?: string;
+  fieldOfStudy?: string;
+  institution?: string;
+  school?: string;
+  location?: string;
+  graduationYear?: string;
+  year?: string;
+  startDate?: string;
+  endDate?: string;
+  startYear?: string;
+  endYear?: string;
+  isOngoing?: boolean;
+  expectedGradDate?: string;
+  gpa?: string | number;
+  honors?: string;
+  description?: string;
+  relevantCoursework?: string[];
+}
+
+function formatDate(dateStr?: string): string | null {
+  if (!dateStr) return null;
+
+  if (/^\d{4}$/.test(dateStr)) return dateStr;
+
+  if (/^\d{4}-\d{2}/.test(dateStr)) {
+    try {
+      const [year, month] = dateStr.split("-").map(Number);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${monthNames[month - 1]} ${year}`;
+    } catch {
+      return dateStr;
+    }
+  }
+
+  return dateStr;
+}
+
+function getDateRange(edu: EducationEntry): string | null {
+  if (edu.graduationYear) return edu.graduationYear;
+  if (edu.year) return edu.year;
+
+  const startDate = formatDate(edu.startDate);
+  const endDate = edu.isOngoing
+    ? edu.expectedGradDate ? `Expected ${formatDate(edu.expectedGradDate)}` : "Present"
+    : formatDate(edu.endDate);
+
+  const startYear = startDate || edu.startYear;
+  const endYear = endDate || edu.endYear;
+
+  if (startYear && endYear) {
+    return `${startYear} — ${endYear}`;
+  }
+  if (startYear) {
+    return `${startYear} — Present`;
+  }
+
+  return null;
+}
+
+interface EducationProps {
+  education?: EducationEntry[];
+}
+
+export default function Education({ education = [] }: EducationProps) {
+  if (!education || education.length === 0) return null;
+
+  return (
+    <div
+      className="p-6 sm:p-8 rounded-xl"
+      style={{
+        background: "var(--color-bg-card)",
+        border: "1px solid var(--color-border)",
+      }}
+    >
+      <h2
+        className="text-2xl font-bold mb-6 font-heading"
+        style={{ color: "var(--color-text-primary)" }}
+      >
+        Education
+      </h2>
+      <div className="relative">
+        <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-[var(--color-primary)] opacity-30" />
+
+        <div className="space-y-8">
+          {education.map((edu, index) => {
+            const dateRange = getDateRange(edu);
+            const isOngoing = edu.isOngoing || false;
+
+            return (
+              <div
+                key={index}
+                className="relative pl-8"
+                data-testid={`education-entry-${index}`}
+              >
+                <div className="absolute left-0 top-1.5 flex items-center justify-center">
+                  {isOngoing ? (
+                    <div className="relative">
+                      <div className="w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+                      <div className="absolute inset-0 w-4 h-4 rounded-full bg-[var(--color-primary)] animate-ping opacity-75" />
+                    </div>
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-[var(--color-primary)]" />
+                  )}
+                </div>
+
+                <h3
+                  className="text-lg sm:text-xl font-semibold font-heading leading-snug"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {edu.degree}
+                  {edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}
+                </h3>
+
+                <div
+                  className="font-medium mt-1 text-base"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  {edu.institution || edu.school}
+                </div>
+
+                <div
+                  className="text-sm mt-1 flex flex-wrap items-center gap-x-2"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {dateRange && <span>{dateRange}</span>}
+                  {edu.location && (
+                    <>
+                      <span>•</span>
+                      <span>{edu.location}</span>
+                    </>
+                  )}
+                </div>
+
+                {edu.gpa && (
+                  <div
+                    className="text-sm mt-2"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    GPA: {edu.gpa}
+                  </div>
+                )}
+
+                {edu.honors && (
+                  <div
+                    className="text-sm mt-2"
+                    style={{ color: "var(--color-primary)" }}
+                  >
+                    {edu.honors}
+                  </div>
+                )}
+
+                {edu.description && (
+                  <p
+                    className="mt-3 leading-relaxed"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    {edu.description}
+                  </p>
+                )}
+
+                {edu.relevantCoursework &&
+                  Array.isArray(edu.relevantCoursework) &&
+                  edu.relevantCoursework.length > 0 && (
+                    <div className="mt-3">
+                      <span
+                        className="text-sm font-medium"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
+                        Relevant Coursework:
+                      </span>
+                      <ul className="mt-1 space-y-1">
+                        {edu.relevantCoursework.map((course, i) => (
+                          <li
+                            key={i}
+                            className="text-sm pl-3 relative before:content-['•'] before:absolute before:left-0 before:text-[var(--color-primary)]"
+                            style={{ color: "var(--color-text-muted)" }}
+                          >
+                            {course}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

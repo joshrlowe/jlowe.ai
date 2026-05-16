@@ -34,10 +34,16 @@ const config = {
 
   // Module path aliases (matching jsconfig.json) and manual mocks
   moduleNameMapper: {
+    // Strip explicit .js extension from @/ alias imports
+    // (source files have been migrated to .ts but call sites still use .js)
+    '^@/(.*)\\.js$': '<rootDir>/$1',
+    // Strip explicit .js extension from relative imports
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+
     // Path aliases
     '^@/(.*)$': '<rootDir>/$1',
-    
-    
+
+
     // Three.js and related - prevent WebGL errors
     '^three$': '<rootDir>/__mocks__/three.js',
     '^@react-three/fiber$': '<rootDir>/__mocks__/@react-three/fiber.jsx',
@@ -58,6 +64,10 @@ const config = {
     
     // Database
     '^(\\.\\./)*lib/prisma(\\.js)?$': '<rootDir>/__mocks__/prisma.js',
+    '^@prisma/client$': '<rootDir>/__mocks__/@prisma/client.js',
+
+    // Observability
+    '^langfuse$': '<rootDir>/__mocks__/langfuse.js',
     
     // CSS/Style mocks (for CSS modules if used)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -65,10 +75,9 @@ const config = {
 
   // Coverage configuration
   collectCoverageFrom: [
-    'components/**/*.{js,jsx}',
-    'pages/**/*.{js,jsx}',
-    'lib/**/*.{js,jsx}',
-    'hooks/**/*.{js,jsx}',
+    'components/**/*.{js,jsx,ts,tsx}',
+    'pages/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/.next/**',
@@ -93,7 +102,7 @@ const config = {
   // Transform ignore patterns (for ESM packages)
   // MSW 2.x and its dependencies need to be transformed
   transformIgnorePatterns: [
-    'node_modules/(?!(react-github-calendar|react-activity-calendar|msw|@mswjs)/)',
+    'node_modules/(?!(react-github-calendar|react-activity-calendar|msw|@mswjs|uuid)/)',
   ],
 
   // Module file extensions

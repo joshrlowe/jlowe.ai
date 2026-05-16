@@ -4,11 +4,11 @@
  * Tests activity logging functionality
  */
 
-import { logActivity } from '../../../lib/utils/activityLogger.js';
-import prisma from '../../../lib/prisma.js';
+import { logActivity } from '../../../lib/utils/activityLogger';
+import prisma from '../../../lib/prisma';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     activityLog: {

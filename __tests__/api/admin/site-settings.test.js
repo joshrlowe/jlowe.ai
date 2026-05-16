@@ -4,8 +4,8 @@
  * Tests admin site settings API route (GET/PUT)
  */
 
-import siteSettingsHandler from '../../../pages/api/admin/site-settings.js';
-import prisma from '../../../lib/prisma.js';
+import siteSettingsHandler from '../../../pages/api/admin/site-settings';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     siteSettings: {

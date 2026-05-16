@@ -4,8 +4,8 @@
  * Tests home page content API route
  */
 
-import homeContentHandler from '../../pages/api/home-content.js';
-import prisma from '../../lib/prisma.js';
+import homeContentHandler from '../../pages/api/home-content';
+import prisma from '../../lib/prisma';
 import {
   createMockRequest,
   createMockResponse,
@@ -13,7 +13,7 @@ import {
   getStatusCode,
 } from '../setup/api-test-utils.js';
 
-jest.mock('../../lib/prisma.js', () => ({
+jest.mock('../../lib/prisma', () => ({
   __esModule: true,
   default: {
     pageContent: {

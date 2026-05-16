@@ -2,8 +2,8 @@
  * Tests for /api/comments/[id]/vote.js
  */
 
-import voteHandler from "../../../pages/api/comments/[id]/vote.js";
-import prisma from "../../../lib/prisma.js";
+import voteHandler from "../../../pages/api/comments/[id]/vote";
+import prisma from "../../../lib/prisma";
 import {
   createMockRequest,
   createMockResponse,
@@ -11,7 +11,7 @@ import {
   getStatusCode,
 } from "../../setup/api-test-utils.js";
 
-jest.mock("../../../lib/prisma.js", () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     comment: {

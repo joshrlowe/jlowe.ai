@@ -241,6 +241,11 @@ npm run prisma:migrate   # Run migrations
 npm run prisma:studio    # Database GUI
 npm run seed:admin       # Create admin user
 
+# Background jobs (Inngest)
+npm run jobs:dev         # Start the Inngest dev server (pair with `npm run dev`)
+npm run build:embeddings # Trigger event-driven full reindex
+npm run build:embeddings:legacy  # Synchronous reindex (no Inngest)
+
 # Testing
 npm test                 # Run unit/integration tests
 npm run test:watch       # Watch mode
@@ -253,6 +258,26 @@ npm run test:e2e:headed  # Run in headed mode (see browser)
 npm run test:e2e:debug   # Debug mode
 npm run test:e2e:report  # View test report
 ```
+
+## Background Jobs
+
+Inngest powers background work — currently the embedding regeneration that
+keeps the RAG index in sync with admin content edits. See
+`lib/jobs/README.md` for production deployment notes.
+
+### Local development
+
+```bash
+# Terminal 1 — Next.js (the Inngest serve handler lives at /api/inngest)
+npm run dev
+
+# Terminal 2 — Inngest dev server (registers your functions, runs them)
+npm run jobs:dev
+```
+
+Then visit `http://localhost:8288` for the Inngest dashboard. Editing
+content in the admin panel emits events that re-embed only the changed
+sources. To force a full reindex, run `npm run build:embeddings`.
 
 ## Testing
 

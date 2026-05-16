@@ -8,6 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
+    "lint:nocheck": "! grep -rln '@ts-nocheck' --include='*.ts' --include='*.tsx' components/ pages/ lib/ middleware.ts 2>/dev/null || (echo 'Found @ts-nocheck in source files'; exit 1)",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -25,20 +26,34 @@
     "prisma:migrate-resources-to-posts": "node scripts/migrate-resources-to-posts.js",
     "seed:admin": "node scripts/seed-admin.js",
     "seed:content": "node scripts/seed-content.js",
-    "seed:all": "npm run seed:admin && npm run seed:content"
+    "seed:all": "npm run seed:admin && npm run seed:content",
+    "build:embeddings": "tsx scripts/regenerate-embeddings.ts",
+    "build:embeddings:legacy": "tsx scripts/generate-embeddings.ts",
+    "jobs:dev": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest"
   },
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^4.0.50",
+    "@ai-sdk/react": "^3.0.75",
+    "@aws-sdk/client-bedrock-runtime": "^3.985.0",
     "@prisma/client": "^5.20.0",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.2",
     "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.0.0",
+    "@vercel/kv": "^3.0.0",
+    "ai": "^6.0.73",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.2.0",
     "dotenv": "^16.4.5",
     "gsap": "^3.14.2",
+    "inngest": "^4.3.0",
+    "langfuse": "^3.38.20",
     "marked": "^13.0.3",
     "next": "^15.1.4",
     "next-auth": "^4.24.13",
+    "openai": "^6.18.0",
     "prisma": "^5.20.0",
     "prismjs": "^1.29.0",
     "react": "^18",
@@ -52,8 +67,10 @@
     "react-typed": "^2.0.12",
     "remark-gfm": "^4.0.0",
     "remark-prism": "^1.3.6",
+    "resend": "^6.12.2",
     "slugify": "^1.6.6",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
@@ -64,6 +81,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.6.1",
+    "@types/bcryptjs": "^2.4.6",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.1",
@@ -75,6 +93,7 @@
     "msw": "^2.12.7",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "undici": "^7.18.2"
   }
 }

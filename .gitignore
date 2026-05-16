@@ -48,3 +48,17 @@ next-env.d.ts
 
 # uploads
 /public/uploads
+
+# test artifacts (temporary files)
+test-upstash.ts
+
+# generated knowledge base (optional - remove if you want to commit)
+/data/
+
+# personal planning docs (do not commit)
+FUTURE_PLANS.md
+/docs/planning/
+
+# verification / audit run artifacts (ephemeral)
+/verification-*/
+/.audit-baseline/

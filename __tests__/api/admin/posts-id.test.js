@@ -4,8 +4,9 @@
  * Tests admin posts CRUD by ID API route
  */
 
-import postsIdHandler from '../../../pages/api/admin/posts/[id].js';
-import prisma from '../../../lib/prisma.js';
+import postsIdHandler from '../../../pages/api/admin/posts/[id]';
+import prisma from '../../../lib/prisma';
+import { inngest } from '../../../lib/jobs/client';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +16,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     post: {
@@ -32,8 +33,15 @@ jest.mock('next-auth/jwt', () => ({
 }));
 
 // Mock readingTime utility
-jest.mock('../../../lib/utils/readingTime.js', () => ({
+jest.mock('../../../lib/utils/readingTime', () => ({
   calculateReadingTime: jest.fn(() => 5),
+}));
+
+// Mock Inngest client so events don't try to ship in tests
+jest.mock('../../../lib/jobs/client', () => ({
+  inngest: {
+    send: jest.fn().mockResolvedValue({ ids: ['evt-mock'] }),
+  },
 }));
 
 describe('/api/admin/posts/[id]', () => {
@@ -125,6 +133,10 @@ describe('/api/admin/posts/[id]', () => {
   describe('PUT requests', () => {
     beforeEach(() => {
       getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      // Reset findUnique so prior describe's mockRejectedValue doesn't leak
+      // (clearAllMocks clears call history but not the resolved/rejected value).
+      prisma.post.findUnique.mockReset();
+      prisma.post.findUnique.mockResolvedValue({ status: 'Published' });
     });
 
     it('should update post with provided data', async () => {
@@ -234,6 +246,72 @@ describe('/api/admin/posts/[id]', () => {
 
       expect(getStatusCode(res)).toBe(500);
     });
+
+    it('should emit content/post.updated for non-transition updates', async () => {
+      prisma.post.findUnique.mockResolvedValue({ status: 'Published' });
+      prisma.post.update.mockResolvedValue({
+        id: 'post-1',
+        status: 'Published',
+      });
+
+      const req = createMockRequest({
+        method: 'PUT',
+        query: { id: 'post-1' },
+        body: { title: 'New title' },
+      });
+      const res = createMockResponse();
+
+      await postsIdHandler(req, res);
+
+      expect(inngest.send).toHaveBeenCalledWith({
+        name: 'content/post.updated',
+        data: { postId: 'post-1' },
+      });
+    });
+
+    it('should emit content/post.published when status flips Draft → Published', async () => {
+      prisma.post.findUnique.mockResolvedValue({ status: 'Draft' });
+      prisma.post.update.mockResolvedValue({
+        id: 'post-2',
+        status: 'Published',
+      });
+
+      const req = createMockRequest({
+        method: 'PUT',
+        query: { id: 'post-2' },
+        body: { status: 'Published' },
+      });
+      const res = createMockResponse();
+
+      await postsIdHandler(req, res);
+
+      expect(inngest.send).toHaveBeenCalledWith({
+        name: 'content/post.published',
+        data: { postId: 'post-2' },
+      });
+    });
+
+    it('should still return 200 when inngest.send fails on PUT', async () => {
+      prisma.post.findUnique.mockResolvedValue({ status: 'Published' });
+      prisma.post.update.mockResolvedValue({
+        id: 'post-1',
+        status: 'Published',
+      });
+      inngest.send.mockRejectedValueOnce(new Error('inngest down'));
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const req = createMockRequest({
+        method: 'PUT',
+        query: { id: 'post-1' },
+        body: { title: 'New title' },
+      });
+      const res = createMockResponse();
+
+      await postsIdHandler(req, res);
+
+      expect(getStatusCode(res)).toBe(200);
+      console.warn.mockRestore();
+    });
   });
 
   describe('DELETE requests', () => {
@@ -256,6 +334,40 @@ describe('/api/admin/posts/[id]', () => {
         where: { id: 'post-1' },
       });
       expect(getStatusCode(res)).toBe(204);
+    });
+
+    it('should emit content/post.deleted with the post id', async () => {
+      prisma.post.delete.mockResolvedValue({ id: 'post-1' });
+
+      const req = createMockRequest({
+        method: 'DELETE',
+        query: { id: 'post-99' },
+      });
+      const res = createMockResponse();
+
+      await postsIdHandler(req, res);
+
+      expect(inngest.send).toHaveBeenCalledWith({
+        name: 'content/post.deleted',
+        data: { postId: 'post-99' },
+      });
+    });
+
+    it('should still return 204 when inngest.send fails', async () => {
+      prisma.post.delete.mockResolvedValue({ id: 'post-1' });
+      inngest.send.mockRejectedValueOnce(new Error('inngest down'));
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const req = createMockRequest({
+        method: 'DELETE',
+        query: { id: 'post-1' },
+      });
+      const res = createMockResponse();
+
+      await postsIdHandler(req, res);
+
+      expect(getStatusCode(res)).toBe(204);
+      console.warn.mockRestore();
     });
 
     it('should handle not found error', async () => {

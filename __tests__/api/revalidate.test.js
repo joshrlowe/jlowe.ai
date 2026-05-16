@@ -4,7 +4,7 @@
  * Tests on-demand ISR revalidation API
  */
 
-import revalidateHandler from '../../pages/api/revalidate.js';
+import revalidateHandler from '../../pages/api/revalidate';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,

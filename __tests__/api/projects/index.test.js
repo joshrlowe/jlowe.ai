@@ -4,8 +4,8 @@
  * Tests projects CRUD API route
  */
 
-import projectsHandler from '../../../pages/api/projects/index.js';
-import prisma from '../../../lib/prisma.js';
+import projectsHandler from '../../../pages/api/projects/index';
+import prisma from '../../../lib/prisma';
 import {
   createMockRequest,
   createMockResponse,
@@ -13,7 +13,7 @@ import {
   getStatusCode,
 } from '../../setup/api-test-utils.js';
 
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     project: {

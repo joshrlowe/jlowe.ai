@@ -1,8 +1,8 @@
 /**
  * Tests for /api/posts/index.js
  */
-import postsHandler from "../../../pages/api/posts/index.js";
-import prisma from "../../../lib/prisma.js";
+import postsHandler from "../../../pages/api/posts/index";
+import prisma from "../../../lib/prisma";
 import {
   createMockRequest,
   createMockResponse,
@@ -10,7 +10,7 @@ import {
   getStatusCode,
 } from "../../setup/api-test-utils.js";
 
-jest.mock("../../../lib/prisma.js", () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     post: {

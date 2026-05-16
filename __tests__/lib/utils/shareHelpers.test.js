@@ -4,7 +4,7 @@
  * Tests social sharing URL generation and clipboard functionality
  */
 
-import { generateShareUrls, copyToClipboard } from '../../../lib/utils/shareHelpers.js';
+import { generateShareUrls, copyToClipboard } from '../../../lib/utils/shareHelpers';
 
 describe('shareHelpers', () => {
   describe('generateShareUrls', () => {

@@ -4,8 +4,8 @@
  * Tests admin bulk operations API route (POST)
  */
 
-import bulkHandler from '../../../pages/api/admin/projects/bulk.js';
-import prisma from '../../../lib/prisma.js';
+import bulkHandler from '../../../pages/api/admin/projects/bulk';
+import prisma from '../../../lib/prisma';
 import { getToken } from 'next-auth/jwt';
 import {
   createMockRequest,
@@ -15,7 +15,7 @@ import {
 } from '../../setup/api-test-utils.js';
 
 // Mock prisma
-jest.mock('../../../lib/prisma.js', () => ({
+jest.mock('../../../lib/prisma', () => ({
   __esModule: true,
   default: {
     project: {
@@ -34,7 +34,7 @@ jest.mock('next-auth/jwt', () => ({
 }));
 
 // Mock activity logger
-jest.mock('../../../lib/utils/activityLogger.js', () => ({
+jest.mock('../../../lib/utils/activityLogger', () => ({
   logActivity: jest.fn().mockResolvedValue({}),
 }));
 

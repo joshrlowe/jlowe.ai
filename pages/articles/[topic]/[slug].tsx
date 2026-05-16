@@ -1,0 +1,387 @@
+/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ReactNode, useState, useEffect, useMemo, useRef } from "react";
+import type { GetStaticPaths, GetStaticProps } from "next";
+import { useRouter } from "next/router";
+import prisma from "../../../lib/prisma";
+import SEO from "@/components/SEO";
+import SocialShare from "@/components/Articles/SocialShare";
+import PostComments from "@/components/Articles/PostComments";
+import PostLikeButton from "@/components/Articles/PostLikeButton";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import Image from "next/image";
+import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
+import { formatDate } from "@/lib/utils/dateUtils";
+import type { Post } from "@/lib/types";
+
+type ArticlePost = Post & {
+  _count?: { comments?: number; likes?: number };
+};
+
+interface ArticleDetailPageProps {
+  post: ArticlePost | null;
+}
+
+interface CodeBlockProps {
+  language?: string;
+  children?: ReactNode;
+}
+
+const CodeBlock = ({ language, children }: CodeBlockProps) => {
+  return (
+    <pre className="bg-[var(--color-bg-darker)] p-4 rounded-lg overflow-x-auto my-4">
+      <code
+        className={`text-sm font-mono text-[var(--color-text-primary)] ${language ? `language-${language}` : ""}`}
+      >
+        {children}
+      </code>
+    </pre>
+  );
+};
+
+export default function ArticleDetailPage({
+  post: initialPost,
+}: ArticleDetailPageProps) {
+  const router = useRouter();
+  const [post] = useState<ArticlePost | null>(initialPost);
+  const [_likeData, setLikeData] = useState<unknown>(null);
+  const articleRef = useRef<HTMLElement | null>(null);
+
+  // Track reading analytics (scroll depth, duration, article view)
+  useReadingAnalytics({
+    articleRef,
+    slug: post?.slug,
+    topic: post?.topic,
+    readingTime: post?.readingTime ?? undefined,
+  } as any);
+
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/posts/${router.query.topic}/${router.query.slug}/like`,
+        );
+        const data = await response.json();
+        setLikeData(data);
+      } catch (error) {
+        console.error("Error fetching like status:", error);
+      }
+    };
+
+    if (router.query.topic && router.query.slug) {
+      fetchLikeStatus();
+    }
+  }, [router.query.topic, router.query.slug]);
+
+  // Must call useMemo before any conditional returns to follow Rules of Hooks
+  const articleUrl = useMemo(() => {
+    if (!post) return "";
+    return `https://jlowe.ai/articles/${post.topic}/${post.slug}`;
+  }, [post]);
+
+  if (router.isFallback || !post) {
+    return (
+      <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-4xl">
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <SEO
+        title={post.metaTitle || post.title}
+        description={post.metaDescription || post.description}
+        image={post.ogImage || post.coverImage || undefined}
+        url={articleUrl}
+      />
+      <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-4xl">
+          <article ref={articleRef}>
+            {/* Header */}
+            <header className="mb-8">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="px-3 py-1 text-sm font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                  {post.topic}
+                </span>
+                <span className="text-sm text-[var(--color-text-muted)]">
+                  {post.datePublished
+                    ? formatDate(post.datePublished as Date | string)
+                    : ""}
+                </span>
+                {post.readingTime && (
+                  <span className="text-sm text-[var(--color-text-muted)]">
+                    {post.readingTime} min read
+                  </span>
+                )}
+                {post.viewCount > 0 && (
+                  <span className="text-sm text-[var(--color-text-muted)]">
+                    {post.viewCount} views
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] mb-4 font-[family-name:var(--font-oswald)]">
+                {post.title}
+              </h1>
+
+              {post.description && (
+                <p className="text-xl text-[var(--color-text-secondary)] mb-6">
+                  {post.description}
+                </p>
+              )}
+
+              {post.tags && post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {post.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs rounded bg-[var(--color-bg-card)] text-[var(--color-text-muted)]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="text-sm text-[var(--color-text-secondary)]">
+                By {post.author}
+              </div>
+            </header>
+
+            {/* Cover Image */}
+            {post.coverImage && (
+              <div className="relative w-full h-64 sm:h-80 md:h-96 mb-8 rounded-xl overflow-hidden">
+                <Image
+                  src={post.coverImage}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 1200px) 100vw, 1200px"
+                />
+              </div>
+            )}
+
+            {/* Video Embed */}
+            {post.postType === "Video" && post.url && (
+              <div className="relative w-full aspect-video mb-8 rounded-xl overflow-hidden">
+                <iframe
+                  src={post.url}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  frameBorder="0"
+                />
+              </div>
+            )}
+
+            {/* Social Share & Like */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b border-[var(--color-border)]">
+              <SocialShare
+                url={articleUrl}
+                title={post.title}
+                description={post.description}
+              />
+              <PostLikeButton
+                postId={post.id}
+                topic={post.topic}
+                slug={post.slug}
+                initialLikes={post._count?.likes || 0}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="prose prose-invert prose-lg max-w-none mb-12">
+              {post.postType === "Article" && post.content ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={
+                    {
+                      code({
+                        node: _node,
+                        inline,
+                        className,
+                        children,
+                        ...props
+                      }: any) {
+                        const match = /language-(\w+)/.exec(className || "");
+                        if (!inline && match) {
+                          return (
+                            <CodeBlock language={match[1]} {...props}>
+                              {String(children).replace(/\n$/, "")}
+                            </CodeBlock>
+                          );
+                        }
+                        return (
+                          <code
+                            className="bg-[var(--color-bg-card)] px-1.5 py-0.5 rounded text-[var(--color-primary)]"
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        );
+                      },
+                      h1: ({ children }: { children?: ReactNode }) => (
+                        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
+                          {children}
+                        </h1>
+                      ),
+                      h2: ({ children }: { children?: ReactNode }) => (
+                        <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 font-[family-name:var(--font-oswald)]">
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children }: { children?: ReactNode }) => (
+                        <h3 className="text-xl font-bold text-[var(--color-text-primary)] mt-6 mb-3">
+                          {children}
+                        </h3>
+                      ),
+                      p: ({ children }: { children?: ReactNode }) => (
+                        <p className="text-[var(--color-text-secondary)] mb-4 leading-relaxed">
+                          {children}
+                        </p>
+                      ),
+                      ul: ({ children }: { children?: ReactNode }) => (
+                        <ul className="list-disc pl-6 mb-4 text-[var(--color-text-secondary)]">
+                          {children}
+                        </ul>
+                      ),
+                      ol: ({ children }: { children?: ReactNode }) => (
+                        <ol className="list-decimal pl-6 mb-4 text-[var(--color-text-secondary)]">
+                          {children}
+                        </ol>
+                      ),
+                      li: ({ children }: { children?: ReactNode }) => (
+                        <li className="mb-2">{children}</li>
+                      ),
+                      a: ({
+                        children,
+                        href,
+                      }: {
+                        children?: ReactNode;
+                        href?: string;
+                      }) => (
+                        <a
+                          href={href}
+                          className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] underline"
+                        >
+                          {children}
+                        </a>
+                      ),
+                      blockquote: ({
+                        children,
+                      }: {
+                        children?: ReactNode;
+                      }) => (
+                        <blockquote className="border-l-4 border-[var(--color-primary)] pl-4 my-4 italic text-[var(--color-text-secondary)]">
+                          {children}
+                        </blockquote>
+                      ),
+                      img: ({
+                        src,
+                        alt,
+                      }: {
+                        src?: string;
+                        alt?: string;
+                      }) => (
+                        <span className="block my-8">
+                          <Image
+                            src={src || ""}
+                            alt={alt || ""}
+                            width={800}
+                            height={400}
+                            className="rounded-lg"
+                          />
+                        </span>
+                      ),
+                    } as any
+                  }
+                >
+                  {post.content}
+                </ReactMarkdown>
+              ) : (
+                <p className="text-[var(--color-text-secondary)]">
+                  No content available.
+                </p>
+              )}
+            </div>
+
+            {/* Social Share (bottom) */}
+            <div className="mb-8 pt-8 border-t border-[var(--color-border)]">
+              <SocialShare
+                url={articleUrl}
+                title={post.title}
+                description={post.description}
+              />
+            </div>
+
+            {/* Comments */}
+            <PostComments postId={post.id} />
+          </article>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  try {
+    const posts = await prisma.post.findMany({
+      where: { status: "Published" },
+      select: { topic: true, slug: true },
+    });
+
+    const paths = posts.map((post) => ({
+      params: { topic: post.topic, slug: post.slug },
+    }));
+
+    return { paths, fallback: "blocking" };
+  } catch (error) {
+    console.error("Error generating static paths:", error);
+    return { paths: [], fallback: "blocking" };
+  }
+};
+
+export const getStaticProps: GetStaticProps<ArticleDetailPageProps> = async ({
+  params,
+}) => {
+  try {
+    const topic = params?.topic as string | undefined;
+    const slug = params?.slug as string | undefined;
+
+    if (!topic || !slug) {
+      return { notFound: true };
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { slug, topic: topic.toLowerCase() },
+      include: {
+        _count: {
+          select: {
+            comments: { where: { approved: true } },
+            likes: true,
+          },
+        },
+      },
+    });
+
+    if (!post || post.status !== "Published") {
+      return { notFound: true };
+    }
+
+    return {
+      props: {
+        post: JSON.parse(JSON.stringify(post)) as ArticlePost,
+      },
+      revalidate: 60,
+    };
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    return { notFound: true };
+  }
+};
