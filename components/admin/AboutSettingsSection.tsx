@@ -22,6 +22,7 @@ import { adminStyles } from "./shared/styles";
 import EducationEntryForm from "./about/EducationEntryForm";
 import EntryForm from "./about/EntryForm";
 import ExperienceEntryForm from "./about/ExperienceEntryForm";
+import LeadershipEditor from "./about/LeadershipEditor";
 import type {
   AboutEditableShape,
   Certification,
@@ -354,19 +355,6 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
     { key: "credentialUrl", label: "Credential URL", type: "url", placeholder: "https://..." },
   ];
 
-  const leadershipFields = [
-    { key: "organization", label: "Organization", placeholder: "Organization name" },
-    { key: "role", label: "Role", placeholder: "Your role" },
-    { key: "startDate", label: "Start Date", type: "date" },
-    { key: "endDate", label: "End Date", type: "date" },
-    {
-      key: "description",
-      label: "Description (Markdown)",
-      type: "markdown",
-      placeholder: "Describe your responsibilities and accomplishments. Markdown is supported...",
-    },
-  ];
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -485,63 +473,12 @@ export default function AboutSettingsSection({ onError }: AboutSettingsSectionPr
       />
 
       {/* Leadership Experience */}
-      <CollapsibleSection
-        title={`Leadership Experience (${aboutData.leadershipExperience.length})`}
-        defaultOpen={aboutData.leadershipExperience.length > 0}
-      >
-        <div className="space-y-4">
-          {/* Leadership Subtitle */}
-          <FormField
-            label="Section Subtitle"
-            value={aboutData.leadershipSubtitle}
-            onChange={(e) => updateField("leadershipSubtitle", e.target.value)}
-            placeholder="Leading teams and driving organizational impact"
-          />
-          <p className="text-xs text-[var(--color-text-muted)] -mt-2">
-            Displayed below the &quot;Leadership Experience&quot; heading. Leave empty to hide.
-          </p>
-
-          {/* Leadership Entries */}
-          {aboutData.leadershipExperience.map((entry, index) => (
-            <EntryForm
-              key={index}
-              entry={entry as DynamicEntry}
-              index={index}
-              onChange={(newItem) => {
-                const newItems = [...aboutData.leadershipExperience];
-                newItems[index] = newItem as Leadership;
-                updateField("leadershipExperience", newItems);
-              }}
-              onRemove={() => {
-                updateField(
-                  "leadershipExperience",
-                  aboutData.leadershipExperience.filter((_, i) => i !== index)
-                );
-              }}
-              fields={leadershipFields}
-              entityName="Leadership"
-            />
-          ))}
-          <button
-            type="button"
-            onClick={() => {
-              updateField("leadershipExperience", [
-                ...aboutData.leadershipExperience,
-                {
-                  organization: "",
-                  role: "",
-                  startDate: "",
-                  endDate: "",
-                  description: "",
-                },
-              ]);
-            }}
-            className={`w-full py-2 ${adminStyles.buttonOutline}`}
-          >
-            + Add Leadership
-          </button>
-        </div>
-      </CollapsibleSection>
+      <LeadershipEditor
+        entries={aboutData.leadershipExperience}
+        subtitle={aboutData.leadershipSubtitle}
+        onEntriesChange={(entries) => updateField("leadershipExperience", entries)}
+        onSubtitleChange={(subtitle) => updateField("leadershipSubtitle", subtitle)}
+      />
 
       {/* Hobbies */}
       <CollapsibleSection
