@@ -4,25 +4,25 @@
  * Tests welcome info editing form
  */
 
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import WelcomeTab from '../../../../components/admin/home/WelcomeTab';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import WelcomeTab from "../../../../components/admin/home/WelcomeTab";
 
 // Mock shared components
-jest.mock('../../../../components/admin/shared', () => ({
+jest.mock("../../../../components/admin/shared", () => ({
   FormField: ({ label, value, onChange, rows, placeholder }) => (
     <div>
       <label>{label}</label>
       {rows ? (
         <textarea
-          data-testid={`input-${label.toLowerCase().replace(/\s+/g, '-')}`}
+          data-testid={`input-${label.toLowerCase().replace(/\s+/g, "-")}`}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
         />
       ) : (
         <input
-          data-testid={`input-${label.toLowerCase().replace(/\s+/g, '-')}`}
+          data-testid={`input-${label.toLowerCase().replace(/\s+/g, "-")}`}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
@@ -31,15 +31,15 @@ jest.mock('../../../../components/admin/shared', () => ({
     </div>
   ),
   adminStyles: {
-    buttonPrimary: 'btn-primary',
+    buttonPrimary: "btn-primary",
   },
 }));
 
-describe('WelcomeTab', () => {
+describe("WelcomeTab", () => {
   const mockWelcomeData = {
-    name: 'Josh Lowe',
-    briefBio: 'AI/ML Engineer building intelligent systems',
-    callToAction: 'AI Engineer & Consultant',
+    name: "Josh Lowe",
+    briefBio: "AI/ML Engineer building intelligent systems",
+    callToAction: "AI Engineer & Consultant",
   };
 
   const mockSetWelcomeData = jest.fn();
@@ -49,8 +49,8 @@ describe('WelcomeTab', () => {
     jest.clearAllMocks();
   });
 
-  describe('Rendering', () => {
-    it('should render all form fields', () => {
+  describe("Rendering", () => {
+    it("should render all form fields", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -60,12 +60,12 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByText('Featured Title')).toBeInTheDocument();
-      expect(screen.getByText('Tagline / Role')).toBeInTheDocument();
-      expect(screen.getByText('Brief Bio')).toBeInTheDocument();
+      expect(screen.getByText("Featured Title")).toBeInTheDocument();
+      expect(screen.getByText("Tagline / Role")).toBeInTheDocument();
+      expect(screen.getByText("Brief Bio")).toBeInTheDocument();
     });
 
-    it('should render save button', () => {
+    it("should render save button", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -75,10 +75,10 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByRole('button', { name: /save welcome info/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /save welcome info/i })).toBeInTheDocument();
     });
 
-    it('should show saving state', () => {
+    it("should show saving state", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -88,13 +88,13 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByRole('button', { name: /saving/i })).toBeInTheDocument();
-      expect(screen.getByRole('button')).toBeDisabled();
+      expect(screen.getByRole("button", { name: /saving/i })).toBeInTheDocument();
+      expect(screen.getByRole("button")).toBeDisabled();
     });
   });
 
-  describe('Form values', () => {
-    it('should display welcome data values', () => {
+  describe("Form values", () => {
+    it("should display welcome data values", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -104,14 +104,16 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByTestId('input-featured-title')).toHaveValue('Josh Lowe');
-      expect(screen.getByTestId('input-tagline-/-role')).toHaveValue('AI Engineer & Consultant');
-      expect(screen.getByTestId('input-brief-bio')).toHaveValue('AI/ML Engineer building intelligent systems');
+      expect(screen.getByTestId("input-featured-title")).toHaveValue("Josh Lowe");
+      expect(screen.getByTestId("input-tagline-/-role")).toHaveValue("AI Engineer & Consultant");
+      expect(screen.getByTestId("input-brief-bio")).toHaveValue(
+        "AI/ML Engineer building intelligent systems"
+      );
     });
   });
 
-  describe('Form interactions', () => {
-    it('should call setWelcomeData when featured title changes', () => {
+  describe("Form interactions", () => {
+    it("should call setWelcomeData when featured title changes", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -121,17 +123,17 @@ describe('WelcomeTab', () => {
         />
       );
 
-      fireEvent.change(screen.getByTestId('input-featured-title'), {
-        target: { value: 'New Title' },
+      fireEvent.change(screen.getByTestId("input-featured-title"), {
+        target: { value: "New Title" },
       });
 
       expect(mockSetWelcomeData).toHaveBeenCalledWith({
         ...mockWelcomeData,
-        name: 'New Title',
+        name: "New Title",
       });
     });
 
-    it('should call setWelcomeData when tagline changes', () => {
+    it("should call setWelcomeData when tagline changes", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -141,17 +143,17 @@ describe('WelcomeTab', () => {
         />
       );
 
-      fireEvent.change(screen.getByTestId('input-tagline-/-role'), {
-        target: { value: 'New Tagline' },
+      fireEvent.change(screen.getByTestId("input-tagline-/-role"), {
+        target: { value: "New Tagline" },
       });
 
       expect(mockSetWelcomeData).toHaveBeenCalledWith({
         ...mockWelcomeData,
-        callToAction: 'New Tagline',
+        callToAction: "New Tagline",
       });
     });
 
-    it('should call setWelcomeData when bio changes', () => {
+    it("should call setWelcomeData when bio changes", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -161,19 +163,19 @@ describe('WelcomeTab', () => {
         />
       );
 
-      fireEvent.change(screen.getByTestId('input-brief-bio'), {
-        target: { value: 'New Bio' },
+      fireEvent.change(screen.getByTestId("input-brief-bio"), {
+        target: { value: "New Bio" },
       });
 
       expect(mockSetWelcomeData).toHaveBeenCalledWith({
         ...mockWelcomeData,
-        briefBio: 'New Bio',
+        briefBio: "New Bio",
       });
     });
   });
 
-  describe('Form submission', () => {
-    it('should call onSave when form is submitted', () => {
+  describe("Form submission", () => {
+    it("should call onSave when form is submitted", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -183,12 +185,12 @@ describe('WelcomeTab', () => {
         />
       );
 
-      fireEvent.submit(screen.getByRole('button').closest('form'));
+      fireEvent.submit(screen.getByRole("button").closest("form"));
 
       expect(mockOnSave).toHaveBeenCalled();
     });
 
-    it('should prevent default form behavior', () => {
+    it("should prevent default form behavior", () => {
       render(
         <WelcomeTab
           welcomeData={mockWelcomeData}
@@ -198,9 +200,9 @@ describe('WelcomeTab', () => {
         />
       );
 
-      const form = screen.getByRole('button').closest('form');
-      const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-      Object.defineProperty(submitEvent, 'preventDefault', { value: jest.fn() });
+      const form = screen.getByRole("button").closest("form");
+      const submitEvent = new Event("submit", { bubbles: true, cancelable: true });
+      Object.defineProperty(submitEvent, "preventDefault", { value: jest.fn() });
 
       form.dispatchEvent(submitEvent);
 
@@ -208,12 +210,12 @@ describe('WelcomeTab', () => {
     });
   });
 
-  describe('Empty state', () => {
-    it('should handle empty welcome data', () => {
+  describe("Empty state", () => {
+    it("should handle empty welcome data", () => {
       const emptyData = {
-        name: '',
-        briefBio: '',
-        callToAction: '',
+        name: "",
+        briefBio: "",
+        callToAction: "",
       };
 
       render(
@@ -225,10 +227,9 @@ describe('WelcomeTab', () => {
         />
       );
 
-      expect(screen.getByTestId('input-featured-title')).toHaveValue('');
-      expect(screen.getByTestId('input-tagline-/-role')).toHaveValue('');
-      expect(screen.getByTestId('input-brief-bio')).toHaveValue('');
+      expect(screen.getByTestId("input-featured-title")).toHaveValue("");
+      expect(screen.getByTestId("input-tagline-/-role")).toHaveValue("");
+      expect(screen.getByTestId("input-brief-bio")).toHaveValue("");
     });
   });
 });
-

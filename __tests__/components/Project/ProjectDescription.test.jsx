@@ -35,4 +35,3 @@ describe("ProjectDescription", () => {
     expect(screen.getByText(/Line 1.*with spaces/)).toBeInTheDocument();
   });
 });
-

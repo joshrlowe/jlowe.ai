@@ -8,9 +8,7 @@ dotenv.config();
 
 const prisma = new PrismaClient();
 const mongoUri =
-  process.env.MONGODB_URL ||
-  process.env.MONGODB_URI ||
-  "mongodb://localhost:27017/jloweai";
+  process.env.MONGODB_URL || process.env.MONGODB_URI || "mongodb://localhost:27017/jloweai";
 
 // Import MongoDB models
 import AboutModel from "../models/About.js";
@@ -49,9 +47,7 @@ async function testPrismaConnection() {
       await prisma.$queryRaw`SELECT 1`;
     } catch (queryError) {
       if (dbUrl.includes("accelerate.prisma-data.net")) {
-        console.log(
-          "⚠️  Raw queries not supported with Prisma Accelerate, but connection works",
-        );
+        console.log("⚠️  Raw queries not supported with Prisma Accelerate, but connection works");
       } else {
         throw queryError;
       }
@@ -61,9 +57,7 @@ async function testPrismaConnection() {
     return true;
   } catch (error) {
     console.error("❌ Prisma connection error:", error);
-    console.error(
-      "Please ensure DATABASE_URL or PRISMA_DATABASE_URL is set correctly",
-    );
+    console.error("Please ensure DATABASE_URL or PRISMA_DATABASE_URL is set correctly");
     return false;
   }
 }
@@ -203,9 +197,7 @@ async function migrateProjects() {
           description: projectData.description || null,
           repositoryLink: projectData.repositoryLink || null,
           startDate: new Date(projectData.startDate),
-          releaseDate: projectData.releaseDate
-            ? new Date(projectData.releaseDate)
-            : null,
+          releaseDate: projectData.releaseDate ? new Date(projectData.releaseDate) : null,
           status: mappedStatus,
           techStack: cleanedTechStack,
           teamMembers: {
@@ -218,13 +210,11 @@ async function migrateProjects() {
       });
 
       console.log(
-        `  ✓ Migrated project: ${projectData.title}${mappedStatus ? ` (status: ${mappedStatus})` : ""}`,
+        `  ✓ Migrated project: ${projectData.title}${mappedStatus ? ` (status: ${mappedStatus})` : ""}`
       );
     }
 
-    console.log(
-      `✅ Projects data migrated successfully (${projects.length} projects)`,
-    );
+    console.log(`✅ Projects data migrated successfully (${projects.length} projects)`);
   } catch (error) {
     console.error("❌ Error migrating Projects data:", error);
     throw error;
@@ -242,9 +232,7 @@ async function migrateResources() {
     }
 
     // Import reading time calculator
-    const { calculateReadingTime } = await import(
-      "../lib/utils/readingTime.js"
-    );
+    const { calculateReadingTime } = await import("../lib/utils/readingTime.js");
 
     // Delete existing posts that might have been migrated before
     // (This is optional - you might want to skip this if you have existing posts)
@@ -283,21 +271,14 @@ async function migrateResources() {
       } catch (createError) {
         // Skip duplicates (if slug already exists)
         if (createError.code === "P2002") {
-          console.log(
-            `  ⚠️  Skipped duplicate: ${resourceData.title} (slug already exists)`,
-          );
+          console.log(`  ⚠️  Skipped duplicate: ${resourceData.title} (slug already exists)`);
         } else {
-          console.error(
-            `  ❌ Error migrating resource: ${resourceData.title}`,
-            createError,
-          );
+          console.error(`  ❌ Error migrating resource: ${resourceData.title}`, createError);
         }
       }
     }
 
-    console.log(
-      `✅ Resources data migrated successfully (${resources.length} resources)`,
-    );
+    console.log(`✅ Resources data migrated successfully (${resources.length} resources)`);
   } catch (error) {
     console.error("❌ Error migrating Resources data:", error);
     throw error;

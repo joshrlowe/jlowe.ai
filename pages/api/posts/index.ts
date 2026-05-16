@@ -8,25 +8,22 @@ import {
   buildOrderBy,
   formatPaginatedResponse,
 } from "../../../lib/utils/apiHelpers";
-import {
-  buildPostWhereClause,
-  buildPostQuery,
-} from "../../../lib/utils/queryBuilders";
+import { buildPostWhereClause, buildPostQuery } from "../../../lib/utils/queryBuilders";
 import { validateRequiredFields } from "../../../lib/utils/validators";
 
 const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const {
-      topic,
-      status = "Published",
-      search,
-      tags,
-    } = req.query;
+    const { topic, status = "Published", search, tags } = req.query;
 
     const { limit, offset } = parsePagination(req.query);
     const { sortBy, sortOrder } = parseSort(req.query, "datePublished", "desc");
 
-    const where = buildPostWhereClause({ status: status as string, topic: topic as string, search: search as string, tags: tags as string });
+    const where = buildPostWhereClause({
+      status: status as string,
+      topic: topic as string,
+      search: search as string,
+      tags: tags as string,
+    });
     const orderBy = buildOrderBy(sortBy, sortOrder, {
       datePublished: "datePublished",
       createdAt: "createdAt",
@@ -85,9 +82,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let readingTime = null;
     if (content) {
-      const { calculateReadingTime } = await import(
-        "../../../lib/utils/readingTime"
-      );
+      const { calculateReadingTime } = await import("../../../lib/utils/readingTime");
       readingTime = calculateReadingTime(content);
     }
 

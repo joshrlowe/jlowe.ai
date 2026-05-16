@@ -29,73 +29,55 @@ describe("Education", () => {
   });
 
   it("renders education degree", () => {
-    const education = [
-      { degree: "Bachelor of Science in Computer Science" },
-    ];
+    const education = [{ degree: "Bachelor of Science in Computer Science" }];
     render(<Education education={education} />);
     expect(screen.getByText("Bachelor of Science in Computer Science")).toBeInTheDocument();
   });
 
   it("renders institution name", () => {
-    const education = [
-      { degree: "BS", institution: "MIT" },
-    ];
+    const education = [{ degree: "BS", institution: "MIT" }];
     render(<Education education={education} />);
     expect(screen.getByText("MIT")).toBeInTheDocument();
   });
 
   it("renders school when institution is not available", () => {
-    const education = [
-      { degree: "BS", school: "Stanford University" },
-    ];
+    const education = [{ degree: "BS", school: "Stanford University" }];
     render(<Education education={education} />);
     expect(screen.getByText("Stanford University")).toBeInTheDocument();
   });
 
   it("renders graduation year", () => {
-    const education = [
-      { degree: "BS", graduationYear: "2024" },
-    ];
+    const education = [{ degree: "BS", graduationYear: "2024" }];
     render(<Education education={education} />);
     expect(screen.getByText("2024")).toBeInTheDocument();
   });
 
   it("renders year when graduationYear is not available", () => {
-    const education = [
-      { degree: "BS", year: "2023" },
-    ];
+    const education = [{ degree: "BS", year: "2023" }];
     render(<Education education={education} />);
     expect(screen.getByText("2023")).toBeInTheDocument();
   });
 
   it("renders date range with startYear and endYear", () => {
-    const education = [
-      { degree: "BS", startYear: "2020", endYear: "2024" },
-    ];
+    const education = [{ degree: "BS", startYear: "2020", endYear: "2024" }];
     render(<Education education={education} />);
     expect(screen.getByText("2020 — 2024")).toBeInTheDocument();
   });
 
   it("renders Present for ongoing education without endYear", () => {
-    const education = [
-      { degree: "MS", startYear: "2023" },
-    ];
+    const education = [{ degree: "MS", startYear: "2023" }];
     render(<Education education={education} />);
     expect(screen.getByText("2023 — Present")).toBeInTheDocument();
   });
 
   it("formats ISO date to month year", () => {
-    const education = [
-      { degree: "BS", startDate: "2020-09-01", endDate: "2024-05-15" },
-    ];
+    const education = [{ degree: "BS", startDate: "2020-09-01", endDate: "2024-05-15" }];
     render(<Education education={education} />);
     expect(screen.getByText("Sep 2020 — May 2024")).toBeInTheDocument();
   });
 
   it("shows Present for ongoing education", () => {
-    const education = [
-      { degree: "MS", startDate: "2023-09", isOngoing: true },
-    ];
+    const education = [{ degree: "MS", startDate: "2023-09", isOngoing: true }];
     render(<Education education={education} />);
     expect(screen.getByText(/Present/)).toBeInTheDocument();
   });
@@ -121,30 +103,22 @@ describe("Education", () => {
   });
 
   it("renders gpa when provided", () => {
-    const education = [
-      { degree: "BS", gpa: "3.9" },
-    ];
+    const education = [{ degree: "BS", gpa: "3.9" }];
     render(<Education education={education} />);
     expect(screen.getByText(/3.9/)).toBeInTheDocument();
   });
 
   it("renders field of study", () => {
-    const education = [
-      { degree: "Bachelor of Science", fieldOfStudy: "Computer Science" },
-    ];
+    const education = [{ degree: "Bachelor of Science", fieldOfStudy: "Computer Science" }];
     render(<Education education={education} />);
     // Component combines degree and fieldOfStudy: "Bachelor of Science in Computer Science"
     expect(screen.getByText("Bachelor of Science in Computer Science")).toBeInTheDocument();
   });
 
   it("has test IDs for education entries", () => {
-    const education = [
-      { degree: "BS" },
-      { degree: "MS" },
-    ];
+    const education = [{ degree: "BS" }, { degree: "MS" }];
     render(<Education education={education} />);
     expect(screen.getByTestId("education-entry-0")).toBeInTheDocument();
     expect(screen.getByTestId("education-entry-1")).toBeInTheDocument();
   });
 });
-

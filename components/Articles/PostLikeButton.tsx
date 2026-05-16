@@ -19,9 +19,7 @@ export default function PostLikeButton({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const likedPosts: string[] = JSON.parse(
-      localStorage.getItem("likedPosts") || "[]",
-    );
+    const likedPosts: string[] = JSON.parse(localStorage.getItem("likedPosts") || "[]");
     if (likedPosts.includes(postId)) {
       setHasLiked(true);
       return;
@@ -33,9 +31,7 @@ export default function PostLikeButton({
         .then((data) => {
           if (data.liked) {
             setHasLiked(true);
-            const stored: string[] = JSON.parse(
-              localStorage.getItem("likedPosts") || "[]",
-            );
+            const stored: string[] = JSON.parse(localStorage.getItem("likedPosts") || "[]");
             if (!stored.includes(postId)) {
               stored.push(postId);
               localStorage.setItem("likedPosts", JSON.stringify(stored));
@@ -62,7 +58,7 @@ export default function PostLikeButton({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
 
       if (response.ok) {
@@ -72,9 +68,7 @@ export default function PostLikeButton({
 
         trackArticleLike(postId, `${topic}/${slug}`);
 
-        const likedPosts: string[] = JSON.parse(
-          localStorage.getItem("likedPosts") || "[]",
-        );
+        const likedPosts: string[] = JSON.parse(localStorage.getItem("likedPosts") || "[]");
         likedPosts.push(postId);
         localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
       }

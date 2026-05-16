@@ -47,11 +47,7 @@ export default function AdminDashboard() {
       const published = projects.filter((p) => p.status === "Published").length;
       const drafts = projects.filter((p) => p.status === "Draft").length;
       const recent = projects
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() -
-            new Date(a.updatedAt).getTime(),
-        )
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
         .slice(0, 5)
         .map<ActivityRow>((p) => ({
           type: "project",
@@ -109,12 +105,8 @@ export default function AdminDashboard() {
               key={index}
               className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]"
             >
-              <div className="text-sm text-[var(--color-text-muted)] mb-1">
-                {stat.label}
-              </div>
-              <div className={`text-3xl font-bold ${stat.color}`}>
-                {stat.value}
-              </div>
+              <div className="text-sm text-[var(--color-text-muted)] mb-1">{stat.label}</div>
+              <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
             </div>
           ))}
         </div>

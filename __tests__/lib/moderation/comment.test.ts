@@ -39,7 +39,7 @@ describe("scoreComment", () => {
         offTopic: 0.3,
         pii: 0.0,
         summary: "Looks fine.",
-      }),
+      })
     );
 
     const scores = await scoreComment(baseInput, { invoke });
@@ -62,7 +62,7 @@ describe("scoreComment", () => {
         offTopic: 0,
         pii: 0,
         summary: "x",
-      }),
+      })
     );
 
     await expect(scoreComment(baseInput, { invoke })).rejects.toMatchObject({
@@ -72,9 +72,7 @@ describe("scoreComment", () => {
   });
 
   it("throws ModerationError('malformed_response') when the response shape is wrong", async () => {
-    const invoke = jest.fn().mockResolvedValue(
-      validToolResult({ random: "garbage" }),
-    );
+    const invoke = jest.fn().mockResolvedValue(validToolResult({ random: "garbage" }));
 
     await expect(scoreComment(baseInput, { invoke })).rejects.toMatchObject({
       kind: "malformed_response",
@@ -92,7 +90,7 @@ describe("scoreComment", () => {
   it("throws ModerationError('timeout') when the invoke promise hangs past the deadline", async () => {
     jest.useFakeTimers();
     const invoke = jest.fn(
-      () => new Promise(() => undefined), // never resolves
+      () => new Promise(() => undefined) // never resolves
     );
 
     const promise = scoreComment(baseInput, { invoke, timeoutMs: 50 });
@@ -118,7 +116,7 @@ describe("scoreComment", () => {
         offTopic: 0,
         pii: 0,
         summary: "ok",
-      }),
+      })
     );
 
     await scoreComment(baseInput, { invoke });
@@ -135,7 +133,7 @@ describe("scoreComment", () => {
         offTopic: 0,
         pii: 0,
         summary: "ok",
-      }),
+      })
     );
 
     await scoreComment(baseInput, { invoke });

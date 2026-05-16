@@ -5,13 +5,15 @@ import bcrypt from "bcryptjs";
 import prisma from "../../../lib/prisma";
 
 // Handle next-auth ESM/CJS interop - webpack bundling may export as { default: fn }
-const NextAuth = typeof NextAuthModule === "function"
-  ? NextAuthModule
-  : (NextAuthModule as unknown as { default: typeof NextAuthModule }).default;
+const NextAuth =
+  typeof NextAuthModule === "function"
+    ? NextAuthModule
+    : (NextAuthModule as unknown as { default: typeof NextAuthModule }).default;
 
-const CredentialsProvider = typeof CredentialsModule === "function"
-  ? CredentialsModule
-  : (CredentialsModule as unknown as { default: typeof CredentialsModule }).default;
+const CredentialsProvider =
+  typeof CredentialsModule === "function"
+    ? CredentialsModule
+    : (CredentialsModule as unknown as { default: typeof CredentialsModule }).default;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -39,10 +41,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Invalid email or password");
           }
 
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.passwordHash
-          );
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
           if (!isPasswordValid) {
             console.log("[Auth] Invalid password for:", credentials.email);

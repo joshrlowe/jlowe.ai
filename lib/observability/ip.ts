@@ -8,11 +8,7 @@ export function getClientIp(req: NextApiRequest): string {
   if (typeof forwarded === "string") {
     return forwarded.split(",")[0]?.trim() || "unknown";
   }
-  return (
-    (req.headers["x-real-ip"] as string) ||
-    req.socket?.remoteAddress ||
-    "unknown"
-  );
+  return (req.headers["x-real-ip"] as string) || req.socket?.remoteAddress || "unknown";
 }
 
 /**

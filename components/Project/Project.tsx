@@ -30,7 +30,7 @@ export default function Project({ project, fadeIn }: ProjectProps) {
           x: 0,
           duration: 0.5,
           ease: "power2.out",
-        },
+        }
       );
     } else if (!fadeIn && projectRef.current) {
       gsap.to(projectRef.current, {
@@ -47,10 +47,7 @@ export default function Project({ project, fadeIn }: ProjectProps) {
       className={`card ${styles.lightGrayBg} p-3`}
       style={{ willChange: "opacity, transform" }}
     >
-      <ProjectHeader
-        title={project.title}
-        repositoryLink={project.repositoryLink ?? undefined}
-      />
+      <ProjectHeader title={project.title} repositoryLink={project.repositoryLink ?? undefined} />
       <hr />
       <ProjectDescription description={project.description ?? ""} />
       <hr />

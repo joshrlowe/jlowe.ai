@@ -74,11 +74,10 @@ describe("Hobbies", () => {
       { name: "Photography", icon: "📷" },
     ];
     render(<Hobbies hobbies={hobbies} />);
-    
+
     expect(screen.getByText("Reading")).toBeInTheDocument();
     expect(screen.getByText("Gaming")).toBeInTheDocument();
     expect(screen.getByText("Hiking")).toBeInTheDocument();
     expect(screen.getByText("Photography")).toBeInTheDocument();
   });
 });
-

@@ -42,12 +42,7 @@ interface AboutPageProps {
   ownerName: string | null;
 }
 
-const AboutPage = ({
-  aboutData,
-  welcomeData,
-  contactData,
-  ownerName,
-}: AboutPageProps) => {
+const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }: AboutPageProps) => {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [activeSection, setActiveSection] = useState("");
 
@@ -61,7 +56,7 @@ const AboutPage = ({
     elements.forEach((element, index) => {
       // Set initial state for smooth animation
       gsap.set(element, { opacity: 0, y: 20 });
-      
+
       gsap.to(element, {
         opacity: 1,
         y: 0,
@@ -86,7 +81,7 @@ const AboutPage = ({
           }
         });
       },
-      { threshold: 0.3, rootMargin: "-100px 0px -66% 0px" },
+      { threshold: 0.3, rootMargin: "-100px 0px -66% 0px" }
     );
 
     sections.forEach((section) => observer.observe(section));
@@ -99,9 +94,7 @@ const AboutPage = ({
   const serializedData = aboutData || {};
 
   const summaryText = serializedData?.professionalSummary
-    ? serializedData.professionalSummary
-        .replace(/<[^>]*>/g, "")
-        .substring(0, 160)
+    ? serializedData.professionalSummary.replace(/<[^>]*>/g, "").substring(0, 160)
     : "Full stack developer with extensive experience in modern web technologies";
 
   // Show empty state when no about data is available
@@ -117,9 +110,7 @@ const AboutPage = ({
         <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="container mx-auto max-w-7xl">
             <div className="text-center py-16">
-              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">
-                About Me
-              </h1>
+              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">About Me</h1>
               <p className="text-[var(--color-text-secondary)] mb-8">
                 Content is currently being updated. Please check back soon.
               </p>
@@ -155,9 +146,7 @@ const AboutPage = ({
                   name={ownerName || undefined}
                   briefBio={welcomeData?.briefBio || undefined}
                   contactData={contactData}
-                  professionalSummary={
-                    serializedData?.professionalSummary || ""
-                  }
+                  professionalSummary={serializedData?.professionalSummary || ""}
                 />
               </section>
 
@@ -172,10 +161,7 @@ const AboutPage = ({
               {serializedData?.technicalSkills &&
                 Array.isArray(serializedData.technicalSkills) &&
                 serializedData.technicalSkills.length > 0 && (
-                  <section
-                    id="section-skills"
-                    className="fade-in-on-scroll mb-12"
-                  >
+                  <section id="section-skills" className="fade-in-on-scroll mb-12">
                     <TechnicalSkills skills={serializedData.technicalSkills} />
                   </section>
                 )}
@@ -184,13 +170,8 @@ const AboutPage = ({
               {serializedData?.professionalExperience &&
                 Array.isArray(serializedData.professionalExperience) &&
                 serializedData.professionalExperience.length > 0 && (
-                  <section
-                    id="section-experience"
-                    className="fade-in-on-scroll mb-12"
-                  >
-                    <ProfessionalExperience
-                      experience={serializedData.professionalExperience}
-                    />
+                  <section id="section-experience" className="fade-in-on-scroll mb-12">
+                    <ProfessionalExperience experience={serializedData.professionalExperience} />
                   </section>
                 )}
 
@@ -198,10 +179,7 @@ const AboutPage = ({
               {serializedData?.education &&
                 Array.isArray(serializedData.education) &&
                 serializedData.education.length > 0 && (
-                  <section
-                    id="section-education"
-                    className="fade-in-on-scroll mb-12"
-                  >
+                  <section id="section-education" className="fade-in-on-scroll mb-12">
                     <Education education={serializedData.education} />
                   </section>
                 )}
@@ -210,10 +188,7 @@ const AboutPage = ({
               {serializedData?.technicalCertifications &&
                 Array.isArray(serializedData.technicalCertifications) &&
                 serializedData.technicalCertifications.length > 0 && (
-                  <section
-                    id="section-certifications"
-                    className="fade-in-on-scroll mb-12"
-                  >
+                  <section id="section-certifications" className="fade-in-on-scroll mb-12">
                     <TechnicalCertifications
                       certifications={serializedData.technicalCertifications}
                     />
@@ -224,10 +199,7 @@ const AboutPage = ({
               {serializedData?.leadershipExperience &&
                 Array.isArray(serializedData.leadershipExperience) &&
                 serializedData.leadershipExperience.length > 0 && (
-                  <section
-                    id="section-leadership"
-                    className="fade-in-on-scroll mb-12"
-                  >
+                  <section id="section-leadership" className="fade-in-on-scroll mb-12">
                     <LeadershipExperience
                       experience={serializedData.leadershipExperience}
                       subtitle={serializedData.leadershipSubtitle || ""}
@@ -239,13 +211,8 @@ const AboutPage = ({
               {serializedData?.professionalDevelopment &&
                 Array.isArray(serializedData.professionalDevelopment) &&
                 serializedData.professionalDevelopment.length > 0 && (
-                  <section
-                    id="section-development"
-                    className="fade-in-on-scroll mb-12"
-                  >
-                    <ProfessionalDevelopment
-                      development={serializedData.professionalDevelopment}
-                    />
+                  <section id="section-development" className="fade-in-on-scroll mb-12">
+                    <ProfessionalDevelopment development={serializedData.professionalDevelopment} />
                   </section>
                 )}
 
@@ -253,10 +220,7 @@ const AboutPage = ({
               {serializedData?.hobbies &&
                 Array.isArray(serializedData.hobbies) &&
                 serializedData.hobbies.length > 0 && (
-                  <section
-                    id="section-hobbies"
-                    className="fade-in-on-scroll mb-12"
-                  >
+                  <section id="section-hobbies" className="fade-in-on-scroll mb-12">
                     <Hobbies hobbies={serializedData.hobbies} />
                   </section>
                 )}
@@ -324,9 +288,10 @@ export const getStaticProps: GetStaticProps<AboutPageProps> = async () => {
     return {
       props: {
         aboutData: serializedAboutData as unknown as AboutData | null,
-        welcomeData: serializedWelcomeData as unknown as
-          | { name?: string; briefBio?: string }
-          | null,
+        welcomeData: serializedWelcomeData as unknown as {
+          name?: string;
+          briefBio?: string;
+        } | null,
         contactData: serializedContactData,
         ownerName,
       },

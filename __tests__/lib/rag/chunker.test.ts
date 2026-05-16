@@ -4,8 +4,11 @@ const longBody = (paras: number, sentencesPer: number) =>
   Array.from({ length: paras })
     .map((_, p) =>
       Array.from({ length: sentencesPer })
-        .map((_, s) => `Paragraph ${p + 1} sentence ${s + 1} with enough words to feel like real content.`)
-        .join(" "),
+        .map(
+          (_, s) =>
+            `Paragraph ${p + 1} sentence ${s + 1} with enough words to feel like real content.`
+        )
+        .join(" ")
     )
     .join("\n\n");
 
@@ -27,8 +30,7 @@ describe("chunkMarkdown", () => {
   });
 
   it("truncates deeper levels on a new same-or-higher heading", () => {
-    const md =
-      `# A\n\n## B\n\n${longBody(3, 5)}\n\n# C\n\n${longBody(3, 5)}`;
+    const md = `# A\n\n## B\n\n${longBody(3, 5)}\n\n# C\n\n${longBody(3, 5)}`;
     const chunks = chunkMarkdown(md);
     const aChunk = chunks.find((c) => c.headingPath[0] === "A");
     const cChunk = chunks.find((c) => c.headingPath[0] === "C");

@@ -33,9 +33,7 @@ export default function TableOfContents({ activeSection }: TableOfContentsProps)
 
   return (
     <nav className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
-      <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-        Contents
-      </h3>
+      <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Contents</h3>
       <ul className="space-y-2">
         {sections.map((section) => (
           <li key={section.id}>

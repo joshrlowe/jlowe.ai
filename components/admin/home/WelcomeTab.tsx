@@ -32,7 +32,8 @@ export default function WelcomeTab({
           placeholder="e.g., MSCS Student @ UCF"
         />
         <p className="text-xs text-[var(--color-text-muted)] mt-1">
-          Displayed prominently on the home page hero. Your actual name is set in Global Site Settings.
+          Displayed prominently on the home page hero. Your actual name is set in Global Site
+          Settings.
         </p>
       </div>
 
@@ -54,11 +55,7 @@ export default function WelcomeTab({
         rows={4}
       />
 
-      <button
-        type="submit"
-        disabled={saving}
-        className={adminStyles.buttonPrimary}
-      >
+      <button type="submit" disabled={saving} className={adminStyles.buttonPrimary}>
         {saving ? "Saving..." : "Save Welcome Info"}
       </button>
     </form>

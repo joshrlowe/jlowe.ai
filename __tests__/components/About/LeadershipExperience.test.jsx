@@ -21,8 +21,20 @@ jest.mock("@/lib/utils/dateUtils", () => ({
   formatMonthYear: (dateStr) => {
     if (!dateStr) return "Present";
     const [year, month] = dateStr.split("-");
-    const monthNames = ["January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"];
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
   },
 }));
@@ -72,15 +84,13 @@ describe("LeadershipExperience", () => {
         subtitle="Leading teams and driving organizational impact"
       />
     );
-    expect(
-      screen.getByText("Leading teams and driving organizational impact"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Leading teams and driving organizational impact")).toBeInTheDocument();
   });
 
   it("does not render subtitle when not provided", () => {
     render(<LeadershipExperience experience={mockExperience} />);
     expect(
-      screen.queryByText("Leading teams and driving organizational impact"),
+      screen.queryByText("Leading teams and driving organizational impact")
     ).not.toBeInTheDocument();
   });
 
@@ -124,7 +134,9 @@ describe("LeadershipExperience", () => {
   });
 
   it("renders with position field as fallback", () => {
-    const experience = [{ position: "Director", organization: "Org", description: "Leadership role" }];
+    const experience = [
+      { position: "Director", organization: "Org", description: "Leadership role" },
+    ];
     render(<LeadershipExperience experience={experience} />);
     expect(screen.getByText("Director")).toBeInTheDocument();
   });
@@ -151,7 +163,7 @@ describe("LeadershipExperience", () => {
         startDate: "2020-01-01",
       },
     ];
-    
+
     render(<LeadershipExperience experience={experienceWithoutDescription} />);
     expect(screen.queryByTestId("mock-markdown-content")).not.toBeInTheDocument();
   });

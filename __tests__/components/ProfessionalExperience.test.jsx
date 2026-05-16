@@ -73,14 +73,14 @@ describe("ProfessionalExperience", () => {
   describe("display order", () => {
     it("should display Role/Title first in each entry", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const entry0 = screen.getByTestId("experience-entry-0");
       const role = screen.getByTestId("experience-role-0");
-      
+
       // Role should be an h3 element
       expect(role.tagName).toBe("H3");
       expect(role).toHaveTextContent("Senior Software Engineer");
-      
+
       // Role should appear before company in DOM order
       const company = screen.getByTestId("experience-company-0");
       expect(entry0.innerHTML.indexOf("Senior Software Engineer")).toBeLessThan(
@@ -90,7 +90,7 @@ describe("ProfessionalExperience", () => {
 
     it("should display Organization/Company after Role/Title", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const company = screen.getByTestId("experience-company-0");
       expect(company.tagName).toBe("P");
       expect(company).toHaveTextContent("Tech Corp");
@@ -98,10 +98,10 @@ describe("ProfessionalExperience", () => {
 
     it("should display Timeline after Organization/Company", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const entry0 = screen.getByTestId("experience-entry-0");
       const timeline = screen.getByTestId("experience-timeline-0");
-      
+
       expect(timeline).toBeInTheDocument();
       // Timeline should appear after company
       expect(entry0.innerHTML.indexOf("Tech Corp")).toBeLessThan(
@@ -111,10 +111,10 @@ describe("ProfessionalExperience", () => {
 
     it("should display Description after Timeline", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const entry0 = screen.getByTestId("experience-entry-0");
       const description = screen.getByTestId("experience-description-0");
-      
+
       expect(description).toBeInTheDocument();
       // Description should appear after timeline
       expect(entry0.innerHTML.indexOf("Present")).toBeLessThan(
@@ -124,15 +124,15 @@ describe("ProfessionalExperience", () => {
 
     it("should have correct order: Role → Company → Timeline → Description", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const entry0 = screen.getByTestId("experience-entry-0");
       const html = entry0.innerHTML;
-      
+
       const roleIndex = html.indexOf("Senior Software Engineer");
       const companyIndex = html.indexOf("Tech Corp");
       const timelineIndex = html.indexOf("Present");
       const descriptionIndex = html.indexOf("core platform features");
-      
+
       expect(roleIndex).toBeLessThan(companyIndex);
       expect(companyIndex).toBeLessThan(timelineIndex);
       expect(timelineIndex).toBeLessThan(descriptionIndex);
@@ -142,7 +142,7 @@ describe("ProfessionalExperience", () => {
   describe("styling", () => {
     it("should render Role/Title as h3 with bold styling", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const role = screen.getByTestId("experience-role-0");
       expect(role.tagName).toBe("H3");
       expect(role.className).toContain("font-bold");
@@ -151,10 +151,10 @@ describe("ProfessionalExperience", () => {
 
     it("should render Company with smaller styling than Role", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const role = screen.getByTestId("experience-role-0");
       const company = screen.getByTestId("experience-company-0");
-      
+
       // Role is text-xl, Company is text-base (smaller)
       expect(role.className).toContain("text-xl");
       expect(company.className).toContain("text-base");
@@ -162,7 +162,7 @@ describe("ProfessionalExperience", () => {
 
     it("should render Timeline with muted styling", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const timeline = screen.getByTestId("experience-timeline-0");
       expect(timeline.className).toContain("text-sm");
       expect(timeline.className).toContain("text-[var(--color-text-muted)]");
@@ -172,7 +172,7 @@ describe("ProfessionalExperience", () => {
   describe("markdown rendering", () => {
     it("should render description using MarkdownContent component", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const descriptionWrapper = screen.getByTestId("experience-description-0");
       // The mocked MarkdownContent should be inside
       const markdownContent = descriptionWrapper.querySelector("[data-variant='compact']");
@@ -181,14 +181,14 @@ describe("ProfessionalExperience", () => {
 
     it("should pass description content to MarkdownContent", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const description = screen.getByTestId("experience-description-0");
       expect(description).toHaveTextContent("Led development of **core platform features**");
     });
 
     it("should use compact variant for description markdown", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const descriptionWrapper = screen.getByTestId("experience-description-0");
       const markdownContent = descriptionWrapper.querySelector("[data-variant='compact']");
       expect(markdownContent).toHaveAttribute("data-variant", "compact");
@@ -205,28 +205,28 @@ describe("ProfessionalExperience", () => {
           endDate: "2021-01-01",
         },
       ];
-      
+
       render(<ProfessionalExperience experience={experienceWithoutDescription} />);
       expect(screen.queryByTestId("experience-description-0")).not.toBeInTheDocument();
     });
 
     it("should display 'Present' for ongoing positions", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const timeline0 = screen.getByTestId("experience-timeline-0");
       expect(timeline0).toHaveTextContent("Present");
     });
 
     it("should display end date for completed positions", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const timeline1 = screen.getByTestId("experience-timeline-1");
       expect(timeline1).toHaveTextContent("Dec 2021");
     });
 
     it("should display location when provided", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       const timeline0 = screen.getByTestId("experience-timeline-0");
       expect(timeline0).toHaveTextContent("San Francisco, CA");
     });
@@ -235,7 +235,7 @@ describe("ProfessionalExperience", () => {
   describe("date formatting", () => {
     it("should format ISO dates to readable format", () => {
       render(<ProfessionalExperience experience={mockExperience} />);
-      
+
       // 2022-01-01 should become "Jan 2022"
       const timeline0 = screen.getByTestId("experience-timeline-0");
       expect(timeline0).toHaveTextContent("Jan 2022");
@@ -250,7 +250,7 @@ describe("ProfessionalExperience", () => {
           endDate: "Dec 2021",
         },
       ];
-      
+
       render(<ProfessionalExperience experience={experienceWithFormattedDates} />);
       const timeline = screen.getByTestId("experience-timeline-0");
       expect(timeline).toHaveTextContent("Jan 2020");
@@ -267,7 +267,7 @@ describe("ProfessionalExperience", () => {
           startDate: "2020-01-01",
         },
       ];
-      
+
       render(<ProfessionalExperience experience={experienceWithTitle} />);
       expect(screen.getByTestId("experience-role-0")).toHaveTextContent("Lead Developer");
     });
@@ -280,7 +280,7 @@ describe("ProfessionalExperience", () => {
           startDate: "2020-01-01",
         },
       ];
-      
+
       render(<ProfessionalExperience experience={experienceWithPosition} />);
       expect(screen.getByTestId("experience-role-0")).toHaveTextContent("Staff Engineer");
     });
@@ -293,7 +293,7 @@ describe("ProfessionalExperience", () => {
           startDate: "2020-01-01",
         },
       ];
-      
+
       render(<ProfessionalExperience experience={experienceWithOrg} />);
       expect(screen.getByTestId("experience-company-0")).toHaveTextContent("Org Name");
     });
@@ -310,17 +310,13 @@ describe("ProfessionalExperience", () => {
           description: "Built **amazing** things.",
         },
       ];
-      
-      const { container } = render(
-        <ProfessionalExperience experience={singleExperience} />
-      );
+
+      const { container } = render(<ProfessionalExperience experience={singleExperience} />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
     it("should match snapshot for multiple experience entries", () => {
-      const { container } = render(
-        <ProfessionalExperience experience={mockExperience} />
-      );
+      const { container } = render(<ProfessionalExperience experience={mockExperience} />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
@@ -332,12 +328,9 @@ describe("ProfessionalExperience", () => {
           startDate: "2020-01-01",
         },
       ];
-      
-      const { container } = render(
-        <ProfessionalExperience experience={minimalExperience} />
-      );
+
+      const { container } = render(<ProfessionalExperience experience={minimalExperience} />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 });
-

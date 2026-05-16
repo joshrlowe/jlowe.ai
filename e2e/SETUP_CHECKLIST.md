@@ -65,46 +65,58 @@ Verify these scripts exist in `package.json`:
 Run these commands to verify everything works:
 
 ### 1. List All Tests
+
 ```bash
 npx playwright test --list
 ```
+
 - [ ] Should show ~1024 tests (256 tests × 4 browsers)
 - [ ] No syntax errors
 
 ### 2. Run Basic Tests (Fast)
+
 ```bash
 npx playwright test home.spec.ts --project=chromium
 ```
+
 - [ ] Tests run successfully
 - [ ] Dev server starts automatically
 - [ ] No errors in output
 
 ### 3. Run Visual Tests (After Baselines)
+
 ```bash
 npx playwright test visual.spec.ts --project=chromium
 ```
+
 - [ ] Visual comparisons pass
 - [ ] No pixel differences (or within threshold)
 
 ### 4. Run Accessibility Tests
+
 ```bash
 npx playwright test accessibility.spec.ts --project=chromium
 ```
+
 - [ ] Axe audits pass
 - [ ] No accessibility violations
 
 ### 5. Interactive UI Mode
+
 ```bash
 npm run test:e2e:ui
 ```
+
 - [ ] Playwright UI opens
 - [ ] Can select and run individual tests
 - [ ] Can view test traces
 
 ### 6. View Test Report
+
 ```bash
 npm run test:e2e:report
 ```
+
 - [ ] HTML report opens
 - [ ] Shows test results
 - [ ] Can view screenshots and videos (on failures)
@@ -112,29 +124,38 @@ npm run test:e2e:report
 ## Troubleshooting
 
 ### Issue: Browsers not installed
+
 **Solution**: Run `npx playwright install --with-deps`
 
 ### Issue: Dev server not starting
+
 **Solution**: Manually start dev server in separate terminal: `npm run dev`
 
 ### Issue: Visual tests failing
-**Solution**: 
+
+**Solution**:
+
 1. View diffs: `npm run test:e2e:report`
 2. Update baselines if changes are intentional: `npx playwright test visual.spec.ts --update-snapshots`
 
 ### Issue: Accessibility violations
-**Solution**: 
+
+**Solution**:
+
 1. Review axe output in terminal
 2. Fix underlying issues in components
 3. Re-run tests
 
 ### Issue: Tests timing out
-**Solution**: 
+
+**Solution**:
+
 1. Increase timeout in `playwright.config.ts`
 2. Check network speed
 3. Ensure dev server is running
 
 ### Issue: Sandbox/permission errors
+
 **Solution**: Run with elevated permissions or adjust sandbox settings
 
 ## Best Practices Verification
@@ -170,6 +191,7 @@ npm run test:e2e
 ```
 
 Expected results:
+
 - [ ] All tests pass (or minimal failures)
 - [ ] No browser crashes
 - [ ] Screenshots/videos generated on failures
@@ -179,6 +201,7 @@ Expected results:
 ## Success Criteria
 
 ✅ **Setup is complete when**:
+
 1. All checkboxes above are checked
 2. Can run full test suite without errors
 3. Visual regression tests pass (after baselines set)
@@ -208,4 +231,3 @@ Expected results:
 **Date**: 2026-01-11
 **Version**: 1.0.0
 **Status**: ✅ Complete
-

@@ -35,4 +35,3 @@ describe("ProjectSkeleton", () => {
     expect(contentArea).toBeInTheDocument();
   });
 });
-

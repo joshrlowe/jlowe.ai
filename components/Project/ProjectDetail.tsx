@@ -9,12 +9,7 @@ import { parseJsonField } from "@/lib/utils/jsonUtils";
 import { formatMonthYear } from "@/lib/utils/dateUtils";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 import { ANIMATION } from "@/lib/utils/constants";
-import type {
-  ProjectImage,
-  ProjectLike,
-  ProjectLink,
-  ProjectPaper,
-} from "./types";
+import type { ProjectImage, ProjectLike, ProjectLink, ProjectPaper } from "./types";
 
 interface ProjectDetailProps {
   project: ProjectLike;
@@ -36,22 +31,26 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
       gsap.fromTo(
         headerRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT },
+        { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT }
       );
     }
     if (contentRef.current) {
       gsap.fromTo(
         contentRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, delay: 0.2, ease: ANIMATION.EASE_DEFAULT },
+        {
+          opacity: 1,
+          y: 0,
+          duration: ANIMATION.DURATION_SLOW,
+          delay: 0.2,
+          ease: ANIMATION.EASE_DEFAULT,
+        }
       );
     }
   }, []);
 
   type JsonField = string | unknown[] | Record<string, unknown> | null | undefined;
-  const images = parseJsonField(project.images as JsonField, []) as Array<
-    string | ProjectImage
-  >;
+  const images = parseJsonField(project.images as JsonField, []) as Array<string | ProjectImage>;
   const tags = parseJsonField(project.tags as JsonField, []) as string[];
   const techStack = parseJsonField(project.techStack as JsonField, []) as Array<
     string | { name?: string }
@@ -96,12 +95,8 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
           )}
 
           <div className="flex flex-col gap-1 text-sm text-[var(--color-text-muted)]">
-            {project.startDate && (
-              <span>Started: {formatMonthYear(project.startDate)}</span>
-            )}
-            {project.releaseDate && (
-              <span>Released: {formatMonthYear(project.releaseDate)}</span>
-            )}
+            {project.startDate && <span>Started: {formatMonthYear(project.startDate)}</span>}
+            {project.releaseDate && <span>Released: {formatMonthYear(project.releaseDate)}</span>}
           </div>
 
           {(links?.live || links?.github) && (
@@ -144,7 +139,12 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
                     </svg>
                     <span>{paper.title || "View Paper"}</span>
                   </a>
@@ -169,10 +169,7 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
             {images.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
                 {images.slice(1, 5).map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative h-24 rounded-lg overflow-hidden"
-                  >
+                  <div key={idx} className="relative h-24 rounded-lg overflow-hidden">
                     <Image
                       src={imageSrc(img)}
                       alt={`${project.title} screenshot ${idx + 2}`}
@@ -244,9 +241,7 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
                       </svg>
                     </span>
                     <span>
-                      {typeof feature === "string"
-                        ? feature
-                        : feature.name || feature.title || ""}
+                      {typeof feature === "string" ? feature : feature.name || feature.title || ""}
                     </span>
                   </li>
                 ))}
@@ -261,10 +256,7 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
               </h2>
               <div className="space-y-4">
                 {challenges.map((challenge, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-lg bg-[var(--color-bg-darker)]"
-                  >
+                  <div key={idx} className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
                     <p className="text-[var(--color-text-secondary)]">
                       {typeof challenge === "string"
                         ? challenge
@@ -296,10 +288,7 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {project.teamMembers.map((member, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-lg bg-[var(--color-bg-darker)] text-center"
-                  >
+                  <div key={idx} className="p-4 rounded-lg bg-[var(--color-bg-darker)] text-center">
                     <div className="text-[var(--color-text-primary)] font-medium">
                       {member.name}
                     </div>

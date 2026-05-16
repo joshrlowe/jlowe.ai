@@ -138,10 +138,7 @@ export default function ProfessionalDevelopment({
           >
             Professional Development
           </h2>
-          <p
-            className="text-sm"
-            style={{ color: "var(--color-text-muted)" }}
-          >
+          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
             Continuous growth and knowledge sharing
           </p>
         </div>
@@ -182,17 +179,11 @@ export default function ProfessionalDevelopment({
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h4
-                          className="font-medium"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
+                        <h4 className="font-medium" style={{ color: "var(--color-text-primary)" }}>
                           {item.title}
                         </h4>
                         {item.organization && (
-                          <p
-                            className="text-sm mt-1"
-                            style={{ color: config.color }}
-                          >
+                          <p className="text-sm mt-1" style={{ color: config.color }}>
                             {item.organization}
                           </p>
                         )}

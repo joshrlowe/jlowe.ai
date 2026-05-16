@@ -2,85 +2,85 @@
  * Tests for ProjectDetail component
  */
 
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import ProjectDetail from '../../../components/Project/ProjectDetail';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import ProjectDetail from "../../../components/Project/ProjectDetail";
 
 // Mock StatusBadge
-jest.mock('../../../components/Project/StatusBadge', () => {
+jest.mock("../../../components/Project/StatusBadge", () => {
   return function MockStatusBadge({ status }) {
     return <span data-testid="status-badge">{status}</span>;
   };
 });
 
-describe('ProjectDetail', () => {
+describe("ProjectDetail", () => {
   const mockProject = {
-    id: '1',
-    title: 'AI Chatbot',
-    shortDescription: 'An intelligent chatbot powered by LLMs',
-    longDescription: 'A detailed description of the chatbot project.',
-    techStack: ['Python', 'OpenAI', 'React'],
-    tags: ['AI', 'ML', 'Chatbot'],
-    startDate: '2024-01-15',
-    releaseDate: '2024-06-01',
-    status: 'Completed',
+    id: "1",
+    title: "AI Chatbot",
+    shortDescription: "An intelligent chatbot powered by LLMs",
+    longDescription: "A detailed description of the chatbot project.",
+    techStack: ["Python", "OpenAI", "React"],
+    tags: ["AI", "ML", "Chatbot"],
+    startDate: "2024-01-15",
+    releaseDate: "2024-06-01",
+    status: "Completed",
     featured: true,
     links: {
-      github: 'https://github.com/test/chatbot',
-      live: 'https://chatbot.example.com',
+      github: "https://github.com/test/chatbot",
+      live: "https://chatbot.example.com",
     },
-    images: ['/images/chatbot-1.png'],
-    features: ['Feature 1', 'Feature 2'],
-    challenges: ['Challenge 1'],
+    images: ["/images/chatbot-1.png"],
+    features: ["Feature 1", "Feature 2"],
+    challenges: ["Challenge 1"],
   };
 
-  it('should render the project title', () => {
+  it("should render the project title", () => {
     render(<ProjectDetail project={mockProject} />);
-    expect(screen.getByText('AI Chatbot')).toBeInTheDocument();
+    expect(screen.getByText("AI Chatbot")).toBeInTheDocument();
   });
 
-  it('should render the project description', () => {
+  it("should render the project description", () => {
     render(<ProjectDetail project={mockProject} />);
-    expect(screen.getByText('An intelligent chatbot powered by LLMs')).toBeInTheDocument();
+    expect(screen.getByText("An intelligent chatbot powered by LLMs")).toBeInTheDocument();
   });
 
-  it('should render tech stack items', () => {
+  it("should render tech stack items", () => {
     render(<ProjectDetail project={mockProject} />);
-    expect(screen.getByText('Python')).toBeInTheDocument();
-    expect(screen.getByText('OpenAI')).toBeInTheDocument();
-    expect(screen.getByText('React')).toBeInTheDocument();
+    expect(screen.getByText("Python")).toBeInTheDocument();
+    expect(screen.getByText("OpenAI")).toBeInTheDocument();
+    expect(screen.getByText("React")).toBeInTheDocument();
   });
 
-  it('should render status badge', () => {
+  it("should render status badge", () => {
     render(<ProjectDetail project={mockProject} />);
-    expect(screen.getByTestId('status-badge')).toHaveTextContent('Completed');
+    expect(screen.getByTestId("status-badge")).toHaveTextContent("Completed");
   });
 
-  it('should render back link to projects page', () => {
+  it("should render back link to projects page", () => {
     render(<ProjectDetail project={mockProject} />);
-    const backLink = screen.getByRole('link', { name: /back to projects/i });
-    expect(backLink).toHaveAttribute('href', '/projects');
+    const backLink = screen.getByRole("link", { name: /back to projects/i });
+    expect(backLink).toHaveAttribute("href", "/projects");
   });
 
-  it('should render project links section', () => {
+  it("should render project links section", () => {
     render(<ProjectDetail project={mockProject} />);
     // The component should render multiple links including back to projects
-    const links = screen.getAllByRole('link');
+    const links = screen.getAllByRole("link");
     expect(links.length).toBeGreaterThan(0);
   });
 
-  it('should include featured indicator for featured projects', () => {
+  it("should include featured indicator for featured projects", () => {
     render(<ProjectDetail project={mockProject} />);
     // Featured projects should have some indicator
-    expect(screen.getByText('AI Chatbot')).toBeInTheDocument();
+    expect(screen.getByText("AI Chatbot")).toBeInTheDocument();
   });
 
-  it('should handle project with minimal data', () => {
+  it("should handle project with minimal data", () => {
     const minimalProject = {
-      id: '2',
-      title: 'Minimal Project',
-      shortDescription: 'A minimal project',
-      status: 'Draft',
+      id: "2",
+      title: "Minimal Project",
+      shortDescription: "A minimal project",
+      status: "Draft",
       images: [],
       tags: [],
       techStack: [],
@@ -88,23 +88,22 @@ describe('ProjectDetail', () => {
       challenges: [],
     };
     render(<ProjectDetail project={minimalProject} />);
-    expect(screen.getByText('Minimal Project')).toBeInTheDocument();
+    expect(screen.getByText("Minimal Project")).toBeInTheDocument();
   });
 
-  it('should handle project with JSON string arrays', () => {
+  it("should handle project with JSON string arrays", () => {
     const projectWithJsonStrings = {
-      id: '3',
-      title: 'JSON Project',
-      shortDescription: 'A project with JSON strings',
-      status: 'Published',
-      images: '[]',
+      id: "3",
+      title: "JSON Project",
+      shortDescription: "A project with JSON strings",
+      status: "Published",
+      images: "[]",
       tags: '["tag1", "tag2"]',
       techStack: '["React"]',
-      features: '[]',
-      challenges: '[]',
+      features: "[]",
+      challenges: "[]",
     };
     render(<ProjectDetail project={projectWithJsonStrings} />);
-    expect(screen.getByText('JSON Project')).toBeInTheDocument();
+    expect(screen.getByText("JSON Project")).toBeInTheDocument();
   });
 });
-

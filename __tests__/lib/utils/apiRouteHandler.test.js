@@ -97,10 +97,7 @@ describe("apiRouteHandler utilities", () => {
 
     it("should return 404 when data not found", async () => {
       const findLatestFn = jest.fn().mockResolvedValue(null);
-      const handler = createGetLatestHandler(
-        findLatestFn,
-        "Custom not found message",
-      );
+      const handler = createGetLatestHandler(findLatestFn, "Custom not found message");
 
       await handler(mockReq, mockRes);
 

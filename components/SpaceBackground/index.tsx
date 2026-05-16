@@ -79,10 +79,7 @@ export default function SpaceBackground() {
   return (
     <>
       {!animationComplete && (
-        <SupernovaFlash
-          onFlash={handleFlash}
-          onComplete={handleAnimationComplete}
-        />
+        <SupernovaFlash onFlash={handleFlash} onComplete={handleAnimationComplete} />
       )}
 
       <div className="fixed inset-0 z-0">
@@ -97,17 +94,13 @@ export default function SpaceBackground() {
           style={{ background: "#000000" }}
         >
           <color attach="background" args={["#000000"]} />
-          <SpaceScene
-            triggerExplosion={triggerExplosion}
-            skipAnimation={skipAnimation}
-          />
+          <SpaceScene triggerExplosion={triggerExplosion} skipAnimation={skipAnimation} />
         </Canvas>
 
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)",
+            background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)",
           }}
         />
       </div>

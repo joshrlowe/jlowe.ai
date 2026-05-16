@@ -104,7 +104,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
         } catch (emitErr) {
           console.warn(
             "[projects/import] failed to emit project.upserted event:",
-            (emitErr as Error).message,
+            (emitErr as Error).message
           );
         }
 

@@ -12,21 +12,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../../lib/prisma";
 import { createApiHandler } from "../../../../lib/utils/apiRouteHandler";
-import {
-  withAuth,
-  getUserIdFromToken,
-} from "../../../../lib/utils/authMiddleware";
+import { withAuth, getUserIdFromToken } from "../../../../lib/utils/authMiddleware";
 import { logActivity } from "../../../../lib/utils/activityLogger";
 import type { JWT } from "next-auth/jwt";
 
 const VALID_STATUSES = ["approved", "held", "rejected"] as const;
 type ValidStatus = (typeof VALID_STATUSES)[number];
 
-const handlePatch = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-  ...args: unknown[]
-) => {
+const handlePatch = async (req: NextApiRequest, res: NextApiResponse, ...args: unknown[]) => {
   // createApiHandler forwards extra args from the wrapper; withAuth puts
   // the JWT here. Type signatures in lib/utils/apiRouteHandler keep the
   // generic `unknown[]` shape so we narrow on use.

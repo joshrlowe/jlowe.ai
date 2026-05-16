@@ -36,24 +36,28 @@ npm run test:e2e:report
 ## Test Suites
 
 ### 1. Home Page Tests (`home.spec.ts`)
+
 - Page loads successfully
 - Major sections are visible (hero, services, projects)
 - Page title and meta description
 - No console errors on load
 
 ### 2. Navigation Tests (`navigation.spec.ts`)
+
 - Desktop navigation links
 - Mobile hamburger menu functionality
 - Active link highlighting
 - External link attributes
 
 ### 3. Contact Tests (`contact.spec.ts`)
+
 - Form visibility and fields
 - Validation errors
 - Successful submission
 - Social links and responsiveness
 
 ### 4. Visual Regression Tests (`visual.spec.ts`)
+
 - Screenshot comparison at multiple viewports (desktop, tablet, mobile)
 - Major sections: hero, navigation, footer, pages
 - Interactive states (hover, focus)
@@ -61,6 +65,7 @@ npm run test:e2e:report
 - Dark mode compatibility
 
 ### 5. SEO Tests (`seo.spec.ts`)
+
 - Page titles and meta descriptions
 - Open Graph tags
 - Twitter Card tags
@@ -71,6 +76,7 @@ npm run test:e2e:report
 - Link accessibility
 
 ### 6. Accessibility Tests (`accessibility.spec.ts`)
+
 - Automated axe-core audits
 - Keyboard navigation (Tab, Shift+Tab, Enter, Space)
 - Focus visibility
@@ -82,6 +88,7 @@ npm run test:e2e:report
 - Screen reader announcements
 
 ### 7. Error Handling Tests (`errors.spec.ts`)
+
 - 404 page display and navigation
 - API failure handling
 - Console error monitoring
@@ -92,6 +99,7 @@ npm run test:e2e:report
 - Graceful degradation
 
 ### 8. Performance Tests (`performance.spec.ts`)
+
 - Page load times
 - First Contentful Paint (FCP)
 - Cumulative Layout Shift (CLS)
@@ -104,6 +112,7 @@ npm run test:e2e:report
 - Web Vitals
 
 ### 9. Deep Link Tests (`deeplinks.spec.ts`)
+
 - Direct route navigation
 - Hash link scrolling
 - Query parameter handling
@@ -139,6 +148,7 @@ npx playwright test e2e/visual.spec.ts -g "mobile" --update-snapshots
 ### Screenshot Comparison Settings
 
 Visual tests use the following thresholds:
+
 - **maxDiffPixels**: Maximum number of pixels that can differ (varies by test)
 - **threshold**: Pixel color difference threshold (0.15-0.25)
 
@@ -147,6 +157,7 @@ Adjust these values in the test files if needed for your use case.
 ## Accessibility Testing
 
 Accessibility tests use `@axe-core/playwright` to run automated audits. The tests check for:
+
 - WCAG 2.1 Level AA compliance
 - Color contrast ratios
 - ARIA attributes
@@ -157,6 +168,7 @@ Accessibility tests use `@axe-core/playwright` to run automated audits. The test
 ## Configuration
 
 Tests are configured in `playwright.config.ts`:
+
 - **Base URL**: `http://localhost:3000`
 - **Browsers**: Chromium, Firefox, WebKit, iPhone 12
 - **Screenshots**: On failure
@@ -167,6 +179,7 @@ Tests are configured in `playwright.config.ts`:
 ## CI Integration
 
 Tests are configured to run in CI environments:
+
 - Retries: 2
 - Workers: 1 (sequential)
 - Screenshots and videos on failure
@@ -205,17 +218,17 @@ Tests are configured to run in CI environments:
 Create new test files in the `e2e/` directory:
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('My Feature', () => {
+test.describe("My Feature", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/my-page');
-    await page.waitForLoadState('networkidle');
+    await page.goto("/my-page");
+    await page.waitForLoadState("networkidle");
   });
 
-  test('should do something', async ({ page }) => {
+  test("should do something", async ({ page }) => {
     // Your test logic
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator("h1")).toBeVisible();
   });
 });
 ```

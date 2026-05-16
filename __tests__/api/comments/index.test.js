@@ -108,7 +108,7 @@ describe("/api/comments", () => {
             postId: "post1",
             moderationStatus: "approved",
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(200);
     });
@@ -165,14 +165,12 @@ describe("/api/comments", () => {
             approved: true,
             moderationModel: expect.stringContaining("claude-haiku"),
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
       // Response shape: { id, createdAt } only — no leak of moderation state.
       const body = getJsonResponse(res);
-      expect(body).toEqual(
-        expect.objectContaining({ id: expect.any(String) }),
-      );
+      expect(body).toEqual(expect.objectContaining({ id: expect.any(String) }));
       expect(body.moderationStatus).toBeUndefined();
       expect(body.moderationScores).toBeUndefined();
     });
@@ -190,7 +188,7 @@ describe("/api/comments", () => {
             moderationStatus: "held",
             approved: false,
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
     });
@@ -208,15 +206,13 @@ describe("/api/comments", () => {
             moderationStatus: "rejected",
             approved: false,
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
     });
 
     it("fails open to 'held' when scoreComment throws ModerationError", async () => {
-      scoreComment.mockRejectedValue(
-        new ModerationError("timeout", "exceeded 5000ms"),
-      );
+      scoreComment.mockRejectedValue(new ModerationError("timeout", "exceeded 5000ms"));
 
       const req = createMockRequest({ method: "POST", body: baseBody });
       const res = createMockResponse();
@@ -229,7 +225,7 @@ describe("/api/comments", () => {
             approved: false,
             moderationModel: "error",
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
     });

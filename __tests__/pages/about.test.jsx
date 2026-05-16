@@ -36,9 +36,7 @@ jest.mock("@/lib/prisma");
 describe("AboutPage", () => {
   const mockAboutData = {
     professionalSummary: "Experienced full stack developer",
-    technicalSkills: [
-      { category: "Languages", skills: ["JavaScript", "Python"] },
-    ],
+    technicalSkills: [{ category: "Languages", skills: ["JavaScript", "Python"] }],
     experience: [
       {
         company: "Tech Corp",
@@ -47,12 +45,8 @@ describe("AboutPage", () => {
         endYear: "2024",
       },
     ],
-    education: [
-      { degree: "BS in CS", institution: "MIT", graduationYear: "2020" },
-    ],
-    certifications: [
-      { name: "AWS Solutions Architect" },
-    ],
+    education: [{ degree: "BS in CS", institution: "MIT", graduationYear: "2020" }],
+    certifications: [{ name: "AWS Solutions Architect" }],
     leadership: [],
     professionalDevelopment: [],
     hobbies: ["Reading", "Gaming"],
@@ -81,7 +75,7 @@ describe("AboutPage", () => {
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
         ownerName="Josh Lowe"
-      />,
+      />
     );
     expect(document.title).toContain("Josh Lowe");
   });
@@ -93,22 +87,25 @@ describe("AboutPage", () => {
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
         ownerName={null}
-      />,
+      />
     );
     expect(document.title).toContain("About Me");
   });
 
   it("renders with null props", () => {
-    render(
-      <AboutPage aboutData={null} welcomeData={null} contactData={null} ownerName={null} />,
-    );
+    render(<AboutPage aboutData={null} welcomeData={null} contactData={null} ownerName={null} />);
     // Should render without crashing
     expect(document.body).toBeInTheDocument();
   });
 
   it("renders with empty aboutData", () => {
     render(
-      <AboutPage aboutData={{}} welcomeData={mockWelcomeData} contactData={mockContactData} ownerName="Josh Lowe" />,
+      <AboutPage
+        aboutData={{}}
+        welcomeData={mockWelcomeData}
+        contactData={mockContactData}
+        ownerName="Josh Lowe"
+      />
     );
     expect(document.body).toBeInTheDocument();
   });
@@ -120,7 +117,7 @@ describe("AboutPage", () => {
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
         ownerName="Josh Lowe"
-      />,
+      />
     );
     // The summary is passed to ProfessionalSummary component
     expect(screen.getByTestId("professional-summary-content")).toBeInTheDocument();
@@ -133,7 +130,7 @@ describe("AboutPage", () => {
         welcomeData={mockWelcomeData}
         contactData={mockContactData}
         ownerName="Josh Lowe"
-      />,
+      />
     );
     // Multiple Education elements may exist (section header + table of contents link)
     const educationElements = screen.getAllByText("Education");
@@ -155,13 +152,13 @@ describe("getStaticProps", () => {
       updatedAt: new Date(),
     };
 
-    const mockWelcome = { 
-      name: "Test", 
+    const mockWelcome = {
+      name: "Test",
       tagline: "Developer",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const mockContact = { 
+    const mockContact = {
       email: "test@test.com",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -248,4 +245,3 @@ describe("getStaticProps", () => {
     expect(result.props.ownerName).toBeNull();
   });
 });
-

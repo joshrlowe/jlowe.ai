@@ -30,6 +30,7 @@ npm ci && npm run lint && npm run test:coverage
 ## 🔄 Workflow Status
 
 Check workflow runs:
+
 ```
 https://github.com/OWNER/jlowe.ai/actions
 ```
@@ -60,14 +61,16 @@ git push origin your-branch
 ## 🔒 Branch Protection
 
 **Cannot merge unless**:
+
 - ✅ All status checks pass
 - ✅ 1+ approvals
 - ✅ Conversations resolved
 - ✅ Branch up to date
 
 **Required checks**:
+
 - lint
-- unit-tests  
+- unit-tests
 - e2e-tests
 - visual-regression
 - accessibility
@@ -76,21 +79,22 @@ git push origin your-branch
 
 ## 📊 CI/CD Jobs
 
-| Job | Duration | Purpose |
-|-----|----------|---------|
-| lint | ~30s | Code quality |
-| unit-tests | ~2-3min | Jest + coverage |
-| e2e-tests | ~3-5min | Playwright (6 parallel jobs) |
-| visual-regression | ~2-3min | Screenshot comparison |
-| accessibility | ~2min | WCAG compliance |
-| performance | ~2min | Web Vitals |
-| test-summary | ~10s | Aggregate results |
+| Job               | Duration | Purpose                      |
+| ----------------- | -------- | ---------------------------- |
+| lint              | ~30s     | Code quality                 |
+| unit-tests        | ~2-3min  | Jest + coverage              |
+| e2e-tests         | ~3-5min  | Playwright (6 parallel jobs) |
+| visual-regression | ~2-3min  | Screenshot comparison        |
+| accessibility     | ~2min    | WCAG compliance              |
+| performance       | ~2min    | Web Vitals                   |
+| test-summary      | ~10s     | Aggregate results            |
 
 **Total**: ~10-15 minutes
 
 ## 🐛 Quick Fixes
 
 ### Lint Failures
+
 ```bash
 npm run lint -- --fix
 git add .
@@ -98,6 +102,7 @@ git commit -m "fix: resolve linting issues"
 ```
 
 ### Unit Test Failures
+
 ```bash
 # Run specific test
 npm test Button.test.jsx
@@ -110,6 +115,7 @@ node --inspect-brk node_modules/.bin/jest --runInBand
 ```
 
 ### E2E Test Failures
+
 ```bash
 # Run in headed mode to see what's happening
 npm run test:e2e:headed
@@ -125,6 +131,7 @@ npx playwright test visual.spec.ts --update-snapshots
 ```
 
 ### Coverage Below Threshold
+
 ```bash
 # Check which files need tests
 npm run test:coverage
@@ -136,12 +143,14 @@ npm run test:coverage
 ## 📦 Viewing Artifacts
 
 ### From GitHub UI
+
 1. Go to Actions tab
 2. Click on workflow run
 3. Scroll to "Artifacts" section
 4. Download needed artifacts
 
 ### Using GitHub CLI
+
 ```bash
 # List artifacts for a run
 gh run view RUN_ID --json artifacts
@@ -153,6 +162,7 @@ gh run download RUN_ID
 ## 🎯 Coverage Requirements
 
 **Minimum thresholds**:
+
 - Statements: 70%
 - Branches: 60%
 - Functions: 70%
@@ -163,6 +173,7 @@ gh run download RUN_ID
 ## 📸 Visual Regression
 
 ### Update Baselines
+
 ```bash
 # After intentional UI changes
 npx playwright test visual.spec.ts --update-snapshots
@@ -173,6 +184,7 @@ git commit -m "test: update visual baselines"
 ```
 
 ### Review Diffs
+
 ```bash
 # After failed visual tests
 npm run test:e2e:report
@@ -183,17 +195,20 @@ npm run test:e2e:report
 ## 🔍 Debugging CI Failures
 
 ### Step 1: Check Logs
+
 - Go to Actions → Failed run
 - Click on failed job
 - Expand failed step
 - Read error message
 
 ### Step 2: Download Artifacts
+
 - Screenshots show what the page looked like
 - Videos show user interactions
 - Reports have detailed traces
 
 ### Step 3: Reproduce Locally
+
 ```bash
 # Set CI environment variable
 CI=true npm test
@@ -203,6 +218,7 @@ npx playwright test failing-test.spec.ts --project=chromium
 ```
 
 ### Step 4: Fix and Push
+
 ```bash
 # Make fixes
 # Test locally
@@ -254,6 +270,7 @@ gh run cancel RUN_ID
 ## ⚡ Performance Tips
 
 ### Faster Local Tests
+
 ```bash
 # Run only changed tests
 npm test -- --onlyChanged
@@ -266,6 +283,7 @@ npm run test:watch
 ```
 
 ### Faster E2E Tests
+
 ```bash
 # Run single browser
 npx playwright test --project=chromium
@@ -300,4 +318,3 @@ npm run test:e2e:ui
 **Keep this card handy!** Bookmark in browser or pin in Slack.
 
 **Last Updated**: 2026-01-11
-

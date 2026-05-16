@@ -21,8 +21,20 @@ function formatDate(dateStr?: string): string | null {
 
   try {
     const [year, month] = dateStr.split("-").map(Number);
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     return `${monthNames[month - 1]} ${year}`;
   } catch {
     return dateStr;
@@ -33,9 +45,7 @@ interface ProfessionalExperienceProps {
   experience?: ExperienceEntry[];
 }
 
-export default function ProfessionalExperience({
-  experience = [],
-}: ProfessionalExperienceProps) {
+export default function ProfessionalExperience({ experience = [] }: ProfessionalExperienceProps) {
   if (!experience || experience.length === 0) return null;
 
   return (
@@ -55,11 +65,7 @@ export default function ProfessionalExperience({
             const isOngoing = job.isOngoing || !job.endDate;
 
             return (
-              <div
-                key={index}
-                className="relative pl-8"
-                data-testid={`experience-entry-${index}`}
-              >
+              <div key={index} className="relative pl-8" data-testid={`experience-entry-${index}`}>
                 <div className="absolute left-0 top-1.5 flex items-center justify-center">
                   {isOngoing ? (
                     <div className="relative">
@@ -95,10 +101,7 @@ export default function ProfessionalExperience({
 
                 {job.description && (
                   <div className="mt-3" data-testid={`experience-description-${index}`}>
-                    <MarkdownContent
-                      content={job.description}
-                      variant="compact"
-                    />
+                    <MarkdownContent content={job.description} variant="compact" />
                   </div>
                 )}
 

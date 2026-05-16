@@ -1,12 +1,6 @@
 /* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  ChangeEvent,
-  FormEvent,
-  KeyboardEvent,
-  MouseEvent,
-  useState,
-} from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent, useState } from "react";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -57,9 +51,7 @@ export default function NewArticle() {
   const [tagInput, setTagInput] = useState("");
 
   const handleChange = (
-    e: ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -76,11 +68,7 @@ export default function NewArticle() {
     }
   };
 
-  const handleAddTag = (
-    e:
-      | MouseEvent<HTMLButtonElement>
-      | KeyboardEvent<HTMLInputElement>,
-  ) => {
+  const handleAddTag = (e: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
       setFormData((prev) => ({
@@ -113,7 +101,7 @@ export default function NewArticle() {
 
       if (response.ok) {
         toast.success("Article created successfully!");
-        
+
         // Trigger revalidation if published
         if (formData.status === "Published") {
           try {
@@ -127,7 +115,7 @@ export default function NewArticle() {
             console.warn("Revalidation failed:", e);
           }
         }
-        
+
         router.push("/admin/articles");
       } else {
         toast.error(data.message || "Failed to create article");
@@ -272,9 +260,7 @@ export default function NewArticle() {
 
         {/* Content */}
         <div className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-            Content
-          </h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Content</h2>
 
           {formData.postType === "Video" ? (
             <MediaUpload
@@ -303,9 +289,7 @@ export default function NewArticle() {
 
         {/* Tags */}
         <div className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-            Tags
-          </h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Tags</h2>
 
           <div className="flex flex-wrap gap-2 mb-4">
             {formData.tags.map((tag) => (
@@ -354,9 +338,7 @@ export default function NewArticle() {
             <MediaUpload
               label="Cover Image"
               value={formData.coverImage}
-              onChange={(url) =>
-                setFormData((prev) => ({ ...prev, coverImage: url }))
-              }
+              onChange={(url) => setFormData((prev) => ({ ...prev, coverImage: url }))}
               accept="image/jpeg,image/png,image/gif,image/webp"
               type="image"
             />

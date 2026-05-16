@@ -24,7 +24,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
     }
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "video/mp4", "video/webm"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "video/mp4",
+      "video/webm",
+    ];
     if (type && !allowedTypes.includes(type as string)) {
       return res.status(400).json({ message: "Invalid file type" });
     }

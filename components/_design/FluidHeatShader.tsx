@@ -185,7 +185,7 @@ function HeatPlane({ reducedMotion, intensity }: HeatPlaneProps) {
       targetMouse.current.set(
         (e.clientX - rect.left) / rect.width,
         // Y inverted — UV.y goes bottom-to-top in our shader convention.
-        1.0 - (e.clientY - rect.top) / rect.height,
+        1.0 - (e.clientY - rect.top) / rect.height
       );
     };
     window.addEventListener("pointermove", handlePointer, { passive: true });
@@ -280,11 +280,7 @@ export default function FluidHeatShader({
   }
 
   return (
-    <div
-      className={className}
-      style={{ position: "absolute", inset: 0 }}
-      aria-hidden="true"
-    >
+    <div className={className} style={{ position: "absolute", inset: 0 }} aria-hidden="true">
       <Canvas
         dpr={dprCap}
         gl={{

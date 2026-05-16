@@ -51,9 +51,7 @@ describe("useScrollDepth", () => {
   it("should initialize with zero depth", () => {
     const articleRef = { current: document.createElement("div") };
 
-    const { result } = renderHook(() =>
-      useScrollDepth({ articleRef })
-    );
+    const { result } = renderHook(() => useScrollDepth({ articleRef }));
 
     expect(result.current.currentDepth).toBe(0);
     expect(result.current.reachedMilestones).toEqual([]);
@@ -102,9 +100,7 @@ describe("useScrollDepth", () => {
 
     // Simulate intersection
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel, isIntersecting: true }]);
     });
 
     expect(onMilestone).toHaveBeenCalledWith(25);
@@ -127,15 +123,11 @@ describe("useScrollDepth", () => {
 
     // Simulate intersection twice
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel, isIntersecting: true }]);
     });
 
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel, isIntersecting: true }]);
     });
 
     // The milestone should only be in the reached set once
@@ -147,17 +139,13 @@ describe("useScrollDepth", () => {
     const article = document.createElement("div");
     const articleRef = { current: article };
 
-    const { result } = renderHook(() =>
-      useScrollDepth({ articleRef })
-    );
+    const { result } = renderHook(() => useScrollDepth({ articleRef }));
 
     const observer = MockIntersectionObserver.instances[0];
     const sentinel50 = article.querySelector('[data-scroll-milestone="50"]');
 
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel50, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel50, isIntersecting: true }]);
     });
 
     expect(result.current.currentDepth).toBe(50);
@@ -167,24 +155,18 @@ describe("useScrollDepth", () => {
     const article = document.createElement("div");
     const articleRef = { current: article };
 
-    const { result } = renderHook(() =>
-      useScrollDepth({ articleRef })
-    );
+    const { result } = renderHook(() => useScrollDepth({ articleRef }));
 
     const observer = MockIntersectionObserver.instances[0];
     const sentinel25 = article.querySelector('[data-scroll-milestone="25"]');
     const sentinel50 = article.querySelector('[data-scroll-milestone="50"]');
 
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel25, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel25, isIntersecting: true }]);
     });
 
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel50, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel50, isIntersecting: true }]);
     });
 
     expect(result.current.reachedMilestones).toContain(25);
@@ -197,9 +179,7 @@ describe("useScrollDepth", () => {
     const article = document.createElement("div");
     const articleRef = { current: article };
 
-    const { unmount } = renderHook(() =>
-      useScrollDepth({ articleRef })
-    );
+    const { unmount } = renderHook(() => useScrollDepth({ articleRef }));
 
     expect(article.querySelectorAll("[data-scroll-milestone]").length).toBe(4);
 
@@ -211,12 +191,9 @@ describe("useScrollDepth", () => {
   it("should handle null articleRef gracefully", () => {
     const articleRef = { current: null };
 
-    const { result } = renderHook(() =>
-      useScrollDepth({ articleRef })
-    );
+    const { result } = renderHook(() => useScrollDepth({ articleRef }));
 
     expect(result.current.currentDepth).toBe(0);
     expect(result.current.reachedMilestones).toEqual([]);
   });
 });
-

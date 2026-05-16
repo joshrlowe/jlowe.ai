@@ -47,7 +47,7 @@ export const createMockRequest = (options = {}) => ({
 export const createMockResponse = () => {
   const res = {
     statusCode: 200, // Default status code
-    status: jest.fn().mockImplementation(function(code) {
+    status: jest.fn().mockImplementation(function (code) {
       this.statusCode = code;
       return this;
     }),

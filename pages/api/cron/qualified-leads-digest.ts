@@ -13,10 +13,7 @@ import { renderQualifiedLeadsDigest } from "@/lib/email/templates/qualified-lead
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-): Promise<void> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const cfg = getConfig().funnel;
   if (!cfg) {
     res.status(503).json({ error: "Funnel not configured" });

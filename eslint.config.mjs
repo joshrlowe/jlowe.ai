@@ -46,11 +46,14 @@ export default [
       "react-hooks/preserve-manual-memoization": "off",
       // Allow anonymous default exports for API routes
       "import/no-anonymous-default-export": "off",
-      "no-unused-vars": ["warn", { 
-        argsIgnorePattern: "^_",
-        varsIgnorePattern: "^_",
-        caughtErrorsIgnorePattern: "^_",
-      }],
+      "no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "no-console": "off",
     },
   },

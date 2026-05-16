@@ -81,6 +81,7 @@ Region defaults to `us-east-1` (`AWS_REGION`). AWS credentials are validated laz
 ### Chat funnel (`/api/chat`)
 
 Streaming SSE endpoint with three event types: `text` deltas, an optional `meeting_booking` event, and a final `citations` event. Pipeline per request:
+
 1. Upsert `ChatSession` keyed on `chat_session_id` cookie (HttpOnly, set by `lib/observability/session.ts`).
 2. In parallel: persist user `ChatMessageRow`, classify intent, run RAG.
 3. Build system prompt with retrieved context + numbered citations.

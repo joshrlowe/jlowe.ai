@@ -18,8 +18,7 @@ export const bookMeetingTool: ToolSpec = {
     properties: {
       topicSummary: {
         type: "string",
-        description:
-          "1–2 sentence summary of what the visitor wants to discuss. Required.",
+        description: "1–2 sentence summary of what the visitor wants to discuss. Required.",
       },
       name: {
         type: "string",

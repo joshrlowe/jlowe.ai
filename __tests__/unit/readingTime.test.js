@@ -1,54 +1,54 @@
 /**
  * Tests for readingTime utility
- * 
+ *
  * Tests reading time calculation from markdown content.
  */
 
-import { calculateReadingTime } from '@/lib/utils/readingTime';
+import { calculateReadingTime } from "@/lib/utils/readingTime";
 
-describe('readingTime', () => {
-  describe('calculateReadingTime', () => {
-    it('should calculate reading time for plain text', () => {
+describe("readingTime", () => {
+  describe("calculateReadingTime", () => {
+    it("should calculate reading time for plain text", () => {
       // 225 words = 1 minute at default 225 WPM
-      const words = Array(225).fill('word').join(' ');
+      const words = Array(225).fill("word").join(" ");
       const result = calculateReadingTime(words);
-      
+
       expect(result).toBe(1);
     });
 
-    it('should round up to next minute', () => {
+    it("should round up to next minute", () => {
       // 300 words should be 2 minutes (rounded up from 1.33)
-      const words = Array(300).fill('word').join(' ');
+      const words = Array(300).fill("word").join(" ");
       const result = calculateReadingTime(words);
-      
+
       expect(result).toBe(2);
     });
 
-    it('should return minimum of 1 minute for short content', () => {
-      const result = calculateReadingTime('Just a few words');
-      
+    it("should return minimum of 1 minute for short content", () => {
+      const result = calculateReadingTime("Just a few words");
+
       expect(result).toBe(1);
     });
 
-    it('should return minimum for empty string', () => {
-      expect(calculateReadingTime('')).toBe(1);
+    it("should return minimum for empty string", () => {
+      expect(calculateReadingTime("")).toBe(1);
     });
 
-    it('should return minimum for null', () => {
+    it("should return minimum for null", () => {
       expect(calculateReadingTime(null)).toBe(1);
     });
 
-    it('should return minimum for undefined', () => {
+    it("should return minimum for undefined", () => {
       expect(calculateReadingTime(undefined)).toBe(1);
     });
 
-    it('should return minimum for non-string input', () => {
+    it("should return minimum for non-string input", () => {
       expect(calculateReadingTime(123)).toBe(1);
       expect(calculateReadingTime({})).toBe(1);
       expect(calculateReadingTime([])).toBe(1);
     });
 
-    it('should strip markdown code blocks', () => {
+    it("should strip markdown code blocks", () => {
       const content = `
         Some text here.
         \`\`\`javascript
@@ -58,48 +58,48 @@ describe('readingTime', () => {
         More text after.
       `;
       const result = calculateReadingTime(content);
-      
+
       // Should only count the actual text, not the code
       expect(result).toBe(1);
     });
 
-    it('should strip inline code', () => {
-      const content = 'This is `inline code` in a sentence.';
+    it("should strip inline code", () => {
+      const content = "This is `inline code` in a sentence.";
       const result = calculateReadingTime(content);
-      
+
       expect(result).toBe(1);
     });
 
-    it('should extract link text from markdown links', () => {
-      const content = 'Check out [this link](https://example.com) for more info.';
+    it("should extract link text from markdown links", () => {
+      const content = "Check out [this link](https://example.com) for more info.";
       const result = calculateReadingTime(content);
-      
+
       expect(result).toBe(1);
     });
 
-    it('should strip markdown formatting characters', () => {
-      const content = '**bold** _italic_ ~~strikethrough~~ # heading';
+    it("should strip markdown formatting characters", () => {
+      const content = "**bold** _italic_ ~~strikethrough~~ # heading";
       const result = calculateReadingTime(content);
-      
+
       expect(result).toBe(1);
     });
 
-    it('should handle multiple newlines', () => {
-      const content = 'Word\n\n\n\nWord\n\n\nWord';
+    it("should handle multiple newlines", () => {
+      const content = "Word\n\n\n\nWord\n\n\nWord";
       const result = calculateReadingTime(content);
-      
+
       expect(result).toBe(1);
     });
 
-    it('should calculate correctly for long content', () => {
+    it("should calculate correctly for long content", () => {
       // 1125 words = 5 minutes at 225 WPM
-      const words = Array(1125).fill('word').join(' ');
+      const words = Array(1125).fill("word").join(" ");
       const result = calculateReadingTime(words);
-      
+
       expect(result).toBe(5);
     });
 
-    it('should handle mixed markdown content', () => {
+    it("should handle mixed markdown content", () => {
       const content = `
 # Heading
 
@@ -116,13 +116,10 @@ Here's a [link](https://example.com) and some \`inline code\`.
 - List item 2
 - List item 3
       `;
-      
+
       const result = calculateReadingTime(content);
-      
+
       expect(result).toBeGreaterThanOrEqual(1);
     });
   });
 });
-
-
-

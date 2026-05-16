@@ -119,9 +119,7 @@ export default function HomeSettingsSection({ onError }: HomeSettingsSectionProp
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={
-              activeTab === tab.key ? adminStyles.tabActive : adminStyles.tabInactive
-            }
+            className={activeTab === tab.key ? adminStyles.tabActive : adminStyles.tabInactive}
           >
             {tab.label}
           </button>

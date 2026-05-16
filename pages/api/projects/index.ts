@@ -7,10 +7,7 @@ import {
   transformProjectToApiFormat,
   transformTeamToTeamMembers,
 } from "../../../lib/utils/projectTransformer";
-import {
-  validateProjectData,
-  validateTeamMembers,
-} from "../../../lib/utils/projectValidators";
+import { validateProjectData, validateTeamMembers } from "../../../lib/utils/projectValidators";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler";
 
 const PROJECTS_LIMIT = 100;
@@ -32,32 +29,20 @@ const handleGetRequest = async (_req: NextApiRequest, res: NextApiResponse) => {
 
 const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const {
-      title,
-      team,
-      description,
-      techStack,
-      repositoryLink,
-      startDate,
-      releaseDate,
-      status,
-    } = req.body;
+    const { title, team, description, techStack, repositoryLink, startDate, releaseDate, status } =
+      req.body;
 
     const projectValidation = validateProjectData({ title, startDate });
     const teamValidation = validateTeamMembers(team);
 
     if (!projectValidation.isValid) {
-      return res
-        .status(400)
-        .json({
-          message: projectValidation.message || "Missing required fields",
-        });
+      return res.status(400).json({
+        message: projectValidation.message || "Missing required fields",
+      });
     }
 
     if (!teamValidation.isValid) {
-      return res
-        .status(400)
-        .json({ message: teamValidation.message || "Invalid team data" });
+      return res.status(400).json({ message: teamValidation.message || "Invalid team data" });
     }
 
     const mappedStatus = mapProjectStatus(status);

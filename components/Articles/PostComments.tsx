@@ -87,17 +87,13 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }: CommentItemP
     <div className={`${depth > 0 ? "ml-6 pl-4 border-l-2 border-[var(--color-border)]" : ""}`}>
       <div className="p-4 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-medium text-[var(--color-text-primary)]">
-            {comment.authorName}
-          </span>
+          <span className="font-medium text-[var(--color-text-primary)]">{comment.authorName}</span>
           <span className="text-xs text-[var(--color-text-muted)]">
             {comment.createdAt && formatCommentDate(comment.createdAt)}
           </span>
         </div>
 
-        <p className="text-[var(--color-text-secondary)] mb-3">
-          {comment.content}
-        </p>
+        <p className="text-[var(--color-text-secondary)] mb-3">{comment.content}</p>
 
         <div className="flex items-center gap-4 text-sm">
           <button
@@ -108,8 +104,18 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }: CommentItemP
                 : "text-[var(--color-text-muted)] hover:text-green-400"
             }`}
           >
-            <svg className="w-4 h-4" fill={userVote === "like" ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+            <svg
+              className="w-4 h-4"
+              fill={userVote === "like" ? "currentColor" : "none"}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+              />
             </svg>
             <span>{likes}</span>
           </button>
@@ -122,8 +128,18 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }: CommentItemP
                 : "text-[var(--color-text-muted)] hover:text-red-400"
             }`}
           >
-            <svg className="w-4 h-4" fill={userVote === "dislike" ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+            <svg
+              className="w-4 h-4"
+              fill={userVote === "dislike" ? "currentColor" : "none"}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
+              />
             </svg>
             <span>{dislikes}</span>
           </button>
@@ -133,8 +149,18 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }: CommentItemP
               onClick={() => setIsReplying(!isReplying)}
               className="flex items-center gap-1 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                />
               </svg>
               <span>Reply</span>
             </button>
@@ -185,10 +211,17 @@ function CommentItem({ comment, postId, onReplySubmit, depth = 0 }: CommentItemP
             onClick={() => setShowReplies(!showReplies)}
             className="text-sm text-[var(--color-primary)] hover:underline mb-2 flex items-center gap-1"
           >
-            <svg className={`w-4 h-4 transition-transform ${showReplies ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className={`w-4 h-4 transition-transform ${showReplies ? "rotate-90" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            {showReplies ? "Hide" : "Show"} {replies.length} {replies.length === 1 ? "reply" : "replies"}
+            {showReplies ? "Hide" : "Show"} {replies.length}{" "}
+            {replies.length === 1 ? "reply" : "replies"}
           </button>
           {showReplies && (
             <div className="space-y-3">
@@ -300,9 +333,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
             type="text"
             placeholder="Your name"
             value={newComment.authorName}
-            onChange={(e) =>
-              setNewComment({ ...newComment, authorName: e.target.value })
-            }
+            onChange={(e) => setNewComment({ ...newComment, authorName: e.target.value })}
             className="px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
             required
           />
@@ -310,9 +341,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
             type="email"
             placeholder="Your email (optional)"
             value={newComment.authorEmail}
-            onChange={(e) =>
-              setNewComment({ ...newComment, authorEmail: e.target.value })
-            }
+            onChange={(e) => setNewComment({ ...newComment, authorEmail: e.target.value })}
             className="px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
           />
         </div>
@@ -320,9 +349,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
         <textarea
           placeholder="Your comment"
           value={newComment.content}
-          onChange={(e) =>
-            setNewComment({ ...newComment, content: e.target.value })
-          }
+          onChange={(e) => setNewComment({ ...newComment, content: e.target.value })}
           rows={4}
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] resize-none mb-4"
           required
@@ -337,9 +364,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
         </button>
 
         {message && (
-          <p
-            className={`mt-4 text-sm ${status === "success" ? "text-green-400" : "text-red-400"}`}
-          >
+          <p className={`mt-4 text-sm ${status === "success" ? "text-green-400" : "text-red-400"}`}>
             {message}
           </p>
         )}
@@ -348,10 +373,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="p-4 rounded-lg bg-[var(--color-bg-card)] animate-pulse"
-            >
+            <div key={i} className="p-4 rounded-lg bg-[var(--color-bg-card)] animate-pulse">
               <div className="h-4 w-32 bg-[var(--color-bg-darker)] rounded mb-2"></div>
               <div className="h-16 bg-[var(--color-bg-darker)] rounded"></div>
             </div>

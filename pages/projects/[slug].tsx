@@ -22,9 +22,7 @@ const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-[var(--color-text-secondary)]">
-            Loading project...
-          </p>
+          <p className="mt-4 text-[var(--color-text-secondary)]">Loading project...</p>
         </div>
       </div>
     );
@@ -107,9 +105,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 };
 
-export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({
-  params,
-}) => {
+export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({ params }) => {
   try {
     const slug = params?.slug as string | undefined;
 
@@ -137,9 +133,7 @@ export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({
 
     return {
       props: {
-        project: JSON.parse(
-          JSON.stringify(transformedProject),
-        ) as ProjectLike,
+        project: JSON.parse(JSON.stringify(transformedProject)) as ProjectLike,
       },
       revalidate: 60,
     };

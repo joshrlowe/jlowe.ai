@@ -17,18 +17,14 @@ describe("useReadDuration", () => {
   });
 
   it("should initialize with zero duration", () => {
-    const { result } = renderHook(() =>
-      useReadDuration({ slug: "test-article" })
-    );
+    const { result } = renderHook(() => useReadDuration({ slug: "test-article" }));
 
     expect(result.current.durationSeconds).toBe(0);
     expect(result.current.isActive).toBe(true);
   });
 
   it("should track duration over time", () => {
-    const { result } = renderHook(() =>
-      useReadDuration({ slug: "test-article" })
-    );
+    const { result } = renderHook(() => useReadDuration({ slug: "test-article" }));
 
     act(() => {
       jest.advanceTimersByTime(3000);
@@ -38,9 +34,7 @@ describe("useReadDuration", () => {
   });
 
   it("should format duration correctly", () => {
-    const { result } = renderHook(() =>
-      useReadDuration({ slug: "test-article" })
-    );
+    const { result } = renderHook(() => useReadDuration({ slug: "test-article" }));
 
     // Initial state
     expect(result.current.formattedDuration).toBe("0s");
@@ -101,10 +95,8 @@ describe("useReadDuration", () => {
     // This tests the visibility API integration conceptually
     // The actual document.hidden property is read-only in jsdom
     // We verify the hook responds to visibility changes via its state
-    
-    const { result } = renderHook(() =>
-      useReadDuration({ slug: "test-article" })
-    );
+
+    const { result } = renderHook(() => useReadDuration({ slug: "test-article" }));
 
     // Initially active
     expect(result.current.isActive).toBe(true);
@@ -120,9 +112,7 @@ describe("useReadDuration", () => {
   it("should not track without slug", () => {
     const onUnmount = jest.fn();
 
-    const { unmount } = renderHook(() =>
-      useReadDuration({ onUnmount })
-    );
+    const { unmount } = renderHook(() => useReadDuration({ onUnmount }));
 
     act(() => {
       jest.advanceTimersByTime(5000);
@@ -133,4 +123,3 @@ describe("useReadDuration", () => {
     expect(onUnmount).not.toHaveBeenCalled();
   });
 });
-

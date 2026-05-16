@@ -49,15 +49,16 @@ describe("AdminDashboard", () => {
     jest.clearAllMocks();
     jest.spyOn(console, "error").mockImplementation(() => {});
     mockUseSession.mockReturnValue({ status: "authenticated" });
-    
+
     // Mock successful fetch response
     global.fetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([
-        { id: "1", title: "Project 1", status: "Published", updatedAt: "2024-01-15" },
-        { id: "2", title: "Project 2", status: "Draft", updatedAt: "2024-01-14" },
-        { id: "3", title: "Project 3", status: "Published", updatedAt: "2024-01-13" },
-      ]),
+      json: () =>
+        Promise.resolve([
+          { id: "1", title: "Project 1", status: "Published", updatedAt: "2024-01-15" },
+          { id: "2", title: "Project 2", status: "Draft", updatedAt: "2024-01-14" },
+          { id: "3", title: "Project 3", status: "Published", updatedAt: "2024-01-13" },
+        ]),
     });
   });
 
@@ -68,9 +69,9 @@ describe("AdminDashboard", () => {
   describe("Loading state", () => {
     it("should show loading spinner when session is loading", () => {
       mockUseSession.mockReturnValue({ status: "loading" });
-      
+
       const { container } = render(<AdminDashboard />);
-      
+
       expect(container.querySelector(".animate-spin")).toBeInTheDocument();
     });
   });
@@ -79,9 +80,9 @@ describe("AdminDashboard", () => {
     it("should render with AdminLayout wrapper", () => {
       // Loading state still renders AdminLayout
       mockUseSession.mockReturnValue({ status: "loading" });
-      
+
       render(<AdminDashboard />);
-      
+
       expect(screen.getByTestId("admin-layout")).toBeInTheDocument();
     });
   });
@@ -89,16 +90,16 @@ describe("AdminDashboard", () => {
   describe("getServerSideProps", () => {
     it("should call requireAuth", async () => {
       const { requireAuth } = require("@/lib/auth.js");
-      
+
       const context = { req: {}, res: {} };
       await getServerSideProps(context);
-      
+
       expect(requireAuth).toHaveBeenCalledWith(context);
     });
 
     it("should return props from requireAuth", async () => {
       const result = await getServerSideProps({ req: {}, res: {} });
-      
+
       expect(result).toEqual({ props: {} });
     });
   });
@@ -108,17 +109,17 @@ describe("AdminDashboard", () => {
       await act(async () => {
         render(<AdminDashboard />);
       });
-      
+
       expect(global.fetch).toHaveBeenCalledWith("/api/admin/projects");
     });
 
     it("should handle fetch error gracefully", async () => {
       global.fetch.mockRejectedValue(new Error("Fetch failed"));
-      
+
       await act(async () => {
         render(<AdminDashboard />);
       });
-      
+
       expect(console.error).toHaveBeenCalled();
     });
   });

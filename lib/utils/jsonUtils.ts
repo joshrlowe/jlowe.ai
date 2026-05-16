@@ -45,7 +45,7 @@ export function cleanMongoFields<T>(obj: T): T | null {
  */
 export function parseJsonField<T = unknown>(
   field: string | T[] | Record<string, unknown> | null | undefined,
-  defaultValue: T | T[] = [],
+  defaultValue: T | T[] = []
 ): T | T[] {
   if (!field) return defaultValue;
 

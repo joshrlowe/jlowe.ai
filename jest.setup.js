@@ -1,6 +1,6 @@
 /**
  * Jest Setup File
- * 
+ *
  * This file runs before each test file.
  * It configures:
  * - Testing Library matchers (jest-dom)
@@ -8,13 +8,13 @@
  * - MSW (Mock Service Worker) server (if available)
  * - Browser API mocks (IntersectionObserver, ResizeObserver, etc.)
  * - Next.js component mocks
- * 
+ *
  * Note: Polyfills are loaded from jest.polyfills.js via setupFiles
  */
 
-import '@testing-library/jest-dom';
-import { toHaveNoViolations } from 'jest-axe';
-import { configure } from '@testing-library/react';
+import "@testing-library/jest-dom";
+import { toHaveNoViolations } from "jest-axe";
+import { configure } from "@testing-library/react";
 
 // ============================================================================
 // EXTEND JEST MATCHERS
@@ -43,74 +43,58 @@ const originalConsoleError = console.error;
 // Suppress specific warnings that are known false positives or expected test behavior
 console.error = (...args) => {
   const message = args[0];
-  
+
   // Suppress "not wrapped in act(...)" warnings from userEvent interactions
   // These are false positives when using @testing-library/user-event v14+ with React 18
   // See: https://github.com/testing-library/react-testing-library/issues/1051
   if (
-    typeof message === 'string' &&
-    message.includes('Warning: An update to') &&
-    message.includes('inside a test was not wrapped in act')
+    typeof message === "string" &&
+    message.includes("Warning: An update to") &&
+    message.includes("inside a test was not wrapped in act")
   ) {
     return;
   }
-  
+
   // Suppress "ReactDOMTestUtils.act is deprecated" warnings
-  if (
-    typeof message === 'string' &&
-    message.includes('ReactDOMTestUtils.act is deprecated')
-  ) {
+  if (typeof message === "string" && message.includes("ReactDOMTestUtils.act is deprecated")) {
     return;
   }
-  
+
   // Suppress expected API error messages during error handling tests
   // These are intentionally triggered to test error scenarios
-  if (
-    typeof message === 'string' &&
-    message.startsWith('API Error:')
-  ) {
+  if (typeof message === "string" && message.startsWith("API Error:")) {
     return;
   }
-  
+
   // Suppress expected article/project creation error messages during error handling tests
   if (
-    typeof message === 'string' &&
-    (message.startsWith('Error creating article:') ||
-     message.startsWith('Error creating project:') ||
-     message.startsWith('Error updating') ||
-     message.startsWith('Error generating static paths:') ||
-     message.startsWith('Error fetching'))
+    typeof message === "string" &&
+    (message.startsWith("Error creating article:") ||
+      message.startsWith("Error creating project:") ||
+      message.startsWith("Error updating") ||
+      message.startsWith("Error generating static paths:") ||
+      message.startsWith("Error fetching"))
   ) {
     return;
   }
-  
+
   // Suppress jsdom "not implemented" navigation errors
   // These are triggered by libraries like react-spring when they interact with navigation
   // jsdom doesn't implement full navigation, which is expected in test environments
-  if (
-    message &&
-    typeof message === 'object' &&
-    message.type === 'not implemented'
-  ) {
+  if (message && typeof message === "object" && message.type === "not implemented") {
     return;
   }
-  
+
   // Also catch the string version of the navigation error
-  if (
-    typeof message === 'string' &&
-    message.includes('Not implemented: navigation')
-  ) {
+  if (typeof message === "string" && message.includes("Not implemented: navigation")) {
     return;
   }
-  
+
   // Catch Error objects with navigation messages
-  if (
-    message instanceof Error &&
-    message.message?.includes('Not implemented: navigation')
-  ) {
+  if (message instanceof Error && message.message?.includes("Not implemented: navigation")) {
     return;
   }
-  
+
   originalConsoleError.apply(console, args);
 };
 
@@ -120,10 +104,10 @@ console.error = (...args) => {
 
 /**
  * MSW Setup - Conditional based on environment
- * 
+ *
  * MSW 2.x requires Node.js 18+ for full Fetch API support.
  * If MSW fails to load, tests can still run using manual mocks.
- * 
+ *
  * To use MSW in tests:
  * 1. Ensure you're running Node.js 18+
  * 2. Uncomment the lines below
@@ -134,16 +118,16 @@ let server = null;
 
 try {
   // Attempt to load MSW server
-  const mswServer = require('./__mocks__/server');
+  const mswServer = require("./__mocks__/server");
   server = mswServer.server;
-  
+
   // Only set up MSW hooks if server was successfully initialized
   if (server) {
     // Start MSW server before all tests
     beforeAll(() => {
       server.listen({
         // 'bypass' silently lets unhandled requests through
-        onUnhandledRequest: 'bypass',
+        onUnhandledRequest: "bypass",
       });
     });
 
@@ -171,13 +155,13 @@ global.__MSW_SERVER__ = server;
 // ============================================================================
 
 // Mock Next.js router (Pages Router)
-jest.mock('next/router', () => ({
+jest.mock("next/router", () => ({
   useRouter: jest.fn(() => ({
-    route: '/',
-    pathname: '/',
+    route: "/",
+    pathname: "/",
     query: {},
-    asPath: '/',
-    basePath: '',
+    asPath: "/",
+    basePath: "",
     push: jest.fn().mockResolvedValue(true),
     replace: jest.fn().mockResolvedValue(true),
     reload: jest.fn(),
@@ -204,7 +188,7 @@ jest.mock('next/router', () => ({
 }));
 
 // Mock next/navigation (App Router)
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   __esModule: true,
   useRouter: jest.fn(() => ({
     push: jest.fn(),
@@ -213,31 +197,49 @@ jest.mock('next/navigation', () => ({
     forward: jest.fn(),
     refresh: jest.fn(),
     prefetch: jest.fn(),
-    pathname: '/',
+    pathname: "/",
     query: {},
-    asPath: '/',
+    asPath: "/",
   })),
-  usePathname: jest.fn(() => '/'),
+  usePathname: jest.fn(() => "/"),
   useSearchParams: jest.fn(() => new URLSearchParams()),
   useParams: jest.fn(() => ({})),
 }));
 
 // Mock next/image
-jest.mock('next/image', () => ({
+jest.mock("next/image", () => ({
   __esModule: true,
-  default: function MockImage({ src, alt, width, height, fill, priority, style, unoptimized, placeholder, blurDataURL, onLoadingComplete, onLoad, onError, loader, quality, sizes, ...props }) {
+  default: function MockImage({
+    src,
+    alt,
+    width,
+    height,
+    fill,
+    priority,
+    style,
+    unoptimized,
+    placeholder,
+    blurDataURL,
+    onLoadingComplete,
+    onLoad,
+    onError,
+    loader,
+    quality,
+    sizes,
+    ...props
+  }) {
     // Filter out Next.js Image specific props that are not valid HTML attributes
     const imageStyle = fill
-      ? { objectFit: 'cover', position: 'absolute', width: '100%', height: '100%', ...style }
+      ? { objectFit: "cover", position: "absolute", width: "100%", height: "100%", ...style }
       : style;
     return (
       <img
-        src={typeof src === 'object' ? src.src : src}
-        alt={alt || ''}
+        src={typeof src === "object" ? src.src : src}
+        alt={alt || ""}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
         style={imageStyle}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority ? "eager" : "lazy"}
         data-testid="next-image"
         {...props}
       />
@@ -246,8 +248,8 @@ jest.mock('next/image', () => ({
 }));
 
 // Mock next/link - simple passthrough with ref support
-jest.mock('next/link', () => {
-  const React = require('react');
+jest.mock("next/link", () => {
+  const React = require("react");
   return {
     __esModule: true,
     default: React.forwardRef(({ children, href, ...props }, ref) => (
@@ -259,13 +261,13 @@ jest.mock('next/link', () => {
 });
 
 // Mock next/head
-jest.mock('next/head', () => ({
+jest.mock("next/head", () => ({
   __esModule: true,
   default: ({ children }) => <>{children}</>,
 }));
 
 // Mock lib/hooks - skip animations in tests by returning prefersReducedMotion as true
-jest.mock('@/lib/hooks', () => ({
+jest.mock("@/lib/hooks", () => ({
   usePrefersReducedMotion: jest.fn(() => true),
   getPrefersReducedMotion: jest.fn(() => true),
 }));
@@ -275,13 +277,13 @@ jest.mock('@/lib/hooks', () => ({
 // ============================================================================
 
 // Mock Three.js - prevents WebGL context errors
-jest.mock('three', () => ({
+jest.mock("three", () => ({
   WebGLRenderer: jest.fn().mockImplementation(() => ({
     setSize: jest.fn(),
     setPixelRatio: jest.fn(),
     render: jest.fn(),
     dispose: jest.fn(),
-    domElement: document.createElement('canvas'),
+    domElement: document.createElement("canvas"),
   })),
   Scene: jest.fn(),
   PerspectiveCamera: jest.fn(),
@@ -299,7 +301,7 @@ jest.mock('three', () => ({
 }));
 
 // Mock @react-three/fiber
-jest.mock('@react-three/fiber', () => ({
+jest.mock("@react-three/fiber", () => ({
   Canvas: ({ children }) => <div data-testid="r3f-canvas">{children}</div>,
   useFrame: jest.fn(),
   useThree: jest.fn(() => ({
@@ -310,7 +312,7 @@ jest.mock('@react-three/fiber', () => ({
 }));
 
 // Mock @react-three/drei
-jest.mock('@react-three/drei', () => ({
+jest.mock("@react-three/drei", () => ({
   OrbitControls: () => null,
   Stars: () => null,
   useTexture: jest.fn(() => null),
@@ -327,7 +329,7 @@ jest.mock('@react-three/drei', () => ({
 // ============================================================================
 
 // Mock react-github-calendar
-jest.mock('react-github-calendar', () => ({
+jest.mock("react-github-calendar", () => ({
   __esModule: true,
   default: function MockGitHubCalendar({ username, ...props }) {
     return (
@@ -339,19 +341,15 @@ jest.mock('react-github-calendar', () => ({
 }));
 
 // Mock react-typed (typing animation)
-jest.mock('react-typed', () => ({
+jest.mock("react-typed", () => ({
   __esModule: true,
-  default: ({ strings, ...props }) => (
-    <span data-testid="typed-text">{strings?.[0] || ''}</span>
-  ),
+  default: ({ strings, ...props }) => <span data-testid="typed-text">{strings?.[0] || ""}</span>,
 }));
 
 // Mock react-text-transition (word carousel animation)
-jest.mock('react-text-transition', () => ({
+jest.mock("react-text-transition", () => ({
   __esModule: true,
-  default: ({ children, ...props }) => (
-    <span data-testid="text-transition">{children}</span>
-  ),
+  default: ({ children, ...props }) => <span data-testid="text-transition">{children}</span>,
   presets: {
     gentle: { tension: 120, friction: 14 },
     wobbly: { tension: 180, friction: 12 },
@@ -362,7 +360,7 @@ jest.mock('react-text-transition', () => ({
 }));
 
 // Mock react-toastify
-jest.mock('react-toastify', () => ({
+jest.mock("react-toastify", () => ({
   toast: {
     success: jest.fn(),
     error: jest.fn(),
@@ -383,7 +381,7 @@ jest.mock('react-toastify', () => ({
 // ============================================================================
 
 // Mock Prisma client
-jest.mock('./lib/prisma', () => require('./__mocks__/prisma'));
+jest.mock("./lib/prisma", () => require("./__mocks__/prisma"));
 
 // ============================================================================
 // BROWSER API POLYFILLS / MOCKS
@@ -451,7 +449,7 @@ class MockResizeObserver {
 global.ResizeObserver = MockResizeObserver;
 
 // Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
     matches: false,
@@ -466,7 +464,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock scrollTo
-Object.defineProperty(window, 'scrollTo', {
+Object.defineProperty(window, "scrollTo", {
   writable: true,
   value: jest.fn(),
 });
@@ -493,10 +491,10 @@ window.getComputedStyle = jest.fn((element) => {
 if (!global.crypto) {
   global.crypto = {};
 }
-global.crypto.randomUUID = jest.fn(() => 
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+global.crypto.randomUUID = jest.fn(() =>
+  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   })
 );

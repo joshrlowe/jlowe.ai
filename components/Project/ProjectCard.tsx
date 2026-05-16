@@ -67,11 +67,11 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
 
   const images = parseJsonField(
     project.images as string | unknown[] | Record<string, unknown> | null | undefined,
-    [],
+    []
   ) as Array<string | { url?: string; src?: string }>;
   const techStack = parseJsonField(
     project.techStack as string | unknown[] | Record<string, unknown> | null | undefined,
-    [],
+    []
   ) as Array<string | { name?: string }>;
 
   let thumbnail: unknown = images.length > 0 ? images[0] : null;
@@ -117,8 +117,7 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
               unoptimized={
-                displayImageUrl.startsWith("data:") ||
-                displayImageUrl.startsWith("blob:")
+                displayImageUrl.startsWith("data:") || displayImageUrl.startsWith("blob:")
               }
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg-card)] via-transparent to-transparent" />

@@ -12,10 +12,7 @@ interface ErrorBoundaryState {
   errorInfo: ErrorInfo | null;
 }
 
-class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
@@ -67,8 +64,7 @@ class ErrorBoundary extends React.Component<
             </h1>
 
             <p className="text-[var(--color-text-secondary)] mb-8">
-              We're sorry, but something unexpected happened. Please try
-              refreshing the page.
+              We're sorry, but something unexpected happened. Please try refreshing the page.
             </p>
 
             {process.env.NODE_ENV === "development" && this.state.error && (

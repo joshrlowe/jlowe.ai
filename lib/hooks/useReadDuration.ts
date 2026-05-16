@@ -11,9 +11,10 @@ interface UseReadDurationResult {
   formattedDuration: string;
 }
 
-export function useReadDuration(
-  { slug, onUnmount }: UseReadDurationOptions = {},
-): UseReadDurationResult {
+export function useReadDuration({
+  slug,
+  onUnmount,
+}: UseReadDurationOptions = {}): UseReadDurationResult {
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const startTimeRef = useRef<number | null>(null);
@@ -30,8 +31,7 @@ export function useReadDuration(
   const handleVisibilityChange = useCallback(() => {
     if (document.hidden) {
       if (startTimeRef.current) {
-        accumulatedTimeRef.current +=
-          (Date.now() - startTimeRef.current) / 1000;
+        accumulatedTimeRef.current += (Date.now() - startTimeRef.current) / 1000;
         startTimeRef.current = null;
       }
       setIsActive(false);

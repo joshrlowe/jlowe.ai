@@ -1,9 +1,9 @@
 /**
  * MSW Request Handlers
- * 
+ *
  * Comprehensive mock API handlers for testing.
  * These handlers intercept network requests during tests.
- * 
+ *
  * API Routes Covered:
  * - /api/welcome - Welcome/hero content
  * - /api/about - About page content
@@ -16,22 +16,22 @@
  * - /api/home-content - Homepage dynamic content
  * - /api/admin/* - Admin CRUD operations
  * - /api/auth/* - Authentication
- * 
+ *
  * Documentation: https://mswjs.io/docs/getting-started
  */
 
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 // ============================================================================
 // MOCK DATA - Imported from fixtures for consistency
 // ============================================================================
 
-import { mockProject, mockProjects } from '../__fixtures__/projects';
-import { mockSession, mockAdminUser } from '../__fixtures__/user';
-import { 
-  mockWelcome, 
-  mockAbout, 
-  mockContact, 
+import { mockProject, mockProjects } from "../__fixtures__/projects";
+import { mockSession, mockAdminUser } from "../__fixtures__/user";
+import {
+  mockWelcome,
+  mockAbout,
+  mockContact,
   mockHomeContent,
   mockPost,
   mockPosts,
@@ -41,7 +41,7 @@ import {
   mockComments,
   mockSiteSettings,
   mockActivityLogs,
-} from '../__fixtures__/api-responses';
+} from "../__fixtures__/api-responses";
 
 // ============================================================================
 // PUBLIC API HANDLERS
@@ -52,7 +52,7 @@ import {
  * GET /api/welcome - Returns hero section content
  */
 const welcomeHandlers = [
-  http.get('/api/welcome', () => {
+  http.get("/api/welcome", () => {
     return HttpResponse.json(mockWelcome);
   }),
 ];
@@ -62,7 +62,7 @@ const welcomeHandlers = [
  * GET /api/about - Returns about page content
  */
 const aboutHandlers = [
-  http.get('/api/about', () => {
+  http.get("/api/about", () => {
     return HttpResponse.json(mockAbout);
   }),
 ];
@@ -72,7 +72,7 @@ const aboutHandlers = [
  * GET /api/contact - Returns contact information
  */
 const contactHandlers = [
-  http.get('/api/contact', () => {
+  http.get("/api/contact", () => {
     return HttpResponse.json(mockContact);
   }),
 ];
@@ -82,7 +82,7 @@ const contactHandlers = [
  * GET /api/home-content - Returns homepage dynamic content
  */
 const homeContentHandlers = [
-  http.get('/api/home-content', () => {
+  http.get("/api/home-content", () => {
     return HttpResponse.json(mockHomeContent);
   }),
 ];
@@ -94,32 +94,32 @@ const homeContentHandlers = [
  * POST /api/projects - Creates new project
  */
 const projectsHandlers = [
-  http.get('/api/projects', ({ request }) => {
+  http.get("/api/projects", ({ request }) => {
     const url = new URL(request.url);
-    const featured = url.searchParams.get('featured');
-    const status = url.searchParams.get('status');
-    
+    const featured = url.searchParams.get("featured");
+    const status = url.searchParams.get("status");
+
     let filteredProjects = [...mockProjects];
-    
-    if (featured === 'true') {
-      filteredProjects = filteredProjects.filter(p => p.featured);
+
+    if (featured === "true") {
+      filteredProjects = filteredProjects.filter((p) => p.featured);
     }
     if (status) {
-      filteredProjects = filteredProjects.filter(p => p.status === status);
+      filteredProjects = filteredProjects.filter((p) => p.status === status);
     }
-    
+
     return HttpResponse.json(filteredProjects);
   }),
 
-  http.get('/api/projects/:id', ({ params }) => {
-    const project = mockProjects.find(p => p.id === params.id || p.slug === params.id);
+  http.get("/api/projects/:id", ({ params }) => {
+    const project = mockProjects.find((p) => p.id === params.id || p.slug === params.id);
     if (!project) {
-      return HttpResponse.json({ message: 'Project not found' }, { status: 404 });
+      return HttpResponse.json({ message: "Project not found" }, { status: 404 });
     }
     return HttpResponse.json(project);
   }),
 
-  http.post('/api/projects', async ({ request }) => {
+  http.post("/api/projects", async ({ request }) => {
     const body = await request.json();
     const newProject = {
       id: `project-${Date.now()}`,
@@ -138,21 +138,21 @@ const projectsHandlers = [
  * POST /api/posts/:topic/:slug/like - Likes a post
  */
 const postsHandlers = [
-  http.get('/api/posts', ({ request }) => {
+  http.get("/api/posts", ({ request }) => {
     const url = new URL(request.url);
-    const topic = url.searchParams.get('topic');
-    const status = url.searchParams.get('status') || 'Published';
-    const limit = parseInt(url.searchParams.get('limit') || '10');
-    const offset = parseInt(url.searchParams.get('offset') || '0');
-    
-    let filteredPosts = mockPosts.filter(p => p.status === status);
-    
+    const topic = url.searchParams.get("topic");
+    const status = url.searchParams.get("status") || "Published";
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+    const offset = parseInt(url.searchParams.get("offset") || "0");
+
+    let filteredPosts = mockPosts.filter((p) => p.status === status);
+
     if (topic) {
-      filteredPosts = filteredPosts.filter(p => p.topic === topic);
+      filteredPosts = filteredPosts.filter((p) => p.topic === topic);
     }
-    
+
     const paginatedPosts = filteredPosts.slice(offset, offset + limit);
-    
+
     return HttpResponse.json({
       data: paginatedPosts,
       total: filteredPosts.length,
@@ -161,16 +161,16 @@ const postsHandlers = [
     });
   }),
 
-  http.get('/api/posts/:topic/:slug', ({ params }) => {
-    const post = mockPosts.find(p => p.topic === params.topic && p.slug === params.slug);
+  http.get("/api/posts/:topic/:slug", ({ params }) => {
+    const post = mockPosts.find((p) => p.topic === params.topic && p.slug === params.slug);
     if (!post) {
-      return HttpResponse.json({ message: 'Post not found' }, { status: 404 });
+      return HttpResponse.json({ message: "Post not found" }, { status: 404 });
     }
     return HttpResponse.json(post);
   }),
 
-  http.post('/api/posts/:topic/:slug/like', () => {
-    return HttpResponse.json({ message: 'Post liked', likes: 42 });
+  http.post("/api/posts/:topic/:slug/like", () => {
+    return HttpResponse.json({ message: "Post liked", likes: 42 });
   }),
 ];
 
@@ -179,16 +179,16 @@ const postsHandlers = [
  * GET /api/playlists - Returns list of playlists
  */
 const playlistsHandlers = [
-  http.get('/api/playlists', ({ request }) => {
+  http.get("/api/playlists", ({ request }) => {
     const url = new URL(request.url);
-    const featured = url.searchParams.get('featured');
-    
+    const featured = url.searchParams.get("featured");
+
     let filteredPlaylists = [...mockPlaylists];
-    
-    if (featured === 'true') {
-      filteredPlaylists = filteredPlaylists.filter(p => p.featured);
+
+    if (featured === "true") {
+      filteredPlaylists = filteredPlaylists.filter((p) => p.featured);
     }
-    
+
     return HttpResponse.json({
       playlists: filteredPlaylists,
       total: filteredPlaylists.length,
@@ -202,15 +202,15 @@ const playlistsHandlers = [
  * POST /api/comments - Creates new comment
  */
 const commentsHandlers = [
-  http.get('/api/comments', ({ request }) => {
+  http.get("/api/comments", ({ request }) => {
     const url = new URL(request.url);
-    const postId = url.searchParams.get('postId');
-    
-    const filteredComments = mockComments.filter(c => c.postId === postId && c.approved);
+    const postId = url.searchParams.get("postId");
+
+    const filteredComments = mockComments.filter((c) => c.postId === postId && c.approved);
     return HttpResponse.json(filteredComments);
   }),
 
-  http.post('/api/comments', async ({ request }) => {
+  http.post("/api/comments", async ({ request }) => {
     const body = await request.json();
     const newComment = {
       id: `comment-${Date.now()}`,
@@ -228,22 +228,25 @@ const commentsHandlers = [
  * POST /api/newsletter/subscribe - Subscribes email to newsletter
  */
 const newsletterHandlers = [
-  http.post('/api/newsletter/subscribe', async ({ request }) => {
+  http.post("/api/newsletter/subscribe", async ({ request }) => {
     const body = await request.json();
-    
-    if (!body.email || !body.email.includes('@')) {
-      return HttpResponse.json({ message: 'Valid email is required' }, { status: 400 });
+
+    if (!body.email || !body.email.includes("@")) {
+      return HttpResponse.json({ message: "Valid email is required" }, { status: 400 });
     }
-    
-    return HttpResponse.json({
-      message: 'Successfully subscribed',
-      subscription: {
-        id: `sub-${Date.now()}`,
-        email: body.email.toLowerCase(),
-        active: true,
-        createdAt: new Date().toISOString(),
+
+    return HttpResponse.json(
+      {
+        message: "Successfully subscribed",
+        subscription: {
+          id: `sub-${Date.now()}`,
+          email: body.email.toLowerCase(),
+          active: true,
+          createdAt: new Date().toISOString(),
+        },
       },
-    }, { status: 201 });
+      { status: 201 }
+    );
   }),
 ];
 
@@ -259,40 +262,43 @@ const newsletterHandlers = [
  */
 const authHandlers = [
   // Return null session by default (unauthenticated)
-  http.get('/api/auth/session', () => {
+  http.get("/api/auth/session", () => {
     return HttpResponse.json(null);
   }),
 
-  http.post('/api/auth/callback/credentials', async ({ request }) => {
+  http.post("/api/auth/callback/credentials", async ({ request }) => {
     const body = await request.json();
-    
+
     // Simulate successful login
-    if (body.email === 'admin@example.com' && body.password === 'password') {
+    if (body.email === "admin@example.com" && body.password === "password") {
       return HttpResponse.json({
-        url: '/admin/dashboard',
+        url: "/admin/dashboard",
       });
     }
-    
-    return HttpResponse.json({
-      error: 'CredentialsSignin',
-      status: 401,
-      ok: false,
-      url: null,
-    }, { status: 401 });
+
+    return HttpResponse.json(
+      {
+        error: "CredentialsSignin",
+        status: 401,
+        ok: false,
+        url: null,
+      },
+      { status: 401 }
+    );
   }),
 
-  http.get('/api/auth/csrf', () => {
+  http.get("/api/auth/csrf", () => {
     return HttpResponse.json({
-      csrfToken: 'mock-csrf-token-for-testing',
+      csrfToken: "mock-csrf-token-for-testing",
     });
   }),
 
-  http.get('/api/auth/providers', () => {
+  http.get("/api/auth/providers", () => {
     return HttpResponse.json({
       credentials: {
-        id: 'credentials',
-        name: 'Credentials',
-        type: 'credentials',
+        id: "credentials",
+        name: "Credentials",
+        type: "credentials",
       },
     });
   }),
@@ -307,7 +313,7 @@ const authHandlers = [
  * POST /api/admin/welcome - Updates welcome content
  */
 const adminWelcomeHandlers = [
-  http.post('/api/admin/welcome', async ({ request }) => {
+  http.post("/api/admin/welcome", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({ ...mockWelcome, ...body });
   }),
@@ -321,11 +327,11 @@ const adminWelcomeHandlers = [
  * DELETE /api/admin/projects/:id - Deletes project
  */
 const adminProjectsHandlers = [
-  http.get('/api/admin/projects', () => {
+  http.get("/api/admin/projects", () => {
     return HttpResponse.json(mockProjects);
   }),
 
-  http.post('/api/admin/projects', async ({ request }) => {
+  http.post("/api/admin/projects", async ({ request }) => {
     const body = await request.json();
     const newProject = {
       id: `project-${Date.now()}`,
@@ -336,25 +342,25 @@ const adminProjectsHandlers = [
     return HttpResponse.json(newProject, { status: 201 });
   }),
 
-  http.put('/api/admin/projects/:id', async ({ params, request }) => {
+  http.put("/api/admin/projects/:id", async ({ params, request }) => {
     const body = await request.json();
-    const project = mockProjects.find(p => p.id === params.id);
+    const project = mockProjects.find((p) => p.id === params.id);
     if (!project) {
-      return HttpResponse.json({ message: 'Project not found' }, { status: 404 });
+      return HttpResponse.json({ message: "Project not found" }, { status: 404 });
     }
     return HttpResponse.json({ ...project, ...body, updatedAt: new Date().toISOString() });
   }),
 
-  http.delete('/api/admin/projects/:id', ({ params }) => {
-    const project = mockProjects.find(p => p.id === params.id);
+  http.delete("/api/admin/projects/:id", ({ params }) => {
+    const project = mockProjects.find((p) => p.id === params.id);
     if (!project) {
-      return HttpResponse.json({ message: 'Project not found' }, { status: 404 });
+      return HttpResponse.json({ message: "Project not found" }, { status: 404 });
     }
-    return HttpResponse.json({ message: 'Project deleted' });
+    return HttpResponse.json({ message: "Project deleted" });
   }),
 
   // Bulk operations
-  http.post('/api/admin/projects/bulk', async ({ request }) => {
+  http.post("/api/admin/projects/bulk", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
       message: `Bulk operation completed on ${body.ids?.length || 0} projects`,
@@ -363,14 +369,14 @@ const adminProjectsHandlers = [
   }),
 
   // Import/Export
-  http.get('/api/admin/projects/export', () => {
+  http.get("/api/admin/projects/export", () => {
     return HttpResponse.json(mockProjects);
   }),
 
-  http.post('/api/admin/projects/import', async ({ request }) => {
+  http.post("/api/admin/projects/import", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
-      message: 'Import successful',
+      message: "Import successful",
       imported: body.projects?.length || 0,
     });
   }),
@@ -384,14 +390,14 @@ const adminProjectsHandlers = [
  * DELETE /api/admin/posts/:id - Deletes post
  */
 const adminPostsHandlers = [
-  http.get('/api/admin/posts', () => {
+  http.get("/api/admin/posts", () => {
     return HttpResponse.json({
       posts: mockPosts,
       total: mockPosts.length,
     });
   }),
 
-  http.post('/api/admin/posts', async ({ request }) => {
+  http.post("/api/admin/posts", async ({ request }) => {
     const body = await request.json();
     const newPost = {
       id: `post-${Date.now()}`,
@@ -403,17 +409,17 @@ const adminPostsHandlers = [
     return HttpResponse.json(newPost, { status: 201 });
   }),
 
-  http.put('/api/admin/posts/:id', async ({ params, request }) => {
+  http.put("/api/admin/posts/:id", async ({ params, request }) => {
     const body = await request.json();
-    const post = mockPosts.find(p => p.id === params.id);
+    const post = mockPosts.find((p) => p.id === params.id);
     if (!post) {
-      return HttpResponse.json({ message: 'Post not found' }, { status: 404 });
+      return HttpResponse.json({ message: "Post not found" }, { status: 404 });
     }
     return HttpResponse.json({ ...post, ...body, updatedAt: new Date().toISOString() });
   }),
 
-  http.delete('/api/admin/posts/:id', ({ params }) => {
-    return HttpResponse.json({ message: 'Post deleted' });
+  http.delete("/api/admin/posts/:id", ({ params }) => {
+    return HttpResponse.json({ message: "Post deleted" });
   }),
 ];
 
@@ -423,18 +429,18 @@ const adminPostsHandlers = [
  * PUT /api/admin/page-content - Updates page content
  */
 const adminPageContentHandlers = [
-  http.get('/api/admin/page-content', ({ request }) => {
+  http.get("/api/admin/page-content", ({ request }) => {
     const url = new URL(request.url);
-    const pageKey = url.searchParams.get('pageKey');
-    
-    if (pageKey === 'home') {
-      return HttpResponse.json({ pageKey: 'home', content: mockHomeContent });
+    const pageKey = url.searchParams.get("pageKey");
+
+    if (pageKey === "home") {
+      return HttpResponse.json({ pageKey: "home", content: mockHomeContent });
     }
-    
+
     return HttpResponse.json({ pageKey, content: {} });
   }),
 
-  http.put('/api/admin/page-content', async ({ request }) => {
+  http.put("/api/admin/page-content", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
       pageKey: body.pageKey,
@@ -450,11 +456,11 @@ const adminPageContentHandlers = [
  * PUT /api/admin/site-settings - Updates site settings
  */
 const adminSiteSettingsHandlers = [
-  http.get('/api/admin/site-settings', () => {
+  http.get("/api/admin/site-settings", () => {
     return HttpResponse.json(mockSiteSettings);
   }),
 
-  http.put('/api/admin/site-settings', async ({ request }) => {
+  http.put("/api/admin/site-settings", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({ ...mockSiteSettings, ...body, updatedAt: new Date().toISOString() });
   }),
@@ -465,10 +471,10 @@ const adminSiteSettingsHandlers = [
  * GET /api/admin/activity-log - Returns activity logs
  */
 const adminActivityLogHandlers = [
-  http.get('/api/admin/activity-log', ({ request }) => {
+  http.get("/api/admin/activity-log", ({ request }) => {
     const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get('limit') || '50');
-    
+    const limit = parseInt(url.searchParams.get("limit") || "50");
+
     return HttpResponse.json({
       logs: mockActivityLogs.slice(0, limit),
       total: mockActivityLogs.length,
@@ -481,19 +487,16 @@ const adminActivityLogHandlers = [
  * PUT /api/admin/about - Updates about page content
  */
 const adminAboutHandlers = [
-  http.put('/api/admin/about', async ({ request }) => {
+  http.put("/api/admin/about", async ({ request }) => {
     const body = await request.json();
-    
+
     // Validate required field
     if (!body.professionalSummary) {
-      return HttpResponse.json(
-        { message: 'Professional summary is required' },
-        { status: 400 }
-      );
+      return HttpResponse.json({ message: "Professional summary is required" }, { status: 400 });
     }
-    
+
     return HttpResponse.json({
-      id: 'about-1',
+      id: "about-1",
       ...mockAbout,
       ...body,
       updatedAt: new Date().toISOString(),
@@ -535,7 +538,7 @@ export const handlers = [
 
 /**
  * Error response factories for testing error states
- * 
+ *
  * Usage:
  * server.use(errorHandlers.serverError('/api/projects'))
  */
@@ -545,10 +548,7 @@ export const errorHandlers = {
    */
   serverError: (path) =>
     http.get(path, () => {
-      return HttpResponse.json(
-        { message: 'Internal Server Error' },
-        { status: 500 }
-      );
+      return HttpResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }),
 
   /**
@@ -556,10 +556,7 @@ export const errorHandlers = {
    */
   notFound: (path) =>
     http.get(path, () => {
-      return HttpResponse.json(
-        { message: 'Not found' },
-        { status: 404 }
-      );
+      return HttpResponse.json({ message: "Not found" }, { status: 404 });
     }),
 
   /**
@@ -567,10 +564,7 @@ export const errorHandlers = {
    */
   unauthorized: (path) =>
     http.get(path, () => {
-      return HttpResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return HttpResponse.json({ message: "Unauthorized" }, { status: 401 });
     }),
 
   /**
@@ -578,21 +572,15 @@ export const errorHandlers = {
    */
   forbidden: (path) =>
     http.get(path, () => {
-      return HttpResponse.json(
-        { message: 'Forbidden' },
-        { status: 403 }
-      );
+      return HttpResponse.json({ message: "Forbidden" }, { status: 403 });
     }),
 
   /**
    * Returns 400 Bad Request with custom message
    */
-  badRequest: (path, message = 'Bad Request') =>
+  badRequest: (path, message = "Bad Request") =>
     http.post(path, () => {
-      return HttpResponse.json(
-        { message },
-        { status: 400 }
-      );
+      return HttpResponse.json({ message }, { status: 400 });
     }),
 
   /**
@@ -608,7 +596,7 @@ export const errorHandlers = {
    */
   slowResponse: (path, data, delayMs = 2000) =>
     http.get(path, async () => {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
       return HttpResponse.json(data);
     }),
 };
@@ -620,10 +608,10 @@ export const errorHandlers = {
 /**
  * Handler that returns an authenticated session
  * Use this to test authenticated states:
- * 
+ *
  * server.use(authenticatedSessionHandler)
  */
-export const authenticatedSessionHandler = http.get('/api/auth/session', () => {
+export const authenticatedSessionHandler = http.get("/api/auth/session", () => {
   return HttpResponse.json(mockSession);
 });
 
@@ -631,6 +619,6 @@ export const authenticatedSessionHandler = http.get('/api/auth/session', () => {
  * Handler factory for custom session data
  */
 export const createSessionHandler = (sessionData) =>
-  http.get('/api/auth/session', () => {
+  http.get("/api/auth/session", () => {
     return HttpResponse.json(sessionData);
   });

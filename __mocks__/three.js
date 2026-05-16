@@ -1,10 +1,10 @@
 /**
  * Mock: three
- * 
+ *
  * Mocks Three.js to prevent WebGL context errors in Jest/jsdom.
  * WebGL is not available in the jsdom environment, so we mock
  * all Three.js classes and functions to return empty objects.
- * 
+ *
  * This allows components using Three.js to be imported and tested
  * without throwing WebGL-related errors.
  */
@@ -15,8 +15,12 @@ export class Scene {
     this.children = [];
     this.background = null;
   }
-  add() { return this; }
-  remove() { return this; }
+  add() {
+    return this;
+  }
+  remove() {
+    return this;
+  }
   traverse() {}
 }
 
@@ -43,7 +47,7 @@ export class OrthographicCamera {
 
 export class WebGLRenderer {
   constructor() {
-    this.domElement = document.createElement('canvas');
+    this.domElement = document.createElement("canvas");
     this.shadowMap = { enabled: false, type: null };
   }
   setSize() {}
@@ -69,8 +73,12 @@ export class Group {
     this.position = { x: 0, y: 0, z: 0, set: jest.fn() };
     this.rotation = { x: 0, y: 0, z: 0 };
   }
-  add() { return this; }
-  remove() { return this; }
+  add() {
+    return this;
+  }
+  remove() {
+    return this;
+  }
 }
 
 export class BoxGeometry {
@@ -98,7 +106,9 @@ export class BufferGeometry {
   constructor() {
     this.attributes = {};
   }
-  setAttribute() { return this; }
+  setAttribute() {
+    return this;
+  }
   dispose() {}
 }
 
@@ -159,8 +169,12 @@ export class Color {
     this.g = 1;
     this.b = 1;
   }
-  set() { return this; }
-  setHex() { return this; }
+  set() {
+    return this;
+  }
+  setHex() {
+    return this;
+  }
 }
 
 export class Vector2 {
@@ -168,8 +182,14 @@ export class Vector2 {
     this.x = x;
     this.y = y;
   }
-  set(x, y) { this.x = x; this.y = y; return this; }
-  clone() { return new Vector2(this.x, this.y); }
+  set(x, y) {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
 }
 
 export class Vector3 {
@@ -178,12 +198,27 @@ export class Vector3 {
     this.y = y;
     this.z = z;
   }
-  set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; }
-  clone() { return new Vector3(this.x, this.y, this.z); }
-  normalize() { return this; }
-  add() { return this; }
-  sub() { return this; }
-  multiplyScalar() { return this; }
+  set(x, y, z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    return this;
+  }
+  clone() {
+    return new Vector3(this.x, this.y, this.z);
+  }
+  normalize() {
+    return this;
+  }
+  add() {
+    return this;
+  }
+  sub() {
+    return this;
+  }
+  multiplyScalar() {
+    return this;
+  }
 }
 
 export class Euler {
@@ -207,8 +242,12 @@ export class Clock {
   constructor() {
     this.elapsedTime = 0;
   }
-  getElapsedTime() { return this.elapsedTime; }
-  getDelta() { return 0.016; }
+  getElapsedTime() {
+    return this.elapsedTime;
+  }
+  getDelta() {
+    return 0.016;
+  }
 }
 
 export class TextureLoader {
@@ -307,6 +346,3 @@ export default {
   NormalBlending,
   MathUtils,
 };
-
-
-

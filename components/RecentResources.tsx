@@ -30,9 +30,7 @@ interface RecentResourcesProps {
   resources?: Post[];
 }
 
-export default function RecentResources({
-  resources = [],
-}: RecentResourcesProps) {
+export default function RecentResources({ resources = [] }: RecentResourcesProps) {
   const router = useRouter();
   const sectionRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
@@ -63,7 +61,7 @@ export default function RecentResources({
             start: "top 85%",
             toggleActions: "play none none reverse",
           },
-        },
+        }
       );
     }
 
@@ -85,7 +83,7 @@ export default function RecentResources({
             toggleActions: "play none none reverse",
           },
           delay: index * 0.12,
-        },
+        }
       );
     });
 
@@ -131,11 +129,7 @@ export default function RecentResources({
   };
 
   return (
-    <section
-      ref={sectionRef}
-      className="py-28 relative z-10"
-      aria-label="Recent articles"
-    >
+    <section ref={sectionRef} className="py-28 relative z-10" aria-label="Recent articles">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-16" ref={titleRef}>
           <div>
@@ -149,8 +143,7 @@ export default function RecentResources({
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
               style={{
                 fontFamily: "var(--font-family-heading)",
-                background:
-                  "linear-gradient(135deg, #FAFAFA 0%, #E85D04 60%, #9D0208 100%)",
+                background: "linear-gradient(135deg, #FAFAFA 0%, #E85D04 60%, #9D0208 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -168,12 +161,7 @@ export default function RecentResources({
             }}
           >
             <span>View All</span>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -238,9 +226,7 @@ export default function RecentResources({
                     }
                   >
                     {mounted && resource.datePublished
-                      ? formatAdminDate(
-                          resource.datePublished as Date | string,
-                        )
+                      ? formatAdminDate(resource.datePublished as Date | string)
                       : ""}
                   </time>
                 </div>
@@ -293,10 +279,7 @@ export default function RecentResources({
                   </span>
 
                   {resource.readingTime && (
-                    <span
-                      className="text-xs"
-                      style={{ color: "var(--color-text-muted)" }}
-                    >
+                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                       {resource.readingTime} min read
                     </span>
                   )}

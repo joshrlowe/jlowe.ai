@@ -102,9 +102,7 @@ describe("Analytics Utility", () => {
       });
 
       // Should not throw
-      expect(() =>
-        trackEvent(ANALYTICS_EVENTS.CTA_CLICK, {})
-      ).not.toThrow();
+      expect(() => trackEvent(ANALYTICS_EVENTS.CTA_CLICK, {})).not.toThrow();
     });
   });
 

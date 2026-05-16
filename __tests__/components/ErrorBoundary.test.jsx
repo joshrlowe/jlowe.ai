@@ -38,7 +38,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <div>Test content</div>
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(screen.getByText("Test content")).toBeInTheDocument();
   });
@@ -47,20 +47,18 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(
-      screen.getByText(/We're sorry, but something unexpected happened/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/We're sorry, but something unexpected happened/)).toBeInTheDocument();
   });
 
   it("renders Refresh Page button when error occurs", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     expect(screen.getByRole("button", { name: /refresh page/i })).toBeInTheDocument();
@@ -70,7 +68,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     const refreshButton = screen.getByRole("button", { name: /refresh page/i });
@@ -87,7 +85,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     expect(consoleSpy).toHaveBeenCalled();
@@ -101,7 +99,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     // In development, error details should be available
@@ -120,7 +118,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     expect(screen.queryByText(/Error Details/)).not.toBeInTheDocument();
@@ -134,7 +132,7 @@ describe("ErrorBoundary", () => {
         <div>Child 1</div>
         <div>Child 2</div>
         <div>Child 3</div>
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     expect(screen.getByText("Child 1")).toBeInTheDocument();
@@ -146,7 +144,7 @@ describe("ErrorBoundary", () => {
     const { rerender } = render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
@@ -155,7 +153,7 @@ describe("ErrorBoundary", () => {
     rerender(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     // Still shows error UI because state hasn't been reset
@@ -166,7 +164,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     // Check that error UI is centered
@@ -178,7 +176,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
 
     // SVG icon should be present

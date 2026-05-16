@@ -1,8 +1,8 @@
 /**
  * MSW Server for Node.js environment (Jest tests)
- * 
+ *
  * This server intercepts network requests during tests.
- * 
+ *
  * Note: MSW 2.x requires Node.js 18+ for full Fetch API support.
  * In environments without full Fetch API, the server will be null
  * and tests should use manual fetch mocking instead.
@@ -15,12 +15,12 @@ let handlers = [];
 // Try to initialize MSW - it may fail in some environments
 try {
   // Dynamic import to avoid errors during module loading
-  const mswNode = require('msw/node');
+  const mswNode = require("msw/node");
   setupServer = mswNode.setupServer;
-  
-  const handlersModule = require('./handlers');
+
+  const handlersModule = require("./handlers");
   handlers = handlersModule.handlers || [];
-  
+
   server = setupServer(...handlers);
 } catch {
   // MSW is not available - server remains null

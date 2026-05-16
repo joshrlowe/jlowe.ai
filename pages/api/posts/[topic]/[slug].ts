@@ -68,9 +68,7 @@ const handlePutRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // Calculate reading time if content is being updated
     if (updateData.content !== undefined) {
-      const { calculateReadingTime } = await import(
-        "../../../../lib/utils/readingTime"
-      );
+      const { calculateReadingTime } = await import("../../../../lib/utils/readingTime");
       updateData.readingTime = calculateReadingTime(updateData.content);
     }
 

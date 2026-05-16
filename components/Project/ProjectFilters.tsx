@@ -23,8 +23,7 @@ export default function ProjectFilters({
   availableStatuses,
   onClearFilters,
 }: ProjectFiltersProps) {
-  const hasActiveFilters =
-    !!searchQuery || statusFilter !== "all" || tagFilter !== "all";
+  const hasActiveFilters = !!searchQuery || statusFilter !== "all" || tagFilter !== "all";
 
   return (
     <div className="glass-card p-6 mb-8">
@@ -111,17 +110,11 @@ export default function ProjectFilters({
       {hasActiveFilters && (
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--color-border)]">
           <div className="flex flex-wrap gap-2">
-            {searchQuery && (
-              <span className="badge">Search: &quot;{searchQuery}&quot;</span>
-            )}
+            {searchQuery && <span className="badge">Search: &quot;{searchQuery}&quot;</span>}
             {statusFilter !== "all" && (
-              <span className="badge badge-secondary">
-                Status: {statusFilter}
-              </span>
+              <span className="badge badge-secondary">Status: {statusFilter}</span>
             )}
-            {tagFilter !== "all" && (
-              <span className="badge badge-accent">Tag: {tagFilter}</span>
-            )}
+            {tagFilter !== "all" && <span className="badge badge-accent">Tag: {tagFilter}</span>}
           </div>
           <button
             onClick={onClearFilters}

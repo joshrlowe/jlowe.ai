@@ -81,9 +81,7 @@ export function buildProjectWhereClause({
 /**
  * Builds include clause for posts with counts
  */
-export function buildPostIncludeClause(
-  includeCounts = true,
-): Record<string, unknown> {
+export function buildPostIncludeClause(includeCounts = true): Record<string, unknown> {
   if (!includeCounts) {
     return {};
   }
@@ -101,9 +99,7 @@ export function buildPostIncludeClause(
 /**
  * Builds include clause for projects with team members
  */
-export function buildProjectIncludeClause(
-  includeTeam = true,
-): Record<string, unknown> {
+export function buildProjectIncludeClause(includeTeam = true): Record<string, unknown> {
   if (!includeTeam) {
     return {};
   }

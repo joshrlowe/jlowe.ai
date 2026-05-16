@@ -9,11 +9,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { JWT } from "next-auth/jwt";
 import { withAuth } from "../../lib/utils/authMiddleware";
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  _token: JWT,
-): Promise<void> {
+async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT): Promise<void> {
   // Only allow POST requests
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method Not Allowed" });

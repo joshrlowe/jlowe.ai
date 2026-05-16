@@ -26,9 +26,7 @@ const statusMap: Record<string, ProjectStatus> = {
   OnHold: "OnHold",
 };
 
-export function mapProjectStatus(
-  mongoStatus: string | null | undefined,
-): ProjectStatus | null {
+export function mapProjectStatus(mongoStatus: string | null | undefined): ProjectStatus | null {
   if (!mongoStatus) return null;
   return statusMap[mongoStatus] || null;
 }

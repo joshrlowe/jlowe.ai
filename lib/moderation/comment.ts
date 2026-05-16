@@ -11,19 +11,11 @@
  * "held" decision without conflating outage with classifier output.
  */
 
-import { createHash } from 'node:crypto';
-import {
-  invokeJsonTool,
-  MODERATION_MODEL_ID,
-  type JsonToolSpec,
-} from '@/lib/bedrock/client';
-import { startTrace } from '@/lib/observability/langfuse';
-import { TtlCache } from './cache';
-import {
-  ModerationError,
-  type CommentScores,
-  type ScoreCommentInput,
-} from './types';
+import { createHash } from "node:crypto";
+import { invokeJsonTool, MODERATION_MODEL_ID, type JsonToolSpec } from "@/lib/bedrock/client";
+import { startTrace } from "@/lib/observability/langfuse";
+import { TtlCache } from "./cache";
+import { ModerationError, type CommentScores, type ScoreCommentInput } from "./types";
 
 export const SCORE_COMMENT_TIMEOUT_MS = 5_000;
 
@@ -42,19 +34,19 @@ Be calibrated, not punitive. Mild disagreement is not toxicity. Asking a clarify
 Return your judgement by calling the report_scores tool.`;
 
 const REPORT_SCORES_TOOL: JsonToolSpec = {
-  name: 'report_scores',
+  name: "report_scores",
   description:
-    'Report calibrated 0..1 scores for a comment across spam, toxicity, off-topic, and PII axes, plus a short summary.',
+    "Report calibrated 0..1 scores for a comment across spam, toxicity, off-topic, and PII axes, plus a short summary.",
   input_schema: {
-    type: 'object',
+    type: "object",
     properties: {
-      spam: { type: 'number', minimum: 0, maximum: 1 },
-      toxicity: { type: 'number', minimum: 0, maximum: 1 },
-      offTopic: { type: 'number', minimum: 0, maximum: 1 },
-      pii: { type: 'number', minimum: 0, maximum: 1 },
-      summary: { type: 'string', maxLength: 100 },
+      spam: { type: "number", minimum: 0, maximum: 1 },
+      toxicity: { type: "number", minimum: 0, maximum: 1 },
+      offTopic: { type: "number", minimum: 0, maximum: 1 },
+      pii: { type: "number", minimum: 0, maximum: 1 },
+      summary: { type: "string", maxLength: 100 },
     },
-    required: ['spam', 'toxicity', 'offTopic', 'pii', 'summary'],
+    required: ["spam", "toxicity", "offTopic", "pii", "summary"],
     additionalProperties: false,
   },
 };
@@ -62,9 +54,7 @@ const REPORT_SCORES_TOOL: JsonToolSpec = {
 const cache = new TtlCache<CommentScores>({ capacity: 50, ttlMs: 5 * 60 * 1000 });
 
 function cacheKey(input: ScoreCommentInput): string {
-  return createHash('sha256')
-    .update(`${input.content}::${input.postTopic}`)
-    .digest('hex');
+  return createHash("sha256").update(`${input.content}::${input.postTopic}`).digest("hex");
 }
 
 function userMessageFor(input: ScoreCommentInput): string {
@@ -74,16 +64,16 @@ function userMessageFor(input: ScoreCommentInput): string {
     `AUTHOR NAME: ${input.authorName}`,
     `COMMENT:`,
     input.content,
-  ].join('\n');
+  ].join("\n");
 }
 
 function isNumberInUnit(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
 }
 
 function validateScores(raw: unknown): CommentScores {
-  if (!raw || typeof raw !== 'object') {
-    throw new ModerationError('malformed_response', 'tool input was not an object');
+  if (!raw || typeof raw !== "object") {
+    throw new ModerationError("malformed_response", "tool input was not an object");
   }
   const r = raw as Record<string, unknown>;
   if (
@@ -91,11 +81,11 @@ function validateScores(raw: unknown): CommentScores {
     !isNumberInUnit(r.toxicity) ||
     !isNumberInUnit(r.offTopic) ||
     !isNumberInUnit(r.pii) ||
-    typeof r.summary !== 'string'
+    typeof r.summary !== "string"
   ) {
     throw new ModerationError(
-      'malformed_response',
-      `tool input failed schema check: ${JSON.stringify(raw).slice(0, 200)}`,
+      "malformed_response",
+      `tool input failed schema check: ${JSON.stringify(raw).slice(0, 200)}`
     );
   }
   return {
@@ -119,7 +109,7 @@ export async function scoreComment(
   deps: {
     invoke?: typeof invokeJsonTool;
     timeoutMs?: number;
-  } = {},
+  } = {}
 ): Promise<CommentScores> {
   const invoke = deps.invoke ?? invokeJsonTool;
   const timeoutMs = deps.timeoutMs ?? SCORE_COMMENT_TIMEOUT_MS;
@@ -129,7 +119,7 @@ export async function scoreComment(
   if (hit) return hit;
 
   const trace = await startTrace({
-    name: 'comment_moderation',
+    name: "comment_moderation",
     metadata: {
       postTopic: input.postTopic,
       postTitle: input.postTitle,
@@ -137,7 +127,7 @@ export async function scoreComment(
     },
   });
   const generation = trace.generation({
-    name: 'claude-haiku-4-5',
+    name: "claude-haiku-4-5",
     model: MODERATION_MODEL_ID,
     input: userMessageFor(input),
     modelParameters: { temperature: 0, maxTokens: 512 },
@@ -146,8 +136,8 @@ export async function scoreComment(
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
     timeoutHandle = setTimeout(
-      () => reject(new ModerationError('timeout', `scoreComment exceeded ${timeoutMs}ms`)),
-      timeoutMs,
+      () => reject(new ModerationError("timeout", `scoreComment exceeded ${timeoutMs}ms`)),
+      timeoutMs
     );
   });
 
@@ -168,7 +158,7 @@ export async function scoreComment(
       output: result.usage.outputTokens,
     });
     generation.end(JSON.stringify(scores));
-    trace.end({ status: 'ok', metadata: { decision: 'pending' } });
+    trace.end({ status: "ok", metadata: { decision: "pending" } });
     void trace.flush();
 
     cache.set(key, scores);
@@ -177,9 +167,9 @@ export async function scoreComment(
     const moderationErr =
       err instanceof ModerationError
         ? err
-        : new ModerationError('bedrock_failure', (err as Error).message, err);
+        : new ModerationError("bedrock_failure", (err as Error).message, err);
     generation.fail(moderationErr);
-    trace.end({ status: 'error', metadata: { kind: moderationErr.kind } });
+    trace.end({ status: "error", metadata: { kind: moderationErr.kind } });
     void trace.flush();
     throw moderationErr;
   } finally {

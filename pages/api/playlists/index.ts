@@ -51,9 +51,7 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const total = await prisma.playlist.count({ where });
 
-    res.json(
-      formatPaginatedResponse(playlists, total, limit, offset, "playlists"),
-    );
+    res.json(formatPaginatedResponse(playlists, total, limit, offset, "playlists"));
   } catch (error) {
     handleApiError(error as Error, res);
   }
@@ -61,8 +59,7 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
 const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { title, description, slug, coverImage, featured, order, postIds } =
-      req.body;
+    const { title, description, slug, coverImage, featured, order, postIds } = req.body;
 
     const validation = validateRequiredFields(req.body, ["title", "slug"]);
     if (!validation.isValid) {
@@ -79,13 +76,13 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
         order: order || 0,
         ...(postIds &&
           postIds.length > 0 && {
-          playlistPosts: {
-            create: postIds.map((postId: string, index: number) => ({
-              postId,
-              order: index,
-            })),
-          },
-        }),
+            playlistPosts: {
+              create: postIds.map((postId: string, index: number) => ({
+                postId,
+                order: index,
+              })),
+            },
+          }),
       },
       include: {
         playlistPosts: {

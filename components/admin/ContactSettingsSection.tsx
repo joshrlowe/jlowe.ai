@@ -102,9 +102,7 @@ export default function ContactSettingsSection({ onError }: ContactSettingsSecti
         <input
           type="email"
           value={contactData.emailAddress}
-          onChange={(e) =>
-            setContactData({ ...contactData, emailAddress: e.target.value })
-          }
+          onChange={(e) => setContactData({ ...contactData, emailAddress: e.target.value })}
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
         />
       </div>
@@ -116,9 +114,7 @@ export default function ContactSettingsSection({ onError }: ContactSettingsSecti
         <input
           type="tel"
           value={contactData.phoneNumber}
-          onChange={(e) =>
-            setContactData({ ...contactData, phoneNumber: e.target.value })
-          }
+          onChange={(e) => setContactData({ ...contactData, phoneNumber: e.target.value })}
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
         />
       </div>
@@ -129,9 +125,7 @@ export default function ContactSettingsSection({ onError }: ContactSettingsSecti
         </label>
         <textarea
           value={contactData.heroSubtitle}
-          onChange={(e) =>
-            setContactData({ ...contactData, heroSubtitle: e.target.value })
-          }
+          onChange={(e) => setContactData({ ...contactData, heroSubtitle: e.target.value })}
           placeholder="Ready to bring AI to your business? I'd love to hear about your project and explore how we can work together."
           rows={3}
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
@@ -217,7 +211,11 @@ export default function ContactSettingsSection({ onError }: ContactSettingsSecti
           {["linkedIn", "github", "X", "handshake"].map((platform) => (
             <div key={platform}>
               <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1 capitalize">
-                {platform === "X" ? "X (Twitter)" : platform === "handshake" ? "Handshake" : platform}
+                {platform === "X"
+                  ? "X (Twitter)"
+                  : platform === "handshake"
+                    ? "Handshake"
+                    : platform}
               </label>
               <input
                 type="text"

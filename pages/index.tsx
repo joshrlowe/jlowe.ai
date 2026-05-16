@@ -41,26 +41,21 @@ interface HomeProps {
 }
 
 // Dynamically import GitHubContributionGraph (uses client-only library)
-const GitHubContributionGraph = dynamic(
-  () => import("@/components/GitHubContributionGraph"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="py-24">
-        <div className="container max-w-6xl mx-auto px-4 text-center">
-          <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
-        </div>
+const GitHubContributionGraph = dynamic(() => import("@/components/GitHubContributionGraph"), {
+  ssr: false,
+  loading: () => (
+    <div className="py-24">
+      <div className="container max-w-6xl mx-auto px-4 text-center">
+        <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />
       </div>
-    ),
-  }
-);
+    </div>
+  ),
+});
 
 // Dynamically import Three.js background for performance
 const SpaceBackground = dynamic(() => import("@/components/SpaceBackground"), {
   ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-0 bg-[var(--color-bg-space)]" />
-  ),
+  loading: () => <div className="fixed inset-0 z-0 bg-[var(--color-bg-space)]" />,
 });
 
 export default function Home({
@@ -89,10 +84,7 @@ export default function Home({
       {/* Main Content - Fixed section order */}
       <div className="relative z-10">
         {/* 1. Hero - Who I am */}
-        <HeroSection
-          data={welcomeData}
-          homeContent={homeContent}
-        />
+        <HeroSection data={welcomeData} homeContent={homeContent} />
 
         {/* 2. Recent Activity - Timeline of work */}
         <RecentActivity projects={safeProjects} articles={safeResources} />
@@ -101,8 +93,8 @@ export default function Home({
         <FeaturedProjects projects={safeProjects} />
 
         {/* 4. GitHub Contributions - Proof of consistent work */}
-        <GitHubContributionGraph 
-          username={githubUsername || "joshrlowe"} 
+        <GitHubContributionGraph
+          username={githubUsername || "joshrlowe"}
           title={homeContent?.githubSectionTitle}
           description={homeContent?.githubSectionDescription}
         />
@@ -181,11 +173,9 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     };
 
     // Extract GitHub username from contact data
-    const socialMediaLinks =
-      (contactData?.socialMediaLinks as { github?: string } | null) || {};
+    const socialMediaLinks = (contactData?.socialMediaLinks as { github?: string } | null) || {};
     const githubUrl = socialMediaLinks.github || "";
-    const githubUsername =
-      githubUrl.split("/").filter(Boolean).pop() || "joshrlowe";
+    const githubUsername = githubUrl.split("/").filter(Boolean).pop() || "joshrlowe";
 
     return {
       props: {

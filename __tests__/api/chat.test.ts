@@ -33,7 +33,11 @@ jest.mock("@/lib/chat/intent", () => ({
 }));
 
 jest.mock("@/lib/chat/tools", () => ({
-  bookMeetingTool: { name: "book_meeting", description: "x", input_schema: { type: "object", properties: {} } },
+  bookMeetingTool: {
+    name: "book_meeting",
+    description: "x",
+    input_schema: { type: "object", properties: {} },
+  },
   getCalcomBookingUrl: jest.fn(() => "https://cal.com/joshlowe/30min?notes=Bot"),
 }));
 
@@ -82,12 +86,14 @@ interface MockRes {
   socket?: { remoteAddress?: string };
 }
 
-function createReq(opts: {
-  method?: string;
-  body?: unknown;
-  headers?: Record<string, string>;
-  cookies?: Record<string, string>;
-} = {}): unknown {
+function createReq(
+  opts: {
+    method?: string;
+    body?: unknown;
+    headers?: Record<string, string>;
+    cookies?: Record<string, string>;
+  } = {}
+): unknown {
   return {
     method: opts.method ?? "POST",
     body: opts.body ?? { messages: [{ role: "user", content: "hi" }] },

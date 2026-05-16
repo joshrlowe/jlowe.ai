@@ -58,7 +58,7 @@ export default function AdminLogin() {
         <div className="bg-[var(--color-bg-card)] rounded-2xl p-8 sm:p-10 border border-[var(--color-border)]">
           <h1
             className="text-3xl sm:text-4xl font-bold text-[var(--color-primary)] text-center mb-8"
-            style={{ fontFamily: 'var(--font-family-heading)' }}
+            style={{ fontFamily: "var(--font-family-heading)" }}
           >
             Admin Login
           </h1>

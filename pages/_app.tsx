@@ -153,10 +153,7 @@ export default function App({
             <link rel="manifest" href="/manifest.json" />
             <meta name="theme-color" content="#bb1313" />
             <meta name="mobile-web-app-capable" content="yes" />
-            <meta
-              name="apple-mobile-web-app-status-bar-style"
-              content="black-translucent"
-            />
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           </Head>
           <a
             href="#main-content"
@@ -174,11 +171,7 @@ export default function App({
             }}
           />
           <div className="flex-1 flex flex-col w-full">
-            <main
-              id="main-content"
-              className="flex-1 w-full bg-[var(--color-bg-dark)]"
-              role="main"
-            >
+            <main id="main-content" className="flex-1 w-full bg-[var(--color-bg-dark)]" role="main">
               <Component {...pageProps} />
             </main>
             <Footer />

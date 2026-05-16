@@ -16,14 +16,7 @@
 
 "use client";
 
-import {
-  ComponentType,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from "react";
+import { ComponentType, ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
@@ -63,11 +56,7 @@ function MobileColorLegend() {
       <span className="text-xs text-[var(--color-text-muted)]">Less</span>
       <div className="flex gap-1">
         {SUPERNOVA_COLORS.map((color, index) => (
-          <div
-            key={index}
-            className="w-3 h-3 rounded-sm"
-            style={{ backgroundColor: color }}
-          />
+          <div key={index} className="w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
         ))}
       </div>
       <span className="text-xs text-[var(--color-text-muted)]">More</span>
@@ -198,20 +187,14 @@ interface ApiTestResult {
 
 type CalendarComponent = ComponentType<any>;
 
-function CalendarWrapper({
-  username,
-  onDataLoaded,
-  isMobile,
-}: CalendarWrapperProps) {
+function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperProps) {
   const [Calendar, setCalendar] = useState<CalendarComponent | null>(null);
   const [error, setError] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [apiTestResult, setApiTestResult] = useState<ApiTestResult | null>(null);
   const contributionsRef = useRef<ContributionDay[] | null>(null);
   const statsCalculatedRef = useRef(false);
-  const calculationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const calculationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onDataLoadedRef = useRef(onDataLoaded);
 
   // Keep ref in sync
@@ -224,7 +207,9 @@ function CalendarWrapper({
     const testAPI = async () => {
       try {
         console.log("[DEBUG] Testing direct API fetch for username:", username);
-        const response = await fetch(`https://github-contributions-api.jogruber.de/v4/${username}?y=last`);
+        const response = await fetch(
+          `https://github-contributions-api.jogruber.de/v4/${username}?y=last`
+        );
         if (!response.ok) {
           console.error("[DEBUG] API response not OK:", response.status, response.statusText);
           setApiTestResult({ error: `HTTP ${response.status}` });
@@ -234,8 +219,7 @@ function CalendarWrapper({
           contributions?: ContributionDay[];
           total?: number;
         };
-        const daysWithActivity =
-          data.contributions?.filter((d) => (d.count || 0) > 0) || [];
+        const daysWithActivity = data.contributions?.filter((d) => (d.count || 0) > 0) || [];
         const total = daysWithActivity.reduce((sum, d) => sum + d.count, 0);
         console.log("[DEBUG] Direct API fetch successful!");
         console.log("[DEBUG] Total contributions:", total);
@@ -252,7 +236,7 @@ function CalendarWrapper({
         if (total > 0 && !statsCalculatedRef.current) {
           console.log("[DEBUG] Using direct API data for stats");
           const sorted = [...(data.contributions || [])].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           );
           let currentStreak = 0;
           let bestDay = 0;
@@ -280,11 +264,7 @@ function CalendarWrapper({
 
   // Calculate stats function
   const calculateStats = useCallback((contributions: ContributionDay[]) => {
-    if (
-      !contributions ||
-      contributions.length === 0 ||
-      statsCalculatedRef.current
-    ) {
+    if (!contributions || contributions.length === 0 || statsCalculatedRef.current) {
       return;
     }
 
@@ -294,7 +274,7 @@ function CalendarWrapper({
     let streakCounting = true;
 
     const sorted = [...contributions].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
     sorted.forEach((day) => {
@@ -329,10 +309,7 @@ function CalendarWrapper({
           // The library exports GitHubCalendar as a named export
           const Component = module.GitHubCalendar;
           // Check if it's a valid React component (can be function or forwardRef object)
-          if (
-            Component &&
-            (typeof Component === "function" || Component.$$typeof)
-          ) {
+          if (Component && (typeof Component === "function" || Component.$$typeof)) {
             setCalendar(() => Component);
           } else {
             setError(true);
@@ -371,10 +348,7 @@ function CalendarWrapper({
 
       // Store the latest data in ref (no setState during render)
       // Always use full data for stats calculation
-      if (
-        !contributionsRef.current ||
-        contributions.length >= contributionsRef.current.length
-      ) {
+      if (!contributionsRef.current || contributions.length >= contributionsRef.current.length) {
         contributionsRef.current = contributions;
       }
 
@@ -397,36 +371,36 @@ function CalendarWrapper({
       if (isMobile) {
         // Sort contributions by date (oldest first)
         const sorted = [...contributions].sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
-      
-      if (sorted.length === 0) return contributions;
-      
-      // Get the last date in the data
-      const lastDate = new Date(sorted[sorted.length - 1].date);
-      
-      // Find the Saturday of the current week (end of week, since week starts Sunday)
-      const dayOfWeek = lastDate.getDay(); // 0 = Sunday, 6 = Saturday
-      const daysUntilSaturday = 6 - dayOfWeek;
-      const endOfWeek = new Date(lastDate);
-      endOfWeek.setDate(lastDate.getDate() + daysUntilSaturday);
-      
-      // Go back 14 weeks (98 days) from the end of the current week
-      // Then find the Sunday at the start of that week
-      const startDate = new Date(endOfWeek);
-      startDate.setDate(endOfWeek.getDate() - 97); // 98 days = 14 weeks, -97 to include start day
-      
-      // Adjust to the previous Sunday if not already Sunday
-      const startDayOfWeek = startDate.getDay();
-      if (startDayOfWeek !== 0) {
-        startDate.setDate(startDate.getDate() - startDayOfWeek);
-      }
-      
-      // Filter contributions to only include dates from startDate to endOfWeek
-      const startTime = startDate.getTime();
-      const endTime = endOfWeek.getTime();
-      
-      return sorted.filter((contribution) => {
+
+        if (sorted.length === 0) return contributions;
+
+        // Get the last date in the data
+        const lastDate = new Date(sorted[sorted.length - 1].date);
+
+        // Find the Saturday of the current week (end of week, since week starts Sunday)
+        const dayOfWeek = lastDate.getDay(); // 0 = Sunday, 6 = Saturday
+        const daysUntilSaturday = 6 - dayOfWeek;
+        const endOfWeek = new Date(lastDate);
+        endOfWeek.setDate(lastDate.getDate() + daysUntilSaturday);
+
+        // Go back 14 weeks (98 days) from the end of the current week
+        // Then find the Sunday at the start of that week
+        const startDate = new Date(endOfWeek);
+        startDate.setDate(endOfWeek.getDate() - 97); // 98 days = 14 weeks, -97 to include start day
+
+        // Adjust to the previous Sunday if not already Sunday
+        const startDayOfWeek = startDate.getDay();
+        if (startDayOfWeek !== 0) {
+          startDate.setDate(startDate.getDate() - startDayOfWeek);
+        }
+
+        // Filter contributions to only include dates from startDate to endOfWeek
+        const startTime = startDate.getTime();
+        const endTime = endOfWeek.getTime();
+
+        return sorted.filter((contribution) => {
           const contribDate = new Date(contribution.date).getTime();
           return contribDate >= startTime && contribDate <= endTime;
         });
@@ -434,15 +408,13 @@ function CalendarWrapper({
 
       return contributions;
     },
-    [calculateStats, isMobile],
+    [calculateStats, isMobile]
   );
 
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-[var(--color-text-secondary)] mb-4">
-          Unable to load contribution graph
-        </p>
+        <p className="text-[var(--color-text-secondary)] mb-4">Unable to load contribution graph</p>
         <a
           href={`https://github.com/${username}`}
           target="_blank"
@@ -473,7 +445,10 @@ function CalendarWrapper({
         )}
         {apiTestResult && (
           <span className="mt-2 text-xs text-[var(--color-text-muted)]">
-            API: {apiTestResult.success ? `${apiTestResult.total} contributions found` : apiTestResult.error}
+            API:{" "}
+            {apiTestResult.success
+              ? `${apiTestResult.total} contributions found`
+              : apiTestResult.error}
           </span>
         )}
       </div>
@@ -493,8 +468,8 @@ function CalendarWrapper({
         transformData={transformData}
         showColorLegend={!isMobile}
         labels={{
-          totalCount: isMobile 
-            ? "{{count}} contributions (last 14 weeks)" 
+          totalCount: isMobile
+            ? "{{count}} contributions (last 14 weeks)"
             : "{{count}} contributions in the last year",
         }}
         style={{
@@ -606,7 +581,11 @@ export default function GitHubContributionGraph({
             }}
           >
             {mounted ? (
-              <CalendarWrapper username={username} onDataLoaded={handleDataLoaded} isMobile={isMobile} />
+              <CalendarWrapper
+                username={username}
+                onDataLoaded={handleDataLoaded}
+                isMobile={isMobile}
+              />
             ) : (
               <div className="h-32 animate-pulse bg-[var(--color-surface)] rounded-lg flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />

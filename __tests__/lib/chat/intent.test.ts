@@ -35,7 +35,7 @@ describe("classifyIntent", () => {
     sendMock.mockResolvedValue(bodyFor("evaluating"));
     const intent = await classifyIntent(
       "I'm building a customer support bot for my SaaS, do you do consulting?",
-      [],
+      []
     );
     expect(intent).toBe("evaluating");
   });

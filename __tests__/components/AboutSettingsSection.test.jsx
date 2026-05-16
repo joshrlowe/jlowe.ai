@@ -259,9 +259,7 @@ describe("AboutSettingsSection", () => {
       renderWithToast(<AboutSettingsSection onError={jest.fn()} />);
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: "Save All Changes" })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Save All Changes" })).toBeInTheDocument();
       });
     });
 
@@ -287,10 +285,13 @@ describe("AboutSettingsSection", () => {
       await user.click(screen.getByRole("button", { name: "Save All Changes" }));
 
       await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith("/api/admin/about", expect.objectContaining({
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-        }));
+        expect(global.fetch).toHaveBeenCalledWith(
+          "/api/admin/about",
+          expect.objectContaining({
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+          })
+        );
       });
     });
 
@@ -693,9 +694,7 @@ describe("AboutSettingsSection", () => {
       renderWithToast(<AboutSettingsSection onError={jest.fn()} />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/No skills added yet/)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/No skills added yet/)).toBeInTheDocument();
       });
     });
 
@@ -837,9 +836,7 @@ describe("AboutSettingsSection", () => {
       await user.click(screen.getByRole("button", { name: "Save All Changes" }));
 
       await waitFor(() => {
-        const fetchCall = global.fetch.mock.calls.find(
-          (call) => call[0] === "/api/admin/about"
-        );
+        const fetchCall = global.fetch.mock.calls.find((call) => call[0] === "/api/admin/about");
         expect(fetchCall).toBeDefined();
         const body = JSON.parse(fetchCall[1].body);
         expect(body.technicalSkills[0].category).toBe("Frontend");
@@ -1056,7 +1053,10 @@ describe("AboutSettingsSection", () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ ...mockDataWithOngoingEducation, updatedAt: new Date().toISOString() }),
+          json: async () => ({
+            ...mockDataWithOngoingEducation,
+            updatedAt: new Date().toISOString(),
+          }),
         });
 
       const { user } = renderWithToast(<AboutSettingsSection onError={jest.fn()} />);
@@ -1068,9 +1068,7 @@ describe("AboutSettingsSection", () => {
       await user.click(screen.getByRole("button", { name: "Save All Changes" }));
 
       await waitFor(() => {
-        const fetchCall = global.fetch.mock.calls.find(
-          (call) => call[0] === "/api/admin/about"
-        );
+        const fetchCall = global.fetch.mock.calls.find((call) => call[0] === "/api/admin/about");
         expect(fetchCall).toBeDefined();
         const submittedBody = JSON.parse(fetchCall[1].body);
         expect(submittedBody.education[0].isOngoing).toBe(true);
@@ -1111,4 +1109,3 @@ describe("AboutSettingsSection", () => {
     });
   });
 });
-

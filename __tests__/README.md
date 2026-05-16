@@ -38,11 +38,13 @@ npm test -- --testNamePattern="should render"
 ## Running Tests
 
 ### All Tests
+
 ```bash
 npm test
 ```
 
 ### Watch Mode (Development)
+
 ```bash
 npm run test:watch
 ```
@@ -50,6 +52,7 @@ npm run test:watch
 This will run tests in interactive watch mode, automatically re-running tests when files change.
 
 ### Coverage Report
+
 ```bash
 npm run test:coverage
 ```
@@ -57,6 +60,7 @@ npm run test:coverage
 Generates an HTML coverage report in the `coverage/` directory. Open `coverage/index.html` to view.
 
 ### Specific Test File
+
 ```bash
 # By file name
 npm test Button.test.jsx
@@ -66,6 +70,7 @@ npm test __tests__/components/Button.test.jsx
 ```
 
 ### Specific Test Pattern
+
 ```bash
 # Run tests with "should render" in the name
 npm test -- --testNamePattern="should render"
@@ -75,6 +80,7 @@ npm test -- --testNamePattern="Button component"
 ```
 
 ### Debug Mode
+
 ```bash
 # Run with Node debugger
 node --inspect-brk node_modules/.bin/jest --runInBand
@@ -83,6 +89,7 @@ node --inspect-brk node_modules/.bin/jest --runInBand
 Then open `chrome://inspect` in Chrome and click "inspect".
 
 ### Update Snapshots
+
 ```bash
 # Update all snapshots
 npm test -- -u
@@ -133,18 +140,18 @@ __tests__/
 ### Component Test Template
 
 ```jsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { axe, toHaveNoViolations } from 'jest-axe';
-import MyComponent from '@/components/MyComponent';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { axe, toHaveNoViolations } from "jest-axe";
+import MyComponent from "@/components/MyComponent";
 
 // Add jest-axe matchers
 expect.extend(toHaveNoViolations);
 
-describe('MyComponent', () => {
+describe("MyComponent", () => {
   // Setup
   const defaultProps = {
-    title: 'Test Title',
+    title: "Test Title",
     onClick: jest.fn(),
   };
 
@@ -153,60 +160,60 @@ describe('MyComponent', () => {
   });
 
   // Rendering tests
-  describe('Rendering', () => {
-    it('should render with default props', () => {
+  describe("Rendering", () => {
+    it("should render with default props", () => {
       render(<MyComponent {...defaultProps} />);
-      
-      expect(screen.getByText('Test Title')).toBeInTheDocument();
+
+      expect(screen.getByText("Test Title")).toBeInTheDocument();
     });
 
-    it('should render with custom props', () => {
+    it("should render with custom props", () => {
       render(<MyComponent {...defaultProps} variant="primary" />);
-      
-      const element = screen.getByRole('button');
-      expect(element).toHaveClass('primary');
+
+      const element = screen.getByRole("button");
+      expect(element).toHaveClass("primary");
     });
   });
 
   // Interaction tests
-  describe('Interactions', () => {
-    it('should handle click events', async () => {
+  describe("Interactions", () => {
+    it("should handle click events", async () => {
       const user = userEvent.setup();
       render(<MyComponent {...defaultProps} />);
-      
-      await user.click(screen.getByRole('button'));
-      
+
+      await user.click(screen.getByRole("button"));
+
       expect(defaultProps.onClick).toHaveBeenCalledTimes(1);
     });
   });
 
   // Accessibility tests
-  describe('Accessibility', () => {
-    it('should have no accessibility violations', async () => {
+  describe("Accessibility", () => {
+    it("should have no accessibility violations", async () => {
       const { container } = render(<MyComponent {...defaultProps} />);
-      
+
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
-    it('should be keyboard navigable', async () => {
+    it("should be keyboard navigable", async () => {
       const user = userEvent.setup();
       render(<MyComponent {...defaultProps} />);
-      
+
       await user.tab();
-      expect(screen.getByRole('button')).toHaveFocus();
-      
-      await user.keyboard('{Enter}');
+      expect(screen.getByRole("button")).toHaveFocus();
+
+      await user.keyboard("{Enter}");
       expect(defaultProps.onClick).toHaveBeenCalled();
     });
   });
 
   // Edge cases
-  describe('Edge Cases', () => {
-    it('should handle missing props gracefully', () => {
+  describe("Edge Cases", () => {
+    it("should handle missing props gracefully", () => {
       render(<MyComponent title="" />);
-      
-      expect(screen.queryByText('')).toBeInTheDocument();
+
+      expect(screen.queryByText("")).toBeInTheDocument();
     });
   });
 });
@@ -215,23 +222,23 @@ describe('MyComponent', () => {
 ### Utility Test Template
 
 ```javascript
-import { myUtilFunction } from '@/lib/utils/myUtil';
+import { myUtilFunction } from "@/lib/utils/myUtil";
 
-describe('myUtilFunction', () => {
-  it('should return expected result for valid input', () => {
-    const result = myUtilFunction('input');
-    
-    expect(result).toBe('expected output');
+describe("myUtilFunction", () => {
+  it("should return expected result for valid input", () => {
+    const result = myUtilFunction("input");
+
+    expect(result).toBe("expected output");
   });
 
-  it('should handle edge cases', () => {
+  it("should handle edge cases", () => {
     expect(myUtilFunction(null)).toBe(null);
     expect(myUtilFunction(undefined)).toBe(undefined);
-    expect(myUtilFunction('')).toBe('');
+    expect(myUtilFunction("")).toBe("");
   });
 
-  it('should throw error for invalid input', () => {
-    expect(() => myUtilFunction(123)).toThrow('Invalid input');
+  it("should throw error for invalid input", () => {
+    expect(() => myUtilFunction(123)).toThrow("Invalid input");
   });
 });
 ```
@@ -239,14 +246,14 @@ describe('myUtilFunction', () => {
 ### API Route Test Template
 
 ```javascript
-import { createMocks } from 'node-mocks-http';
-import handler from '@/pages/api/my-endpoint';
+import { createMocks } from "node-mocks-http";
+import handler from "@/pages/api/my-endpoint";
 
-describe('/api/my-endpoint', () => {
-  it('should return 200 for valid request', async () => {
+describe("/api/my-endpoint", () => {
+  it("should return 200 for valid request", async () => {
     const { req, res } = createMocks({
-      method: 'GET',
-      query: { id: '123' },
+      method: "GET",
+      query: { id: "123" },
     });
 
     await handler(req, res);
@@ -258,9 +265,9 @@ describe('/api/my-endpoint', () => {
     });
   });
 
-  it('should return 400 for invalid request', async () => {
+  it("should return 400 for invalid request", async () => {
     const { req, res } = createMocks({
-      method: 'POST',
+      method: "POST",
       body: {},
     });
 
@@ -274,24 +281,24 @@ describe('/api/my-endpoint', () => {
 ### Hook Test Template
 
 ```javascript
-import { renderHook, act } from '@testing-library/react';
-import { useMyHook } from '@/hooks/useMyHook';
+import { renderHook, act } from "@testing-library/react";
+import { useMyHook } from "@/hooks/useMyHook";
 
-describe('useMyHook', () => {
-  it('should initialize with default values', () => {
+describe("useMyHook", () => {
+  it("should initialize with default values", () => {
     const { result } = renderHook(() => useMyHook());
-    
+
     expect(result.current.value).toBe(null);
   });
 
-  it('should update value on action', () => {
+  it("should update value on action", () => {
     const { result } = renderHook(() => useMyHook());
-    
+
     act(() => {
-      result.current.setValue('new value');
+      result.current.setValue("new value");
     });
-    
-    expect(result.current.value).toBe('new value');
+
+    expect(result.current.value).toBe("new value");
   });
 });
 ```
@@ -317,12 +324,12 @@ export default function Image({ src, alt, ...props }) {
 // __mocks__/next/navigation.js
 export const useRouter = jest.fn(() => ({
   push: jest.fn(),
-  pathname: '/',
+  pathname: "/",
   query: {},
-  asPath: '/',
+  asPath: "/",
 }));
 
-export const usePathname = jest.fn(() => '/');
+export const usePathname = jest.fn(() => "/");
 export const useSearchParams = jest.fn(() => new URLSearchParams());
 ```
 
@@ -360,23 +367,23 @@ Use Mock Service Worker for API mocking:
 
 ```javascript
 // __mocks__/handlers.js
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 export const handlers = [
-  http.get('/api/projects', () => {
+  http.get("/api/projects", () => {
     return HttpResponse.json([
-      { id: 1, title: 'Project 1' },
-      { id: 2, title: 'Project 2' },
+      { id: 1, title: "Project 1" },
+      { id: 2, title: "Project 2" },
     ]);
   }),
 
-  http.post('/api/contact', async ({ request }) => {
+  http.post("/api/contact", async ({ request }) => {
     const body = await request.json();
-    
+
     if (!body.email) {
       return new HttpResponse(null, { status: 400 });
     }
-    
+
     return HttpResponse.json({ success: true });
   }),
 ];
@@ -387,7 +394,7 @@ export const handlers = [
 For component-specific mocks:
 
 ```javascript
-jest.mock('@/lib/api', () => ({
+jest.mock("@/lib/api", () => ({
   fetchProjects: jest.fn(() => Promise.resolve([])),
   createProject: jest.fn(() => Promise.resolve({ id: 1 })),
 }));
@@ -396,7 +403,7 @@ jest.mock('@/lib/api', () => ({
 ### Spy on Methods
 
 ```javascript
-const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
 // After test
 consoleSpy.mockRestore();
@@ -421,12 +428,12 @@ coverageThreshold: {
 
 ### Coverage Goals
 
-| Type | Current | Target | Required |
-|------|---------|--------|----------|
-| Statements | ~70% | 80% | 70% |
-| Branches | ~60% | 70% | 60% |
-| Functions | ~70% | 80% | 70% |
-| Lines | ~70% | 80% | 70% |
+| Type       | Current | Target | Required |
+| ---------- | ------- | ------ | -------- |
+| Statements | ~70%    | 80%    | 70%      |
+| Branches   | ~60%    | 70%    | 60%      |
+| Functions  | ~70%    | 80%    | 70%      |
+| Lines      | ~70%    | 80%    | 70%      |
 
 ### Excluded from Coverage
 
@@ -453,8 +460,9 @@ start coverage/index.html  # Windows
 ### 1. Test Behavior, Not Implementation
 
 ❌ **Bad**:
+
 ```javascript
-it('should set state to true', () => {
+it("should set state to true", () => {
   const { result } = renderHook(() => useMyHook());
   act(() => result.current.toggle());
   expect(result.current.isActive).toBe(true);
@@ -462,11 +470,12 @@ it('should set state to true', () => {
 ```
 
 ✅ **Good**:
+
 ```javascript
-it('should show active content when toggled', () => {
+it("should show active content when toggled", () => {
   render(<MyComponent />);
-  fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
-  expect(screen.getByText('Active Content')).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Toggle" }));
+  expect(screen.getByText("Active Content")).toBeVisible();
 });
 ```
 
@@ -481,23 +490,27 @@ Query priority (from most to least preferred):
 5. `getByTestId` - Last resort
 
 ❌ **Bad**:
+
 ```javascript
-screen.getByTestId('submit-button');
+screen.getByTestId("submit-button");
 ```
 
 ✅ **Good**:
+
 ```javascript
-screen.getByRole('button', { name: 'Submit' });
+screen.getByRole("button", { name: "Submit" });
 ```
 
 ### 3. Test User Interactions Realistically
 
 ❌ **Bad**:
+
 ```javascript
 fireEvent.click(button);
 ```
 
 ✅ **Good**:
+
 ```javascript
 const user = userEvent.setup();
 await user.click(button);
@@ -506,16 +519,18 @@ await user.click(button);
 ### 4. Wait for Asynchronous Updates
 
 ❌ **Bad**:
+
 ```javascript
 fireEvent.click(button);
-expect(screen.getByText('Success')).toBeInTheDocument();
+expect(screen.getByText("Success")).toBeInTheDocument();
 ```
 
 ✅ **Good**:
+
 ```javascript
 await user.click(button);
 await waitFor(() => {
-  expect(screen.getByText('Success')).toBeInTheDocument();
+  expect(screen.getByText("Success")).toBeInTheDocument();
 });
 ```
 
@@ -535,20 +550,20 @@ afterEach(() => {
 ### 6. Group Related Tests
 
 ```javascript
-describe('Button component', () => {
-  describe('Rendering', () => {
-    it('should render with text', () => {});
-    it('should render with icon', () => {});
+describe("Button component", () => {
+  describe("Rendering", () => {
+    it("should render with text", () => {});
+    it("should render with icon", () => {});
   });
 
-  describe('Interactions', () => {
-    it('should handle clicks', () => {});
-    it('should handle keyboard', () => {});
+  describe("Interactions", () => {
+    it("should handle clicks", () => {});
+    it("should handle keyboard", () => {});
   });
 
-  describe('States', () => {
-    it('should show loading state', () => {});
-    it('should show disabled state', () => {});
+  describe("States", () => {
+    it("should show loading state", () => {});
+    it("should show disabled state", () => {});
   });
 });
 ```
@@ -556,11 +571,11 @@ describe('Button component', () => {
 ### 7. Test Accessibility
 
 ```javascript
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { axe, toHaveNoViolations } from "jest-axe";
 
 expect.extend(toHaveNoViolations);
 
-it('should have no accessibility violations', async () => {
+it("should have no accessibility violations", async () => {
   const { container } = render(<MyComponent />);
   const results = await axe(container);
   expect(results).toHaveNoViolations();
@@ -571,10 +586,10 @@ it('should have no accessibility violations', async () => {
 
 ```javascript
 // Mock external API calls
-jest.mock('@/lib/api');
+jest.mock("@/lib/api");
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000';
+process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000";
 ```
 
 ## Troubleshooting
@@ -582,11 +597,13 @@ process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000';
 ### Tests Not Running
 
 1. **Check Node version**: Requires Node.js 18+
+
    ```bash
    node --version
    ```
 
 2. **Clear Jest cache**:
+
    ```bash
    npm test -- --clearCache
    ```
@@ -634,7 +651,7 @@ jest.setTimeout(10000); // 10 seconds
 Or for specific test:
 
 ```javascript
-it('should do something', async () => {
+it("should do something", async () => {
   // test code
 }, 10000);
 ```
@@ -642,6 +659,7 @@ it('should do something', async () => {
 ### Snapshot Mismatch
 
 1. Review changes:
+
    ```bash
    npm test -- --verbose
    ```
@@ -656,9 +674,10 @@ it('should do something', async () => {
 **Warning: "An update to Component inside a test was not wrapped in act(...)"**
 
 Solution:
+
 ```javascript
 await waitFor(() => {
-  expect(screen.getByText('Updated')).toBeInTheDocument();
+  expect(screen.getByText("Updated")).toBeInTheDocument();
 });
 ```
 
@@ -667,14 +686,15 @@ await waitFor(() => {
 Ensure mock is defined before import:
 
 ```javascript
-jest.mock('@/lib/api'); // Must be at top of file
+jest.mock("@/lib/api"); // Must be at top of file
 
-import { fetchData } from '@/lib/api';
+import { fetchData } from "@/lib/api";
 ```
 
 ## CI Integration
 
 Tests run automatically on:
+
 - Push to `main` or `develop` branches
 - Pull requests to `main` or `develop`
 - Manual workflow dispatch
@@ -696,8 +716,8 @@ npm run test:coverage
 2. **Follow naming convention**: `ComponentName.test.jsx`
 3. **Import dependencies**:
    ```javascript
-   import { render, screen } from '@testing-library/react';
-   import MyComponent from '@/components/MyComponent';
+   import { render, screen } from "@testing-library/react";
+   import MyComponent from "@/components/MyComponent";
    ```
 4. **Write test cases** following templates above
 5. **Run tests locally**: `npm test`
@@ -724,4 +744,3 @@ npm run test:coverage
 
 **Last Updated**: 2026-01-11
 **Maintainer**: Development Team
-

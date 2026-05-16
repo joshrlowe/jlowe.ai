@@ -133,7 +133,7 @@ describe("RecentActivity", () => {
 
   it("combines and sorts items by date", () => {
     render(<RecentActivity projects={mockProjects} articles={mockArticles} />);
-    
+
     // All items should be rendered
     expect(screen.getByText("Project One")).toBeInTheDocument();
     expect(screen.getByText("Article One")).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe("RecentActivity", () => {
       }));
 
     render(<RecentActivity projects={manyProjects} articles={[]} />);
-    
+
     // Should limit number of items
     const projectItems = screen.getAllByText(/Project \d/);
     expect(projectItems.length).toBeLessThanOrEqual(6);

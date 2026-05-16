@@ -85,7 +85,7 @@ concurrency:
 
 ```yaml
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: "20"
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 ```
 
@@ -96,6 +96,7 @@ env:
 **Purpose**: Check code quality and formatting
 
 **Steps**:
+
 1. Checkout code
 2. Setup Node.js with cache
 3. Install dependencies (`npm ci`)
@@ -109,6 +110,7 @@ env:
 **Purpose**: Run Jest tests with coverage
 
 **Steps**:
+
 1. Start PostgreSQL service
 2. Checkout and setup
 3. Install dependencies
@@ -128,11 +130,13 @@ env:
 **Purpose**: Run Playwright tests across browsers
 
 **Matrix Strategy**:
+
 - Browsers: chromium, firefox, webkit
 - Shards: 2 (parallel execution)
 - Total: 6 parallel jobs
 
 **Steps per job**:
+
 1. Checkout and setup
 2. Install specific browser
 3. Run tests for browser/shard
@@ -145,6 +149,7 @@ env:
 **Purpose**: Detect unintended UI changes
 
 **Steps**:
+
 1. Run visual tests with Chromium
 2. Compare screenshots to baselines
 3. Upload diffs on failure
@@ -156,6 +161,7 @@ env:
 **Purpose**: Ensure WCAG compliance
 
 **Steps**:
+
 1. Run axe-core audits
 2. Check keyboard navigation
 3. Verify ARIA attributes
@@ -167,6 +173,7 @@ env:
 **Purpose**: Monitor performance metrics
 
 **Steps**:
+
 1. Run performance tests
 2. Check load times
 3. Measure Web Vitals
@@ -179,6 +186,7 @@ env:
 **Purpose**: Aggregate results
 
 **Steps**:
+
 1. Collect all job statuses
 2. Generate summary
 3. Fail if any job failed
@@ -202,28 +210,33 @@ All jobs must pass (✅) for the workflow to succeed:
 The workflow uploads artifacts on completion/failure:
 
 ### Coverage Report
+
 - **Name**: `coverage-report`
 - **Path**: `coverage/`
 - **Retention**: 30 days
 - **Includes**: HTML report, lcov.info, JSON summary
 
 ### Playwright Reports
+
 - **Name**: `playwright-report-{browser}-{shard}`
 - **Path**: `playwright-report/`
 - **Retention**: 30 days
 - **Includes**: HTML report, traces
 
 ### Screenshots (on failure)
+
 - **Name**: `screenshots-{browser}-{shard}`
 - **Path**: `test-results/**/*.png`
 - **Retention**: 7 days
 
 ### Videos (on failure)
+
 - **Name**: `videos-{browser}-{shard}`
 - **Path**: `test-results/**/*.webm`
 - **Retention**: 7 days
 
 ### Visual Diffs (on failure)
+
 - **Name**: `visual-diffs`
 - **Path**: `test-results/**/diff-*.png`
 - **Retention**: 7 days
@@ -236,7 +249,7 @@ Edit `.github/workflows/test.yml`:
 
 ```yaml
 env:
-  NODE_VERSION: '20'  # Change to '18' or '22'
+  NODE_VERSION: "20" # Change to '18' or '22'
 ```
 
 ### Adjust Coverage Thresholds
@@ -261,8 +274,8 @@ Edit matrix strategy:
 ```yaml
 strategy:
   matrix:
-    browser: [chromium, firefox, webkit]  # Add/remove browsers
-    shard: [1/2, 2/2]  # Adjust sharding
+    browser: [chromium, firefox, webkit] # Add/remove browsers
+    shard: [1/2, 2/2] # Adjust sharding
 ```
 
 ### Change Trigger Branches
@@ -270,7 +283,7 @@ strategy:
 ```yaml
 on:
   push:
-    branches: [main, develop, staging]  # Add more branches
+    branches: [main, develop, staging] # Add more branches
   pull_request:
     branches: [main, develop]
 ```
@@ -282,6 +295,7 @@ on:
 **Issue**: Workflow doesn't run on push/PR
 
 **Solutions**:
+
 1. Check workflow file is in `.github/workflows/`
 2. Verify YAML syntax: `yamllint .github/workflows/test.yml`
 3. Check branch names match trigger configuration
@@ -292,6 +306,7 @@ on:
 **Issue**: ESLint errors
 
 **Solutions**:
+
 ```bash
 # Run locally to see errors
 npm run lint
@@ -309,7 +324,9 @@ git commit -m "fix: resolve linting issues"
 **Issue**: Tests pass locally but fail in CI
 
 **Solutions**:
+
 1. **Environment differences**:
+
    ```bash
    # Set CI env locally
    CI=true npm test
@@ -324,7 +341,7 @@ git commit -m "fix: resolve linting issues"
    ```javascript
    // Mock dates in tests
    jest.useFakeTimers();
-   jest.setSystemTime(new Date('2024-01-01'));
+   jest.setSystemTime(new Date("2024-01-01"));
    ```
 
 ### E2E Tests Failing
@@ -332,20 +349,24 @@ git commit -m "fix: resolve linting issues"
 **Issue**: Playwright tests fail in CI but pass locally
 
 **Solutions**:
+
 1. **Timing issues**:
+
    ```javascript
    // Add appropriate waits
-   await page.waitForLoadState('networkidle');
+   await page.waitForLoadState("networkidle");
    await page.waitForTimeout(1000);
    ```
 
 2. **Viewport differences**:
+
    ```javascript
    // Set consistent viewport
    await page.setViewportSize({ width: 1280, height: 720 });
    ```
 
 3. **Missing dependencies**:
+
    ```bash
    # Install with deps
    npx playwright install --with-deps
@@ -360,7 +381,9 @@ git commit -m "fix: resolve linting issues"
 **Issue**: Screenshots don't match
 
 **Solutions**:
+
 1. **Update baselines in CI**:
+
    ```yaml
    # Add to workflow (temporary)
    - name: Update snapshots
@@ -376,7 +399,7 @@ git commit -m "fix: resolve linting issues"
    ```javascript
    // Hide animations
    await page.addStyleTag({
-     content: `* { animation: none !important; }`
+     content: `* { animation: none !important; }`,
    });
    ```
 
@@ -385,16 +408,13 @@ git commit -m "fix: resolve linting issues"
 **Issue**: Coverage doesn't meet requirements
 
 **Solutions**:
+
 1. **Add missing tests**
 2. **Adjust thresholds** (temporarily)
 3. **Exclude files from coverage**:
    ```javascript
    // jest.config.js
-   coveragePathIgnorePatterns: [
-     '/node_modules/',
-     '/.next/',
-     '/scripts/',
-   ]
+   coveragePathIgnorePatterns: ["/node_modules/", "/.next/", "/scripts/"];
    ```
 
 ### Out of Memory
@@ -402,6 +422,7 @@ git commit -m "fix: resolve linting issues"
 **Issue**: Node.js heap out of memory
 
 **Solutions**:
+
 ```yaml
 - name: Run tests with increased memory
   run: NODE_OPTIONS="--max-old-space-size=4096" npm test
@@ -412,17 +433,20 @@ git commit -m "fix: resolve linting issues"
 **Issue**: Workflow takes too long
 
 **Solutions**:
+
 1. **Increase sharding**:
+
    ```yaml
    matrix:
-     shard: [1/4, 2/4, 3/4, 4/4]  # More parallel jobs
+     shard: [1/4, 2/4, 3/4, 4/4] # More parallel jobs
    ```
 
 2. **Cache dependencies**:
+
    ```yaml
    - uses: actions/setup-node@v4
      with:
-       cache: 'npm'  # Ensure caching is enabled
+       cache: "npm" # Ensure caching is enabled
    ```
 
 3. **Run jobs in parallel**:
@@ -507,6 +531,7 @@ Set up Codecov:
 ### Repository Secrets
 
 Required secrets:
+
 - `CODECOV_TOKEN` (optional, for coverage reporting)
 
 Add at: Settings → Secrets and variables → Actions
@@ -517,9 +542,9 @@ Workflow requires:
 
 ```yaml
 permissions:
-  contents: read       # Read code
+  contents: read # Read code
   pull-requests: write # Comment on PRs
-  statuses: write      # Update commit statuses
+  statuses: write # Update commit statuses
 ```
 
 Configure at: Settings → Actions → General → Workflow permissions
@@ -558,4 +583,3 @@ Configure at: Settings → Actions → General → Workflow permissions
 
 **Last Updated**: 2026-01-11  
 **Status**: ✅ Ready for Production
-

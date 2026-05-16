@@ -94,7 +94,7 @@ describe("GET /api/playlists", () => {
     expect(prisma.playlist.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { featured: true },
-      }),
+      })
     );
   });
 
@@ -114,7 +114,7 @@ describe("GET /api/playlists", () => {
       expect.objectContaining({
         take: 9,
         skip: 0,
-      }),
+      })
     );
   });
 
@@ -133,7 +133,7 @@ describe("GET /api/playlists", () => {
     expect(prisma.playlist.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: { title: "asc" },
-      }),
+      })
     );
   });
 });
@@ -203,7 +203,7 @@ describe("POST /api/playlists", () => {
             ],
           },
         }),
-      }),
+      })
     );
   });
 

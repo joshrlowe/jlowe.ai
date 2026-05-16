@@ -27,9 +27,7 @@ describe("PostComments", () => {
 
     // Component should make a fetch call to get comments
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/comments?postId=${postId}`)
-      );
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining(`/api/comments?postId=${postId}`));
     });
   });
 
@@ -95,9 +93,9 @@ describe("PostComments", () => {
     it("should update author name input", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => expect(fetch).toHaveBeenCalled());
-      
+
       const nameInput = screen.getByPlaceholderText("Your name");
       fireEvent.change(nameInput, { target: { value: "Test User" } });
       expect(nameInput.value).toBe("Test User");
@@ -106,9 +104,9 @@ describe("PostComments", () => {
     it("should update author email input", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => expect(fetch).toHaveBeenCalled());
-      
+
       const emailInput = screen.getByPlaceholderText("Your email (optional)");
       fireEvent.change(emailInput, { target: { value: "test@example.com" } });
       expect(emailInput.value).toBe("test@example.com");
@@ -117,9 +115,9 @@ describe("PostComments", () => {
     it("should update comment content input", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => expect(fetch).toHaveBeenCalled());
-      
+
       const contentInput = screen.getByPlaceholderText("Your comment");
       fireEvent.change(contentInput, { target: { value: "My test comment" } });
       expect(contentInput.value).toBe("My test comment");
@@ -128,7 +126,7 @@ describe("PostComments", () => {
     it("should submit comment successfully", async () => {
       jest.useFakeTimers();
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
-      
+
       render(<PostComments postId={postId} />);
       await waitFor(() => expect(fetch).toHaveBeenCalled());
 
@@ -159,7 +157,7 @@ describe("PostComments", () => {
 
     it("should show error message on failed submission", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
-      
+
       render(<PostComments postId={postId} />);
       await waitFor(() => expect(fetch).toHaveBeenCalled());
 
@@ -184,7 +182,7 @@ describe("PostComments", () => {
 
     it("should handle network error on submission", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
-      
+
       render(<PostComments postId={postId} />);
       await waitFor(() => expect(fetch).toHaveBeenCalled());
 
@@ -206,7 +204,7 @@ describe("PostComments", () => {
 
     it("should show loading state during submission", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
-      
+
       render(<PostComments postId={postId} />);
       await waitFor(() => expect(fetch).toHaveBeenCalled());
 
@@ -240,15 +238,15 @@ describe("PostComments", () => {
 
     it("should handle like vote", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [mockComment] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
       const likeButton = screen.getByText("5").closest("button");
-      
+
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ likes: 6, dislikes: 2, userVote: "like" }),
@@ -266,15 +264,15 @@ describe("PostComments", () => {
 
     it("should handle dislike vote", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [mockComment] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
       const dislikeButton = screen.getByText("2").closest("button");
-      
+
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ likes: 5, dislikes: 3, userVote: "dislike" }),
@@ -293,15 +291,15 @@ describe("PostComments", () => {
     it("should handle vote error gracefully", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [mockComment] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
       const likeButton = screen.getByText("5").closest("button");
-      
+
       fetch.mockRejectedValueOnce(new Error("Vote failed"));
 
       fireEvent.click(likeButton);
@@ -315,9 +313,9 @@ describe("PostComments", () => {
 
     it("should toggle reply form", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [mockComment] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
@@ -335,9 +333,9 @@ describe("PostComments", () => {
 
     it("should submit reply successfully", async () => {
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [mockComment] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
@@ -348,7 +346,7 @@ describe("PostComments", () => {
       // Get all "Your name" inputs - the second one is the reply form
       const authorInputs = screen.getAllByPlaceholderText("Your name");
       const replyInput = screen.getByPlaceholderText("Write a reply...");
-      
+
       // The reply form input is the second one (index 1)
       fireEvent.change(authorInputs[1], { target: { value: "Reply Author" } });
       fireEvent.change(replyInput, { target: { value: "This is a reply" } });
@@ -373,9 +371,9 @@ describe("PostComments", () => {
     it("should handle reply submission error", async () => {
       const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [mockComment] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
@@ -385,7 +383,7 @@ describe("PostComments", () => {
       // Get all "Your name" inputs - the second one is the reply form
       const authorInputs = screen.getAllByPlaceholderText("Your name");
       const replyInput = screen.getByPlaceholderText("Write a reply...");
-      
+
       fireEvent.change(authorInputs[1], { target: { value: "Reply Author" } });
       fireEvent.change(replyInput, { target: { value: "This is a reply" } });
 
@@ -415,11 +413,11 @@ describe("PostComments", () => {
           },
         ],
       };
-      
+
       fetch.mockResolvedValueOnce({ ok: true, json: async () => [commentWithReplies] });
-      
+
       render(<PostComments postId={postId} />);
-      
+
       await waitFor(() => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });

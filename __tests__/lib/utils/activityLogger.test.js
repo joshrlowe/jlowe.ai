@@ -4,11 +4,11 @@
  * Tests activity logging functionality
  */
 
-import { logActivity } from '../../../lib/utils/activityLogger';
-import prisma from '../../../lib/prisma';
+import { logActivity } from "../../../lib/utils/activityLogger";
+import prisma from "../../../lib/prisma";
 
 // Mock prisma
-jest.mock('../../../lib/prisma', () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     activityLog: {
@@ -17,76 +17,76 @@ jest.mock('../../../lib/prisma', () => ({
   },
 }));
 
-describe('activityLogger', () => {
+describe("activityLogger", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
     console.error.mockRestore();
   });
 
-  describe('logActivity', () => {
-    it('should create activity log with all fields', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+  describe("logActivity", () => {
+    it("should create activity log with all fields", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
-        userId: 'user-123',
-        entityType: 'Project',
-        entityId: 'project-456',
-        projectId: 'project-456',
-        action: 'create',
-        field: 'title',
-        oldValue: 'Old Title',
-        newValue: 'New Title',
-        description: 'Updated project title',
-        metadata: { source: 'admin' },
+        userId: "user-123",
+        entityType: "Project",
+        entityId: "project-456",
+        projectId: "project-456",
+        action: "create",
+        field: "title",
+        oldValue: "Old Title",
+        newValue: "New Title",
+        description: "Updated project title",
+        metadata: { source: "admin" },
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
         data: {
-          userId: 'user-123',
-          entityType: 'Project',
-          entityId: 'project-456',
-          projectId: 'project-456',
-          action: 'create',
-          field: 'title',
-          oldValue: { value: 'Old Title' },
-          newValue: { value: 'New Title' },
-          description: 'Updated project title',
-          metadata: { source: 'admin' },
+          userId: "user-123",
+          entityType: "Project",
+          entityId: "project-456",
+          projectId: "project-456",
+          action: "create",
+          field: "title",
+          oldValue: { value: "Old Title" },
+          newValue: { value: "New Title" },
+          description: "Updated project title",
+          metadata: { source: "admin" },
         },
       });
     });
 
-    it('should handle object values without wrapping', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+    it("should handle object values without wrapping", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
-        entityType: 'Project',
-        entityId: 'project-456',
-        action: 'update',
-        oldValue: { name: 'Old', status: 'Draft' },
-        newValue: { name: 'New', status: 'Published' },
+        entityType: "Project",
+        entityId: "project-456",
+        action: "update",
+        oldValue: { name: "Old", status: "Draft" },
+        newValue: { name: "New", status: "Published" },
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          oldValue: { name: 'Old', status: 'Draft' },
-          newValue: { name: 'New', status: 'Published' },
+          oldValue: { name: "Old", status: "Draft" },
+          newValue: { name: "New", status: "Published" },
         }),
       });
     });
 
-    it('should handle null userId', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+    it("should handle null userId", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
         userId: null,
-        entityType: 'Post',
-        entityId: 'post-123',
-        action: 'view',
+        entityType: "Post",
+        entityId: "post-123",
+        action: "view",
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
@@ -96,13 +96,13 @@ describe('activityLogger', () => {
       });
     });
 
-    it('should handle undefined userId', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+    it("should handle undefined userId", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
-        entityType: 'Post',
-        entityId: 'post-123',
-        action: 'view',
+        entityType: "Post",
+        entityId: "post-123",
+        action: "view",
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
@@ -112,22 +112,22 @@ describe('activityLogger', () => {
       });
     });
 
-    it('should handle null optional fields', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+    it("should handle null optional fields", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
-        entityType: 'Post',
-        entityId: 'post-123',
-        action: 'delete',
+        entityType: "Post",
+        entityId: "post-123",
+        action: "delete",
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
         data: {
           userId: null,
-          entityType: 'Post',
-          entityId: 'post-123',
+          entityType: "Post",
+          entityId: "post-123",
           projectId: null,
-          action: 'delete',
+          action: "delete",
           field: null,
           oldValue: null,
           newValue: null,
@@ -137,50 +137,47 @@ describe('activityLogger', () => {
       });
     });
 
-    it('should not throw on database error', async () => {
-      prisma.activityLog.create.mockRejectedValue(new Error('Database error'));
+    it("should not throw on database error", async () => {
+      prisma.activityLog.create.mockRejectedValue(new Error("Database error"));
 
       await expect(
         logActivity({
-          entityType: 'Project',
-          entityId: 'project-123',
-          action: 'update',
+          entityType: "Project",
+          entityId: "project-123",
+          action: "update",
         })
       ).resolves.toBeUndefined();
 
-      expect(console.error).toHaveBeenCalledWith(
-        'Failed to log activity:',
-        expect.any(Error)
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to log activity:", expect.any(Error));
     });
 
-    it('should handle string values and wrap them', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+    it("should handle string values and wrap them", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
-        entityType: 'Project',
-        entityId: 'project-123',
-        action: 'update',
-        oldValue: 'string value',
+        entityType: "Project",
+        entityId: "project-123",
+        action: "update",
+        oldValue: "string value",
         newValue: 123, // number should also be wrapped
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          oldValue: { value: 'string value' },
+          oldValue: { value: "string value" },
           newValue: { value: 123 },
         }),
       });
     });
 
-    it('should handle empty description', async () => {
-      prisma.activityLog.create.mockResolvedValue({ id: '1' });
+    it("should handle empty description", async () => {
+      prisma.activityLog.create.mockResolvedValue({ id: "1" });
 
       await logActivity({
-        entityType: 'Project',
-        entityId: 'project-123',
-        action: 'create',
-        description: '',
+        entityType: "Project",
+        entityId: "project-123",
+        action: "create",
+        description: "",
       });
 
       expect(prisma.activityLog.create).toHaveBeenCalledWith({
@@ -191,4 +188,3 @@ describe('activityLogger', () => {
     });
   });
 });
-

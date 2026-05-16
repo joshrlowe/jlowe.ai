@@ -37,7 +37,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
     }
   } else if (req.method === "PUT") {
     try {
-      const { ownerName, siteName, navLinks, footerText, footerTitle, socials, seoDefaults, enabledSections } = req.body;
+      const {
+        ownerName,
+        siteName,
+        navLinks,
+        footerText,
+        footerTitle,
+        socials,
+        seoDefaults,
+        enabledSections,
+      } = req.body;
 
       let settings = await prisma.siteSettings.findFirst();
 
@@ -49,7 +58,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
         footerTitle,
         socials,
         seoDefaults,
-        enabledSections: Array.isArray(enabledSections) ? enabledSections : DEFAULT_ENABLED_SECTIONS,
+        enabledSections: Array.isArray(enabledSections)
+          ? enabledSections
+          : DEFAULT_ENABLED_SECTIONS,
       };
 
       if (!settings) {
@@ -62,7 +73,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
             footerTitle: footerTitle || "",
             socials: socials || {},
             seoDefaults: seoDefaults || {},
-            enabledSections: Array.isArray(enabledSections) ? enabledSections : DEFAULT_ENABLED_SECTIONS,
+            enabledSections: Array.isArray(enabledSections)
+              ? enabledSections
+              : DEFAULT_ENABLED_SECTIONS,
           },
         });
       } else {

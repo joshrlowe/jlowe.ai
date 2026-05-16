@@ -9,12 +9,7 @@ interface GitHubTabProps {
   onSave: () => void;
 }
 
-export default function GitHubTab({
-  homeContent,
-  setHomeContent,
-  saving,
-  onSave,
-}: GitHubTabProps) {
+export default function GitHubTab({ homeContent, setHomeContent, saving, onSave }: GitHubTabProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSave();
@@ -35,7 +30,10 @@ export default function GitHubTab({
             label="Section Title"
             value={homeContent.githubSectionTitle || ""}
             onChange={(e) =>
-              setHomeContent({ ...homeContent, githubSectionTitle: (e.target as HTMLInputElement).value })
+              setHomeContent({
+                ...homeContent,
+                githubSectionTitle: (e.target as HTMLInputElement).value,
+              })
             }
             placeholder="e.g., GitHub Contributions"
           />
@@ -44,7 +42,10 @@ export default function GitHubTab({
             label="Section Description"
             value={homeContent.githubSectionDescription || ""}
             onChange={(e) =>
-              setHomeContent({ ...homeContent, githubSectionDescription: (e.target as HTMLTextAreaElement).value })
+              setHomeContent({
+                ...homeContent,
+                githubSectionDescription: (e.target as HTMLTextAreaElement).value,
+              })
             }
             placeholder="A brief description of your coding activity..."
             rows={3}
@@ -52,11 +53,7 @@ export default function GitHubTab({
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={saving}
-        className={adminStyles.buttonPrimary}
-      >
+      <button type="submit" disabled={saving} className={adminStyles.buttonPrimary}>
         {saving ? "Saving..." : "Save GitHub Section"}
       </button>
     </form>

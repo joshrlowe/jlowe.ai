@@ -55,7 +55,6 @@ jest.mock("@/components/admin/AboutSettingsSection", () => {
   };
 });
 
-
 jest.mock("@/components/admin/ContactSettingsSection", () => {
   return function MockContactSettings({ onError }) {
     return <div data-testid="contact-settings">Contact Settings Section</div>;
@@ -79,17 +78,17 @@ describe("AdminSettings", () => {
   describe("Loading state", () => {
     it("should show loading spinner when session is loading", () => {
       mockUseSession.mockReturnValue({ status: "loading", data: null });
-      
+
       const { container } = render(<AdminSettings />);
-      
+
       expect(container.querySelector(".animate-spin")).toBeInTheDocument();
     });
 
     it("should show loading when session is null", () => {
       mockUseSession.mockReturnValue({ status: "authenticated", data: null });
-      
+
       const { container } = render(<AdminSettings />);
-      
+
       expect(container.querySelector(".animate-spin")).toBeInTheDocument();
     });
   });
@@ -97,19 +96,19 @@ describe("AdminSettings", () => {
   describe("Rendering", () => {
     it("should render with AdminLayout", () => {
       render(<AdminSettings />);
-      
+
       expect(screen.getByTestId("admin-layout")).toBeInTheDocument();
     });
 
     it("should set correct title", () => {
       render(<AdminSettings />);
-      
+
       expect(screen.getByTestId("admin-layout")).toHaveAttribute("data-title", "Site Settings");
     });
 
     it("should render all section tabs", () => {
       render(<AdminSettings />);
-      
+
       expect(screen.getByText("Global Site Settings")).toBeInTheDocument();
       expect(screen.getByText("Home Page")).toBeInTheDocument();
       expect(screen.getByText("About Page")).toBeInTheDocument();
@@ -118,7 +117,7 @@ describe("AdminSettings", () => {
 
     it("should render Global Settings section by default", () => {
       render(<AdminSettings />);
-      
+
       expect(screen.getByTestId("global-settings")).toBeInTheDocument();
     });
   });
@@ -126,35 +125,35 @@ describe("AdminSettings", () => {
   describe("Tab switching", () => {
     it("should switch to Home Settings section", () => {
       render(<AdminSettings />);
-      
+
       fireEvent.click(screen.getByText("Home Page"));
-      
+
       expect(screen.getByTestId("home-settings")).toBeInTheDocument();
       expect(screen.queryByTestId("global-settings")).not.toBeInTheDocument();
     });
 
     it("should switch to About Settings section", () => {
       render(<AdminSettings />);
-      
+
       fireEvent.click(screen.getByText("About Page"));
-      
+
       expect(screen.getByTestId("about-settings")).toBeInTheDocument();
     });
 
     it("should switch to Contact Settings section", () => {
       render(<AdminSettings />);
-      
+
       fireEvent.click(screen.getByText("Contact"));
-      
+
       expect(screen.getByTestId("contact-settings")).toBeInTheDocument();
     });
 
     it("should switch back to Global Settings", () => {
       render(<AdminSettings />);
-      
+
       fireEvent.click(screen.getByText("Home Page"));
       fireEvent.click(screen.getByText("Global Site Settings"));
-      
+
       expect(screen.getByTestId("global-settings")).toBeInTheDocument();
     });
   });
@@ -162,16 +161,16 @@ describe("AdminSettings", () => {
   describe("getServerSideProps", () => {
     it("should call requireAuth", async () => {
       const { requireAuth } = require("@/lib/auth.js");
-      
+
       const context = { req: {}, res: {} };
       await getServerSideProps(context);
-      
+
       expect(requireAuth).toHaveBeenCalledWith(context);
     });
 
     it("should return props from requireAuth", async () => {
       const result = await getServerSideProps({ req: {}, res: {} });
-      
+
       expect(result).toEqual({ props: {} });
     });
   });
@@ -179,10 +178,10 @@ describe("AdminSettings", () => {
   describe("Tab styling", () => {
     it("should highlight active tab", () => {
       render(<AdminSettings />);
-      
+
       const globalTab = screen.getByText("Global Site Settings");
       const homeTab = screen.getByText("Home Page");
-      
+
       // Global should be active by default
       expect(globalTab.className).toContain("bg-[var(--color-primary)]");
       expect(homeTab.className).not.toContain("bg-[var(--color-primary)]");
@@ -190,12 +189,11 @@ describe("AdminSettings", () => {
 
     it("should update active tab styling on click", () => {
       render(<AdminSettings />);
-      
+
       const homeTab = screen.getByText("Home Page");
       fireEvent.click(homeTab);
-      
+
       expect(homeTab.className).toContain("bg-[var(--color-primary)]");
     });
   });
 });
-

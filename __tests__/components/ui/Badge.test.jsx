@@ -22,7 +22,7 @@ describe("Badge", () => {
     render(
       <Badge variant="secondary" data-testid="badge">
         Secondary
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#DC2626]");
   });
@@ -31,7 +31,7 @@ describe("Badge", () => {
     render(
       <Badge variant="accent" data-testid="badge">
         Accent
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#FAA307]");
   });
@@ -40,7 +40,7 @@ describe("Badge", () => {
     render(
       <Badge variant="cool" data-testid="badge">
         Cool
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#4CC9F0]");
   });
@@ -49,7 +49,7 @@ describe("Badge", () => {
     render(
       <Badge variant="ember" data-testid="badge">
         Ember
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#F48C06]");
   });
@@ -58,7 +58,7 @@ describe("Badge", () => {
     render(
       <Badge variant="success" data-testid="badge">
         Success
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#10B981]");
   });
@@ -67,7 +67,7 @@ describe("Badge", () => {
     render(
       <Badge variant="warning" data-testid="badge">
         Warning
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#FAA307]");
   });
@@ -76,7 +76,7 @@ describe("Badge", () => {
     render(
       <Badge variant="error" data-testid="badge">
         Error
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#EF4444]");
   });
@@ -85,7 +85,7 @@ describe("Badge", () => {
     render(
       <Badge variant="info" data-testid="badge">
         Info
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#4CC9F0]");
   });
@@ -94,7 +94,7 @@ describe("Badge", () => {
     render(
       <Badge variant="neutral" data-testid="badge">
         Neutral
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("text-[#A3A3A3]");
   });
@@ -103,7 +103,7 @@ describe("Badge", () => {
     const { rerender } = render(
       <Badge size="sm" data-testid="badge">
         Small
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("px-2");
     expect(screen.getByTestId("badge").className).toContain("text-xs");
@@ -111,14 +111,14 @@ describe("Badge", () => {
     rerender(
       <Badge size="md" data-testid="badge">
         Medium
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("px-2.5");
 
     rerender(
       <Badge size="lg" data-testid="badge">
         Large
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge").className).toContain("px-3");
     expect(screen.getByTestId("badge").className).toContain("text-sm");
@@ -134,7 +134,7 @@ describe("Badge", () => {
     render(
       <Badge pulse data-testid="badge">
         Pulsing
-      </Badge>,
+      </Badge>
     );
     expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
   });
@@ -143,7 +143,7 @@ describe("Badge", () => {
     render(
       <Badge pulse={false} data-testid="badge">
         Not Pulsing
-      </Badge>,
+      </Badge>
     );
     const badge = screen.getByTestId("badge");
     expect(badge.querySelector(".animate-pulse")).not.toBeInTheDocument();
@@ -153,7 +153,7 @@ describe("Badge", () => {
     render(
       <Badge className="custom-class" data-testid="badge">
         Custom
-      </Badge>,
+      </Badge>
     );
     expect(screen.getByTestId("badge")).toHaveClass("custom-class");
   });
@@ -165,7 +165,11 @@ describe("Badge", () => {
   });
 
   it("passes additional props", () => {
-    render(<Badge data-testid="badge" role="status">Props</Badge>);
+    render(
+      <Badge data-testid="badge" role="status">
+        Props
+      </Badge>
+    );
     expect(screen.getByTestId("badge")).toHaveAttribute("role", "status");
   });
 
@@ -175,4 +179,3 @@ describe("Badge", () => {
     expect(screen.getByTestId("badge").className).toContain("rounded-full");
   });
 });
-

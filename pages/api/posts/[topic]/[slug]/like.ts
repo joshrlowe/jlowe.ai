@@ -30,9 +30,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { topic, slug } = req.query;
     const userIP =
-      (req.headers["x-forwarded-for"] as string) ||
-      req.connection.remoteAddress ||
-      "unknown";
+      (req.headers["x-forwarded-for"] as string) || req.connection.remoteAddress || "unknown";
     const userAgent = (req.headers["user-agent"] as string) || "unknown";
 
     // Find post

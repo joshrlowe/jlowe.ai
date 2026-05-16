@@ -17,7 +17,7 @@ export interface FusedScore {
 
 export function rrfMerge<T extends RankedItem>(
   rankings: T[][],
-  options: { k?: number; topN?: number } = {},
+  options: { k?: number; topN?: number } = {}
 ): FusedScore[] {
   const k = options.k ?? 60;
   const acc = new Map<string, number>();

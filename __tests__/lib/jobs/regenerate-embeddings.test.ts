@@ -48,12 +48,8 @@ import {
 import prisma from "@/__mocks__/prisma";
 
 const loadOneSourceMock = loadOneSource as jest.MockedFunction<typeof loadOneSource>;
-const upsertSourceChunksMock = upsertSourceChunks as jest.MockedFunction<
-  typeof upsertSourceChunks
->;
-const deleteSourceChunksMock = deleteSourceChunks as jest.MockedFunction<
-  typeof deleteSourceChunks
->;
+const upsertSourceChunksMock = upsertSourceChunks as jest.MockedFunction<typeof upsertSourceChunks>;
+const deleteSourceChunksMock = deleteSourceChunks as jest.MockedFunction<typeof deleteSourceChunks>;
 const sweepSingletonChunksMock = sweepSingletonChunks as jest.MockedFunction<
   typeof sweepSingletonChunks
 >;
@@ -226,9 +222,7 @@ describe("regenerateEmbeddingsHandler", () => {
         { id: "post-1" },
         { id: "post-2" },
       ]);
-      (prisma.project.findMany as jest.Mock).mockResolvedValueOnce([
-        { id: "proj-1" },
-      ]);
+      (prisma.project.findMany as jest.Mock).mockResolvedValueOnce([{ id: "proj-1" }]);
 
       const step = buildFakeStep();
       const result = await regenerateEmbeddingsHandler({
@@ -269,7 +263,7 @@ describe("regenerateEmbeddingsHandler", () => {
             name: "knowledge/reindex.requested",
             data: { sourceType: "contact" },
           },
-        ]),
+        ])
       );
       expect(result).toEqual({ kind: "fanout", emitted: 6 });
     });

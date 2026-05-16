@@ -4,13 +4,13 @@
  * Tests projects page with filtering, sorting, and infinite scroll
  */
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import ProjectsPage from '../../pages/projects';
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import ProjectsPage from "../../pages/projects";
 
 // Mock router
 const mockPush = jest.fn();
-jest.mock('next/router', () => ({
+jest.mock("next/router", () => ({
   useRouter: () => ({
     push: mockPush,
     query: {},
@@ -20,14 +20,14 @@ jest.mock('next/router', () => ({
 // gsap is mocked globally via jest.config.js moduleNameMapper
 
 // Mock SEO
-jest.mock('@/components/SEO', () => {
+jest.mock("@/components/SEO", () => {
   return function SEO({ title }) {
     return <div data-testid="seo" data-title={title} />;
   };
 });
 
 // Mock ProjectCard
-jest.mock('@/components/Project/ProjectCard', () => {
+jest.mock("@/components/Project/ProjectCard", () => {
   return function ProjectCard({ project, index }) {
     return (
       <div data-testid={`project-card-${project.id}`} data-index={index}>
@@ -38,7 +38,7 @@ jest.mock('@/components/Project/ProjectCard', () => {
 });
 
 // Mock ProjectFilters
-jest.mock('@/components/Project/ProjectFilters', () => {
+jest.mock("@/components/Project/ProjectFilters", () => {
   return function ProjectFilters({
     searchQuery,
     onSearchChange,
@@ -65,7 +65,9 @@ jest.mock('@/components/Project/ProjectFilters', () => {
         >
           <option value="all">All</option>
           {availableStatuses.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
         <select
@@ -75,7 +77,9 @@ jest.mock('@/components/Project/ProjectFilters', () => {
         >
           <option value="all">All</option>
           {availableTags.map((t) => (
-            <option key={t} value={t}>{t}</option>
+            <option key={t} value={t}>
+              {t}
+            </option>
           ))}
         </select>
         <button data-testid="clear-filters" onClick={onClearFilters}>
@@ -87,7 +91,7 @@ jest.mock('@/components/Project/ProjectFilters', () => {
 });
 
 // Mock ProjectsEmptyState
-jest.mock('@/components/Project/ProjectsEmptyState', () => {
+jest.mock("@/components/Project/ProjectsEmptyState", () => {
   return function ProjectsEmptyState({ hasFilters, onClearFilters }) {
     return (
       <div data-testid="empty-state">
@@ -103,7 +107,7 @@ jest.mock('@/components/Project/ProjectsEmptyState', () => {
 });
 
 // Mock constants
-jest.mock('@/lib/utils/constants', () => ({
+jest.mock("@/lib/utils/constants", () => ({
   DEBOUNCE_DELAY_MS: 0,
   INITIAL_PROJECT_DISPLAY_COUNT: 6,
   PROJECTS_PER_PAGE: 6,
@@ -118,31 +122,31 @@ mockIntersectionObserver.mockImplementation((callback) => ({
 }));
 window.IntersectionObserver = mockIntersectionObserver;
 
-describe('ProjectsPage', () => {
+describe("ProjectsPage", () => {
   const mockProjects = [
     {
-      id: '1',
-      title: 'AI Chatbot',
-      shortDescription: 'Intelligent chatbot',
-      status: 'Published',
-      tags: ['AI', 'Python'],
-      startDate: '2024-01-01',
+      id: "1",
+      title: "AI Chatbot",
+      shortDescription: "Intelligent chatbot",
+      status: "Published",
+      tags: ["AI", "Python"],
+      startDate: "2024-01-01",
     },
     {
-      id: '2',
-      title: 'Web Dashboard',
-      shortDescription: 'Analytics dashboard',
-      status: 'Completed',
-      tags: ['React', 'TypeScript'],
-      startDate: '2023-06-01',
+      id: "2",
+      title: "Web Dashboard",
+      shortDescription: "Analytics dashboard",
+      status: "Completed",
+      tags: ["React", "TypeScript"],
+      startDate: "2023-06-01",
     },
     {
-      id: '3',
-      title: 'ML Pipeline',
-      shortDescription: 'Data pipeline',
-      status: 'Published',
-      tags: ['Python', 'AWS'],
-      startDate: '2023-01-01',
+      id: "3",
+      title: "ML Pipeline",
+      shortDescription: "Data pipeline",
+      status: "Published",
+      tags: ["Python", "AWS"],
+      startDate: "2023-01-01",
     },
   ];
 
@@ -161,170 +165,169 @@ describe('ProjectsPage', () => {
     }));
   });
 
-  describe('Rendering', () => {
-    it('should render page title', () => {
+  describe("Rendering", () => {
+    it("should render page title", () => {
       render(<ProjectsPage projects={mockProjects} />);
-      expect(screen.getByText('Projects')).toBeInTheDocument();
+      expect(screen.getByText("Projects")).toBeInTheDocument();
     });
 
-    it('should render SEO component', () => {
+    it("should render SEO component", () => {
       render(<ProjectsPage projects={mockProjects} />);
-      expect(screen.getByTestId('seo')).toBeInTheDocument();
+      expect(screen.getByTestId("seo")).toBeInTheDocument();
     });
 
-    it('should render project filters', () => {
+    it("should render project filters", () => {
       render(<ProjectsPage projects={mockProjects} />);
-      expect(screen.getByTestId('project-filters')).toBeInTheDocument();
+      expect(screen.getByTestId("project-filters")).toBeInTheDocument();
     });
 
-    it('should render project cards', () => {
+    it("should render project cards", () => {
       render(<ProjectsPage projects={mockProjects} />);
-      expect(screen.getByTestId('project-card-1')).toBeInTheDocument();
-      expect(screen.getByTestId('project-card-2')).toBeInTheDocument();
-      expect(screen.getByTestId('project-card-3')).toBeInTheDocument();
+      expect(screen.getByTestId("project-card-1")).toBeInTheDocument();
+      expect(screen.getByTestId("project-card-2")).toBeInTheDocument();
+      expect(screen.getByTestId("project-card-3")).toBeInTheDocument();
     });
 
-    it('should show project count', () => {
+    it("should show project count", () => {
       render(<ProjectsPage projects={mockProjects} />);
       // Check for "projects found" text which indicates the count is displayed
       expect(screen.getByText(/projects found/)).toBeInTheDocument();
     });
   });
 
-  describe('Filtering', () => {
-    it('should filter by search query', async () => {
+  describe("Filtering", () => {
+    it("should filter by search query", async () => {
       render(<ProjectsPage projects={mockProjects} />);
 
-      fireEvent.change(screen.getByTestId('search-input'), {
-        target: { value: 'chatbot' },
+      fireEvent.change(screen.getByTestId("search-input"), {
+        target: { value: "chatbot" },
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('project-card-1')).toBeInTheDocument();
-        expect(screen.queryByTestId('project-card-2')).not.toBeInTheDocument();
+        expect(screen.getByTestId("project-card-1")).toBeInTheDocument();
+        expect(screen.queryByTestId("project-card-2")).not.toBeInTheDocument();
       });
     });
 
-    it('should filter by status', async () => {
+    it("should filter by status", async () => {
       render(<ProjectsPage projects={mockProjects} />);
 
-      fireEvent.change(screen.getByTestId('status-filter'), {
-        target: { value: 'Completed' },
+      fireEvent.change(screen.getByTestId("status-filter"), {
+        target: { value: "Completed" },
       });
 
       await waitFor(() => {
-        expect(screen.queryByTestId('project-card-1')).not.toBeInTheDocument();
-        expect(screen.getByTestId('project-card-2')).toBeInTheDocument();
+        expect(screen.queryByTestId("project-card-1")).not.toBeInTheDocument();
+        expect(screen.getByTestId("project-card-2")).toBeInTheDocument();
       });
     });
 
-    it('should filter by tag', async () => {
+    it("should filter by tag", async () => {
       render(<ProjectsPage projects={mockProjects} />);
 
-      fireEvent.change(screen.getByTestId('tag-filter'), {
-        target: { value: 'React' },
+      fireEvent.change(screen.getByTestId("tag-filter"), {
+        target: { value: "React" },
       });
 
       await waitFor(() => {
-        expect(screen.queryByTestId('project-card-1')).not.toBeInTheDocument();
-        expect(screen.getByTestId('project-card-2')).toBeInTheDocument();
+        expect(screen.queryByTestId("project-card-1")).not.toBeInTheDocument();
+        expect(screen.getByTestId("project-card-2")).toBeInTheDocument();
       });
     });
 
-    it('should clear filters when clear button clicked', async () => {
+    it("should clear filters when clear button clicked", async () => {
       render(<ProjectsPage projects={mockProjects} />);
 
       // Apply a filter
-      fireEvent.change(screen.getByTestId('status-filter'), {
-        target: { value: 'Completed' },
+      fireEvent.change(screen.getByTestId("status-filter"), {
+        target: { value: "Completed" },
       });
 
       await waitFor(() => {
-        expect(screen.queryByTestId('project-card-1')).not.toBeInTheDocument();
+        expect(screen.queryByTestId("project-card-1")).not.toBeInTheDocument();
       });
 
       // Clear filters
-      fireEvent.click(screen.getByTestId('clear-filters'));
+      fireEvent.click(screen.getByTestId("clear-filters"));
 
       await waitFor(() => {
-        expect(screen.getByTestId('project-card-1')).toBeInTheDocument();
+        expect(screen.getByTestId("project-card-1")).toBeInTheDocument();
       });
 
-      expect(mockPush).toHaveBeenCalledWith('/projects', undefined, { shallow: true });
+      expect(mockPush).toHaveBeenCalledWith("/projects", undefined, { shallow: true });
     });
   });
 
-  describe('Sorting', () => {
-    it('should render sort dropdowns', () => {
+  describe("Sorting", () => {
+    it("should render sort dropdowns", () => {
       render(<ProjectsPage projects={mockProjects} />);
 
-      expect(screen.getByLabelText('Sort by')).toBeInTheDocument();
-      expect(screen.getByLabelText('Sort order')).toBeInTheDocument();
+      expect(screen.getByLabelText("Sort by")).toBeInTheDocument();
+      expect(screen.getByLabelText("Sort order")).toBeInTheDocument();
     });
 
-    it('should sort by title', async () => {
+    it("should sort by title", async () => {
       render(<ProjectsPage projects={mockProjects} />);
 
-      fireEvent.change(screen.getByLabelText('Sort by'), {
-        target: { value: 'title' },
+      fireEvent.change(screen.getByLabelText("Sort by"), {
+        target: { value: "title" },
       });
 
-      fireEvent.change(screen.getByLabelText('Sort order'), {
-        target: { value: 'asc' },
+      fireEvent.change(screen.getByLabelText("Sort order"), {
+        target: { value: "asc" },
       });
 
       await waitFor(() => {
         const cards = screen.getAllByTestId(/project-card-/);
         // AI Chatbot should come first alphabetically
-        expect(cards[0]).toHaveAttribute('data-testid', 'project-card-1');
+        expect(cards[0]).toHaveAttribute("data-testid", "project-card-1");
       });
     });
   });
 
-  describe('Empty state', () => {
-    it('should show empty state when no projects', () => {
+  describe("Empty state", () => {
+    it("should show empty state when no projects", () => {
       render(<ProjectsPage projects={[]} />);
-      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
     });
 
-    it('should show empty state when filters return no results', async () => {
+    it("should show empty state when filters return no results", async () => {
       render(<ProjectsPage projects={mockProjects} />);
 
-      fireEvent.change(screen.getByTestId('search-input'), {
-        target: { value: 'nonexistent' },
+      fireEvent.change(screen.getByTestId("search-input"), {
+        target: { value: "nonexistent" },
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('empty-state')).toBeInTheDocument();
+        expect(screen.getByTestId("empty-state")).toBeInTheDocument();
       });
     });
   });
 
-  describe('Edge cases', () => {
-    it('should handle null projects', () => {
+  describe("Edge cases", () => {
+    it("should handle null projects", () => {
       render(<ProjectsPage projects={null} />);
-      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
     });
 
-    it('should handle undefined projects', () => {
+    it("should handle undefined projects", () => {
       render(<ProjectsPage projects={undefined} />);
-      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
     });
 
-    it('should handle projects with string tags', async () => {
+    it("should handle projects with string tags", async () => {
       const projectsWithStringTags = [
         {
-          id: '1',
-          title: 'Test Project',
+          id: "1",
+          title: "Test Project",
           tags: '["AI", "ML"]', // JSON string instead of array
-          status: 'Published',
-          startDate: '2024-01-01',
+          status: "Published",
+          startDate: "2024-01-01",
         },
       ];
 
       render(<ProjectsPage projects={projectsWithStringTags} />);
-      expect(screen.getByTestId('project-card-1')).toBeInTheDocument();
+      expect(screen.getByTestId("project-card-1")).toBeInTheDocument();
     });
   });
 });
-

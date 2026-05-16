@@ -34,4 +34,3 @@ describe("ProfessionalSummary", () => {
     expect(screen.getByTestId("professional-summary-content")).toBeInTheDocument();
   });
 });
-

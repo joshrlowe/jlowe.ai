@@ -13,14 +13,7 @@
  * - Hobbies
  */
 
-import {
-  ChangeEvent,
-  FormEvent,
-  ReactNode,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import { ChangeEvent, FormEvent, ReactNode, useState, useEffect, useCallback } from "react";
 import { useToast } from "./ToastProvider";
 import MarkdownEditor from "./MarkdownEditor";
 import FormField from "./shared/FormField";
@@ -108,11 +101,7 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
 }
 
-function CollapsibleSection({
-  title,
-  children,
-  defaultOpen = false,
-}: CollapsibleSectionProps) {
+function CollapsibleSection({ title, children, defaultOpen = false }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -122,14 +111,8 @@ function CollapsibleSection({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-4 py-3 flex items-center justify-between bg-[var(--color-bg-darker)] hover:bg-[var(--color-bg-card-hover)] transition-colors"
       >
-        <span className="font-medium text-[var(--color-text-primary)]">
-          {title}
-        </span>
-        <span
-          className={`transform transition-transform ${isOpen ? "rotate-180" : ""}`}
-        >
-          ▼
-        </span>
+        <span className="font-medium text-[var(--color-text-primary)]">{title}</span>
+        <span className={`transform transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
       </button>
       {isOpen && <div className="p-4 space-y-4">{children}</div>}
     </div>
@@ -164,11 +147,7 @@ function EntryForm({
         <span className="text-sm font-medium text-[var(--color-text-secondary)]">
           {entityName} #{index + 1}
         </span>
-        <button
-          type="button"
-          onClick={onRemove}
-          className={adminStyles.buttonDangerOutline}
-        >
+        <button type="button" onClick={onRemove} className={adminStyles.buttonDangerOutline}>
           Remove
         </button>
       </div>
@@ -180,18 +159,11 @@ function EntryForm({
                 <TagInput
                   label={field.label}
                   tags={entry[field.key] || []}
-                  onAdd={(tag) =>
-                    handleFieldChange(field.key, [
-                      ...(entry[field.key] || []),
-                      tag,
-                    ])
-                  }
+                  onAdd={(tag) => handleFieldChange(field.key, [...(entry[field.key] || []), tag])}
                   onRemove={(idx) =>
                     handleFieldChange(
                       field.key,
-                      (entry[field.key] || []).filter(
-                        (_: unknown, i: number) => i !== idx,
-                      ),
+                      (entry[field.key] || []).filter((_: unknown, i: number) => i !== idx)
                     )
                   }
                   placeholder={field.placeholder || "Add item"}
@@ -249,16 +221,8 @@ interface ExperienceEntryFormProps {
   index: number;
 }
 
-function ExperienceEntryForm({
-  entry,
-  onChange,
-  onRemove,
-  index,
-}: ExperienceEntryFormProps) {
-  const handleFieldChange = <K extends keyof Experience>(
-    field: K,
-    value: Experience[K],
-  ) => {
+function ExperienceEntryForm({ entry, onChange, onRemove, index }: ExperienceEntryFormProps) {
+  const handleFieldChange = <K extends keyof Experience>(field: K, value: Experience[K]) => {
     onChange({ ...entry, [field]: value });
   };
 
@@ -279,11 +243,7 @@ function ExperienceEntryForm({
         <span className="text-sm font-medium text-[var(--color-text-secondary)]">
           Experience #{index + 1}
         </span>
-        <button
-          type="button"
-          onClick={onRemove}
-          className={adminStyles.buttonDangerOutline}
-        >
+        <button type="button" onClick={onRemove} className={adminStyles.buttonDangerOutline}>
           Remove
         </button>
       </div>
@@ -328,9 +288,7 @@ function ExperienceEntryForm({
                 className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-darker)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0 cursor-pointer"
                 data-testid="ongoing-checkbox"
               />
-              <span className="text-sm text-[var(--color-text-secondary)]">
-                Ongoing
-              </span>
+              <span className="text-sm text-[var(--color-text-secondary)]">Ongoing</span>
             </label>
           </div>
           {isOngoing ? (
@@ -364,16 +322,8 @@ interface EducationEntryFormProps {
   index: number;
 }
 
-function EducationEntryForm({
-  entry,
-  onChange,
-  onRemove,
-  index,
-}: EducationEntryFormProps) {
-  const handleFieldChange = <K extends keyof Education>(
-    field: K,
-    value: Education[K],
-  ) => {
+function EducationEntryForm({ entry, onChange, onRemove, index }: EducationEntryFormProps) {
+  const handleFieldChange = <K extends keyof Education>(field: K, value: Education[K]) => {
     onChange({ ...entry, [field]: value });
   };
 
@@ -397,11 +347,7 @@ function EducationEntryForm({
         <span className="text-sm font-medium text-[var(--color-text-secondary)]">
           Education #{index + 1}
         </span>
-        <button
-          type="button"
-          onClick={onRemove}
-          className={adminStyles.buttonDangerOutline}
-        >
+        <button type="button" onClick={onRemove} className={adminStyles.buttonDangerOutline}>
           Remove
         </button>
       </div>
@@ -445,9 +391,7 @@ function EducationEntryForm({
                 className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-darker)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0 cursor-pointer"
                 data-testid={`education-ongoing-checkbox-${index}`}
               />
-              <span className="text-sm text-[var(--color-text-secondary)]">
-                Currently Enrolled
-              </span>
+              <span className="text-sm text-[var(--color-text-secondary)]">Currently Enrolled</span>
             </label>
           </div>
           {isOngoing ? (
@@ -482,15 +426,12 @@ function EducationEntryForm({
             label="Relevant Coursework"
             tags={entry.relevantCoursework || []}
             onAdd={(course) =>
-              handleFieldChange("relevantCoursework", [
-                ...(entry.relevantCoursework || []),
-                course,
-              ])
+              handleFieldChange("relevantCoursework", [...(entry.relevantCoursework || []), course])
             }
             onRemove={(idx) =>
               handleFieldChange(
                 "relevantCoursework",
-                (entry.relevantCoursework || []).filter((_, i) => i !== idx),
+                (entry.relevantCoursework || []).filter((_, i) => i !== idx)
               )
             }
             placeholder="Add course name"
@@ -518,17 +459,14 @@ interface SkillItemProps {
 }
 
 function SkillItem({ skill, onChange, onRemove, skillIndex }: SkillItemProps) {
-  const handleFieldChange = <K extends keyof Skill>(
-    field: K,
-    value: Skill[K],
-  ) => {
+  const handleFieldChange = <K extends keyof Skill>(field: K, value: Skill[K]) => {
     onChange({ ...skill, [field]: value });
   };
 
   const handleProjectChange = <K extends keyof SkillProject>(
     projectIndex: number,
     field: K,
-    value: SkillProject[K],
+    value: SkillProject[K]
   ) => {
     const newProjects = [...(skill.projects || [])];
     newProjects[projectIndex] = {
@@ -539,16 +477,13 @@ function SkillItem({ skill, onChange, onRemove, skillIndex }: SkillItemProps) {
   };
 
   const addProject = () => {
-    handleFieldChange("projects", [
-      ...(skill.projects || []),
-      { name: "", repositoryLink: "" },
-    ]);
+    handleFieldChange("projects", [...(skill.projects || []), { name: "", repositoryLink: "" }]);
   };
 
   const removeProject = (projectIndex: number) => {
     handleFieldChange(
       "projects",
-      (skill.projects || []).filter((_, i) => i !== projectIndex),
+      (skill.projects || []).filter((_, i) => i !== projectIndex)
     );
   };
 
@@ -641,12 +576,7 @@ interface SkillCategoryEntryProps {
   index: number;
 }
 
-function SkillCategoryEntry({
-  category,
-  onChange,
-  onRemove,
-  index,
-}: SkillCategoryEntryProps) {
+function SkillCategoryEntry({ category, onChange, onRemove, index }: SkillCategoryEntryProps) {
   const handleCategoryNameChange = (name: string) => {
     onChange({ ...category, category: name });
   };
@@ -754,7 +684,7 @@ interface ArraySectionProps<T> {
     item: T,
     index: number,
     onChange: (newItem: T) => void,
-    onRemove: () => void,
+    onRemove: () => void
   ) => ReactNode;
   addNew: () => T;
 }
@@ -781,15 +711,15 @@ function ArraySection<T>({
   };
 
   return (
-    <CollapsibleSection
-      title={`${title} (${items.length})`}
-      defaultOpen={items.length > 0}
-    >
+    <CollapsibleSection title={`${title} (${items.length})`} defaultOpen={items.length > 0}>
       <div className="space-y-4">
         {items.map((item, index) =>
-          renderItem(item, index, (newItem) => handleChange(index, newItem), () =>
-            handleRemove(index),
-          ),
+          renderItem(
+            item,
+            index,
+            (newItem) => handleChange(index, newItem),
+            () => handleRemove(index)
+          )
         )}
         <button
           type="button"
@@ -808,9 +738,7 @@ interface AboutSettingsSectionProps {
   onError?: (message: string) => void;
 }
 
-export default function AboutSettingsSection({
-  onError,
-}: AboutSettingsSectionProps) {
+export default function AboutSettingsSection({ onError }: AboutSettingsSectionProps) {
   const { showToast } = useToast();
   const [aboutData, setAboutData] = useState<AboutEditableShape>({
     professionalSummary: "",
@@ -875,7 +803,7 @@ export default function AboutSettingsSection({
 
   const updateField = <K extends keyof AboutEditableShape>(
     field: K,
-    value: AboutEditableShape[K],
+    value: AboutEditableShape[K]
   ) => {
     setAboutData((prev) => ({ ...prev, [field]: value }));
   };
@@ -1050,9 +978,7 @@ export default function AboutSettingsSection({
               onRemove={() => {
                 updateField(
                   "leadershipExperience",
-                  aboutData.leadershipExperience.filter(
-                    (_, i) => i !== index,
-                  ),
+                  aboutData.leadershipExperience.filter((_, i) => i !== index)
                 );
               }}
               fields={leadershipFields}
@@ -1090,7 +1016,7 @@ export default function AboutSettingsSection({
             // Handle both string and object formats
             const hobbyName = typeof hobby === "string" ? hobby : hobby.name || "";
             const hobbyColor = typeof hobby === "string" ? "" : hobby.color || "";
-            
+
             return (
               <div
                 key={index}
@@ -1123,11 +1049,11 @@ export default function AboutSettingsSection({
                 <button
                   type="button"
                   onClick={() =>
-            updateField(
-              "hobbies",
-              aboutData.hobbies.filter((_, i) => i !== index),
-            )
-          }
+                    updateField(
+                      "hobbies",
+                      aboutData.hobbies.filter((_, i) => i !== index)
+                    )
+                  }
                   className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
                 >
                   ✕
@@ -1138,10 +1064,7 @@ export default function AboutSettingsSection({
           <button
             type="button"
             onClick={() =>
-              updateField("hobbies", [
-                ...aboutData.hobbies,
-                { name: "", color: "#FAA307" },
-              ])
+              updateField("hobbies", [...aboutData.hobbies, { name: "", color: "#FAA307" }])
             }
             className={`w-full py-2 ${adminStyles.buttonOutline}`}
           >
@@ -1152,13 +1075,9 @@ export default function AboutSettingsSection({
 
       {/* Save Button */}
       <div className="flex justify-end pt-4 border-t border-[var(--color-border)]">
-      <button
-        type="submit"
-        disabled={saving}
-          className={adminStyles.buttonPrimary}
-      >
+        <button type="submit" disabled={saving} className={adminStyles.buttonPrimary}>
           {saving ? "Saving..." : "Save All Changes"}
-      </button>
+        </button>
       </div>
     </form>
   );

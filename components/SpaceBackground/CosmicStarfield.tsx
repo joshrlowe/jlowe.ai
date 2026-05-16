@@ -25,8 +25,7 @@ function createStarGeometry(count: number): StarGeometry {
   const sizes = new Float32Array(count);
 
   for (let i = 0; i < count; i++) {
-    const radius =
-      STAR_MIN_RADIUS + Math.pow(Math.random(), 0.4) * STAR_MAX_RADIUS_FACTOR;
+    const radius = STAR_MIN_RADIUS + Math.pow(Math.random(), 0.4) * STAR_MAX_RADIUS_FACTOR;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
 
@@ -49,21 +48,13 @@ function createStarGeometry(count: number): StarGeometry {
 
     const sizeRoll = Math.random();
     if (sizeRoll > STAR_SIZE_THRESHOLDS.LARGE) {
-      sizes[i] =
-        STAR_SIZE_RANGES.LARGE.min +
-        Math.random() * STAR_SIZE_RANGES.LARGE.variance;
+      sizes[i] = STAR_SIZE_RANGES.LARGE.min + Math.random() * STAR_SIZE_RANGES.LARGE.variance;
     } else if (sizeRoll > STAR_SIZE_THRESHOLDS.MEDIUM) {
-      sizes[i] =
-        STAR_SIZE_RANGES.MEDIUM.min +
-        Math.random() * STAR_SIZE_RANGES.MEDIUM.variance;
+      sizes[i] = STAR_SIZE_RANGES.MEDIUM.min + Math.random() * STAR_SIZE_RANGES.MEDIUM.variance;
     } else if (sizeRoll > STAR_SIZE_THRESHOLDS.SMALL) {
-      sizes[i] =
-        STAR_SIZE_RANGES.SMALL.min +
-        Math.random() * STAR_SIZE_RANGES.SMALL.variance;
+      sizes[i] = STAR_SIZE_RANGES.SMALL.min + Math.random() * STAR_SIZE_RANGES.SMALL.variance;
     } else {
-      sizes[i] =
-        STAR_SIZE_RANGES.TINY.min +
-        Math.random() * STAR_SIZE_RANGES.TINY.variance;
+      sizes[i] = STAR_SIZE_RANGES.TINY.min + Math.random() * STAR_SIZE_RANGES.TINY.variance;
     }
   }
 
@@ -90,10 +81,7 @@ export default function CosmicStarfield({
   const animationProgress = useRef(skipAnimation ? 1 : 0);
   const isAnimating = useRef(false);
 
-  const { geometry, finalPositions } = useMemo(
-    () => createStarGeometry(count),
-    [count],
-  );
+  const { geometry, finalPositions } = useMemo(() => createStarGeometry(count), [count]);
 
   useEffect(() => {
     if (skipAnimation) {
@@ -142,8 +130,7 @@ export default function CosmicStarfield({
     }
 
     // eslint-disable-next-line react-hooks/immutability
-    points.current.rotation.y =
-      state.clock.elapsedTime * AMBIENT_ROTATION_SPEED;
+    points.current.rotation.y = state.clock.elapsedTime * AMBIENT_ROTATION_SPEED;
   });
 
   return (

@@ -13,12 +13,9 @@ interface ContactData {
  * Safely extracts social media links from contact data
  */
 export function extractSocialMediaLinks(
-  contactData: ContactData | null | undefined,
+  contactData: ContactData | null | undefined
 ): Record<string, unknown> {
-  if (
-    !contactData?.socialMediaLinks ||
-    typeof contactData.socialMediaLinks !== "object"
-  ) {
+  if (!contactData?.socialMediaLinks || typeof contactData.socialMediaLinks !== "object") {
     return {};
   }
   return contactData.socialMediaLinks;

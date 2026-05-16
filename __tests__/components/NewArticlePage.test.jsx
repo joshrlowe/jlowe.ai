@@ -74,9 +74,7 @@ describe("NewArticlePage Component", () => {
       render(<NewArticlePage />);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith(
-          "/admin/login?callbackUrl=/articles/new"
-        );
+        expect(mockPush).toHaveBeenCalledWith("/admin/login?callbackUrl=/articles/new");
       });
     });
 
@@ -85,9 +83,7 @@ describe("NewArticlePage Component", () => {
 
       render(<NewArticlePage />);
 
-      expect(
-        screen.getByText(/please log in to create articles/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/please log in to create articles/i)).toBeInTheDocument();
       expect(screen.getByText(/go to login/i)).toBeInTheDocument();
     });
 
@@ -445,4 +441,3 @@ describe("NewArticlePage Component", () => {
     });
   });
 });
-

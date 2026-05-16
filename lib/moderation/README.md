@@ -26,11 +26,11 @@ writes an `ActivityLog` row and flips both `moderationStatus` and
 
 ## Thresholds
 
-| Decision | Trigger |
-|----------|---------|
-| `rejected` | `spam ≥ 0.8` OR `toxicity ≥ 0.8` OR `pii ≥ 0.8` |
-| `held` | `spam ≥ 0.4` OR `toxicity ≥ 0.4` OR `pii ≥ 0.4` OR `offTopic ≥ 0.7` |
-| `approved` | otherwise |
+| Decision   | Trigger                                                             |
+| ---------- | ------------------------------------------------------------------- |
+| `rejected` | `spam ≥ 0.8` OR `toxicity ≥ 0.8` OR `pii ≥ 0.8`                     |
+| `held`     | `spam ≥ 0.4` OR `toxicity ≥ 0.4` OR `pii ≥ 0.4` OR `offTopic ≥ 0.7` |
+| `approved` | otherwise                                                           |
 
 These are starting points. Off-topic alone is held softer than the
 abuse axes (0.7 instead of 0.4) because tangential comments are

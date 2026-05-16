@@ -130,7 +130,7 @@ interface ArticleViewOptions {
 export function trackArticleView(
   options: ArticleViewOptions | string,
   articleTitle?: string,
-  topic?: string,
+  topic?: string
 ): void {
   if (typeof options === "object") {
     trackEvent(ANALYTICS_EVENTS.ARTICLE_VIEW, {

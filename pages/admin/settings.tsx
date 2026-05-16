@@ -67,10 +67,7 @@ export default function AdminSettings() {
       {error && (
         <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-between">
           <span>{error}</span>
-          <button
-            onClick={() => setError("")}
-            className="text-red-400 hover:text-red-300"
-          >
+          <button onClick={() => setError("")} className="text-red-400 hover:text-red-300">
             ✕
           </button>
         </div>

@@ -96,9 +96,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     // Calculate reading time if content exists
     let readingTime = null;
     if (content) {
-      const { calculateReadingTime } = await import(
-        "../../../../lib/utils/readingTime"
-      );
+      const { calculateReadingTime } = await import("../../../../lib/utils/readingTime");
       readingTime = calculateReadingTime(content);
     }
 
@@ -129,17 +127,11 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
     try {
       await inngest.send({
-        name:
-          post.status === "Published"
-            ? "content/post.published"
-            : "content/post.updated",
+        name: post.status === "Published" ? "content/post.published" : "content/post.updated",
         data: { postId: post.id },
       });
     } catch (emitErr) {
-      console.warn(
-        "[posts/index] failed to emit post event:",
-        (emitErr as Error).message,
-      );
+      console.warn("[posts/index] failed to emit post event:", (emitErr as Error).message);
     }
 
     res.status(201).json(post);

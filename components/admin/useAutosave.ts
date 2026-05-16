@@ -2,11 +2,7 @@ import { useEffect, useRef } from "react";
 
 type SaveCallback<T> = (data: T) => void | Promise<void>;
 
-export function useAutosave<T>(
-  data: T,
-  onSave: SaveCallback<T>,
-  interval = 30000,
-): void {
+export function useAutosave<T>(data: T, onSave: SaveCallback<T>, interval = 30000): void {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<string | null>(null);
 

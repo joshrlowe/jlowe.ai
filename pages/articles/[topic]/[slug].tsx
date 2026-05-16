@@ -40,9 +40,7 @@ const CodeBlock = ({ language, children }: CodeBlockProps) => {
   );
 };
 
-export default function ArticleDetailPage({
-  post: initialPost,
-}: ArticleDetailPageProps) {
+export default function ArticleDetailPage({ post: initialPost }: ArticleDetailPageProps) {
   const router = useRouter();
   const [post] = useState<ArticlePost | null>(initialPost);
   const [_likeData, setLikeData] = useState<unknown>(null);
@@ -59,9 +57,7 @@ export default function ArticleDetailPage({
   useEffect(() => {
     const fetchLikeStatus = async () => {
       try {
-        const response = await fetch(
-          `/api/posts/${router.query.topic}/${router.query.slug}/like`,
-        );
+        const response = await fetch(`/api/posts/${router.query.topic}/${router.query.slug}/like`);
         const data = await response.json();
         setLikeData(data);
       } catch (error) {
@@ -110,9 +106,7 @@ export default function ArticleDetailPage({
                   {post.topic}
                 </span>
                 <span className="text-sm text-[var(--color-text-muted)]">
-                  {post.datePublished
-                    ? formatDate(post.datePublished as Date | string)
-                    : ""}
+                  {post.datePublished ? formatDate(post.datePublished as Date | string) : ""}
                 </span>
                 {post.readingTime && (
                   <span className="text-sm text-[var(--color-text-muted)]">
@@ -149,9 +143,7 @@ export default function ArticleDetailPage({
                 </div>
               )}
 
-              <div className="text-sm text-[var(--color-text-secondary)]">
-                By {post.author}
-              </div>
+              <div className="text-sm text-[var(--color-text-secondary)]">By {post.author}</div>
             </header>
 
             {/* Cover Image */}
@@ -182,11 +174,7 @@ export default function ArticleDetailPage({
 
             {/* Social Share & Like */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b border-[var(--color-border)]">
-              <SocialShare
-                url={articleUrl}
-                title={post.title}
-                description={post.description}
-              />
+              <SocialShare url={articleUrl} title={post.title} description={post.description} />
               <PostLikeButton
                 postId={post.id}
                 topic={post.topic}
@@ -202,13 +190,7 @@ export default function ArticleDetailPage({
                   remarkPlugins={[remarkGfm]}
                   components={
                     {
-                      code({
-                        node: _node,
-                        inline,
-                        className,
-                        children,
-                        ...props
-                      }: any) {
+                      code({ node: _node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
                         if (!inline && match) {
                           return (
@@ -259,13 +241,7 @@ export default function ArticleDetailPage({
                       li: ({ children }: { children?: ReactNode }) => (
                         <li className="mb-2">{children}</li>
                       ),
-                      a: ({
-                        children,
-                        href,
-                      }: {
-                        children?: ReactNode;
-                        href?: string;
-                      }) => (
+                      a: ({ children, href }: { children?: ReactNode; href?: string }) => (
                         <a
                           href={href}
                           className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] underline"
@@ -273,22 +249,12 @@ export default function ArticleDetailPage({
                           {children}
                         </a>
                       ),
-                      blockquote: ({
-                        children,
-                      }: {
-                        children?: ReactNode;
-                      }) => (
+                      blockquote: ({ children }: { children?: ReactNode }) => (
                         <blockquote className="border-l-4 border-[var(--color-primary)] pl-4 my-4 italic text-[var(--color-text-secondary)]">
                           {children}
                         </blockquote>
                       ),
-                      img: ({
-                        src,
-                        alt,
-                      }: {
-                        src?: string;
-                        alt?: string;
-                      }) => (
+                      img: ({ src, alt }: { src?: string; alt?: string }) => (
                         <span className="block my-8">
                           <Image
                             src={src || ""}
@@ -305,19 +271,13 @@ export default function ArticleDetailPage({
                   {post.content}
                 </ReactMarkdown>
               ) : (
-                <p className="text-[var(--color-text-secondary)]">
-                  No content available.
-                </p>
+                <p className="text-[var(--color-text-secondary)]">No content available.</p>
               )}
             </div>
 
             {/* Social Share (bottom) */}
             <div className="mb-8 pt-8 border-t border-[var(--color-border)]">
-              <SocialShare
-                url={articleUrl}
-                title={post.title}
-                description={post.description}
-              />
+              <SocialShare url={articleUrl} title={post.title} description={post.description} />
             </div>
 
             {/* Comments */}
@@ -347,9 +307,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 };
 
-export const getStaticProps: GetStaticProps<ArticleDetailPageProps> = async ({
-  params,
-}) => {
+export const getStaticProps: GetStaticProps<ArticleDetailPageProps> = async ({ params }) => {
   try {
     const topic = params?.topic as string | undefined;
     const slug = params?.slug as string | undefined;

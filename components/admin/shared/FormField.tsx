@@ -34,9 +34,7 @@ export default function FormField({
   inputClassName = "",
   children,
 }: FormFieldProps) {
-  const inputClass = rows
-    ? `${adminStyles.input} resize-none`
-    : adminStyles.input;
+  const inputClass = rows ? `${adminStyles.input} resize-none` : adminStyles.input;
 
   const renderInput = () => {
     if (children) return children;

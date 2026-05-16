@@ -39,9 +39,7 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   // caller explicitly opts out of filtering by passing `approved=false`
   // we return everything (admin tooling does this).
   const publicOnly = approved === "true";
-  const moderationFilter = publicOnly
-    ? { moderationStatus: "approved" as const }
-    : {};
+  const moderationFilter = publicOnly ? { moderationStatus: "approved" as const } : {};
 
   const where = {
     postId: postId as string,
@@ -104,11 +102,7 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   const { postId, authorName, authorEmail, content, parentId } = req.body;
 
-  const requiredValidation = validateRequiredFields(req.body, [
-    "postId",
-    "authorName",
-    "content",
-  ]);
+  const requiredValidation = validateRequiredFields(req.body, ["postId", "authorName", "content"]);
 
   if (!requiredValidation.isValid) {
     return res.status(400).json({ message: requiredValidation.message });
@@ -117,7 +111,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   const validation = combineValidations(
     validateMaxLength(authorName, "authorName", 100),
     validateMaxLength(content, "content", 5000),
-    authorEmail ? validateEmail(authorEmail) : { isValid: true },
+    authorEmail ? validateEmail(authorEmail) : { isValid: true }
   );
 
   if (!validation.isValid) {
@@ -191,8 +185,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
       content,
       approved: moderationStatus === "approved",
       moderationStatus,
-      moderationScores:
-        moderationScores === null ? Prisma.JsonNull : moderationScores,
+      moderationScores: moderationScores === null ? Prisma.JsonNull : moderationScores,
       moderationModel,
       moderatedAt,
       parentId: parentId || null,

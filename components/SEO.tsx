@@ -17,9 +17,7 @@ export default function SEO({
   url = "https://jlowe.ai",
   type = "website",
 }: SEOProps) {
-  const fullTitle = title.includes("Josh Lowe")
-    ? title
-    : `${title} | Josh Lowe`;
+  const fullTitle = title.includes("Josh Lowe") ? title : `${title} | Josh Lowe`;
 
   return (
     <Head>

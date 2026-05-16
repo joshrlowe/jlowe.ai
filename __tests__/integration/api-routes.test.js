@@ -6,11 +6,7 @@
  * - Each test verifies end-to-end functionality
  */
 
-import {
-  createMockRequest,
-  createMockResponse,
-  createMockPrisma,
-} from "../setup/api-test-utils";
+import { createMockRequest, createMockResponse, createMockPrisma } from "../setup/api-test-utils";
 
 // Note: These are integration test examples
 // Actual implementation would require mocking Next.js API routes

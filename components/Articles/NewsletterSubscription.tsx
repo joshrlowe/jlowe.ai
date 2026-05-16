@@ -49,10 +49,7 @@ export default function NewsletterSubscription() {
           Subscribe to get the latest articles, tutorials, and updates delivered to your inbox.
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col sm:flex-row gap-4"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
           <input
             type="email"
             value={email}
@@ -72,9 +69,7 @@ export default function NewsletterSubscription() {
         </form>
 
         {message && (
-          <p
-            className={`mt-4 text-sm ${status === "success" ? "text-green-400" : "text-red-400"}`}
-          >
+          <p className={`mt-4 text-sm ${status === "success" ? "text-green-400" : "text-red-400"}`}>
             {message}
           </p>
         )}

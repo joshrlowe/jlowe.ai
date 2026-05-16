@@ -1,13 +1,17 @@
 /**
  * Mock: gsap (GreenSock Animation Platform)
- * 
+ *
  * Mocks GSAP animation library for testing.
  * Uses plain functions instead of jest.fn() to avoid initialization issues.
  */
 
 const noop = () => {};
-const returnThis = function() { return this; };
-const returnMock = function() { return mockTween; };
+const returnThis = function () {
+  return this;
+};
+const returnMock = function () {
+  return mockTween;
+};
 
 // Mock tween object returned by animation methods
 const mockTween = {
@@ -124,7 +128,7 @@ export const MotionPathPlugin = {
 
 export const TextPlugin = {};
 
-export const SplitText = function() {
+export const SplitText = function () {
   return { chars: [], words: [], lines: [], revert: noop };
 };
 

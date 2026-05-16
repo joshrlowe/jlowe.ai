@@ -39,7 +39,7 @@ function asStringArray(value: unknown): string[] {
           ? v
           : typeof v === "object" && v !== null && "name" in v
             ? String((v as { name?: unknown }).name ?? "")
-            : "",
+            : ""
       )
       .filter(Boolean);
   }
@@ -77,10 +77,7 @@ function CaseStudySection({
   style?: CSSProperties;
 }) {
   return (
-    <section
-      className="grid grid-cols-12 gap-6 sm:gap-8 lg:gap-10"
-      style={style}
-    >
+    <section className="grid grid-cols-12 gap-6 sm:gap-8 lg:gap-10" style={style}>
       <div className="col-span-12 md:col-span-3">
         <div className="temp-label" style={{ color: "var(--color-stillness)" }}>
           {label}
@@ -113,9 +110,9 @@ export default function ProjectDetailV2({ project }: ProjectDetailV2Props) {
     p.includes("data leakage")
       ? p.replace(
           /Existing benchmarks like QuixBugs and SWE-Bench suffer from data leakage, which means models might perform well just by memorizing training data rather than actually learning how to do program repair\.\s*/i,
-          "",
+          ""
         )
-      : p,
+      : p
   );
 
   return (
@@ -305,10 +302,9 @@ export default function ProjectDetailV2({ project }: ProjectDetailV2Props) {
                 color: "rgba(250, 250, 250, 0.85)",
               }}
             >
-              Each model attempts to fix every other model&apos;s bugs, giving us
-              insight into self-repair bias and how well models hold up against
-              one another. Repair success is measured with the pass@k estimator
-              across multiple values of k.
+              Each model attempts to fix every other model&apos;s bugs, giving us insight into
+              self-repair bias and how well models hold up against one another. Repair success is
+              measured with the pass@k estimator across multiple values of k.
             </p>
           </CaseStudySection>
 
@@ -350,10 +346,7 @@ export default function ProjectDetailV2({ project }: ProjectDetailV2Props) {
 
           {tags.length > 0 && (
             <div className="mt-16">
-              <span
-                className="temp-label"
-                style={{ color: "var(--color-stillness)" }}
-              >
+              <span className="temp-label" style={{ color: "var(--color-stillness)" }}>
                 Filed under{" "}
               </span>
               <span
@@ -375,8 +368,7 @@ export default function ProjectDetailV2({ project }: ProjectDetailV2Props) {
         className="border-0"
         style={{
           height: 1,
-          background:
-            "linear-gradient(90deg, transparent, rgba(106,4,15,0.6), transparent)",
+          background: "linear-gradient(90deg, transparent, rgba(106,4,15,0.6), transparent)",
           margin: 0,
         }}
       />

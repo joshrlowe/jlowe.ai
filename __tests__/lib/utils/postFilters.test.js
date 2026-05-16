@@ -130,21 +130,13 @@ describe("postFilters", () => {
 
   describe("sortPosts", () => {
     it("should sort by datePublished descending", () => {
-      const result = sortPosts(
-        mockPosts,
-        SORT_OPTIONS.DATE_PUBLISHED,
-        SORT_ORDER.DESC,
-      );
+      const result = sortPosts(mockPosts, SORT_OPTIONS.DATE_PUBLISHED, SORT_ORDER.DESC);
       expect(result[0].title).toBe("CSS Tips"); // Most recent
       expect(result[2].title).toBe("Node.js Guide"); // Oldest
     });
 
     it("should sort by datePublished ascending", () => {
-      const result = sortPosts(
-        mockPosts,
-        SORT_OPTIONS.DATE_PUBLISHED,
-        SORT_ORDER.ASC,
-      );
+      const result = sortPosts(mockPosts, SORT_OPTIONS.DATE_PUBLISHED, SORT_ORDER.ASC);
       expect(result[0].title).toBe("Node.js Guide"); // Oldest
       expect(result[2].title).toBe("CSS Tips"); // Most recent
     });
@@ -157,25 +149,14 @@ describe("postFilters", () => {
     });
 
     it("should sort by viewCount descending", () => {
-      const result = sortPosts(
-        mockPosts,
-        SORT_OPTIONS.VIEW_COUNT,
-        SORT_ORDER.DESC,
-      );
+      const result = sortPosts(mockPosts, SORT_OPTIONS.VIEW_COUNT, SORT_ORDER.DESC);
       expect(result[0].viewCount).toBe(200);
       expect(result[2].viewCount).toBe(50);
     });
 
     it("should handle missing sort values", () => {
-      const postsWithMissing = [
-        { ...mockPosts[0], datePublished: null },
-        { ...mockPosts[1] },
-      ];
-      const result = sortPosts(
-        postsWithMissing,
-        SORT_OPTIONS.DATE_PUBLISHED,
-        SORT_ORDER.DESC,
-      );
+      const postsWithMissing = [{ ...mockPosts[0], datePublished: null }, { ...mockPosts[1] }];
+      const result = sortPosts(postsWithMissing, SORT_OPTIONS.DATE_PUBLISHED, SORT_ORDER.DESC);
       expect(result).toHaveLength(2);
     });
   });

@@ -3,9 +3,9 @@
  */
 
 export const mockAdminUser = {
-  id: 'admin-user-1',
-  email: 'admin@example.com',
-  role: 'admin',
+  id: "admin-user-1",
+  email: "admin@example.com",
+  role: "admin",
 };
 
 export const mockSession = {
@@ -19,7 +19,3 @@ export const mockExpiredSession = {
 };
 
 export const nullSession = null;
-
-
-
-

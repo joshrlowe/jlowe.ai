@@ -25,9 +25,7 @@ export default function ProjectListItem({
   return (
     <div className="p-4 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] flex flex-wrap items-center justify-between gap-4">
       <div className="flex-1 min-w-[200px]">
-        <h3 className="font-semibold text-[var(--color-text-primary)]">
-          {project.title}
-        </h3>
+        <h3 className="font-semibold text-[var(--color-text-primary)]">{project.title}</h3>
         <div className="text-sm text-[var(--color-text-muted)]">
           {(project.startDate && formatAdminDate(project.startDate)) || "—"} —{" "}
           {project.releaseDate ? formatAdminDate(project.releaseDate) : "Present"}
@@ -53,10 +51,7 @@ export default function ProjectListItem({
         >
           Edit
         </button>
-        <button
-          onClick={() => onDelete(project.id)}
-          className={adminStyles.buttonDangerOutline}
-        >
+        <button onClick={() => onDelete(project.id)} className={adminStyles.buttonDangerOutline}>
           Delete
         </button>
       </div>

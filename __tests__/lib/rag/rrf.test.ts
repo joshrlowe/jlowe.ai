@@ -30,12 +30,7 @@ describe("rrfMerge", () => {
   });
 
   it("truncates with topN", () => {
-    const result = rrfMerge(
-      [
-        [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }],
-      ],
-      { topN: 2 },
-    );
+    const result = rrfMerge([[{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }]], { topN: 2 });
     expect(result).toHaveLength(2);
     expect(result.map((r) => r.id)).toEqual(["a", "b"]);
   });

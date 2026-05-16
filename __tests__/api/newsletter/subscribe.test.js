@@ -82,7 +82,7 @@ describe("POST /api/newsletter/subscribe", () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "Successfully subscribed",
-      }),
+      })
     );
   });
 
@@ -150,15 +150,13 @@ describe("POST /api/newsletter/subscribe", () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "Subscription reactivated",
-      }),
+      })
     );
   });
 
   it("handles database errors", async () => {
     const { handleApiError } = require("@/lib/utils/apiErrorHandler");
-    prisma.newsletterSubscription.findUnique.mockRejectedValue(
-      new Error("Database error"),
-    );
+    prisma.newsletterSubscription.findUnique.mockRejectedValue(new Error("Database error"));
 
     const req = createMockRequest("POST", { email: "test@example.com" });
     const res = createMockResponse();

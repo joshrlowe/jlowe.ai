@@ -34,7 +34,7 @@ describe("SEO", () => {
     const metaDescription = document.querySelector('meta[name="description"]');
     expect(metaDescription).toHaveAttribute(
       "content",
-      "Full Stack Developer specializing in modern web technologies.",
+      "Full Stack Developer specializing in modern web technologies."
     );
   });
 
@@ -46,9 +46,7 @@ describe("SEO", () => {
 
   it("renders Open Graph description", () => {
     render(<SEO description="OG Description" />);
-    const ogDescription = document.querySelector(
-      'meta[property="og:description"]',
-    );
+    const ogDescription = document.querySelector('meta[property="og:description"]');
     expect(ogDescription).toHaveAttribute("content", "OG Description");
   });
 
@@ -96,9 +94,7 @@ describe("SEO", () => {
 
   it("renders Twitter description", () => {
     render(<SEO description="Twitter Description" />);
-    const twitterDescription = document.querySelector(
-      'meta[name="twitter:description"]',
-    );
+    const twitterDescription = document.querySelector('meta[name="twitter:description"]');
     expect(twitterDescription).toHaveAttribute("content", "Twitter Description");
   });
 
@@ -132,4 +128,3 @@ describe("SEO", () => {
     expect(siteName).toHaveAttribute("content", "Josh Lowe");
   });
 });
-

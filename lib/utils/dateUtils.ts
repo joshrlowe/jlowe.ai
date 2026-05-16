@@ -14,7 +14,7 @@ type DateInput = string | Date;
  */
 export function formatDate(
   dateString: DateInput,
-  options: Intl.DateTimeFormatOptions = {},
+  options: Intl.DateTimeFormatOptions = {}
 ): string {
   if (!dateString) return "";
 
@@ -37,7 +37,7 @@ export function formatDate(
  */
 export function formatDateUTC(
   dateString: DateInput,
-  options: Intl.DateTimeFormatOptions = {},
+  options: Intl.DateTimeFormatOptions = {}
 ): string {
   if (!dateString) return "";
   const date = dateString instanceof Date ? dateString : new Date(dateString);

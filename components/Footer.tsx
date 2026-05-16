@@ -27,12 +27,7 @@ const STATIC_SOCIAL_ITEMS = [
 
 const socialIcons: Record<string, ReactNode> = {
   email: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -66,7 +61,8 @@ const socialIcons: Record<string, ReactNode> = {
   ),
 };
 
-const DEFAULT_FOOTER_TEXT = "Building intelligent systems and production-grade AI applications that solve real-world problems.";
+const DEFAULT_FOOTER_TEXT =
+  "Building intelligent systems and production-grade AI applications that solve real-world problems.";
 const DEFAULT_FOOTER_TITLE = "AI Engineer & Consultant";
 
 export default function Footer() {
@@ -118,15 +114,11 @@ export default function Footer() {
   const getHref = (key: string): string => {
     if (!mounted || !contactData) return "#";
 
-    const socialLinks =
-      (contactData.socialMediaLinks as Record<string, string | undefined>) ||
-      {};
+    const socialLinks = (contactData.socialMediaLinks as Record<string, string | undefined>) || {};
 
     switch (key) {
       case "email":
-        return contactData.emailAddress
-          ? `mailto:${contactData.emailAddress}`
-          : "#";
+        return contactData.emailAddress ? `mailto:${contactData.emailAddress}` : "#";
       case "linkedIn":
         return socialLinks.linkedIn || "#";
       case "github":
@@ -210,13 +202,11 @@ export default function Footer() {
                     e.currentTarget.style.background = "rgba(232, 93, 4, 0.15)";
                     e.currentTarget.style.borderColor = "#E85D04";
                     e.currentTarget.style.color = "#E85D04";
-                    e.currentTarget.style.boxShadow =
-                      "0 0 20px rgba(232, 93, 4, 0.3)";
+                    e.currentTarget.style.boxShadow = "0 0 20px rgba(232, 93, 4, 0.3)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "rgba(232, 93, 4, 0.08)";
-                    e.currentTarget.style.borderColor =
-                      "rgba(232, 93, 4, 0.15)";
+                    e.currentTarget.style.borderColor = "rgba(232, 93, 4, 0.15)";
                     e.currentTarget.style.color = "var(--color-text-secondary)";
                     e.currentTarget.style.boxShadow = "none";
                   }}
@@ -255,12 +245,9 @@ export default function Footer() {
                       color: "var(--color-text-secondary)",
                       fontFamily: "var(--font-family-base)",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#E85D04")
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#E85D04")}
                     onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-text-secondary)")
+                      (e.currentTarget.style.color = "var(--color-text-secondary)")
                     }
                   >
                     {link.label}
@@ -269,7 +256,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
         </div>
 
         {/* Bottom bar */}

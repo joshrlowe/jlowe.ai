@@ -70,10 +70,7 @@ export default function MarkdownContent({
   const variantStyles = styleVariants[variant] || styleVariants.default;
 
   return (
-    <div
-      className={`${variantStyles} ${className}`.trim()}
-      data-testid={testId}
-    >
+    <div className={`${variantStyles} ${className}`.trim()} data-testid={testId}>
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );

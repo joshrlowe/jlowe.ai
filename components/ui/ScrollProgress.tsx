@@ -12,8 +12,7 @@ export default function ScrollProgress() {
 
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercent = (scrollTop / docHeight) * 100;
 
       setProgress(Math.min(100, Math.max(0, scrollPercent)));
@@ -21,10 +20,7 @@ export default function ScrollProgress() {
 
       const milestones = [25, 50, 75, 100];
       milestones.forEach((milestone) => {
-        if (
-          scrollPercent >= milestone &&
-          !trackedMilestones.current.has(milestone)
-        ) {
+        if (scrollPercent >= milestone && !trackedMilestones.current.has(milestone)) {
           trackedMilestones.current.add(milestone);
           trackScrollDepth(milestone);
         }

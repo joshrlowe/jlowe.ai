@@ -10,7 +10,7 @@ import { getConfigValue } from "../config";
 type AuthenticatedHandler = (
   req: NextApiRequest,
   res: NextApiResponse,
-  token: JWT,
+  token: JWT
 ) => Promise<void> | void;
 
 /**

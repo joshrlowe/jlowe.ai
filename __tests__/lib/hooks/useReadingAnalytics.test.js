@@ -118,9 +118,7 @@ describe("useReadingAnalytics", () => {
     const sentinel = article.querySelector('[data-scroll-milestone="50"]');
 
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel, isIntersecting: true }]);
     });
 
     expect(analytics.trackScrollDepth).toHaveBeenCalledWith({
@@ -214,9 +212,7 @@ describe("useReadingAnalytics", () => {
     const sentinel = article.querySelector('[data-scroll-milestone="100"]');
 
     act(() => {
-      observer.simulateIntersection([
-        { target: sentinel, isIntersecting: true },
-      ]);
+      observer.simulateIntersection([{ target: sentinel, isIntersecting: true }]);
     });
 
     // Simulate some reading time
@@ -233,4 +229,3 @@ describe("useReadingAnalytics", () => {
     );
   });
 });
-

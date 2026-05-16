@@ -59,10 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           data: {},
         });
       } catch (emitErr) {
-        console.warn(
-          "[about] failed to emit about.upserted event:",
-          (emitErr as Error).message,
-        );
+        console.warn("[about] failed to emit about.upserted event:", (emitErr as Error).message);
       }
 
       return res.status(200).json(about);

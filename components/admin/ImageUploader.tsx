@@ -135,8 +135,8 @@ export default function ImageUploader({
             isMaxReached
               ? "border-[var(--color-border)] opacity-50 cursor-not-allowed"
               : uploading
-              ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 cursor-wait"
-              : "border-[var(--color-border)] hover:border-[var(--color-primary)] hover:bg-[var(--color-bg-darker)] cursor-pointer"
+                ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5 cursor-wait"
+                : "border-[var(--color-border)] hover:border-[var(--color-primary)] hover:bg-[var(--color-bg-darker)] cursor-pointer"
           }`}
         >
           <input
@@ -150,9 +150,7 @@ export default function ImageUploader({
           {uploading ? (
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-[var(--color-text-muted)]">
-                Uploading...
-              </span>
+              <span className="text-sm text-[var(--color-text-muted)]">Uploading...</span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
@@ -170,17 +168,11 @@ export default function ImageUploader({
                 />
               </svg>
               <div>
-                <span className="text-[var(--color-primary)] font-medium">
-                  Click to upload
-                </span>
-                <span className="text-[var(--color-text-muted)]">
-                  {" "}or drag and drop
-                </span>
+                <span className="text-[var(--color-primary)] font-medium">Click to upload</span>
+                <span className="text-[var(--color-text-muted)]"> or drag and drop</span>
               </div>
               <span className="text-xs text-[var(--color-text-muted)]">
-                {isMaxReached
-                  ? "Maximum images reached"
-                  : "PNG, JPG, GIF, WebP up to 10MB"}
+                {isMaxReached ? "Maximum images reached" : "PNG, JPG, GIF, WebP up to 10MB"}
               </span>
             </div>
           )}
@@ -215,10 +207,7 @@ export default function ImageUploader({
       {images.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {images.map((img, index) => {
-            const imgUrl =
-              typeof img === "string"
-                ? img
-                : img.url || img.src || "";
+            const imgUrl = typeof img === "string" ? img : img.url || img.src || "";
             return (
               <div key={index} className="relative group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -232,12 +221,7 @@ export default function ImageUploader({
                   onClick={() => removeImage(index)}
                   className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                 >
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

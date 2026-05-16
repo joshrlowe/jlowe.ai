@@ -4,10 +4,10 @@
  * Tests the mobile viewport detection hook
  */
 
-import { renderHook, act } from '@testing-library/react';
-import { useIsMobile, getIsMobile } from '../../../lib/hooks/useIsMobile';
+import { renderHook, act } from "@testing-library/react";
+import { useIsMobile, getIsMobile } from "../../../lib/hooks/useIsMobile";
 
-describe('useIsMobile', () => {
+describe("useIsMobile", () => {
   let originalMatchMedia;
 
   beforeEach(() => {
@@ -18,8 +18,8 @@ describe('useIsMobile', () => {
     window.matchMedia = originalMatchMedia;
   });
 
-  describe('useIsMobile hook', () => {
-    it('should return false when viewport is desktop size', () => {
+  describe("useIsMobile hook", () => {
+    it("should return false when viewport is desktop size", () => {
       window.matchMedia = jest.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
@@ -33,9 +33,9 @@ describe('useIsMobile', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should return true when viewport is mobile size', () => {
+    it("should return true when viewport is mobile size", () => {
       window.matchMedia = jest.fn().mockImplementation((query) => ({
-        matches: query === '(max-width: 767px)',
+        matches: query === "(max-width: 767px)",
         media: query,
         onchange: null,
         addEventListener: jest.fn(),
@@ -47,7 +47,7 @@ describe('useIsMobile', () => {
       expect(result.current).toBe(true);
     });
 
-    it('should update when viewport changes', () => {
+    it("should update when viewport changes", () => {
       let changeHandler = null;
 
       window.matchMedia = jest.fn().mockImplementation((query) => ({
@@ -55,7 +55,7 @@ describe('useIsMobile', () => {
         media: query,
         onchange: null,
         addEventListener: jest.fn((event, handler) => {
-          if (event === 'change') {
+          if (event === "change") {
             changeHandler = handler;
           }
         }),
@@ -76,7 +76,7 @@ describe('useIsMobile', () => {
       expect(result.current).toBe(true);
     });
 
-    it('should cleanup event listener on unmount', () => {
+    it("should cleanup event listener on unmount", () => {
       const removeEventListener = jest.fn();
 
       window.matchMedia = jest.fn().mockImplementation((query) => ({
@@ -91,12 +91,12 @@ describe('useIsMobile', () => {
       const { unmount } = renderHook(() => useIsMobile());
       unmount();
 
-      expect(removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+      expect(removeEventListener).toHaveBeenCalledWith("change", expect.any(Function));
     });
   });
 
-  describe('getIsMobile function', () => {
-    it('should return false when viewport is desktop size', () => {
+  describe("getIsMobile function", () => {
+    it("should return false when viewport is desktop size", () => {
       window.matchMedia = jest.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
@@ -105,16 +105,16 @@ describe('useIsMobile', () => {
       expect(getIsMobile()).toBe(false);
     });
 
-    it('should return true when viewport is mobile size', () => {
+    it("should return true when viewport is mobile size", () => {
       window.matchMedia = jest.fn().mockImplementation((query) => ({
-        matches: query === '(max-width: 767px)',
+        matches: query === "(max-width: 767px)",
         media: query,
       }));
 
       expect(getIsMobile()).toBe(true);
     });
 
-    it('should return false when window is undefined (SSR)', () => {
+    it("should return false when window is undefined (SSR)", () => {
       const originalWindow = global.window;
       delete global.window;
 

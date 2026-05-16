@@ -33,9 +33,7 @@ describe("NewsletterSubscription", () => {
 
   it("renders description text", () => {
     render(<NewsletterSubscription />);
-    expect(
-      screen.getByText(/Subscribe to get the latest articles/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Subscribe to get the latest articles/)).toBeInTheDocument();
   });
 
   it("updates email input value", () => {
@@ -148,9 +146,7 @@ describe("NewsletterSubscription", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Something went wrong. Please try again."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Something went wrong. Please try again.")).toBeInTheDocument();
     });
   });
 
@@ -166,9 +162,7 @@ describe("NewsletterSubscription", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Failed to subscribe. Please try again later."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Failed to subscribe. Please try again later.")).toBeInTheDocument();
     });
   });
 
@@ -210,4 +204,3 @@ describe("NewsletterSubscription", () => {
     expect(section).toBeInTheDocument();
   });
 });
-

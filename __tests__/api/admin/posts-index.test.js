@@ -4,18 +4,18 @@
  * Tests admin posts API route (GET/POST)
  */
 
-import postsHandler from '../../../pages/api/admin/posts/index';
-import prisma from '../../../lib/prisma';
-import { getToken } from 'next-auth/jwt';
+import postsHandler from "../../../pages/api/admin/posts/index";
+import prisma from "../../../lib/prisma";
+import { getToken } from "next-auth/jwt";
 import {
   createMockRequest,
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from '../../setup/api-test-utils.js';
+} from "../../setup/api-test-utils.js";
 
 // Mock prisma
-jest.mock('../../../lib/prisma', () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     post: {
@@ -27,20 +27,20 @@ jest.mock('../../../lib/prisma', () => ({
 }));
 
 // Mock next-auth/jwt
-jest.mock('next-auth/jwt', () => ({
+jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
 
 // Mock readingTime utility
-jest.mock('../../../lib/utils/readingTime', () => ({
-  calculateReadingTime: jest.fn(() => '5 min read'),
+jest.mock("../../../lib/utils/readingTime", () => ({
+  calculateReadingTime: jest.fn(() => "5 min read"),
 }));
 
-describe('/api/admin/posts', () => {
+describe("/api/admin/posts", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -48,34 +48,34 @@ describe('/api/admin/posts', () => {
     console.error.mockRestore();
   });
 
-  describe('Authentication', () => {
-    it('should return 401 when not authenticated', async () => {
+  describe("Authentication", () => {
+    it("should return 401 when not authenticated", async () => {
       getToken.mockResolvedValue(null);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = createMockResponse();
 
       await postsHandler(req, res);
 
       expect(getStatusCode(res)).toBe(401);
-      expect(getJsonResponse(res).message).toBe('Unauthorized');
+      expect(getJsonResponse(res).message).toBe("Unauthorized");
     });
   });
 
-  describe('GET requests', () => {
+  describe("GET requests", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should return posts with default pagination', async () => {
+    it("should return posts with default pagination", async () => {
       const mockPosts = [
-        { id: '1', title: 'Post 1', status: 'Published', _count: { comments: 5, likes: 10 } },
-        { id: '2', title: 'Post 2', status: 'Draft', _count: { comments: 0, likes: 0 } },
+        { id: "1", title: "Post 1", status: "Published", _count: { comments: 5, likes: 10 } },
+        { id: "2", title: "Post 2", status: "Draft", _count: { comments: 0, likes: 0 } },
       ];
       prisma.post.findMany.mockResolvedValue(mockPosts);
       prisma.post.count.mockResolvedValue(2);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = createMockResponse();
 
       await postsHandler(req, res);
@@ -85,13 +85,13 @@ describe('/api/admin/posts', () => {
       expect(response.total).toBe(2);
     });
 
-    it('should filter by status', async () => {
+    it("should filter by status", async () => {
       prisma.post.findMany.mockResolvedValue([]);
       prisma.post.count.mockResolvedValue(0);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { status: 'Published' },
+        method: "GET",
+        query: { status: "Published" },
       });
       const res = createMockResponse();
 
@@ -99,7 +99,7 @@ describe('/api/admin/posts', () => {
 
       expect(prisma.post.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ status: 'Published' }),
+          where: expect.objectContaining({ status: "Published" }),
         })
       );
     });
@@ -109,8 +109,8 @@ describe('/api/admin/posts', () => {
       prisma.post.count.mockResolvedValue(0);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { status: 'all' },
+        method: "GET",
+        query: { status: "all" },
       });
       const res = createMockResponse();
 
@@ -123,13 +123,13 @@ describe('/api/admin/posts', () => {
       );
     });
 
-    it('should filter by topic', async () => {
+    it("should filter by topic", async () => {
       prisma.post.findMany.mockResolvedValue([]);
       prisma.post.count.mockResolvedValue(0);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { topic: 'React' },
+        method: "GET",
+        query: { topic: "React" },
       });
       const res = createMockResponse();
 
@@ -137,18 +137,18 @@ describe('/api/admin/posts', () => {
 
       expect(prisma.post.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ topic: 'react' }),
+          where: expect.objectContaining({ topic: "react" }),
         })
       );
     });
 
-    it('should search by title and description', async () => {
+    it("should search by title and description", async () => {
       prisma.post.findMany.mockResolvedValue([]);
       prisma.post.count.mockResolvedValue(0);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { search: 'test query' },
+        method: "GET",
+        query: { search: "test query" },
       });
       const res = createMockResponse();
 
@@ -158,19 +158,19 @@ describe('/api/admin/posts', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             OR: [
-              { title: { contains: 'test query', mode: 'insensitive' } },
-              { description: { contains: 'test query', mode: 'insensitive' } },
+              { title: { contains: "test query", mode: "insensitive" } },
+              { description: { contains: "test query", mode: "insensitive" } },
             ],
           }),
         })
       );
     });
 
-    it('should include comment and like counts', async () => {
+    it("should include comment and like counts", async () => {
       prisma.post.findMany.mockResolvedValue([]);
       prisma.post.count.mockResolvedValue(0);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = createMockResponse();
 
       await postsHandler(req, res);
@@ -189,10 +189,10 @@ describe('/api/admin/posts', () => {
       );
     });
 
-    it('should handle database errors', async () => {
-      prisma.post.findMany.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors", async () => {
+      prisma.post.findMany.mockRejectedValue(new Error("Database error"));
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = createMockResponse();
 
       await postsHandler(req, res);
@@ -201,33 +201,33 @@ describe('/api/admin/posts', () => {
     });
   });
 
-  describe('POST requests', () => {
+  describe("POST requests", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should create a new post', async () => {
+    it("should create a new post", async () => {
       const newPost = {
-        id: '1',
-        title: 'New Post',
-        description: 'Description',
-        postType: 'Article',
-        topic: 'react',
-        slug: 'new-post',
-        author: 'Josh Lowe',
-        status: 'Draft',
+        id: "1",
+        title: "New Post",
+        description: "Description",
+        postType: "Article",
+        topic: "react",
+        slug: "new-post",
+        author: "Josh Lowe",
+        status: "Draft",
       };
       prisma.post.create.mockResolvedValue(newPost);
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
-          title: 'New Post',
-          description: 'Description',
-          postType: 'Article',
-          topic: 'React',
-          slug: 'new-post',
-          author: 'Josh Lowe',
+          title: "New Post",
+          description: "Description",
+          postType: "Article",
+          topic: "React",
+          slug: "new-post",
+          author: "Josh Lowe",
         },
       });
       const res = createMockResponse();
@@ -238,11 +238,11 @@ describe('/api/admin/posts', () => {
       expect(getJsonResponse(res)).toEqual(newPost);
     });
 
-    it('should return 400 when missing required fields', async () => {
+    it("should return 400 when missing required fields", async () => {
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
-          title: 'New Post',
+          title: "New Post",
           // Missing required fields
         },
       });
@@ -251,21 +251,21 @@ describe('/api/admin/posts', () => {
       await postsHandler(req, res);
 
       expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toBe('Missing required fields');
+      expect(getJsonResponse(res).message).toBe("Missing required fields");
     });
 
-    it('should lowercase the topic', async () => {
-      prisma.post.create.mockResolvedValue({ id: '1' });
+    it("should lowercase the topic", async () => {
+      prisma.post.create.mockResolvedValue({ id: "1" });
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
-          title: 'New Post',
-          description: 'Description',
-          postType: 'Article',
-          topic: 'JavaScript',
-          slug: 'new-post',
-          author: 'Josh Lowe',
+          title: "New Post",
+          description: "Description",
+          postType: "Article",
+          topic: "JavaScript",
+          slug: "new-post",
+          author: "Josh Lowe",
         },
       });
       const res = createMockResponse();
@@ -274,24 +274,24 @@ describe('/api/admin/posts', () => {
 
       expect(prisma.post.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          topic: 'javascript',
+          topic: "javascript",
         }),
       });
     });
 
-    it('should set datePublished when status is Published', async () => {
-      prisma.post.create.mockResolvedValue({ id: '1' });
+    it("should set datePublished when status is Published", async () => {
+      prisma.post.create.mockResolvedValue({ id: "1" });
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
-          title: 'New Post',
-          description: 'Description',
-          postType: 'Article',
-          topic: 'react',
-          slug: 'new-post',
-          author: 'Josh Lowe',
-          status: 'Published',
+          title: "New Post",
+          description: "Description",
+          postType: "Article",
+          topic: "react",
+          slug: "new-post",
+          author: "Josh Lowe",
+          status: "Published",
         },
       });
       const res = createMockResponse();
@@ -305,18 +305,18 @@ describe('/api/admin/posts', () => {
       });
     });
 
-    it('should handle database errors on create', async () => {
-      prisma.post.create.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors on create", async () => {
+      prisma.post.create.mockRejectedValue(new Error("Database error"));
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
-          title: 'New Post',
-          description: 'Description',
-          postType: 'Article',
-          topic: 'react',
-          slug: 'new-post',
-          author: 'Josh Lowe',
+          title: "New Post",
+          description: "Description",
+          postType: "Article",
+          topic: "react",
+          slug: "new-post",
+          author: "Josh Lowe",
         },
       });
       const res = createMockResponse();
@@ -327,23 +327,23 @@ describe('/api/admin/posts', () => {
     });
   });
 
-  describe('HTTP method restrictions', () => {
+  describe("HTTP method restrictions", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should return 405 for PUT requests', async () => {
-      const req = createMockRequest({ method: 'PUT' });
+    it("should return 405 for PUT requests", async () => {
+      const req = createMockRequest({ method: "PUT" });
       const res = createMockResponse();
 
       await postsHandler(req, res);
 
       expect(getStatusCode(res)).toBe(405);
-      expect(getJsonResponse(res).message).toBe('Method Not Allowed');
+      expect(getJsonResponse(res).message).toBe("Method Not Allowed");
     });
 
-    it('should return 405 for DELETE requests', async () => {
-      const req = createMockRequest({ method: 'DELETE' });
+    it("should return 405 for DELETE requests", async () => {
+      const req = createMockRequest({ method: "DELETE" });
       const res = createMockResponse();
 
       await postsHandler(req, res);
@@ -352,4 +352,3 @@ describe('/api/admin/posts', () => {
     });
   });
 });
-

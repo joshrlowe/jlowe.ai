@@ -49,7 +49,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
       try {
         const username = githubUrl.split("/").pop();
         const response = await fetch(
-          `https://api.github.com/users/${username}/repos?sort=updated&per_page=6`,
+          `https://api.github.com/users/${username}/repos?sort=updated&per_page=6`
         );
 
         if (!response.ok) {
@@ -88,7 +88,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
             start: "top 85%",
             toggleActions: "play none none reverse",
           },
-        },
+        }
       );
     }
 
@@ -109,7 +109,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
             toggleActions: "play none none reverse",
           },
           delay: index * 0.12,
-        },
+        }
       );
     });
 
@@ -123,10 +123,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
   // Loading state
   if (loading) {
     return (
-      <section
-        className="py-28 relative z-10"
-        style={{ background: "rgba(4, 4, 4, 0.6)" }}
-      >
+      <section className="py-28 relative z-10" style={{ background: "rgba(4, 4, 4, 0.6)" }}>
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <Badge variant="cool" size="lg" className="mb-8">
@@ -136,8 +133,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
               style={{
                 fontFamily: "var(--font-family-heading)",
-                background:
-                  "linear-gradient(135deg, #FAFAFA 0%, #4CC9F0 60%, #4895EF 100%)",
+                background: "linear-gradient(135deg, #FAFAFA 0%, #4CC9F0 60%, #4895EF 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -185,8 +181,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
               style={{
                 fontFamily: "var(--font-family-heading)",
-                background:
-                  "linear-gradient(135deg, #FAFAFA 0%, #4CC9F0 60%, #4895EF 100%)",
+                background: "linear-gradient(135deg, #FAFAFA 0%, #4CC9F0 60%, #4895EF 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -206,12 +201,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
             }}
           >
             <span>View Profile</span>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -238,8 +228,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
                 border: "1px solid rgba(76, 201, 240, 0.15)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow =
-                  "0 0 35px rgba(76, 201, 240, 0.25)";
+                e.currentTarget.style.boxShadow = "0 0 35px rgba(76, 201, 240, 0.25)";
                 e.currentTarget.style.borderColor = "#4CC9F0";
               }}
               onMouseLeave={(e) => {
@@ -257,12 +246,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
                       color: "#4CC9F0",
                     }}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -299,11 +283,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
                     {repo.stargazers_count}
                   </span>
                   <span className="flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 16 16"
-                    >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-.878a2.25 2.25 0 111.5 0v.878a2.25 2.25 0 01-2.25 2.25h-1.5v2.128a2.251 2.251 0 11-1.5 0V8.5h-1.5A2.25 2.25 0 013.5 6.25v-.878a2.25 2.25 0 111.5 0zM5 3.25a.75.75 0 10-1.5 0 .75.75 0 001.5 0zm6.75.75a.75.75 0 100-1.5.75.75 0 000 1.5zm-3 8.75a.75.75 0 10-1.5 0 .75.75 0 001.5 0z" />
                     </svg>
                     {repo.forks_count}
@@ -339,12 +319,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
                   className="flex items-center gap-1 text-xs"
                   style={{ color: "var(--color-text-muted)" }}
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

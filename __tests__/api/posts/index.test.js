@@ -78,7 +78,7 @@ describe("POST /api/posts", () => {
           where: expect.objectContaining({
             topic: "react",
           }),
-        }),
+        })
       );
     });
 
@@ -98,11 +98,9 @@ describe("POST /api/posts", () => {
       expect(prisma.post.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { title: { contains: "react", mode: "insensitive" } },
-            ]),
+            OR: expect.arrayContaining([{ title: { contains: "react", mode: "insensitive" } }]),
           }),
-        }),
+        })
       );
     });
 
@@ -122,7 +120,7 @@ describe("POST /api/posts", () => {
         expect.objectContaining({
           take: 10,
           skip: 20,
-        }),
+        })
       );
     });
   });
@@ -198,8 +196,7 @@ describe("POST /api/posts", () => {
           topic: "react",
           slug: "new-post",
           author: "John Doe",
-          content:
-            "This is a test content with many words to calculate reading time properly.",
+          content: "This is a test content with many words to calculate reading time properly.",
         },
       });
       const res = createMockResponse();
@@ -211,7 +208,7 @@ describe("POST /api/posts", () => {
           data: expect.objectContaining({
             readingTime: expect.any(Number),
           }),
-        }),
+        })
       );
     });
   });

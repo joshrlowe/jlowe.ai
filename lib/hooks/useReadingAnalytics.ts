@@ -1,11 +1,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { useScrollDepth } from "./useScrollDepth";
 import { useReadDuration } from "./useReadDuration";
-import {
-  trackArticleView,
-  trackScrollDepth,
-  trackReadDuration,
-} from "../analytics";
+import { trackArticleView, trackScrollDepth, trackReadDuration } from "../analytics";
 
 interface UseReadingAnalyticsOptions {
   articleRef?: RefObject<HTMLElement | null>;
@@ -23,9 +19,12 @@ interface UseReadingAnalyticsResult {
   formattedDuration: string;
 }
 
-export function useReadingAnalytics(
-  { articleRef, slug, topic, readingTime }: UseReadingAnalyticsOptions = {},
-): UseReadingAnalyticsResult {
+export function useReadingAnalytics({
+  articleRef,
+  slug,
+  topic,
+  readingTime,
+}: UseReadingAnalyticsOptions = {}): UseReadingAnalyticsResult {
   const hasTrackedViewRef = useRef(false);
 
   useEffect(() => {
@@ -35,16 +34,15 @@ export function useReadingAnalytics(
     }
   }, [slug, topic, readingTime]);
 
-  const { currentDepth, reachedMilestones, hasReachedMilestone } =
-    useScrollDepth({
-      articleRef,
-      milestones: [25, 50, 75, 100],
-      onMilestone: (depth) => {
-        if (slug) {
-          trackScrollDepth({ slug, depth });
-        }
-      },
-    });
+  const { currentDepth, reachedMilestones, hasReachedMilestone } = useScrollDepth({
+    articleRef,
+    milestones: [25, 50, 75, 100],
+    onMilestone: (depth) => {
+      if (slug) {
+        trackScrollDepth({ slug, depth });
+      }
+    },
+  });
 
   const { durationSeconds, isActive, formattedDuration } = useReadDuration({
     slug,

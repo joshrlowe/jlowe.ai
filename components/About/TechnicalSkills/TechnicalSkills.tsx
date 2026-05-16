@@ -23,10 +23,7 @@ export default function TechnicalSkills({ skills = [] }: TechnicalSkillsProps) {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {skills.map((skillGroup, index) => (
-          <div
-            key={index}
-            className="p-4 rounded-lg bg-[var(--color-bg-darker)]"
-          >
+          <div key={index} className="p-4 rounded-lg bg-[var(--color-bg-darker)]">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-3">
               {skillGroup.category || skillGroup.name || "Skills"}
             </h3>

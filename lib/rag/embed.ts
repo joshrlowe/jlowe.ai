@@ -5,10 +5,7 @@
  * indexing script (scripts/generate-embeddings.ts) share one client.
  */
 
-import {
-  BedrockRuntimeClient,
-  InvokeModelCommand,
-} from "@aws-sdk/client-bedrock-runtime";
+import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
 const TITAN_MODEL_ID = "amazon.titan-embed-text-v2:0";
 export const EMBEDDING_DIMENSIONS = 1024;
@@ -40,7 +37,7 @@ export async function generateQueryEmbedding(text: string): Promise<number[]> {
       contentType: "application/json",
       accept: "application/json",
       body: new TextEncoder().encode(body),
-    }),
+    })
   );
   if (!response.body) {
     throw new Error("Empty response body from Bedrock Titan Embeddings");

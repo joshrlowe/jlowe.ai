@@ -19,16 +19,12 @@ export default function KeyboardShortcutsHelp({ show, onHide }: KeyboardShortcut
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/50" onClick={onHide} />
       <div className="relative w-full max-w-md rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6">
-        <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">
-          Keyboard Shortcuts
-        </h2>
+        <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">Keyboard Shortcuts</h2>
 
         <div className="space-y-3">
           {shortcuts.map((shortcut, index) => (
             <div key={index} className="flex items-center justify-between">
-              <span className="text-[var(--color-text-secondary)]">
-                {shortcut.description}
-              </span>
+              <span className="text-[var(--color-text-secondary)]">{shortcut.description}</span>
               <kbd className="px-2 py-1 text-sm rounded bg-[var(--color-bg-darker)] text-[var(--color-text-primary)] font-mono">
                 {shortcut.keys}
               </kbd>

@@ -35,9 +35,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
 
       const rows = projects.map((project) => {
         const tags = Array.isArray(project.tags) ? project.tags.join("; ") : "";
-        const techStack = Array.isArray(project.techStack)
-          ? project.techStack.join("; ")
-          : "";
+        const techStack = Array.isArray(project.techStack) ? project.techStack.join("; ") : "";
         const links =
           project.links && typeof project.links === "object"
             ? (project.links as Record<string, string>)
@@ -65,15 +63,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
       });
 
       const csvContent = [headers, ...rows]
-        .map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-        )
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
         .join("\n");
 
       res.setHeader("Content-Type", "text/csv");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.csv"`,
+        `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.csv"`
       );
       return res.send(csvContent);
     } else {
@@ -81,7 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
       res.setHeader("Content-Type", "application/json");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.json"`,
+        `attachment; filename="projects-${new Date().toISOString().split("T")[0]}.json"`
       );
       return res.json(projects);
     }

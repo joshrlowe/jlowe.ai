@@ -12,22 +12,15 @@ async function testConnection() {
     // Check for DATABASE_URL or PRISMA_DATABASE_URL
     const dbUrl = process.env.DATABASE_URL || process.env.PRISMA_DATABASE_URL;
     if (!dbUrl) {
-      console.error(
-        "❌ DATABASE_URL or PRISMA_DATABASE_URL must be set in environment variables",
-      );
+      console.error("❌ DATABASE_URL or PRISMA_DATABASE_URL must be set in environment variables");
       process.exit(1);
     }
 
     console.log("DATABASE_URL:", process.env.DATABASE_URL ? "Set" : "NOT SET");
-    console.log(
-      "PRISMA_DATABASE_URL:",
-      process.env.PRISMA_DATABASE_URL ? "Set" : "NOT SET",
-    );
+    console.log("PRISMA_DATABASE_URL:", process.env.PRISMA_DATABASE_URL ? "Set" : "NOT SET");
     console.log(
       "Using:",
-      dbUrl === process.env.DATABASE_URL
-        ? "DATABASE_URL"
-        : "PRISMA_DATABASE_URL",
+      dbUrl === process.env.DATABASE_URL ? "DATABASE_URL" : "PRISMA_DATABASE_URL"
     );
 
     // Test the connection
@@ -41,9 +34,7 @@ async function testConnection() {
     } catch (queryError) {
       // Prisma Accelerate URLs might not support raw queries, that's okay
       if (dbUrl.includes("accelerate.prisma-data.net")) {
-        console.log(
-          "⚠️  Raw queries not supported with Prisma Accelerate, but connection works",
-        );
+        console.log("⚠️  Raw queries not supported with Prisma Accelerate, but connection works");
       } else {
         throw queryError;
       }

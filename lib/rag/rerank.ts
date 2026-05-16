@@ -24,7 +24,7 @@ export interface RerankOptions {
 export async function rerankCandidates<T extends RerankableChunk>(
   query: string,
   candidates: T[],
-  options: RerankOptions = {},
+  options: RerankOptions = {}
 ): Promise<(T & { rerankScore?: number })[]> {
   const apiKey = process.env.COHERE_API_KEY;
   if (!apiKey || candidates.length === 0) {
@@ -46,9 +46,7 @@ export async function rerankCandidates<T extends RerankableChunk>(
       }),
     });
     if (!res.ok) {
-      console.warn(
-        `[rerank] Cohere returned ${res.status}; falling back to RRF order`,
-      );
+      console.warn(`[rerank] Cohere returned ${res.status}; falling back to RRF order`);
       span?.end({ ok: false, status: res.status });
       return candidates;
     }
