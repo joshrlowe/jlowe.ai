@@ -1,309 +1,22 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
-/**
- * GitHubContributionGraph.jsx
- *
- * GitHub contribution calendar styled with Supernova theme.
- * Shows coding activity as a visual proof of consistent work.
- *
- * Features:
- * - Custom Supernova color scheme (ember → gold gradient)
- * - Responsive design
- * - Stats display (total contributions, current streak)
- * - GSAP scroll animations
- */
-
 "use client";
 
-import { ComponentType, useEffect, useRef, useState, useCallback } from "react";
+/**
+ * GitHubContributionGraph
+ *
+ * GitHub contribution calendar styled with Supernova theme. Composes
+ * the lazy calendar in components/GitHub/LazyCalendar.tsx and the
+ * 3-card stats row in components/GitHub/StatsCards.tsx, with GSAP
+ * scroll animation on mount.
+ */
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
+import LazyCalendar from "@/components/GitHub/LazyCalendar";
 import StatsCards from "@/components/GitHub/StatsCards";
-import {
-  calculateContributionStats,
-  type ContributionDay,
-  type ContributionStats,
-} from "@/lib/github/calendar-stats";
-
-// Supernova theme color scale (5 levels: none → max activity)
-const SUPERNOVA_COLORS = [
-  "#161b22", // Level 0: No contributions (GitHub's default dark)
-  "#3d1308", // Level 1: Light activity (dark ember)
-  "#9d0208", // Level 2: Moderate (crimson)
-  "#e85d04", // Level 3: Good activity (ember orange)
-  "#ffba08", // Level 4: High activity (gold)
-];
-
-const supernovaTheme = {
-  dark: SUPERNOVA_COLORS,
-};
-
-// Mobile color legend component (rendered below the graph)
-function MobileColorLegend() {
-  return (
-    <div className="flex items-center justify-center gap-2 mt-4">
-      <span className="text-xs text-[var(--color-text-muted)]">Less</span>
-      <div className="flex gap-1">
-        {SUPERNOVA_COLORS.map((color, index) => (
-          <div key={index} className="w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
-        ))}
-      </div>
-      <span className="text-xs text-[var(--color-text-muted)]">More</span>
-    </div>
-  );
-}
-
-// Client-only calendar component wrapper
-interface CalendarWrapperProps {
-  username: string;
-  onDataLoaded: (stats: ContributionStats) => void;
-  isMobile: boolean;
-}
-
-type CalendarComponent = ComponentType<any>;
-
-function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperProps) {
-  const [Calendar, setCalendar] = useState<CalendarComponent | null>(null);
-  const [error, setError] = useState(false);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const contributionsRef = useRef<ContributionDay[] | null>(null);
-  const statsCalculatedRef = useRef(false);
-  const calculationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onDataLoadedRef = useRef(onDataLoaded);
-
-  // Keep ref in sync
-  useEffect(() => {
-    onDataLoadedRef.current = onDataLoaded;
-  }, [onDataLoaded]);
-
-  // Direct API fallback: calculate stats from raw API even if the
-  // react-github-calendar bundle is blocked (e.g., aggressive ad blockers)
-  // or is slow to load. The calendar's transformData path still wins
-  // when it fires first thanks to the statsCalculatedRef guard.
-  useEffect(() => {
-    const fetchAndCalc = async () => {
-      try {
-        const response = await fetch(
-          `https://github-contributions-api.jogruber.de/v4/${username}?y=last`
-        );
-        if (!response.ok) {
-          console.error(
-            "[GitHubContributionGraph] fallback API not OK:",
-            response.status,
-            response.statusText
-          );
-          return;
-        }
-        const data = (await response.json()) as {
-          contributions?: ContributionDay[];
-          total?: number;
-        };
-        const daysWithActivity = data.contributions?.filter((d) => (d.count || 0) > 0) || [];
-        const total = daysWithActivity.reduce((sum, d) => sum + d.count, 0);
-
-        if (total > 0 && !statsCalculatedRef.current) {
-          statsCalculatedRef.current = true;
-          onDataLoadedRef.current(calculateContributionStats(data.contributions || []));
-        }
-      } catch {
-        // Silent — the calendar's own loader will surface its error UI.
-      }
-    };
-    fetchAndCalc();
-  }, [username]);
-
-  // Forward stats from a contribution stream to the host component.
-  const calculateStats = useCallback((contributions: ContributionDay[]) => {
-    if (!contributions || contributions.length === 0 || statsCalculatedRef.current) {
-      return;
-    }
-    statsCalculatedRef.current = true;
-    onDataLoadedRef.current(calculateContributionStats(contributions));
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    // Set timeout after 15 seconds
-    const timeout = setTimeout(() => {
-      if (mounted && !Calendar) {
-        setLoadingTimeout(true);
-      }
-    }, 15000);
-
-    import("react-github-calendar")
-      .then((module: any) => {
-        clearTimeout(timeout);
-        if (mounted) {
-          // The library exports GitHubCalendar as a named export
-          const Component = module.GitHubCalendar;
-          // Check if it's a valid React component (can be function or forwardRef object)
-          if (Component && (typeof Component === "function" || Component.$$typeof)) {
-            setCalendar(() => Component);
-          } else {
-            setError(true);
-          }
-        }
-      })
-      .catch(() => {
-        clearTimeout(timeout);
-        if (mounted) {
-          setError(true);
-        }
-      });
-
-    return () => {
-      clearTimeout(timeout);
-      mounted = false;
-    };
-  }, []); // Intentionally run once - Calendar is only used in timeout check
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (calculationTimeoutRef.current) {
-        clearTimeout(calculationTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // transformData should be pure - use refs to avoid setState during render
-  const transformData = useCallback(
-    (contributions: ContributionDay[]): ContributionDay[] => {
-      if (!contributions || contributions.length === 0) {
-        return contributions;
-      }
-
-      // Store the latest data in ref (no setState during render)
-      // Always use full data for stats calculation
-      if (!contributionsRef.current || contributions.length >= contributionsRef.current.length) {
-        contributionsRef.current = contributions;
-      }
-
-      // Schedule stats calculation after render completes
-      if (calculationTimeoutRef.current) {
-        clearTimeout(calculationTimeoutRef.current);
-      }
-
-      // Calculate quickly once we have data
-      const delay = contributions.length >= 200 ? 100 : 500;
-
-      calculationTimeoutRef.current = setTimeout(() => {
-        if (contributionsRef.current && !statsCalculatedRef.current) {
-          calculateStats(contributionsRef.current);
-        }
-      }, delay);
-
-      // Mobile: show 14 full weeks (98 days) with leftmost week always full
-      // Desktop: show full calendar
-      if (isMobile) {
-        // Sort contributions by date (oldest first)
-        const sorted = [...contributions].sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-
-        if (sorted.length === 0) return contributions;
-
-        // Get the last date in the data
-        const lastDate = new Date(sorted[sorted.length - 1].date);
-
-        // Find the Saturday of the current week (end of week, since week starts Sunday)
-        const dayOfWeek = lastDate.getDay(); // 0 = Sunday, 6 = Saturday
-        const daysUntilSaturday = 6 - dayOfWeek;
-        const endOfWeek = new Date(lastDate);
-        endOfWeek.setDate(lastDate.getDate() + daysUntilSaturday);
-
-        // Go back 14 weeks (98 days) from the end of the current week
-        // Then find the Sunday at the start of that week
-        const startDate = new Date(endOfWeek);
-        startDate.setDate(endOfWeek.getDate() - 97); // 98 days = 14 weeks, -97 to include start day
-
-        // Adjust to the previous Sunday if not already Sunday
-        const startDayOfWeek = startDate.getDay();
-        if (startDayOfWeek !== 0) {
-          startDate.setDate(startDate.getDate() - startDayOfWeek);
-        }
-
-        // Filter contributions to only include dates from startDate to endOfWeek
-        const startTime = startDate.getTime();
-        const endTime = endOfWeek.getTime();
-
-        return sorted.filter((contribution) => {
-          const contribDate = new Date(contribution.date).getTime();
-          return contribDate >= startTime && contribDate <= endTime;
-        });
-      }
-
-      return contributions;
-    },
-    [calculateStats, isMobile]
-  );
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-[var(--color-text-secondary)] mb-4">Unable to load contribution graph</p>
-        <a
-          href={`https://github.com/${username}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
-          style={{
-            background: "var(--color-primary)",
-            color: "white",
-          }}
-        >
-          View on GitHub
-        </a>
-      </div>
-    );
-  }
-
-  if (!Calendar) {
-    return (
-      <div className="h-32 animate-pulse bg-[var(--color-surface)] rounded-lg flex flex-col items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-        <span className="mt-3 text-sm text-[var(--color-text-secondary)]">
-          Loading contributions...
-        </span>
-        {loadingTimeout && (
-          <span className="mt-2 text-xs text-[var(--color-text-muted)]">
-            Taking longer than expected...
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className={isMobile ? "flex flex-col items-center" : "min-w-[750px]"}>
-      <Calendar
-        username={username}
-        theme={supernovaTheme}
-        colorScheme="dark"
-        fontSize={isMobile ? 10 : 12}
-        blockSize={isMobile ? 14 : 12}
-        blockMargin={isMobile ? 3 : 4}
-        blockRadius={2}
-        transformData={transformData}
-        showColorLegend={!isMobile}
-        labels={{
-          totalCount: isMobile
-            ? "{{count}} contributions (last 14 weeks)"
-            : "{{count}} contributions in the last year",
-        }}
-        style={{
-          color: "var(--color-text-secondary)",
-        }}
-        throwOnError={false}
-        errorMessage="Failed to load contributions. Check browser console."
-      />
-      {isMobile && <MobileColorLegend />}
-    </div>
-  );
-}
+import type { ContributionStats } from "@/lib/github/calendar-stats";
 
 interface GitHubContributionGraphProps {
   username?: string;
@@ -332,7 +45,6 @@ export default function GitHubContributionGraph({
 
   useEffect(() => {
     if (!sectionRef.current || !mounted) return;
-
     if (getPrefersReducedMotion()) return;
 
     gsap.fromTo(
@@ -403,7 +115,7 @@ export default function GitHubContributionGraph({
             }}
           >
             {mounted ? (
-              <CalendarWrapper
+              <LazyCalendar
                 username={username}
                 onDataLoaded={handleDataLoaded}
                 isMobile={isMobile}
