@@ -176,21 +176,12 @@ interface CalendarWrapperProps {
   isMobile: boolean;
 }
 
-interface ApiTestResult {
-  success?: boolean;
-  total?: number;
-  activeDays?: number;
-  rawTotal?: number;
-  error?: string;
-}
-
 type CalendarComponent = ComponentType<any>;
 
 function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperProps) {
   const [Calendar, setCalendar] = useState<CalendarComponent | null>(null);
   const [error, setError] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [apiTestResult, setApiTestResult] = useState<ApiTestResult | null>(null);
   const contributionsRef = useRef<ContributionDay[] | null>(null);
   const statsCalculatedRef = useRef(false);
   const calculationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -201,17 +192,22 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperPr
     onDataLoadedRef.current = onDataLoaded;
   }, [onDataLoaded]);
 
-  // Direct API test to verify browser can fetch data
+  // Direct API fallback: calculate stats from raw API even if the
+  // react-github-calendar bundle is blocked (e.g., aggressive ad blockers)
+  // or is slow to load. The calendar's transformData path still wins
+  // when it fires first thanks to the statsCalculatedRef guard.
   useEffect(() => {
-    const testAPI = async () => {
+    const fetchAndCalc = async () => {
       try {
-        console.log("[DEBUG] Testing direct API fetch for username:", username);
         const response = await fetch(
           `https://github-contributions-api.jogruber.de/v4/${username}?y=last`
         );
         if (!response.ok) {
-          console.error("[DEBUG] API response not OK:", response.status, response.statusText);
-          setApiTestResult({ error: `HTTP ${response.status}` });
+          console.error(
+            "[GitHubContributionGraph] fallback API not OK:",
+            response.status,
+            response.statusText
+          );
           return;
         }
         const data = (await response.json()) as {
@@ -220,20 +216,8 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperPr
         };
         const daysWithActivity = data.contributions?.filter((d) => (d.count || 0) > 0) || [];
         const total = daysWithActivity.reduce((sum, d) => sum + d.count, 0);
-        console.log("[DEBUG] Direct API fetch successful!");
-        console.log("[DEBUG] Total contributions:", total);
-        console.log("[DEBUG] Days with activity:", daysWithActivity.length);
-        console.log("[DEBUG] Sample recent day:", daysWithActivity.slice(-5));
-        setApiTestResult({
-          success: true,
-          total,
-          activeDays: daysWithActivity.length,
-          rawTotal: data.total,
-        });
 
-        // If direct API works but calendar doesn't, calculate stats from direct fetch
         if (total > 0 && !statsCalculatedRef.current) {
-          console.log("[DEBUG] Using direct API data for stats");
           const sorted = [...(data.contributions || [])].sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           );
@@ -252,13 +236,11 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperPr
           statsCalculatedRef.current = true;
           onDataLoadedRef.current({ total, bestDay, currentStreak });
         }
-      } catch (err) {
-        setApiTestResult({
-          error: err instanceof Error ? err.message : String(err),
-        });
+      } catch {
+        // Silent — the calendar's own loader will surface its error UI.
       }
     };
-    testAPI();
+    fetchAndCalc();
   }, [username]);
 
   // Calculate stats function
@@ -439,14 +421,6 @@ function CalendarWrapper({ username, onDataLoaded, isMobile }: CalendarWrapperPr
         {loadingTimeout && (
           <span className="mt-2 text-xs text-[var(--color-text-muted)]">
             Taking longer than expected...
-          </span>
-        )}
-        {apiTestResult && (
-          <span className="mt-2 text-xs text-[var(--color-text-muted)]">
-            API:{" "}
-            {apiTestResult.success
-              ? `${apiTestResult.total} contributions found`
-              : apiTestResult.error}
           </span>
         )}
       </div>
