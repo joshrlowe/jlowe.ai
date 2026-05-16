@@ -9,6 +9,7 @@ import type { JWT } from "next-auth/jwt";
 import prisma from "../../../lib/prisma";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler";
 import { withAuth } from "../../../lib/utils/authMiddleware";
+import { inngest } from "../../../lib/jobs/client";
 
 async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
   if (req.method === "PUT") {
@@ -31,6 +32,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
           callToAction: callToAction || null,
         },
       });
+
+      try {
+        await inngest.send({
+          name: "content/welcome.upserted",
+          data: {},
+        });
+      } catch (emitErr) {
+        console.warn(
+          "[welcome] failed to emit welcome.upserted event:",
+          (emitErr as Error).message,
+        );
+      }
 
       res.json(welcome);
     } catch (error) {

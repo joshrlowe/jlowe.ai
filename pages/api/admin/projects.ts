@@ -12,6 +12,7 @@ import { logActivity } from "../../../lib/utils/activityLogger";
 import { validateAdminProjectData } from "../../../lib/utils/projectValidators";
 import { transformTeamToTeamMembers } from "../../../lib/utils/projectTransformer";
 import { buildProjectQuery } from "../../../lib/utils/queryBuilders";
+import { inngest } from "../../../lib/jobs/client";
 // buildOrderBy removed - not currently used
 
 // Refactored: Extract Method - GET handler extracted with query builder
@@ -119,6 +120,18 @@ const handlePostRequest = async (
       where: { id: project.id },
       include: { teamMembers: true },
     });
+
+    try {
+      await inngest.send({
+        name: "content/project.upserted",
+        data: { projectId: project.id },
+      });
+    } catch (emitErr) {
+      console.warn(
+        "[projects] failed to emit project.upserted event:",
+        (emitErr as Error).message,
+      );
+    }
 
     res.status(201).json(createdProject);
   } catch (error) {

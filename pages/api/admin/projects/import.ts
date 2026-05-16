@@ -5,6 +5,7 @@ import type { Prisma } from "@prisma/client";
 import { handleApiError } from "../../../../lib/utils/apiErrorHandler";
 import { mapProjectStatus } from "../../../../lib/utils/projectStatusMapper";
 import { withAuth } from "../../../../lib/utils/authMiddleware";
+import { inngest } from "../../../../lib/jobs/client";
 
 interface ImportProjectData {
   title?: string;
@@ -94,6 +95,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
             ogImage: ogImage || null,
           },
         });
+
+        try {
+          await inngest.send({
+            name: "content/project.upserted",
+            data: { projectId: project.id },
+          });
+        } catch (emitErr) {
+          console.warn(
+            "[projects/import] failed to emit project.upserted event:",
+            (emitErr as Error).message,
+          );
+        }
 
         results.successful.push(project);
       } catch (error) {

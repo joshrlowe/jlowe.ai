@@ -32,6 +32,8 @@ export interface Config {
   langfuse: LangfuseConfig | null;
   funnel: FunnelConfig | null;
   calcom: CalcomConfig | null;
+  inngestEventKey: string | null;
+  inngestSigningKey: string | null;
 }
 
 /**
@@ -89,6 +91,9 @@ export function getConfig(): Config {
       }
     : null;
 
+  const inngestEventKey = process.env.INNGEST_EVENT_KEY ?? null;
+  const inngestSigningKey = process.env.INNGEST_SIGNING_KEY ?? null;
+
   return {
     nodeEnv,
     databaseUrl,
@@ -98,6 +103,8 @@ export function getConfig(): Config {
     langfuse,
     funnel,
     calcom,
+    inngestEventKey,
+    inngestSigningKey,
   };
 }
 

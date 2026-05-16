@@ -10,6 +10,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import prisma from "../../../lib/prisma";
+import { inngest } from "../../../lib/jobs/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check authentication
@@ -46,6 +47,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           heroSubtitle: heroSubtitle || null,
         },
       });
+
+      try {
+        await inngest.send({
+          name: "content/contact.upserted",
+          data: {},
+        });
+      } catch (emitErr) {
+        console.warn(
+          "[contact] failed to emit contact.upserted event:",
+          (emitErr as Error).message,
+        );
+      }
 
       return res.status(200).json(contact);
     } catch (error) {

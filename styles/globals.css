@@ -122,6 +122,31 @@
   --container-lg: 1024px;
   --container-xl: 1280px;
   --container-2xl: 1536px;
+
+  /* ===== LIQUID HEAT TOKENS (additive — Phase 3 redesign, comp-scoped) ===== */
+  /* Heat-temperature palette: saturation drops as the page cools. */
+  --color-heat-peak: #ff7300;          /* Hero, peak fusion */
+  --color-heat-bright: #ff1744;        /* Hero, bleeding center */
+  --color-heat-mid: #c42010;           /* Mid-page transition */
+  --color-cooling-end: #1a0306;        /* Oxblood, footer / case-study bg */
+  --color-inflection: #f72585;         /* Fuchsia at moments of stress */
+  --color-stillness: #faa307;          /* Gold, moments of pause */
+  --color-ember-decay: #6a040f;        /* Where glows fade out */
+  --color-drop-cap: #9d0208;           /* Crimson drop caps + accent rules */
+
+  /* Liquid Heat type stack — italic display only, condensed numerals,
+     neutral grotesk body. */
+  --font-family-display-italic: var(--font-old-standard), "Old Standard TT",
+    "Cormorant Garamond", Georgia, serif;
+  --font-family-condensed: var(--font-bebas), "Bebas Neue", "Oswald",
+    "Arial Narrow", sans-serif;
+  --font-family-body-neutral: var(--font-manrope), "Manrope", system-ui,
+    -apple-system, sans-serif;
+
+  /* Liquid Heat type scale */
+  --text-folio: clamp(12rem, 28vw, 24rem);   /* Project numeral */
+  --text-display-xl: clamp(4rem, 12vw, 9.5rem); /* Hero headline */
+  --text-pullquote: clamp(2.25rem, 6.5vw, 4.75rem); /* Pull quote */
 }
 
 /* ===== BASE STYLES ===== */
@@ -674,4 +699,257 @@ h5,
 h6 {
   font-family: var(--font-family-heading);
   letter-spacing: -0.02em;
+}
+
+/* ========================================
+   LIQUID HEAT UTILITIES (Phase 3 redesign)
+   Scoped via classes; no global side-effects on existing routes.
+   ======================================== */
+
+.font-display-italic {
+  font-family: var(--font-family-display-italic);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.font-condensed {
+  font-family: var(--font-family-condensed);
+  letter-spacing: 0;
+  line-height: 0.8;
+}
+
+.font-body-neutral {
+  font-family: var(--font-family-body-neutral);
+  letter-spacing: -0.005em;
+}
+
+/* Body type that sets a calm 60–75ch measure with hanging punctuation. */
+.body-measure {
+  max-width: 68ch;
+  text-wrap: pretty;
+  hanging-punctuation: first last;
+  font-family: var(--font-family-body-neutral);
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+/* "Cooling zone" — re-roles --color-primary inside this subtree to a
+   cooler band. Everything that paints with --color-primary (links,
+   borders, hovers) takes on the cooled value automatically. */
+.cooling-zone {
+  --color-primary: var(--color-heat-mid);
+  --color-primary-dark: var(--color-ember-decay);
+  --color-primary-glow: rgba(196, 32, 16, 0);
+  --color-border: rgba(196, 32, 16, 0.18);
+  --color-border-glow: rgba(196, 32, 16, 0.28);
+}
+.cooling-zone-deep {
+  --color-primary: var(--color-ember-decay);
+  --color-primary-dark: #3a0306;
+  --color-primary-glow: rgba(0, 0, 0, 0);
+  --color-border: rgba(106, 4, 15, 0.2);
+  --color-border-glow: rgba(106, 4, 15, 0.32);
+  background-color: var(--color-cooling-end);
+}
+
+/* Per-character ignition — applied to spans inside an IgnitionText
+   wrapper. Each char gets its own animation-delay via inline style. */
+@keyframes liquid-heat-ignite {
+  0% {
+    color: var(--color-ember-decay);
+    transform: translateY(8px);
+    opacity: 0;
+    filter: blur(2px);
+  }
+  55% {
+    color: var(--color-heat-bright);
+    text-shadow: 0 0 22px rgba(255, 23, 68, 0.45);
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    color: var(--color-heat-peak);
+    text-shadow: 0 0 32px rgba(255, 115, 0, 0.45),
+      0 0 80px rgba(255, 23, 68, 0.18);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.ignite-char {
+  display: inline-block;
+  color: var(--color-ember-decay);
+  opacity: 0;
+  white-space: pre;
+  animation: liquid-heat-ignite 1100ms cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+  will-change: transform, color, opacity, filter;
+}
+
+/* The single fuchsia inflection — applied to the most-stressed character
+   in the headline. Overrides the final color stop of liquid-heat-ignite. */
+@keyframes liquid-heat-ignite-inflection {
+  0% {
+    color: var(--color-ember-decay);
+    transform: translateY(8px);
+    opacity: 0;
+    filter: blur(2px);
+  }
+  55% {
+    color: var(--color-heat-bright);
+    text-shadow: 0 0 24px rgba(255, 23, 68, 0.45);
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    color: var(--color-inflection);
+    text-shadow: 0 0 30px rgba(247, 37, 133, 0.55),
+      0 0 90px rgba(247, 37, 133, 0.22);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.ignite-char.is-inflection {
+  animation-name: liquid-heat-ignite-inflection;
+}
+
+/* Hot-ingot pulse on hover — used on text CTAs in the hero only. */
+@keyframes liquid-heat-ingot {
+  0%,
+  100% {
+    text-shadow: 0 0 18px rgba(255, 115, 0, 0.28),
+      0 0 38px rgba(255, 23, 68, 0.12);
+  }
+  50% {
+    text-shadow: 0 0 32px rgba(255, 115, 0, 0.55),
+      0 0 78px rgba(255, 23, 68, 0.28);
+  }
+}
+.ingot-pulse-on-hover:hover,
+.ingot-pulse-on-hover:focus-visible {
+  animation: liquid-heat-ingot 600ms ease-in-out;
+}
+
+/* Ember fill — secondary CTA microinteraction. The button starts hollow
+   (1px border, transparent bg) and on hover the bg "fills" from the left
+   like molten metal pouring in. NO arrow translate. */
+.ember-fill-cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-2xl);
+  font-family: var(--font-family-body-neutral);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-heat-bright);
+  border-radius: 0; /* sharp; pills are killed */
+  cursor: pointer;
+  transition: color 350ms ease, border-color 350ms ease;
+  text-decoration: none;
+}
+.ember-fill-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    var(--color-heat-bright) 0%,
+    var(--color-heat-peak) 100%
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 380ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.ember-fill-cta:hover,
+.ember-fill-cta:focus-visible {
+  color: #1a0306;
+  border-color: var(--color-heat-peak);
+}
+.ember-fill-cta:hover::before,
+.ember-fill-cta:focus-visible::before {
+  transform: scaleX(1);
+}
+
+/* Drop cap — crimson, italic display, used once per case-study opener. */
+.drop-cap::first-letter {
+  font-family: var(--font-family-display-italic);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 6.5em;
+  line-height: 0.82;
+  float: left;
+  margin: 0.05em 0.12em -0.05em 0;
+  color: var(--color-drop-cap);
+  font-feature-settings: "kern" 1;
+}
+
+/* Hairline accent rule used between editorial sections. Crimson, not
+   border-light; thin; runs the column width. */
+.heat-rule {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-drop-cap) 18%,
+    var(--color-heat-mid) 50%,
+    var(--color-drop-cap) 82%,
+    transparent 100%
+  );
+  margin: var(--space-3xl) 0;
+}
+
+/* Folio numeral wrapper — lets the numeral bleed off the viewport edge. */
+.folio-numeral {
+  font-family: var(--font-family-condensed);
+  font-size: var(--text-folio);
+  line-height: 0.78;
+  letter-spacing: -0.04em;
+  color: var(--color-heat-mid);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Temperature label — small caps tracking, used sparingly. */
+.temp-label {
+  font-family: var(--font-family-condensed);
+  font-size: 0.75rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-stillness);
+}
+
+/* Hero headline container — explicit "let it bleed" */
+.headline-bleed {
+  margin-right: max(-6vw, -120px);
+}
+
+/* Reduced-motion fallbacks specific to Liquid Heat */
+@media (prefers-reduced-motion: reduce) {
+  .ignite-char,
+  .ignite-char.is-inflection {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    color: var(--color-heat-peak);
+  }
+  .ignite-char.is-inflection {
+    color: var(--color-inflection);
+  }
+  .ingot-pulse-on-hover:hover,
+  .ingot-pulse-on-hover:focus-visible {
+    animation: none !important;
+  }
+  .ember-fill-cta::before {
+    transition: transform 0.01ms !important;
+  }
 }

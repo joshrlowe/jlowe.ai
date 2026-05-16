@@ -14,6 +14,7 @@ import { handleApiError } from "../../../../lib/utils/apiErrorHandler";
 import { mapProjectStatus } from "../../../../lib/utils/projectStatusMapper";
 import { logActivity } from "../../../../lib/utils/activityLogger";
 import { withAuth, getUserIdFromToken } from "../../../../lib/utils/authMiddleware";
+import { inngest } from "../../../../lib/jobs/client";
 
 /**
  * Find project or return 404
@@ -172,6 +173,19 @@ async function handlePutRequest(req: NextApiRequest, res: NextApiResponse, token
 
   // Return fresh data
   const updatedProject = await findProjectOrNull(id);
+
+  try {
+    await inngest.send({
+      name: "content/project.upserted",
+      data: { projectId: id },
+    });
+  } catch (emitErr) {
+    console.warn(
+      "[projects/[id]] failed to emit project.upserted event:",
+      (emitErr as Error).message,
+    );
+  }
+
   res.json(updatedProject);
 }
 
@@ -198,6 +212,18 @@ async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse, to
     action: "delete",
     description: `Project "${project.title}" deleted`,
   });
+
+  try {
+    await inngest.send({
+      name: "content/project.deleted",
+      data: { projectId: id },
+    });
+  } catch (emitErr) {
+    console.warn(
+      "[projects/[id]] failed to emit project.deleted event:",
+      (emitErr as Error).message,
+    );
+  }
 
   res.json({ message: "Project deleted successfully" });
 }

@@ -3,6 +3,7 @@ import type { JWT } from "next-auth/jwt";
 import prisma from "../../../../lib/prisma";
 import { handleApiError } from "../../../../lib/utils/apiErrorHandler";
 import { withAuth } from "../../../../lib/utils/authMiddleware";
+import { inngest } from "../../../../lib/jobs/client";
 
 async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
   switch (req.method) {
@@ -125,6 +126,21 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
             : null,
       },
     });
+
+    try {
+      await inngest.send({
+        name:
+          post.status === "Published"
+            ? "content/post.published"
+            : "content/post.updated",
+        data: { postId: post.id },
+      });
+    } catch (emitErr) {
+      console.warn(
+        "[posts/index] failed to emit post event:",
+        (emitErr as Error).message,
+      );
+    }
 
     res.status(201).json(post);
   } catch (error) {

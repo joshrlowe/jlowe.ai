@@ -59,6 +59,9 @@ jest.mock('@/lib/fonts', () => ({
   spaceGrotesk: { variable: 'font-space' },
   plusJakartaSans: { variable: 'font-jakarta' },
   jetbrainsMono: { variable: 'font-jetbrains' },
+  oldStandardTT: { variable: 'font-old-standard' },
+  bebasNeue: { variable: 'font-bebas' },
+  manrope: { variable: 'font-manrope' },
 }));
 
 // Mock navigator.serviceWorker

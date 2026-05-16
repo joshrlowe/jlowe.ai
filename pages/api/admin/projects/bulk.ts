@@ -5,6 +5,24 @@ import { handleApiError } from "../../../../lib/utils/apiErrorHandler";
 import { mapProjectStatus } from "../../../../lib/utils/projectStatusMapper";
 import { logActivity } from "../../../../lib/utils/activityLogger";
 import { withAuth, getUserIdFromToken } from "../../../../lib/utils/authMiddleware";
+import { inngest } from "../../../../lib/jobs/client";
+
+async function emitProjectEvents(
+  name: "content/project.upserted" | "content/project.deleted",
+  projectIds: string[],
+): Promise<void> {
+  const results = await Promise.allSettled(
+    projectIds.map((projectId) =>
+      inngest.send({ name, data: { projectId } }),
+    ),
+  );
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length > 0) {
+    console.warn(
+      `[projects/bulk] ${failed.length}/${projectIds.length} ${name} emit(s) failed`,
+    );
+  }
+}
 
 async function handler(req: NextApiRequest, res: NextApiResponse, token: JWT) {
   if (req.method !== "POST") {
@@ -40,6 +58,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, token: JWT) {
             description: "Bulk deleted project",
           });
         }
+        await emitProjectEvents("content/project.deleted", projectIds);
         return res.json({
           message: `${projectIds.length} project(s) deleted successfully`,
         });
@@ -66,6 +85,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, token: JWT) {
             description: `Bulk status changed to ${data.status}`,
           });
         }
+        await emitProjectEvents("content/project.upserted", projectIds);
         return res.json({
           message: `${projectIds.length} project(s) updated successfully`,
         });
@@ -94,6 +114,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, token: JWT) {
             description: `Bulk featured set to ${data.featured}`,
           });
         }
+        await emitProjectEvents("content/project.upserted", projectIds);
         return res.json({
           message: `${projectIds.length} project(s) updated successfully`,
         });

@@ -8,8 +8,13 @@
  *   about    → /about
  *   welcome  → /
  *   contact  → /contact
+ *
+ * Each `format*Source(row)` is a pure transform: a Prisma row in, a
+ * KnowledgeSource out. Loaders compose those with the right Prisma queries.
+ * Both the bulk script and the per-source background job share the formatters.
  */
 
+import type { About, Contact, Post, Project, Welcome } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 export type KnowledgeSourceType =
@@ -76,53 +81,6 @@ function formatTags(tags: unknown): string {
   return `## Tags\n\n${tags.filter((t) => typeof t === "string").join(", ")}`;
 }
 
-async function articles(): Promise<KnowledgeSource[]> {
-  const posts = await prisma.post.findMany({
-    where: { status: "Published" },
-    orderBy: { datePublished: "desc" },
-  });
-  return posts.map((p) => {
-    const md = trimAll([
-      `# ${p.title}`,
-      p.description ? `*${p.description}*` : null,
-      p.content,
-    ]);
-    return {
-      sourceType: "article" as const,
-      sourceId: p.id,
-      sourceSlug: `${p.topic}/${p.slug}`,
-      sourceTitle: p.title,
-      markdown: md,
-      url: `/articles/${p.topic}/${p.slug}`,
-    };
-  });
-}
-
-async function projects(): Promise<KnowledgeSource[]> {
-  const rows = await prisma.project.findMany({
-    where: { status: { not: "Draft" } },
-    orderBy: { startDate: "desc" },
-  });
-  return rows.map((p) => {
-    const md = trimAll([
-      `# ${p.title}`,
-      p.shortDescription ? `*${p.shortDescription}*` : null,
-      p.longDescription,
-      !p.longDescription && p.description ? p.description : null,
-      formatTechStack(p.techStack),
-      formatTags(p.tags),
-    ]);
-    return {
-      sourceType: "project" as const,
-      sourceId: p.id,
-      sourceSlug: p.slug ?? null,
-      sourceTitle: p.title,
-      markdown: md,
-      url: p.slug ? `/projects/${p.slug}` : null,
-    };
-  });
-}
-
 interface ExperienceEntry {
   company?: string;
   role?: string;
@@ -161,12 +119,50 @@ interface LeadershipEntry {
   achievements?: string[];
 }
 
-async function aboutSource(): Promise<KnowledgeSource[]> {
-  const about = await prisma.about.findFirst({
-    orderBy: { updatedAt: "desc" },
-  });
-  if (!about) return [];
+interface ContactSocial {
+  linkedIn?: string;
+  github?: string;
+  X?: string;
+  twitter?: string;
+  [k: string]: unknown;
+}
 
+export function formatArticleSource(p: Post): KnowledgeSource {
+  const md = trimAll([
+    `# ${p.title}`,
+    p.description ? `*${p.description}*` : null,
+    p.content,
+  ]);
+  return {
+    sourceType: "article",
+    sourceId: p.id,
+    sourceSlug: `${p.topic}/${p.slug}`,
+    sourceTitle: p.title,
+    markdown: md,
+    url: `/articles/${p.topic}/${p.slug}`,
+  };
+}
+
+export function formatProjectSource(p: Project): KnowledgeSource {
+  const md = trimAll([
+    `# ${p.title}`,
+    p.shortDescription ? `*${p.shortDescription}*` : null,
+    p.longDescription,
+    !p.longDescription && p.description ? p.description : null,
+    formatTechStack(p.techStack),
+    formatTags(p.tags),
+  ]);
+  return {
+    sourceType: "project",
+    sourceId: p.id,
+    sourceSlug: p.slug ?? null,
+    sourceTitle: p.title,
+    markdown: md,
+    url: p.slug ? `/projects/${p.slug}` : null,
+  };
+}
+
+export function formatAboutSource(about: About): KnowledgeSource {
   const sections: string[] = ["# About Josh"];
 
   if (about.professionalSummary) {
@@ -262,54 +258,33 @@ async function aboutSource(): Promise<KnowledgeSource[]> {
     if (items) sections.push(`## Hobbies\n\n${items}`);
   }
 
-  return [
-    {
-      sourceType: "about",
-      sourceId: about.id,
-      sourceSlug: null,
-      sourceTitle: "About Josh",
-      markdown: sections.join("\n\n"),
-      url: "/about",
-    },
-  ];
+  return {
+    sourceType: "about",
+    sourceId: about.id,
+    sourceSlug: null,
+    sourceTitle: "About Josh",
+    markdown: sections.join("\n\n"),
+    url: "/about",
+  };
 }
 
-async function welcomeSource(): Promise<KnowledgeSource[]> {
-  const welcome = await prisma.welcome.findFirst({
-    orderBy: { updatedAt: "desc" },
-  });
-  if (!welcome) return [];
+export function formatWelcomeSource(welcome: Welcome): KnowledgeSource {
   const md = trimAll([
     `# ${welcome.name}`,
     welcome.briefBio,
     welcome.callToAction ?? null,
   ]);
-  return [
-    {
-      sourceType: "welcome",
-      sourceId: welcome.id,
-      sourceSlug: null,
-      sourceTitle: welcome.name,
-      markdown: md,
-      url: "/",
-    },
-  ];
+  return {
+    sourceType: "welcome",
+    sourceId: welcome.id,
+    sourceSlug: null,
+    sourceTitle: welcome.name,
+    markdown: md,
+    url: "/",
+  };
 }
 
-interface ContactSocial {
-  linkedIn?: string;
-  github?: string;
-  X?: string;
-  twitter?: string;
-  [k: string]: unknown;
-}
-
-async function contactSource(): Promise<KnowledgeSource[]> {
-  const contact = await prisma.contact.findFirst({
-    orderBy: { updatedAt: "desc" },
-  });
-  if (!contact) return [];
-
+export function formatContactSource(contact: Contact): KnowledgeSource {
   const lines: string[] = ["# Contact"];
   if (contact.emailAddress) lines.push(`- Email: ${contact.emailAddress}`);
   if (contact.phoneNumber) lines.push(`- Phone: ${contact.phoneNumber}`);
@@ -322,16 +297,51 @@ async function contactSource(): Promise<KnowledgeSource[]> {
     });
   }
 
-  return [
-    {
-      sourceType: "contact",
-      sourceId: contact.id,
-      sourceSlug: null,
-      sourceTitle: "Contact",
-      markdown: lines.join("\n"),
-      url: "/contact",
-    },
-  ];
+  return {
+    sourceType: "contact",
+    sourceId: contact.id,
+    sourceSlug: null,
+    sourceTitle: "Contact",
+    markdown: lines.join("\n"),
+    url: "/contact",
+  };
+}
+
+async function articles(): Promise<KnowledgeSource[]> {
+  const posts = await prisma.post.findMany({
+    where: { status: "Published" },
+    orderBy: { datePublished: "desc" },
+  });
+  return posts.map(formatArticleSource);
+}
+
+async function projects(): Promise<KnowledgeSource[]> {
+  const rows = await prisma.project.findMany({
+    where: { status: { not: "Draft" } },
+    orderBy: { startDate: "desc" },
+  });
+  return rows.map(formatProjectSource);
+}
+
+async function aboutSource(): Promise<KnowledgeSource[]> {
+  const about = await prisma.about.findFirst({
+    orderBy: { updatedAt: "desc" },
+  });
+  return about ? [formatAboutSource(about)] : [];
+}
+
+async function welcomeSource(): Promise<KnowledgeSource[]> {
+  const welcome = await prisma.welcome.findFirst({
+    orderBy: { updatedAt: "desc" },
+  });
+  return welcome ? [formatWelcomeSource(welcome)] : [];
+}
+
+async function contactSource(): Promise<KnowledgeSource[]> {
+  const contact = await prisma.contact.findFirst({
+    orderBy: { updatedAt: "desc" },
+  });
+  return contact ? [formatContactSource(contact)] : [];
 }
 
 export async function loadAllSources(): Promise<KnowledgeSource[]> {

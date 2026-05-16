@@ -15,7 +15,14 @@ import Footer from "@/components/Footer";
 import ToastProvider from "@/components/admin/ToastProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ChatWidget } from "@/components/Chat";
-import { spaceGrotesk, plusJakartaSans, jetbrainsMono } from "@/lib/fonts";
+import {
+  spaceGrotesk,
+  plusJakartaSans,
+  jetbrainsMono,
+  oldStandardTT,
+  bebasNeue,
+  manrope,
+} from "@/lib/fonts";
 
 import ScrollProgress from "@/components/ui/ScrollProgress";
 
@@ -37,7 +44,7 @@ export default function App({
   const [introComplete, setIntroComplete] = useState(false);
 
   // Combine font variables for className
-  const fontVariables = `${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`;
+  const fontVariables = `${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${oldStandardTT.variable} ${bebasNeue.variable} ${manrope.variable}`;
 
   // Register service worker for PWA and listen for intro complete
   useEffect(() => {
@@ -97,6 +104,25 @@ export default function App({
 
   // Check if admin page
   const isAdminPage = router.pathname?.startsWith("/admin") ?? false;
+
+  // /design/* is sandboxed comp space — render bare, no header/footer/chat.
+  const isDesignPage = router.pathname?.startsWith("/design") ?? false;
+
+  if (isDesignPage) {
+    return (
+      <SessionProvider session={session}>
+        <Head>
+          <title>Design preview — jlowe.ai</title>
+          <meta name="robots" content="noindex,nofollow" />
+        </Head>
+        <div
+          className={`${fontVariables} min-h-screen w-full bg-[var(--color-bg-dark)] text-[var(--color-text-primary)]`}
+        >
+          <Component {...pageProps} />
+        </div>
+      </SessionProvider>
+    );
+  }
 
   // Admin pages layout
   if (isAdminPage) {

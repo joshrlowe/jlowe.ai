@@ -58,3 +58,7 @@ test-upstash.ts
 # personal planning docs (do not commit)
 FUTURE_PLANS.md
 /docs/planning/
+
+# verification / audit run artifacts (ephemeral)
+/verification-*/
+/.audit-baseline/
