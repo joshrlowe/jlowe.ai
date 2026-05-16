@@ -19,80 +19,19 @@ import CollapsibleSection from "./shared/CollapsibleSection";
 import FormField from "./shared/FormField";
 import TagInput from "./shared/TagInput";
 import { adminStyles } from "./shared/styles";
-
-// Domain shapes for the JSON columns on the About model.
-// These match the schema comments in prisma/schema.prisma.
-interface SkillProject {
-  name: string;
-  repositoryLink: string;
-}
-interface Skill {
-  name: string;
-  expertiseLevel: string;
-  projects: SkillProject[];
-}
-interface SkillCategory {
-  category: string;
-  skills: Skill[];
-}
-interface Experience {
-  company: string;
-  role: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  isOngoing: boolean;
-  achievements: string[];
-}
-interface Education {
-  institution: string;
-  degree: string;
-  fieldOfStudy: string;
-  startDate: string;
-  endDate: string;
-  isOngoing: boolean;
-  expectedGradDate: string;
-  relevantCoursework: string[];
-}
-interface Certification {
-  organization: string;
-  name: string;
-  issueDate: string;
-  expirationDate: string;
-  credentialUrl: string;
-}
-interface Leadership {
-  organization: string;
-  role: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-}
-type Hobby = string | { name: string; color: string };
-
-interface AboutEditableShape {
-  professionalSummary: string;
-  technicalSkills: SkillCategory[];
-  professionalExperience: Experience[];
-  education: Education[];
-  technicalCertifications: Certification[];
-  leadershipExperience: Leadership[];
-  leadershipSubtitle: string;
-  hobbies: Hobby[];
-}
-
-// EntryForm/SkillItem etc. work with arbitrary keyed records driven by
-// FieldDef metadata. Using a loose Record type here is intentional —
-// the alternative is per-shape generics and unsafe casts at every
-// access site, which would be far harder to read.
-type DynamicEntry = Record<string, any>;
-
-interface FieldDef {
-  key: string;
-  label: string;
-  type?: string;
-  placeholder?: string;
-}
+import type {
+  AboutEditableShape,
+  Certification,
+  DynamicEntry,
+  Education,
+  Experience,
+  FieldDef,
+  Hobby,
+  Leadership,
+  Skill,
+  SkillCategory,
+  SkillProject,
+} from "./about/types";
 
 // Experience/Education entry form component
 interface EntryFormProps {
