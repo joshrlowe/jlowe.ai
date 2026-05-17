@@ -8,6 +8,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
 import Footer from "@/components/Footer";
+import { __resetFooterDataCacheForTests } from "@/lib/hooks/useFooterData";
 
 expect.extend(toHaveNoViolations);
 
@@ -26,6 +27,7 @@ describe("Footer Component", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetFooterDataCacheForTests();
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => mockContactData,
@@ -124,10 +126,25 @@ describe("Footer Component", () => {
       render(<Footer />);
 
       await waitFor(() => {
-        // Check that fetch was called with URLs containing the API endpoints (with cache-busting params)
         const fetchCalls = global.fetch.mock.calls.map((call) => call[0]);
-        expect(fetchCalls.some((url) => url.startsWith("/api/contact"))).toBe(true);
+        expect(fetchCalls).toContain("/api/contact");
+        expect(fetchCalls).toContain("/api/site-settings");
       });
+    });
+
+    it("should dedupe fetches across multiple Footer mounts in the same session", async () => {
+      render(<Footer />);
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith("/api/contact");
+      });
+
+      const callsAfterFirst = global.fetch.mock.calls.length;
+
+      render(<Footer />);
+      render(<Footer />);
+
+      // Re-mounting Footer must not refetch — module-scope cache holds the data.
+      expect(global.fetch.mock.calls.length).toBe(callsAfterFirst);
     });
 
     it("should render social media icons", () => {

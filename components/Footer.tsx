@@ -14,7 +14,7 @@
 
 import { useEffect, useState, ReactNode } from "react";
 import Link from "next/link";
-import type { Contact, SiteSettings } from "@/lib/types";
+import { useFooterData } from "@/lib/hooks/useFooterData";
 
 const STATIC_SOCIAL_ITEMS = [
   { key: "email", label: "Email", icon: "email" },
@@ -64,49 +64,11 @@ const DEFAULT_FOOTER_TEXT =
 const DEFAULT_FOOTER_TITLE = "AI Engineer & Consultant";
 
 export default function Footer() {
-  const [contactData, setContactData] = useState<Contact | null>(null);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const { contact: contactData, settings: siteSettings } = useFooterData();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
     setMounted(true);
-
-    const fetchData = async () => {
-      try {
-        // Add cache-busting to ensure fresh data
-        const cacheBuster = `?_t=${Date.now()}`;
-
-        // Fetch contact data and site settings in parallel (using public endpoint)
-        const [contactResponse, settingsResponse] = await Promise.all([
-          fetch(`/api/contact${cacheBuster}`),
-          fetch(`/api/site-settings${cacheBuster}`),
-        ]);
-
-        if (contactResponse.ok && isMounted) {
-          const data = (await contactResponse.json()) as Contact;
-          setContactData(data);
-        }
-
-        if (settingsResponse.ok && isMounted) {
-          const data = (await settingsResponse.json()) as SiteSettings;
-          setSiteSettings(data);
-        }
-      } catch (_error) {
-        // Silently fail - data is optional
-      }
-    };
-
-    fetchData();
-
-    // Re-fetch when window regains focus (e.g., after editing in admin)
-    const handleFocus = () => fetchData();
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      isMounted = false;
-      window.removeEventListener("focus", handleFocus);
-    };
   }, []);
 
   const getHref = (key: string): string => {
