@@ -225,7 +225,7 @@ export default function ContactPage() {
       <>
         <SEO
           title="Contact - Josh Lowe"
-          description="Get in touch with Josh Lowe for AI consulting and engineering projects."
+          description="Get in touch with Josh Lowe for AI consulting, machine learning projects, and full-stack development."
         />
         <div className="section flex items-center justify-center min-h-[60vh]">
           <div className="flex flex-col items-center gap-4">

@@ -103,7 +103,7 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }: AboutPage
       <>
         <SEO
           title={ownerName || "About Me"}
-          description="Learn more about my experience and skills"
+          description="Learn about Josh Lowe — MS CS student at UCF, AI/ML researcher, and tech lead at BidOps AI."
           url="https://jlowe.ai/about"
           type="profile"
         />
