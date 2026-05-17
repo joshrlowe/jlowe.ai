@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { GetStaticProps } from "next";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, registerGsapPlugins } from "@/lib/animations/gsap";
 import prisma from "@/lib/prisma";
 import SEO from "@/components/SEO";
 import AboutHero from "@/components/About/AboutHero/AboutHero";
@@ -47,6 +46,8 @@ const AboutPage = ({ aboutData, welcomeData, contactData, ownerName }: AboutPage
   const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (typeof window === "undefined" || !contentRef.current) return;
 
     const elements = contentRef.current.querySelectorAll(".fade-in-on-scroll");

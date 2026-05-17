@@ -13,8 +13,7 @@
 
 import { ReactNode, useEffect, useRef } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 import type { Project, Post } from "@/lib/types";
 
@@ -91,6 +90,8 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
   const config = activityConfig[activity.type] || activityConfig.update;
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!itemRef.current) return;
 
     if (getPrefersReducedMotion()) {
@@ -255,6 +256,8 @@ export default function RecentActivity({ projects = [], articles = [] }: RecentA
   const titleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || !titleRef.current) return;
 
     if (getPrefersReducedMotion()) {

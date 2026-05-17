@@ -11,8 +11,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { Badge } from "@/components/ui";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 
@@ -67,6 +66,8 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
   }, [githubUrl]);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || repos.length === 0) return;
 
     if (getPrefersReducedMotion()) return;

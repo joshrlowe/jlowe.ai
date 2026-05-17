@@ -10,8 +10,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { Card } from "@/components/ui";
 import { getPrefersReducedMotion, useIsMobile } from "@/lib/hooks";
 import LazyCalendar from "@/components/GitHub/LazyCalendar";
@@ -44,6 +43,8 @@ export default function GitHubContributionGraph({
   }, []);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || !mounted) return;
     if (getPrefersReducedMotion()) return;
 

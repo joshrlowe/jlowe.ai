@@ -11,7 +11,7 @@
  */
 
 import { ReactNode, useEffect, useState, useRef } from "react";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import TextTransition, { presets } from "react-text-transition";
 import SEO from "@/components/SEO";
 import { trackExternalLink } from "@/lib/analytics";

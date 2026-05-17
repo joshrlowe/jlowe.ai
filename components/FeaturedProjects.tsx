@@ -13,8 +13,7 @@
  */
 
 import { MouseEvent, useEffect, useRef, useCallback } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Badge, Button } from "@/components/ui";
@@ -37,6 +36,8 @@ export default function FeaturedProjects({ projects = [] }: FeaturedProjectsProp
   const titleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || projects.length === 0) return;
 
     if (getPrefersReducedMotion()) {

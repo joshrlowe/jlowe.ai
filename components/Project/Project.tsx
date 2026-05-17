@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import styles from "@/styles/ProjectsPage.module.css";
 
 import ProjectHeader from "./ProjectHeader";

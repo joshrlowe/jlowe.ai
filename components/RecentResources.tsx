@@ -12,8 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import Link from "next/link";
 import { Badge, Button } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui/Badge";
@@ -39,6 +38,8 @@ export default function RecentResources({ resources = [] }: RecentResourcesProps
   }, []);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || resources.length === 0) return;
 
     if (getPrefersReducedMotion()) return;

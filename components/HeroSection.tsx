@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import { Button } from "@/components/ui";
 import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { trackCtaClick } from "@/lib/analytics";

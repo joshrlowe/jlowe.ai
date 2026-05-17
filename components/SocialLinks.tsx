@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import type { Contact } from "@/lib/types";
 import styles from "@/styles/SocialLinks.module.css";
 

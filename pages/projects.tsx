@@ -12,7 +12,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import prisma from "../lib/prisma";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer";
 import {

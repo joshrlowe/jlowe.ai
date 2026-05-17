@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";

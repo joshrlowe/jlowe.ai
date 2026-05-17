@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import StatusBadge from "./StatusBadge";
@@ -19,6 +18,8 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const cardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!cardRef.current) return;
 
     const card = cardRef.current;
