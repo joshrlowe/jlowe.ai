@@ -184,23 +184,22 @@ describe("HeroSection Component", () => {
   describe("Scroll Indicator", () => {
     it("should render scroll indicator", () => {
       render(<HeroSection data={mockData} />);
-      expect(screen.getByLabelText("Scroll to services")).toBeInTheDocument();
+      expect(screen.getByLabelText("Scroll to projects")).toBeInTheDocument();
     });
 
-    it('should render "Explore" text in scroll indicator', () => {
+    it('should render "Explore Projects" text in scroll indicator', () => {
       render(<HeroSection data={mockData} />);
-      expect(screen.getByText("Explore")).toBeInTheDocument();
+      expect(screen.getByText("Explore Projects")).toBeInTheDocument();
     });
 
     it("should render arrow icon in scroll indicator", () => {
-      const { container } = render(<HeroSection data={mockData} />);
-      const scrollButton = screen.getByLabelText("Scroll to services");
+      render(<HeroSection data={mockData} />);
+      const scrollButton = screen.getByLabelText("Scroll to projects");
       const svg = scrollButton.querySelector("svg");
       expect(svg).toBeInTheDocument();
     });
 
     it("should call scrollIntoView when scroll button clicked", () => {
-      // Mock getElementById
       const mockElement = {
         scrollIntoView: jest.fn(),
       };
@@ -208,19 +207,19 @@ describe("HeroSection Component", () => {
 
       render(<HeroSection data={mockData} />);
 
-      const scrollButton = screen.getByLabelText("Scroll to services");
+      const scrollButton = screen.getByLabelText("Scroll to projects");
       fireEvent.click(scrollButton);
 
-      expect(document.getElementById).toHaveBeenCalledWith("services");
+      expect(document.getElementById).toHaveBeenCalledWith("projects");
       expect(mockElement.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth" });
     });
 
-    it("should handle missing services section gracefully", () => {
+    it("should handle missing projects section gracefully", () => {
       document.getElementById = jest.fn(() => null);
 
       render(<HeroSection data={mockData} />);
 
-      const scrollButton = screen.getByLabelText("Scroll to services");
+      const scrollButton = screen.getByLabelText("Scroll to projects");
       expect(() => fireEvent.click(scrollButton)).not.toThrow();
     });
   });
@@ -315,7 +314,7 @@ describe("HeroSection Component", () => {
 
     it("should have aria-label on scroll button", () => {
       render(<HeroSection data={mockData} />);
-      expect(screen.getByLabelText("Scroll to services")).toBeInTheDocument();
+      expect(screen.getByLabelText("Scroll to projects")).toBeInTheDocument();
     });
   });
 

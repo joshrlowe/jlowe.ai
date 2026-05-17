@@ -322,14 +322,14 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
       >
         <button
           onClick={() => {
-            document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
+            document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
           }}
           className="flex flex-col items-center gap-2 transition-colors group"
           style={{ color: "var(--color-text-muted)" }}
-          aria-label="Scroll to services"
+          aria-label="Scroll to projects"
         >
           <span className="text-xs uppercase tracking-[0.15em] font-medium group-hover:text-[#E85D04] transition-colors">
-            Explore
+            Explore Projects
           </span>
           <svg
             className="w-4 h-4 animate-bounce group-hover:text-[#E85D04] transition-colors"
