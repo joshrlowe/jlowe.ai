@@ -12,7 +12,6 @@
 
 import { ReactNode, useEffect, useState, useRef } from "react";
 import { gsap } from "@/lib/animations/gsap";
-import TextTransition, { presets } from "react-text-transition";
 import SEO from "@/components/SEO";
 import { trackExternalLink } from "@/lib/analytics";
 import { getPrefersReducedMotion } from "@/lib/hooks";
@@ -31,7 +30,6 @@ interface SocialItem {
 
 const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
-// Word carousel using react-text-transition for smooth spring-based animations
 interface WordCarouselProps {
   words?: string[];
 }
@@ -47,20 +45,21 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }: WordCarouselProps) {
     return () => clearInterval(interval);
   }, [words.length]);
 
-  // Apply gradient to the inner text element so it works with TextTransition's wrapper
-  const wordStyle = {
-    background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-    display: "inline-block",
-  };
-
   return (
-    <span className="inline-block">
-      <TextTransition springConfig={presets.gentle} direction="down">
-        <span style={wordStyle}>{words[index]}</span>
-      </TextTransition>
+    <span className="inline-block" data-testid="word-carousel">
+      <span
+        key={index}
+        className="word-carousel-item"
+        style={{
+          background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          display: "inline-block",
+        }}
+      >
+        {words[index]}
+      </span>
     </span>
   );
 }

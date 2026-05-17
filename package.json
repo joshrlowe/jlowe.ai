@@ -63,7 +63,6 @@
     "react-github-calendar": "^5.0.4",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^16.1.0",
-    "react-text-transition": "^3.1.0",
     "react-toastify": "^11.1.0",
     "react-typed": "^2.0.12",
     "remark-gfm": "^4.0.0",
