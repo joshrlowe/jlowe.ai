@@ -46,10 +46,4 @@ jobs:
         run: pnpm build
 
       - name: Bundle budget
-        # Gate becomes blocking once scripts/check-bundle-budget.mjs lands (PR5).
-        run: |
-          if [ -f scripts/check-bundle-budget.mjs ]; then
-            node scripts/check-bundle-budget.mjs
-          else
-            echo "bundle budget script not present yet — skipping"
-          fi
+        run: node scripts/check-bundle-budget.mjs
