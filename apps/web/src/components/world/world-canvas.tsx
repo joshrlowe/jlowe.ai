@@ -12,6 +12,7 @@ import { QualityProvider } from "./core/quality-provider";
 import { SceneManager, type SceneRegistry } from "./core/scene-manager";
 import { PerfProbe } from "./debug/perf-probe";
 import { InputBridge } from "./input-bridge";
+import { CircuitScene } from "./scenes/circuit";
 import { FixtureScene } from "./scenes/fixture";
 import { ProvingGroundScene } from "./scenes/proving-ground";
 
@@ -24,8 +25,9 @@ type WebGPURendererParams = ConstructorParameters<
 const SCENES: SceneRegistry = {
   fixture: () => <FixtureScene />,
   "proving-ground": () => <ProvingGroundScene />,
+  circuit: () => <CircuitScene />,
 };
-const DEFAULT_SCENE = "fixture";
+const DEFAULT_SCENE = "fixture"; // PR4 flips this to "circuit"
 
 /**
  * The R3F canvas, dynamically imported so three never enters a flat-route
