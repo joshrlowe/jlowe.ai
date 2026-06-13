@@ -1,8 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/qualified-leads-digest",
-      "schedule": "0 12 * * *"
-    }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ] && exit 1 || exit 0"
 }

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [v2, main]
+  push:
+    branches: [v2]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: typecheck · lint · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6 # version resolved from packageManager field
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build (static export)
+        run: pnpm build
+
+      - name: Bundle budget
+        # Gate becomes blocking once scripts/check-bundle-budget.mjs lands (PR5).
+        run: |
+          if [ -f scripts/check-bundle-budget.mjs ]; then
+            node scripts/check-bundle-budget.mjs
+          else
+            echo "bundle budget script not present yet — skipping"
+          fi

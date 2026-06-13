@@ -1,64 +1,30 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-.env
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# playwright
-/test-results/
-/playwright-report/
-/playwright/.cache/
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
-.env
-
-# vercel
-.vercel
-
-# typescript
+# dependencies / builds
+node_modules/
+.next/
+out/
+dist/
+coverage/
 *.tsbuildinfo
-next-env.d.ts
+bundle-budget-report.json
 
-# prisma
-/prisma/migrations
-!prisma/migrations/.gitkeep
+# env & secrets — never commit
+.env*
+!.env.example
 
-# uploads
-/public/uploads
+# OS / editor
+.DS_Store
 
-# test artifacts (temporary files)
-test-upstash.ts
+# terraform
+infra/terraform/**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
 
-# generated knowledge base (optional - remove if you want to commit)
-/data/
-
-# personal planning docs (do not commit)
-FUTURE_PLANS.md
-/docs/planning/
-
-# verification / audit run artifacts (ephemeral)
-/verification-*/
-/.audit-baseline/
+# local tooling & working artifacts
+.claude/
+.cursor/
+.audit-*/
+verification-*/
+VERIFICATION_REPORT.md
+*.log
