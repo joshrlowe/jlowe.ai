@@ -1,0 +1,74 @@
+name: Deploy Web
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, prod]
+        default: dev
+  push:
+    branches: [main] # activates at cutover (guarded by CUTOVER_ENABLED)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-web-${{ github.event_name == 'push' && 'prod' || inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Manual dispatch always; push-to-main only once cutover is enabled.
+    if: github.event_name == 'workflow_dispatch' || vars.CUTOVER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC
+      contents: read
+    environment:
+      name: ${{ github.event_name == 'push' && 'prod' || inputs.environment }}
+      url: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build static export
+        run: pnpm --filter @velocity/web build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_WEB_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Sync to S3 (split cache-control)
+        run: |
+          # Tier 1 — HTML + everything non-hashed: always revalidate.
+          aws s3 sync apps/web/out "s3://${{ vars.SITE_BUCKET }}" --delete \
+            --exclude "_next/static/*" --exclude "assets/*" \
+            --cache-control "no-cache"
+          # Tier 2 — content-hashed: immutable for a year.
+          aws s3 sync apps/web/out/_next/static "s3://${{ vars.SITE_BUCKET }}/_next/static" --delete \
+            --cache-control "public, max-age=31536000, immutable"
+          if [ -d apps/web/out/assets ]; then
+            aws s3 sync apps/web/out/assets "s3://${{ vars.SITE_BUCKET }}/assets" --delete \
+              --cache-control "public, max-age=31536000, immutable"
+          fi
+
+      - name: Invalidate CloudFront
+        run: |
+          ID=$(aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*" --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" --id "$ID"
