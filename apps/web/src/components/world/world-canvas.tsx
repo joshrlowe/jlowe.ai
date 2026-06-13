@@ -5,22 +5,27 @@ import * as THREE from "three/webgpu";
 
 import type { CapabilityTier } from "@/lib/capabilities";
 import { rendererInitForTier } from "@/lib/renderer";
+import { useSceneParam } from "@/lib/use-scene-param";
 
-import { CameraRig } from "./core/camera-rig";
 import { PostFX } from "./core/post-fx";
 import { QualityProvider } from "./core/quality-provider";
 import { SceneManager, type SceneRegistry } from "./core/scene-manager";
 import { PerfProbe } from "./debug/perf-probe";
 import { InputBridge } from "./input-bridge";
 import { FixtureScene } from "./scenes/fixture";
+import { ProvingGroundScene } from "./scenes/proving-ground";
 
 type WebGPURendererParams = ConstructorParameters<
   typeof THREE.WebGPURenderer
 >[0];
 
+// Scenes own their own camera (CameraRig). The active scene comes from the
+// chapter store later; for now ?scene= overrides, defaulting to the fixture.
 const SCENES: SceneRegistry = {
   fixture: () => <FixtureScene />,
+  "proving-ground": () => <ProvingGroundScene />,
 };
+const DEFAULT_SCENE = "fixture";
 
 /**
  * The R3F canvas, dynamically imported so three never enters a flat-route
@@ -36,6 +41,9 @@ export function WorldCanvas({
   debug: boolean;
 }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
+  const sceneParam = useSceneParam();
+  const active =
+    sceneParam && sceneParam in SCENES ? sceneParam : DEFAULT_SCENE;
 
   return (
     <Canvas
@@ -54,8 +62,7 @@ export function WorldCanvas({
     >
       <QualityProvider tier={tier}>
         <InputBridge />
-        <SceneManager scenes={SCENES} active="fixture" />
-        <CameraRig mode="free" />
+        <SceneManager scenes={SCENES} active={active} />
         {/* Single TSL chain (ACES → bloom → vignette); drives the render loop. */}
         <PostFX />
         {debug ? <PerfProbe /> : null}

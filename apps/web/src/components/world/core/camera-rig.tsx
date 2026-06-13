@@ -37,6 +37,7 @@ export function CameraRig({
   const t = useRef(0);
   const scratch = useRef(new THREE.Vector3());
   const desired = useRef(new THREE.Vector3());
+  const quat = useRef(new THREE.Quaternion());
 
   useFrame((_, delta) => {
     if (mode === "rails" && curve) {
@@ -45,11 +46,13 @@ export function CameraRig({
       camera.position.copy(scratch.current);
       camera.lookAt(0, 0, 0);
     } else if (mode === "chase" && target?.current) {
-      desired.current
-        .copy(target.current.position)
-        .add(scratch.current.set(0, 2.5, 6));
+      // Trail behind the target's heading (world-space; the target may be
+      // nested inside a moving rigid body). Car forward is +z, so behind = -z.
+      const pos = target.current.getWorldPosition(scratch.current);
+      const heading = target.current.getWorldQuaternion(quat.current);
+      desired.current.set(0, 2.5, -7).applyQuaternion(heading).add(pos);
       camera.position.lerp(desired.current, 1 - Math.pow(0.0015, delta));
-      camera.lookAt(target.current.position);
+      camera.lookAt(pos);
     }
   });
 

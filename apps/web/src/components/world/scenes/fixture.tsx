@@ -4,6 +4,8 @@ import { Environment, Lightformer, RoundedBox } from "@react-three/drei";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { useControls } from "leva";
 
+import { CameraRig } from "../core/camera-rig";
+
 /**
  * Fixture scene proving the whole pipeline: image-based lighting (a procedural
  * Lightformer environment — original, no external HDR), a "test vehicle" that
@@ -61,6 +63,7 @@ export function FixtureScene() {
           <CuboidCollider args={[20, 0.05, 20]} />
         </RigidBody>
       </Physics>
+      <CameraRig mode="free" />
     </>
   );
 }
