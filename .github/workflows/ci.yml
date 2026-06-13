@@ -47,3 +47,6 @@ jobs:
 
       - name: Bundle budget
         run: node scripts/check-bundle-budget.mjs
+
+      - name: Asset guard
+        run: node scripts/check-assets.mjs

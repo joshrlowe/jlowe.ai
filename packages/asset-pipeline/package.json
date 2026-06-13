@@ -8,13 +8,22 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "assets": "tsc -p tsconfig.json && node dist/cli.js build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/draco3d": "^1.4.10",
     "@types/node": "^24",
     "typescript": "~5.9.0",
     "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "^4.4.0",
+    "@gltf-transform/extensions": "^4.4.0",
+    "@gltf-transform/functions": "^4.4.0",
+    "draco3d": "^1.5.7",
+    "meshoptimizer": "^1.1.1"
   }
 }
