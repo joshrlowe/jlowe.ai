@@ -1,0 +1,127 @@
+name: Terraform
+
+on:
+  pull_request:
+    branches: [v2, main]
+    paths: ["infra/**"]
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: Stack to operate on
+        type: choice
+        options: [global, envs]
+        default: envs
+      environment:
+        description: Environment (ignored for the global stack)
+        type: choice
+        options: [dev, prod]
+        default: dev
+      action:
+        description: plan or apply
+        type: choice
+        options: [plan, apply]
+        default: plan
+  push:
+    branches: [main] # activates at cutover (guarded by CUTOVER_ENABLED)
+    paths: ["infra/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-${{ github.ref }}-${{ github.event.inputs.stack || 'all' }}
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: "1.15.0"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: terraform fmt -check -recursive infra/terraform
+
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        stack: [global, envs]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: terraform -chdir=infra/terraform/${{ matrix.stack }} init -backend=false
+      - run: terraform -chdir=infra/terraform/${{ matrix.stack }} validate
+
+  plan:
+    # Needs the state bucket + roles from bootstrap; skipped until then so
+    # pre-bootstrap PRs stay green on fmt+validate alone.
+    if: >-
+      vars.INFRA_BOOTSTRAPPED == 'true' &&
+      (github.event_name == 'pull_request' ||
+       (github.event_name == 'workflow_dispatch' && inputs.action == 'plan'))
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - { name: global, dir: global, backend: "", varfile: "" }
+          - {
+              name: envs-dev,
+              dir: envs,
+              backend: "-backend-config=backend.dev.hcl",
+              varfile: "-var-file=dev.tfvars",
+            }
+    steps:
+      - uses: actions/checkout@v6
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.GHA_TERRAFORM_PLAN_ROLE_ARN }}
+          aws-region: us-east-1
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: terraform -chdir=infra/terraform/${{ matrix.dir }} init -reconfigure ${{ matrix.backend }}
+      - name: Plan
+        run: |
+          terraform -chdir=infra/terraform/${{ matrix.dir }} plan -lock=false ${{ matrix.varfile }} -no-color \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.action == 'apply') ||
+      (github.event_name == 'push' && vars.CUTOVER_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    # Account singletons (global) get the strictest reviewer gate.
+    environment: ${{ inputs.stack == 'global' && 'terraform-prod' || format('terraform-{0}', inputs.environment) }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.GHA_TERRAFORM_ROLE_ARN }}
+          aws-region: us-east-1
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - name: Init + apply
+        run: |
+          STACK="${{ inputs.stack }}"
+          DIR="infra/terraform/${STACK}"
+          if [ "$STACK" = "envs" ]; then
+            ENV="${{ inputs.environment }}"
+            terraform -chdir="$DIR" init -reconfigure -backend-config="backend.${ENV}.hcl"
+            terraform -chdir="$DIR" apply -auto-approve -var-file="${ENV}.tfvars"
+          else
+            terraform -chdir="$DIR" init -reconfigure
+            terraform -chdir="$DIR" apply -auto-approve
+          fi
