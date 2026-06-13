@@ -25,7 +25,12 @@ type VehicleController = ReturnType<
   ReturnType<typeof useRapier>["world"]["createVehicleController"]
 >;
 
-const SPAWN = { x: 0, y: 1.2, z: 0 };
+export interface SpawnPose {
+  position: [number, number, number];
+  heading?: number; // y-rotation aligning car-forward (+z) with the track
+}
+
+const DEFAULT_SPAWN: SpawnPose = { position: [0, 1.2, 0], heading: 0 };
 
 function Wheel({ radius }: { radius: number }) {
   return (
@@ -42,6 +47,8 @@ interface VehicleProps {
   cameraTargetRef: RefObject<THREE.Object3D | null>;
   /** Inputs are applied only when true (the FSM gates this in driving). */
   controllable?: boolean;
+  /** Spawn + recover pose (defaults to the origin facing +z). */
+  spawn?: SpawnPose;
 }
 
 /**
@@ -54,6 +61,7 @@ export function Vehicle({
   chassisRef,
   cameraTargetRef,
   controllable = true,
+  spawn = DEFAULT_SPAWN,
 }: VehicleProps) {
   const { world } = useRapier();
   const tuning = useVehicleTuning();
@@ -83,8 +91,12 @@ export function Vehicle({
 
     // recover — edge-triggered
     if (input.recover && !recoverPrev.current) {
-      chassis.setTranslation(SPAWN, true);
-      chassis.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+      const h = (spawn.heading ?? 0) / 2;
+      chassis.setTranslation(
+        { x: spawn.position[0], y: spawn.position[1], z: spawn.position[2] },
+        true,
+      );
+      chassis.setRotation({ x: 0, y: Math.sin(h), z: 0, w: Math.cos(h) }, true);
       chassis.setLinvel({ x: 0, y: 0, z: 0 }, true);
       chassis.setAngvel({ x: 0, y: 0, z: 0 }, true);
     }
@@ -155,7 +167,8 @@ export function Vehicle({
       ref={chassisRef}
       colliders={false}
       canSleep={false}
-      position={[SPAWN.x, SPAWN.y, SPAWN.z]}
+      position={spawn.position}
+      rotation={[0, spawn.heading ?? 0, 0]}
     >
       <CuboidCollider
         args={[CHASSIS_HALF.x, CHASSIS_HALF.y, CHASSIS_HALF.z]}
