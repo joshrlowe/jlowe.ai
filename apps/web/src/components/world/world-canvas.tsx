@@ -4,11 +4,25 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three/webgpu";
 
+import type { CapabilityTier } from "@/lib/capabilities";
 import { rendererInitForTier } from "@/lib/renderer";
+
+import { CameraRig } from "./core/camera-rig";
+import { PostFX } from "./core/post-fx";
+import { QualityProvider } from "./core/quality-provider";
 
 type WebGPURendererParams = ConstructorParameters<
   typeof THREE.WebGPURenderer
 >[0];
+
+// A gentle closed orbit for the demo rails camera.
+const DEMO_PATH: readonly [number, number, number][] = [
+  [0, 0.5, 5],
+  [4, 1, 2],
+  [3, 0.5, -3],
+  [-3, 1.5, -2],
+  [-4, 0.5, 3],
+];
 
 function SpinningProbe() {
   const ref = useRef<THREE.Mesh>(null);
@@ -37,7 +51,7 @@ function SpinningProbe() {
  * backend via the same code path (see lib/renderer). `await renderer.init()`
  * is required before the first frame (R3F awaits this gl promise).
  */
-export function WorldCanvas({ tier }: { tier: "webgpu" | "webgl" }) {
+export function WorldCanvas({ tier }: { tier: Exclude<CapabilityTier, "2d"> }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
 
   return (
@@ -55,10 +69,15 @@ export function WorldCanvas({ tier }: { tier: "webgpu" | "webgl" }) {
         return renderer;
       }}
     >
-      <color attach="background" args={["#0a0705"]} />
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[3, 4, 5]} intensity={2.5} />
-      <SpinningProbe />
+      <QualityProvider tier={tier}>
+        <color attach="background" args={["#0a0705"]} />
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[3, 4, 5]} intensity={2.5} />
+        <SpinningProbe />
+        <CameraRig mode="rails" path={DEMO_PATH} />
+        {/* Single TSL chain (ACES → bloom → vignette); drives the render loop. */}
+        <PostFX />
+      </QualityProvider>
     </Canvas>
   );
 }
