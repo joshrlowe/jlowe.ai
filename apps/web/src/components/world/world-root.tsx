@@ -19,8 +19,8 @@ function CanvasLoading() {
 
 // Dynamically imported so three/fiber/drei never enter the initial chunk —
 // loaded only once a 3D tier is confirmed.
-const WorldCanvas = dynamic(
-  () => import("./world-canvas").then((m) => m.WorldCanvas),
+const WorldExperience = dynamic(
+  () => import("./world-experience").then((m) => m.WorldExperience),
   { ssr: false, loading: () => <CanvasLoading /> },
 );
 
@@ -44,5 +44,5 @@ export function WorldRoot() {
   }, [report?.tier, router]);
 
   if (report === null || report.tier === "2d") return <CanvasLoading />;
-  return <WorldCanvas tier={report.tier} />;
+  return <WorldExperience tier={report.tier} />;
 }
