@@ -1,6 +1,6 @@
 # Project: jlowe.ai 2.0 ("Velocity")
 
-Rebuild of jlowe.ai into a game-quality 3D explorable journey with a Bedrock-powered AI digital twin. Work proceeds in phases. **Current phase: 0** — monorepo scaffold, 2D shell, infra, CI. No 3D work yet.
+Rebuild of jlowe.ai into a game-quality 3D explorable journey with a Bedrock-powered AI digital twin. Work proceeds in phases. **Current phase: 1** — the 3D rendering foundation (renderer, scene framework, asset pipeline, loader, fixture) layered over the Phase 0 2D shell.
 
 > The live v1 site still deploys from `main` via Vercel. All Velocity work targets the long-lived `v2` integration branch; never break `main` until the cutover phase.
 
@@ -49,3 +49,13 @@ node scripts/check-bundle-budget.mjs   # gzip first-load JS vs budgets.json (aft
 - Static-export constraints: no middleware/ISR/Server Actions/headers()/redirects()/Image optimization. CDN owns headers, 404 mapping, and URL rewrites (`infra/terraform/modules/cdn`).
 - dev environment serves at https://dev.jlowe.ai with `X-Robots-Tag: noindex` (header set by the dev CloudFront distribution — app code ships prod-true SEO).
 - Full runbook: `infra/terraform/bootstrap/README.md`.
+
+## 3D / world (Phase 1)
+
+- **Import three from `three/webgpu`** (the WebGPURenderer + NodeMaterials) and TSL nodes from `three/tsl` — never bare `three` in world code, or you get class-identity mismatches. Verify WebGPU API names against the installed build, not docs (r184 uses `RenderPipeline`, not `PostProcessing`).
+- **One renderer, both tiers**: `WebGPURenderer`; the `webgl` tier just passes `forceWebGL: true` (`lib/renderer.ts`). Tier comes from `lib/capabilities.ts`; `2d` never mounts the canvas. `await renderer.init()` before first frame.
+- **One TSL post-FX chain** (`core/post-fx.tsx`) runs on both backends — don't add the `postprocessing` npm lib.
+- **Everything 3D stays lazy**: three/fiber/drei/rapier/leva live behind the `next/dynamic(ssr:false)` boundary in `components/world/world-experience.tsx`, so they never enter a flat route's first-load. The bundle-budget gate enforces this (flat ≤225 KB gz; 3D payload ≤8 MB).
+- **Dev overlays**: `?debug=1` shows the perf overlay (FPS/draw calls via `gl.info`) + leva panel.
+- **Asset pipeline** (`packages/asset-pipeline`): `pnpm --filter @velocity/asset-pipeline assets` builds `raw-assets/` → hashed `apps/web/public/assets/`. KTX2 needs `brew install ktx`; geometry (Draco/Meshopt) is pure-npm.
+- **Runtime 3D isn't CI-verifiable** (no GPU headless) — build/typecheck prove compilation; open `/world?debug=1` in a real browser to confirm physics, bloom, and 60fps.

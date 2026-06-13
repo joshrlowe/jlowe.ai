@@ -82,14 +82,40 @@ for (const r of rows) {
   );
 }
 
-const breaches = rows.filter((r) => r.over);
 console.log("");
-if (breaches.length > 0) {
-  for (const b of breaches) {
-    console.error(
-      `✗ ${b.route}: ${b.kb.toFixed(1)} KB exceeds ${b.budget} KB budget`,
-    );
+const failures = rows
+  .filter((r) => r.over)
+  .map(
+    (b) =>
+      `${b.route}: ${b.kb.toFixed(1)} KB exceeds ${b.budget} KB first-load budget`,
+  );
+
+// 3D payload guard — total uncompressed chunk JS (a proxy for the initial 3D
+// payload the world route lazy-loads), gated by world3dPayloadMb.
+let payloadBytes = 0;
+function sumJs(dir) {
+  if (!existsSync(dir)) return;
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) sumJs(full);
+    else if (name.endsWith(".js")) payloadBytes += statSync(full).size;
   }
+}
+sumJs(join(OUT_DIR, "_next/static/chunks"));
+const payloadMb = payloadBytes / 1024 / 1024;
+const payloadBudget = budgets.world3dPayloadMb;
+console.log(
+  `3D payload (all chunks, uncompressed): ${payloadMb.toFixed(2)} MB / ${payloadBudget} MB\n`,
+);
+if (payloadMb > payloadBudget) {
+  failures.push(
+    `3D payload ${payloadMb.toFixed(2)} MB exceeds ${payloadBudget} MB`,
+  );
+}
+
+if (failures.length > 0) {
+  console.error("✗ budget breaches:");
+  for (const f of failures) console.error(`  ${f}`);
   process.exit(1);
 }
-console.log(`✓ ${rows.length} routes within budget\n`);
+console.log(`✓ ${rows.length} routes + 3D payload within budget\n`);
