@@ -1,0 +1,20 @@
+{
+  "name": "@velocity/asset-pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "asset-pipeline": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.0"
+  }
+}
