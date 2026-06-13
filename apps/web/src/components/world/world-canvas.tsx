@@ -11,6 +11,7 @@ import { PostFX } from "./core/post-fx";
 import { QualityProvider } from "./core/quality-provider";
 import { SceneManager, type SceneRegistry } from "./core/scene-manager";
 import { PerfProbe } from "./debug/perf-probe";
+import { InputBridge } from "./input-bridge";
 import { FixtureScene } from "./scenes/fixture";
 
 type WebGPURendererParams = ConstructorParameters<
@@ -52,6 +53,7 @@ export function WorldCanvas({
       }}
     >
       <QualityProvider tier={tier}>
+        <InputBridge />
         <SceneManager scenes={SCENES} active="fixture" />
         <CameraRig mode="free" />
         {/* Single TSL chain (ACES → bloom → vignette); drives the render loop. */}
