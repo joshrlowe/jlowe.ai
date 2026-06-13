@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+  - services/*
+
+# pnpm >= 10 blocks dependency lifecycle scripts by default.
+# Allowlist only the packages whose install-time builds we need.
+allowBuilds:
+  esbuild: true # services/chat bundler
+  "@tailwindcss/oxide": true # tailwind v4 native binding
+  sharp: false # unused — images.unoptimized under static export
+  unrs-resolver: false # ships prebuilt platform bindings; postinstall is a fallback build

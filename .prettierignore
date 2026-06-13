@@ -1,0 +1,12 @@
+pnpm-lock.yaml
+node_modules/
+.next/
+out/
+dist/
+coverage/
+corpus/
+infra/terraform/**/.terraform/
+.claude/
+.audit-*/
+verification-*/
+VERIFICATION_REPORT.md
