@@ -1,21 +1,13 @@
 /**
  * @velocity/asset-pipeline — optimizes raw .glb/.hdr source art into hashed,
- * web-ready assets (Draco/meshopt geometry, KTX2 textures, PMREM-ready env
- * maps) for the 3D world. Phase 0 ships the stub; the real pipeline lands in
- * Phase 1.
+ * web-ready assets for the 3D world: Draco/Meshopt geometry, KTX2 textures
+ * (via the KTX-Software `ktx` CLI), and a content-hash manifest.
  */
+export const PIPELINE_VERSION = "1.0.0";
 
-export const PIPELINE_VERSION = "0.0.0";
-
-export interface RunResult {
-  status: "noop";
-  version: string;
-}
-
-/**
- * Placeholder entry point. Phase 1 replaces this with glTF-Transform +
- * KTX-Software optimization and content-hash manifest emission.
- */
-export function run(_args: readonly string[]): RunResult {
-  return { status: "noop", version: PIPELINE_VERSION };
-}
+export { optimizeGlb, type OptimizeResult } from "./optimize.js";
+export { contentHash, hashedName, type AssetManifest } from "./hash.js";
+export { processHdr, type HdrResult } from "./hdr.js";
+export { isKtxAvailable } from "./ktx.js";
+export { sampleCubeGlb } from "./sample.js";
+export { createIO } from "./io.js";

@@ -21,6 +21,11 @@ infra/terraform/**/.terraform/
 *.tfplan
 crash.log
 
+# raw asset sources — build inputs, never shipped (keep the dir, not its contents)
+packages/asset-pipeline/raw-assets/*
+!packages/asset-pipeline/raw-assets/.gitkeep
+!packages/asset-pipeline/raw-assets/README.md
+
 # local tooling & working artifacts
 .claude/
 .cursor/
