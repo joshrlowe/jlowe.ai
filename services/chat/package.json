@@ -1,0 +1,19 @@
+{
+  "name": "@velocity/chat",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --sourcemap --external:@aws-sdk/*",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^24",
+    "esbuild": "^0.25.0",
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.0"
+  }
+}
