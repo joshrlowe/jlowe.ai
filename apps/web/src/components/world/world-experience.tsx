@@ -6,6 +6,8 @@ import type { CapabilityTier } from "@/lib/capabilities";
 import { useDebugFlag } from "@/lib/use-debug-flag";
 
 import { PerfOverlay } from "./debug/perf-overlay";
+import { InputReadout } from "./hud/input-readout";
+import { TouchControls } from "./hud/touch-controls";
 import { PreflightHud } from "./preflight-hud";
 import { WorldCanvas } from "./world-canvas";
 
@@ -25,7 +27,9 @@ export function WorldExperience({
     <>
       <WorldCanvas tier={tier} debug={debug} />
       <PreflightHud />
+      <TouchControls />
       {debug ? <PerfOverlay /> : null}
+      {debug ? <InputReadout /> : null}
       {debug ? <Leva collapsed /> : null}
     </>
   );
