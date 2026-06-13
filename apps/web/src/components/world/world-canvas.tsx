@@ -5,7 +5,6 @@ import * as THREE from "three/webgpu";
 
 import type { CapabilityTier } from "@/lib/capabilities";
 import { rendererInitForTier } from "@/lib/renderer";
-import { useSceneParam } from "@/lib/use-scene-param";
 
 import { PostFX } from "./core/post-fx";
 import { QualityProvider } from "./core/quality-provider";
@@ -38,14 +37,14 @@ const DEFAULT_SCENE = "fixture"; // PR4 flips this to "circuit"
 export function WorldCanvas({
   tier,
   debug,
+  activeScene,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
   debug: boolean;
+  activeScene: string;
 }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
-  const sceneParam = useSceneParam();
-  const active =
-    sceneParam && sceneParam in SCENES ? sceneParam : DEFAULT_SCENE;
+  const active = activeScene in SCENES ? activeScene : DEFAULT_SCENE;
 
   return (
     <Canvas

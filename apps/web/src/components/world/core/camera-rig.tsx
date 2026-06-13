@@ -11,6 +11,8 @@ interface CameraRigProps {
   mode?: CameraMode;
   /** Control points for the `rails` spline. */
   path?: readonly [number, number, number][];
+  /** Where the `rails` camera looks (defaults to the origin). */
+  lookAt?: readonly [number, number, number];
   /** Object to follow in `chase` mode. */
   target?: RefObject<THREE.Object3D | null>;
   speed?: number;
@@ -23,6 +25,7 @@ interface CameraRigProps {
 export function CameraRig({
   mode = "rails",
   path,
+  lookAt = [0, 0, 0],
   target,
   speed = 0.04,
 }: CameraRigProps) {
@@ -44,7 +47,7 @@ export function CameraRig({
       t.current = (t.current + delta * speed) % 1;
       curve.getPointAt(t.current, scratch.current);
       camera.position.copy(scratch.current);
-      camera.lookAt(0, 0, 0);
+      camera.lookAt(lookAt[0], lookAt[1], lookAt[2]);
     } else if (mode === "chase" && target?.current) {
       // Trail behind the target's heading (world-space; the target may be
       // nested inside a moving rigid body). Car forward is +z, so behind = -z.
