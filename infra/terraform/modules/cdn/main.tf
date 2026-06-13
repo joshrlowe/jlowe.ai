@@ -115,12 +115,14 @@ resource "aws_cloudfront_response_headers_policy" "site" {
   security_headers_config {
     content_security_policy {
       override = true
-      # 'unsafe-inline' on script-src is the pragmatic floor for static-export
+      # 'unsafe-inline' on script-src is the pragmatic floor for static-export;
+      # 'wasm-unsafe-eval' lets the 3D world instantiate its WebAssembly (rapier
+      # physics, three) without permitting general eval().
       # Next (inline bootstrap, no server to mint nonces). Hash-tightening is a
       # later-phase TODO.
       content_security_policy = join(" ", [
         "default-src 'self';",
-        "script-src 'self' 'unsafe-inline';",
+        "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';",
         "style-src 'self' 'unsafe-inline';",
         "img-src 'self' data:;",
         "font-src 'self' data:;",
