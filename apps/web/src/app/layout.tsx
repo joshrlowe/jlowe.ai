@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { ToasterMount } from "@/components/toaster-mount";
 import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +45,10 @@ export default function RootLayout({
         geistMono.variable,
       )}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <ToasterMount />
+      </body>
     </html>
   );
 }
