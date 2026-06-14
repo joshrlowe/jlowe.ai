@@ -49,6 +49,8 @@ interface VehicleProps {
   controllable?: boolean;
   /** Spawn + recover pose (defaults to the origin facing +z). */
   spawn?: SpawnPose;
+  /** Per-step telemetry sink (speed km/h, normalized rpm 0..1). */
+  onTelemetry?: (t: { speedKmh: number; rpm: number }) => void;
 }
 
 /**
@@ -62,6 +64,7 @@ export function Vehicle({
   cameraTargetRef,
   controllable = true,
   spawn = DEFAULT_SPAWN,
+  onTelemetry,
 }: VehicleProps) {
   const { world } = useRapier();
   const tuning = useVehicleTuning();
@@ -138,6 +141,15 @@ export function Vehicle({
     chassis.addForce({ x: 0, y: -df, z: 0 }, true);
 
     c.updateVehicle(world.timestep);
+
+    if (onTelemetry) {
+      const absSpeed = Math.abs(speed);
+      const rpm = Math.min(
+        0.12 + Math.abs(throttle) * 0.45 + Math.min(absSpeed / 30, 1) * 0.43,
+        1,
+      );
+      onTelemetry({ speedKmh: absSpeed * 3.6, rpm });
+    }
   });
 
   // Sync visual wheels from controller readbacks (chassis-local).
