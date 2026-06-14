@@ -12,6 +12,7 @@ import { ChapterFade } from "./hud/chapter-fade";
 import { ChapterHud } from "./hud/chapter-hud";
 import { InputReadout } from "./hud/input-readout";
 import { TouchControls } from "./hud/touch-controls";
+import { WorldAudio } from "./hud/world-audio";
 import { PreflightHud } from "./preflight-hud";
 import { useChapter } from "./state/chapter-store";
 import { WorldCanvas } from "./world-canvas";
@@ -41,6 +42,7 @@ export function WorldExperience({
       <TouchControls />
       {isCircuit ? <ChapterHud /> : null}
       {isCircuit ? <BeaconPanel /> : null}
+      {isCircuit ? <WorldAudio /> : null}
       {isCircuit ? <ChapterFade /> : null}
       {debug ? <PerfOverlay /> : null}
       {debug ? <InputReadout /> : null}
