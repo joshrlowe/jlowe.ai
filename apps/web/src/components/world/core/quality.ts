@@ -6,6 +6,8 @@ export interface QualitySettings {
   msaaSamples: number;
   bloomStrength: number;
   bloomRadius: number;
+  /** Heat-shimmer UV amplitude (screen fraction); 0 disables. WebGPU only. */
+  heatShimmer: number;
   shadowMapSize: number;
   maxParticles: number;
 }
@@ -15,6 +17,7 @@ const WEBGPU: QualitySettings = {
   msaaSamples: 4,
   bloomStrength: 0.9,
   bloomRadius: 0.6,
+  heatShimmer: 0.006,
   shadowMapSize: 2048,
   maxParticles: 20000,
 };
@@ -24,6 +27,7 @@ const WEBGL: QualitySettings = {
   msaaSamples: 0,
   bloomStrength: 0.6,
   bloomRadius: 0.5,
+  heatShimmer: 0,
   shadowMapSize: 1024,
   maxParticles: 5000,
 };
