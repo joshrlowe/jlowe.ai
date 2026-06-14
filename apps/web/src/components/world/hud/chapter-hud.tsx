@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { BEACON_COUNT } from "../state/beacons";
 import { chapterStore, useChapter } from "../state/chapter-store";
 
 /** Intro title card + a driving speedo/beacon counter (DOM, polled at 10Hz). */
@@ -36,7 +37,7 @@ export function ChapterHud() {
             <span className="ml-1 text-xs text-muted-foreground">km/h</span>
           </div>
           <div className="text-xs text-muted-foreground">
-            beacons {collected}/5
+            beacons {collected}/{BEACON_COUNT}
           </div>
         </div>
       ) : null}

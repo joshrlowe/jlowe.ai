@@ -5,6 +5,7 @@ out/
 dist/
 coverage/
 corpus/
+apps/web/src/data/corpus.generated.ts
 infra/terraform/**/.terraform/
 .claude/
 .audit-*/

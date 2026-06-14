@@ -10,10 +10,12 @@ import { useEffect, useMemo, useRef } from "react";
 import type * as THREE from "three/webgpu";
 
 import { CameraRig } from "../core/camera-rig";
+import { BEACONS } from "../state/beacons";
 import { cameraModeForPhase } from "../state/camera-mode";
 import { isControllable } from "../state/chapter-fsm";
 import { chapterStore, useChapter } from "../state/chapter-store";
 import { Vehicle } from "../vehicle/vehicle";
+import { Beacon } from "./circuit/beacon";
 import { GoldenHourEnvironment } from "./circuit/environment";
 import { Foliage } from "./circuit/foliage";
 import { Scenery } from "./circuit/scenery";
@@ -45,6 +47,17 @@ export function CircuitScene() {
       angle: Math.atan2(tan.x, tan.z),
     };
   }, [curve]);
+  const beacons = useMemo(
+    () =>
+      BEACONS.map((b) => {
+        const p = curve.getPointAt(b.t);
+        return {
+          slug: b.slug,
+          position: [p.x, 0, p.z] as [number, number, number],
+        };
+      }),
+    [curve],
+  );
 
   const phase = useChapter((s) => s.phase);
 
@@ -121,6 +134,9 @@ export function CircuitScene() {
             }
           />
         </RigidBody>
+        {beacons.map((b) => (
+          <Beacon key={b.slug} slug={b.slug} position={b.position} />
+        ))}
       </Physics>
 
       <CameraRig
