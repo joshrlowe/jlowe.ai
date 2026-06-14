@@ -1,15 +1,16 @@
 "use client";
 
-import { Environment, Lightformer, RoundedBox } from "@react-three/drei";
+import { RoundedBox } from "@react-three/drei";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { useControls } from "leva";
 
 import { CameraRig } from "../core/camera-rig";
 
 /**
- * Fixture scene proving the whole pipeline: image-based lighting (a procedural
- * Lightformer environment — original, no external HDR), a "test vehicle" that
- * drops under Rapier physics onto a ground collider, lit for the post-FX chain.
+ * Fixture scene proving the whole pipeline: a pure-light golden rig (WebGPU-
+ * safe — drei's <Environment> bakes through a ShaderMaterial the NodeBuilder
+ * rejects), a "test vehicle" that drops under Rapier physics onto a ground
+ * collider, lit for the post-FX chain.
  */
 export function FixtureScene() {
   const { paused } = useControls("physics", { paused: false });
@@ -17,23 +18,9 @@ export function FixtureScene() {
   return (
     <>
       <color attach="background" args={["#0a0705"]} />
+      <hemisphereLight args={["#6a6a8a", "#1a1410", 0.55]} />
       <ambientLight intensity={0.25} />
       <directionalLight position={[5, 8, 5]} intensity={1.8} />
-
-      <Environment resolution={256}>
-        <Lightformer
-          intensity={2.2}
-          position={[0, 5, -5]}
-          scale={[10, 10, 1]}
-          color="#ffd9a0"
-        />
-        <Lightformer
-          intensity={1.2}
-          position={[-5, 2, 2]}
-          scale={[6, 6, 1]}
-          color="#e85d04"
-        />
-      </Environment>
 
       <Physics paused={paused} gravity={[0, -9.81, 0]}>
         <RigidBody

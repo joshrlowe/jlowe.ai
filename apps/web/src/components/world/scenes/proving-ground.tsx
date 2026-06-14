@@ -1,6 +1,5 @@
 "use client";
 
-import { Environment, Grid, Lightformer } from "@react-three/drei";
 import {
   CuboidCollider,
   Physics,
@@ -25,31 +24,9 @@ export function ProvingGroundScene() {
   return (
     <>
       <color attach="background" args={["#0a0705"]} />
+      <hemisphereLight args={["#6a6a8a", "#1a1410", 0.55]} />
       <ambientLight intensity={0.3} />
       <directionalLight position={[8, 12, 6]} intensity={1.6} />
-      <Environment resolution={256}>
-        <Lightformer
-          intensity={2.2}
-          position={[0, 8, 0]}
-          scale={[14, 14, 1]}
-          color="#ffe0b0"
-        />
-        <Lightformer
-          intensity={1}
-          position={[-6, 3, 4]}
-          scale={[6, 6, 1]}
-          color="#e85d04"
-        />
-      </Environment>
-
-      <Grid
-        args={[200, 200]}
-        cellColor="#2a2018"
-        sectionColor="#3a2c1e"
-        infiniteGrid
-        fadeDistance={120}
-        position={[0, 0.01, 0]}
-      />
 
       <Physics>
         <Vehicle chassisRef={chassisRef} cameraTargetRef={cameraTargetRef} />
