@@ -7,6 +7,7 @@ import { useDebugFlag } from "@/lib/use-debug-flag";
 import { useSceneParam } from "@/lib/use-scene-param";
 
 import { PerfOverlay } from "./debug/perf-overlay";
+import { BeaconPanel } from "./hud/beacon-panel";
 import { ChapterFade } from "./hud/chapter-fade";
 import { ChapterHud } from "./hud/chapter-hud";
 import { InputReadout } from "./hud/input-readout";
@@ -39,6 +40,7 @@ export function WorldExperience({
       <PreflightHud />
       <TouchControls />
       {isCircuit ? <ChapterHud /> : null}
+      {isCircuit ? <BeaconPanel /> : null}
       {isCircuit ? <ChapterFade /> : null}
       {debug ? <PerfOverlay /> : null}
       {debug ? <InputReadout /> : null}
