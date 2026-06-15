@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --sourcemap --external:@aws-sdk/*",
+    "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --sourcemap",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run"
@@ -15,5 +15,9 @@
     "esbuild": "^0.25.0",
     "typescript": "~5.9.0",
     "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1068.0",
+    "zod": "^3.25.76"
   }
 }
