@@ -20,14 +20,20 @@ export function PreflightHud() {
   const [maxSeen, setMaxSeen] = useState(0);
   const latched = latchProgress(maxSeen, progress);
   if (latched !== maxSeen) setMaxSeen(latched);
-  const shown = Math.round(latched);
+  // A fully procedural scene loads nothing through the manager (total stays 0),
+  // so "nothing to load" reads as ready rather than stuck at 0%.
+  const shown = total === 0 ? 100 : Math.round(latched);
 
   const [done, setDone] = useState(false);
   useEffect(() => {
-    if (active || progress < 100) return;
+    // Hide once the loading manager is idle. Covers procedural scenes (0 assets,
+    // progress never reaches 100) as well as asset scenes (active flips false
+    // when loads finish). The settle guards a scene that starts loading a frame
+    // later.
+    if (active) return;
     const timer = setTimeout(() => setDone(true), 600);
     return () => clearTimeout(timer);
-  }, [active, progress]);
+  }, [active]);
 
   return (
     <div
@@ -48,12 +54,16 @@ export function PreflightHud() {
           />
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-          <span className="truncate">{loadingLabel(item)}</span>
+          <span className="truncate">
+            {total === 0 ? "ready" : loadingLabel(item)}
+          </span>
           <span>{shown}%</span>
         </div>
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          {loaded}/{total} assets
-        </p>
+        {total > 0 ? (
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            {loaded}/{total} assets
+          </p>
+        ) : null}
       </div>
 
       <Link
