@@ -19,3 +19,9 @@ variable "robots_noindex" {
   type        = bool
   default     = false
 }
+
+variable "bedrock_model_id" {
+  description = "Bedrock model id for the chat Lambda (see modules/chat)"
+  type        = string
+  default     = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+}
