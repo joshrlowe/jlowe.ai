@@ -35,3 +35,13 @@ variable "price_class" {
   type        = string
   default     = "PriceClass_100" # NA + EU; cheapest, fine for a personal site
 }
+
+variable "chat_function_url_host" {
+  description = "Hostname of the chat Lambda Function URL — the origin for /api/chat*."
+  type        = string
+}
+
+variable "chat_function_name" {
+  description = "Chat Lambda function name (for the CloudFront invoke permission)."
+  type        = string
+}

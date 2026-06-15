@@ -58,6 +58,15 @@ resource "aws_cloudfront_origin_access_control" "site" {
   signing_protocol                  = "sigv4"
 }
 
+# OAC for the chat Lambda Function URL — only this distribution (SigV4-signed)
+# can invoke it, so the Function URL is never publicly reachable.
+resource "aws_cloudfront_origin_access_control" "chat" {
+  name                              = "jlowe-ai-${var.environment}-chat-oac"
+  origin_access_control_origin_type = "lambda"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 data "aws_iam_policy_document" "bucket" {
   statement {
     sid       = "AllowCloudFrontRead"
@@ -85,6 +94,17 @@ resource "aws_s3_bucket_policy" "site" {
 # Hashed assets: honor the immutable Cache-Control the deploy sets at sync time.
 data "aws_cloudfront_cache_policy" "optimized" {
   name = "Managed-CachingOptimized"
+}
+
+# /api/chat*: never cache (it streams), and forward the POST body + viewer
+# headers while letting CloudFront set the origin Host (Function URLs reject a
+# mismatched Host).
+data "aws_cloudfront_cache_policy" "disabled" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
+  name = "Managed-AllViewerExceptHostHeader"
 }
 
 # HTML + everything else: revalidate against the origin (origin sends no-cache).
@@ -228,6 +248,18 @@ resource "aws_cloudfront_distribution" "site" {
     origin_access_control_id = aws_cloudfront_origin_access_control.site.id
   }
 
+  origin {
+    domain_name              = var.chat_function_url_host
+    origin_id                = "lambda-chat-${var.environment}"
+    origin_access_control_id = aws_cloudfront_origin_access_control.chat.id
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
   default_cache_behavior {
     target_origin_id           = "s3-${local.bucket_name}"
     viewer_protocol_policy     = "redirect-to-https"
@@ -265,6 +297,22 @@ resource "aws_cloudfront_distribution" "site" {
     response_headers_policy_id = aws_cloudfront_response_headers_policy.site.id
   }
 
+  # Streaming chat → the Lambda Function URL origin. Same-origin (so CSP
+  # connect-src 'self' covers it), no caching, no compression (don't buffer the
+  # token stream). The url-rewrite function stays on the default behavior only,
+  # so /api/chat is never rewritten to append index.html.
+  ordered_cache_behavior {
+    path_pattern               = "/api/chat*"
+    target_origin_id           = "lambda-chat-${var.environment}"
+    viewer_protocol_policy     = "https-only"
+    allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods             = ["GET", "HEAD"]
+    compress                   = false
+    cache_policy_id            = data.aws_cloudfront_cache_policy.disabled.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.site.id
+  }
+
   # An OAC'd private bucket returns 403 for missing keys (CloudFront has no
   # s3:ListBucket), so map both to the exported 404 page.
   custom_error_response {
@@ -292,6 +340,18 @@ resource "aws_cloudfront_distribution" "site" {
     ssl_support_method             = var.dns_delegated ? "sni-only" : null
     minimum_protocol_version       = var.dns_delegated ? "TLSv1.2_2021" : null
   }
+}
+
+# Let this distribution (and only it, via the OAC SigV4 signature) invoke the
+# chat Function URL. Defined here, not in the chat module, so it references the
+# local distribution ARN without a cdn↔chat dependency cycle.
+resource "aws_lambda_permission" "chat_invoke_url" {
+  statement_id           = "AllowCloudFrontInvokeChatUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = var.chat_function_name
+  principal              = "cloudfront.amazonaws.com"
+  source_arn             = aws_cloudfront_distribution.site.arn
+  function_url_auth_type = "AWS_IAM"
 }
 
 # --- Alias records (gated on delegation) ------------------------------------
