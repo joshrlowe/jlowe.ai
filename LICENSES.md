@@ -15,9 +15,16 @@ fetched at runtime, so no attribution is required.
 ## 3D geometry & textures
 
 All world geometry is original — generated in code or built from primitives
-(the coastal circuit, the placeholder vehicle, cliffs, and foliage). Lighting is
-a procedural golden-hour environment (no HDR files). Nothing is derived from any
-franchise or third-party asset, per the project's no-copyrighted-IP rule.
+(the coastal circuit, the placeholder vehicle, cliffs, and foliage). Nothing is
+derived from any franchise or third-party asset, per the project's
+no-copyrighted-IP rule.
+
+## HDRI / environment maps
+
+- **`apps/web/public/hdri/venice_sunset_1k.hdr`** — "Venice Sunset" via
+  **Poly Haven**, **CC0** (public domain; no attribution required, credited
+  here as good practice). Drives WebGPU image-based lighting + the sky
+  background; the WebGL2/mobile tiers use a zero-byte procedural sky instead.
 
 ## Fonts
 
