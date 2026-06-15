@@ -14,13 +14,20 @@ module "cdn" {
   robots_noindex = var.robots_noindex
 }
 
+module "chat" {
+  source = "../modules/chat"
+
+  environment      = var.environment
+  bedrock_model_id = var.bedrock_model_id
+  lambda_zip_path  = "${path.module}/../../../services/chat/dist/handler.zip"
+  # cloudfront_distribution_arn is intentionally left null until the follow-up PR
+  # wires the /api/chat* behavior — passing module.cdn.distribution_arn here now
+  # would create an apply-ordering cycle.
+}
+
 # Skeleton modules — wired here when implemented in their phases:
 # module "waf" {
 #   source      = "../modules/waf"
-#   environment = var.environment
-# }
-# module "chat" {
-#   source      = "../modules/chat"
 #   environment = var.environment
 # }
 # module "knowledge_base" {

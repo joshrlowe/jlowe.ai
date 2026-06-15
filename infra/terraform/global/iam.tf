@@ -71,6 +71,60 @@ resource "aws_iam_role_policy" "deploy_web" {
   policy = data.aws_iam_policy_document.deploy_web.json
 }
 
+# --- gha-deploy-chat: lambda code push --------------------------------------
+# Mirrors gha-deploy-web: same environment-scoped OIDC trust (dev|prod), but
+# permissioned only to ship new chat-Lambda code. Config (env/IAM/memory) stays
+# with the gated gha-terraform role; this role can never touch it.
+data "aws_iam_policy_document" "deploy_chat_trust" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [local.oidc_arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+      values = [
+        "repo:${local.repo}:environment:dev",
+        "repo:${local.repo}:environment:prod",
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "deploy_chat" {
+  name               = "gha-deploy-chat"
+  assume_role_policy = data.aws_iam_policy_document.deploy_chat_trust.json
+}
+
+data "aws_iam_policy_document" "deploy_chat" {
+  # Function names are per-env (envs stack: jlowe-ai-chat-dev|prod), so wildcard
+  # on the naming convention enforced by modules/chat. UpdateFunctionCode only —
+  # no UpdateFunctionConfiguration (Terraform owns config).
+  statement {
+    sid    = "UpdateChatFunctionCode"
+    effect = "Allow"
+    actions = [
+      "lambda:UpdateFunctionCode",
+      "lambda:GetFunction",
+    ]
+    resources = ["arn:aws:lambda:us-east-1:${var.aws_account_id}:function:jlowe-ai-chat-*"]
+  }
+}
+
+resource "aws_iam_role_policy" "deploy_chat" {
+  name   = "deploy-chat"
+  role   = aws_iam_role.deploy_chat.id
+  policy = data.aws_iam_policy_document.deploy_chat.json
+}
+
 # --- gha-terraform: gated apply (AdministratorAccess) -----------------------
 data "aws_iam_policy_document" "terraform_trust" {
   statement {
