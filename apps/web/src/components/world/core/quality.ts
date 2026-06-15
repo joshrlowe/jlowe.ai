@@ -14,6 +14,13 @@ export interface QualitySettings {
   hdri: boolean;
   shadowMapSize: number;
   maxParticles: number;
+  /**
+   * GTAO screen-space ambient occlusion in the post-FX chain (WebGPU only). On
+   * the WebGL2/mobile tier the chain skips the MRT + AO pass entirely (it stays
+   * the plain color→grade→grain chain). The AO is applied as a darken-only
+   * multiply, so it can only deepen contact shadows, never black-screen.
+   */
+  ssao: boolean;
 }
 
 const WEBGPU: QualitySettings = {
@@ -26,6 +33,7 @@ const WEBGPU: QualitySettings = {
   hdri: true,
   shadowMapSize: 2048,
   maxParticles: 20000,
+  ssao: true,
 };
 
 const WEBGL: QualitySettings = {
@@ -38,6 +46,7 @@ const WEBGL: QualitySettings = {
   hdri: false,
   shadowMapSize: 1024,
   maxParticles: 5000,
+  ssao: false,
 };
 
 /**
