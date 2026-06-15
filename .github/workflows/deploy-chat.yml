@@ -1,0 +1,64 @@
+name: Deploy Chat
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, prod]
+        default: dev
+  push:
+    branches: [main] # activates at cutover (guarded by CUTOVER_ENABLED)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-chat-${{ github.event_name == 'push' && 'prod' || inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Manual dispatch always; push-to-main only once cutover is enabled.
+    if: github.event_name == 'workflow_dispatch' || vars.CUTOVER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC
+      contents: read
+    environment:
+      name: ${{ github.event_name == 'push' && 'prod' || inputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build handler (corpus → bundle → zip)
+        run: |
+          # Regenerate the grounding prompt from the corpus, bundle the handler
+          # (esbuild bundles the AWS SDK), and zip it for update-function-code.
+          pnpm corpus
+          pnpm --filter @velocity/chat build
+          cd services/chat/dist && zip -q handler.zip handler.mjs handler.mjs.map
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_CHAT_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Update function code
+        run: |
+          FN="jlowe-ai-chat-${{ github.event_name == 'push' && 'prod' || inputs.environment }}"
+          aws lambda update-function-code \
+            --function-name "$FN" \
+            --zip-file fileb://services/chat/dist/handler.zip \
+            --publish >/dev/null
+          aws lambda wait function-updated --function-name "$FN"
+          echo "Deployed $FN"
