@@ -75,6 +75,12 @@ export function WorldCanvas({
         });
         await renderer.init();
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        // Real sun shadows on both tiers (the shadow-map size differs per quality
+        // tier — see core/quality.ts). WebGPURenderer drives shadow maps through
+        // the same shadowMap API as the WebGL renderer; PCFSoft gives the key sun
+        // a soft contact shadow under the car.
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         return renderer;
       }}
     >

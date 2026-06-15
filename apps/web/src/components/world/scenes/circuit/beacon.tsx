@@ -25,7 +25,7 @@ export function Beacon({
 
   return (
     <group position={position}>
-      <mesh position={[0, 4, 0]}>
+      <mesh position={[0, 4, 0]} castShadow>
         <cylinderGeometry args={[0.18, 0.18, 8, 8]} />
         <meshStandardMaterial
           color={color}
@@ -35,7 +35,7 @@ export function Beacon({
           opacity={collected ? 0.25 : 0.7}
         />
       </mesh>
-      <mesh position={[0, 8.4, 0]}>
+      <mesh position={[0, 8.4, 0]} castShadow>
         <icosahedronGeometry args={[0.5, 0]} />
         <meshStandardMaterial
           color={color}

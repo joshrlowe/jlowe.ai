@@ -88,15 +88,15 @@ export function CircuitScene() {
 
       {/* pit-tunnel arch at the far side of the loop */}
       <group position={pit.position} rotation={[0, pit.angle, 0]}>
-        <mesh position={[-6, 2.5, 0]}>
+        <mesh position={[-6, 2.5, 0]} castShadow>
           <boxGeometry args={[0.6, 5, 0.6]} />
           <meshStandardMaterial color="#0d0a07" roughness={0.7} />
         </mesh>
-        <mesh position={[6, 2.5, 0]}>
+        <mesh position={[6, 2.5, 0]} castShadow>
           <boxGeometry args={[0.6, 5, 0.6]} />
           <meshStandardMaterial color="#0d0a07" roughness={0.7} />
         </mesh>
-        <mesh position={[0, 5.2, 0]}>
+        <mesh position={[0, 5.2, 0]} castShadow>
           <boxGeometry args={[12.6, 0.6, 0.8]} />
           <meshStandardMaterial
             color="#e85d04"

@@ -27,12 +27,20 @@ export function Scenery() {
 
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -35]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0, -35]}
+        receiveShadow
+      >
         <planeGeometry args={[500, 500]} />
         <meshStandardMaterial color="#1d1710" roughness={1} />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[230, -6, -35]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[230, -6, -35]}
+        receiveShadow
+      >
         <planeGeometry args={[340, 540]} />
         <meshStandardMaterial
           color="#0b2735"
@@ -41,7 +49,7 @@ export function Scenery() {
         />
       </mesh>
 
-      <Instances limit={rocks.length}>
+      <Instances limit={rocks.length} castShadow receiveShadow>
         <dodecahedronGeometry args={[1, 0]} />
         <meshStandardMaterial color="#2c2118" roughness={0.95} flatShading />
         {rocks.map((rock, i) => (

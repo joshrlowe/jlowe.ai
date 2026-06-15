@@ -30,7 +30,7 @@ function ProceduralSky({ intensity }: { intensity: number }) {
  * (?debug=1).
  */
 export function GoldenHourEnvironment() {
-  const { hdri } = useQuality();
+  const { hdri, shadowMapSize } = useQuality();
   const t = useEnvironmentTuning();
 
   return (
@@ -41,10 +41,29 @@ export function GoldenHourEnvironment() {
         <ProceduralSky intensity={t.environmentIntensity} />
       )}
 
+      {/*
+        The warm key sun is the single shadow caster, on both the HDRI and the
+        procedural paths (only its intensity differs by tier). Its orthographic
+        shadow camera frustum covers the whole circuit (the track spans ~±140
+        around (0,0,-35)); near/far span the scene from the low golden-hour sun.
+        bias + normalBias kill the shadow acne the shallow sun angle would
+        otherwise cause. shadow-mapSize is the per-tier knob (2048 webgpu /
+        1024 webgl).
+      */}
       <directionalLight
         position={[-50, 14, 18]}
         intensity={hdri ? 1.5 : t.keyIntensity}
         color="#ff9b4a"
+        castShadow
+        shadow-mapSize={[shadowMapSize, shadowMapSize]}
+        shadow-camera-near={1}
+        shadow-camera-far={400}
+        shadow-camera-left={-150}
+        shadow-camera-right={150}
+        shadow-camera-top={150}
+        shadow-camera-bottom={-150}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.02}
       />
 
       {hdri ? null : (

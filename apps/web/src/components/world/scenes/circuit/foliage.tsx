@@ -34,7 +34,7 @@ export function Foliage() {
 
   return (
     <>
-      <Instances limit={palms.length}>
+      <Instances limit={palms.length} castShadow receiveShadow>
         <cylinderGeometry args={[0.14, 0.22, 5, 6]} />
         <meshStandardMaterial color="#5a4326" roughness={0.9} />
         {palms.map((p, i) => (
@@ -46,7 +46,7 @@ export function Foliage() {
           />
         ))}
       </Instances>
-      <Instances limit={palms.length}>
+      <Instances limit={palms.length} castShadow receiveShadow>
         <icosahedronGeometry args={[1.6, 0]} />
         <meshStandardMaterial color="#2f4a1d" roughness={0.85} flatShading />
         {palms.map((p, i) => (
@@ -58,7 +58,7 @@ export function Foliage() {
         ))}
       </Instances>
 
-      <Instances limit={pines.length}>
+      <Instances limit={pines.length} castShadow receiveShadow>
         <cylinderGeometry args={[0.16, 0.24, 3, 6]} />
         <meshStandardMaterial color="#4a3420" roughness={0.9} />
         {pines.map((p, i) => (
@@ -69,7 +69,7 @@ export function Foliage() {
           />
         ))}
       </Instances>
-      <Instances limit={pines.length}>
+      <Instances limit={pines.length} castShadow receiveShadow>
         <coneGeometry args={[1.4, 4, 7]} />
         <meshStandardMaterial color="#27401b" roughness={0.85} flatShading />
         {pines.map((p, i) => (

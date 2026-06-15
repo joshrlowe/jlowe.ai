@@ -34,7 +34,7 @@ const DEFAULT_SPAWN: SpawnPose = { position: [0, 1.2, 0], heading: 0 };
 
 function Wheel({ radius }: { radius: number }) {
   return (
-    <mesh rotation={[0, 0, Math.PI / 2]}>
+    <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
       <cylinderGeometry args={[radius, radius, 0.3, 18]} />
       <meshStandardMaterial color="#0a0807" roughness={0.85} metalness={0.1} />
     </mesh>
