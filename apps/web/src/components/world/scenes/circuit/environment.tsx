@@ -3,51 +3,65 @@
 import { useMemo } from "react";
 
 import { buildEnvTexture, GOLDEN_HOUR } from "../../core/env-texture";
+import { HdriSky } from "../../core/hdri-sky";
+import { useQuality } from "../../core/quality-provider";
 import { useEnvironmentTuning } from "./use-environment-tuning";
 
-/**
- * Golden-hour lighting: a pure-light rig (warm key sun + cool fill + hemisphere
- * ambient) PLUS a procedural equirect environment map for image-based
- * reflections on the sea and car body. We avoid drei's `<Environment>` (it
- * PMREM-bakes through a GLSL `ShaderMaterial` the WebGPU NodeBuilder rejects);
- * attaching `buildEnvTexture` to `scene.environment` runs it through the
- * renderer's node-based PMREM instead — WebGPU-safe, zero asset bytes, both
- * backends. The texture is attached declaratively (auto-disposed on unmount);
- * all intensities are leva-tunable under ?debug=1.
- */
-export function GoldenHourEnvironment() {
-  const {
-    environmentIntensity,
-    hemiIntensity,
-    ambientIntensity,
-    keyIntensity,
-    fillIntensity,
-  } = useEnvironmentTuning();
-  const envTexture = useMemo(
-    () => buildEnvTexture(GOLDEN_HOUR, environmentIntensity),
-    [environmentIntensity],
+/** WebGL2/mobile fallback: the zero-byte procedural equirect sky. */
+function ProceduralSky({ intensity }: { intensity: number }) {
+  const texture = useMemo(
+    () => buildEnvTexture(GOLDEN_HOUR, intensity),
+    [intensity],
   );
-
   return (
     <>
       <color attach="background" args={["#241405"]} />
-      <primitive object={envTexture} attach="environment" />
-      <hemisphereLight
-        color="#8a74b0"
-        groundColor="#3a2410"
-        intensity={hemiIntensity}
-      />
-      <ambientLight intensity={ambientIntensity} color="#ffb877" />
+      <primitive object={texture} attach="environment" />
+    </>
+  );
+}
+
+/**
+ * Golden-hour lighting. On the WebGPU tier a real Poly Haven HDRI drives
+ * image-based lighting + a sky background (`HdriSky`); the WebGL2/mobile tiers
+ * fall back to the zero-byte procedural sky. A warm key sun stays on both paths
+ * (highlights, and the CSM shadows added next); the hemisphere/ambient/fill
+ * lights only matter without HDRI IBL (which supplies them). Leva-tunable
+ * (?debug=1).
+ */
+export function GoldenHourEnvironment() {
+  const { hdri } = useQuality();
+  const t = useEnvironmentTuning();
+
+  return (
+    <>
+      {hdri ? (
+        <HdriSky />
+      ) : (
+        <ProceduralSky intensity={t.environmentIntensity} />
+      )}
+
       <directionalLight
         position={[-50, 14, 18]}
-        intensity={keyIntensity}
+        intensity={hdri ? 1.5 : t.keyIntensity}
         color="#ff9b4a"
       />
-      <directionalLight
-        position={[24, 26, -34]}
-        intensity={fillIntensity}
-        color="#6b5a8c"
-      />
+
+      {hdri ? null : (
+        <>
+          <hemisphereLight
+            color="#8a74b0"
+            groundColor="#3a2410"
+            intensity={t.hemiIntensity}
+          />
+          <ambientLight intensity={t.ambientIntensity} color="#ffb877" />
+          <directionalLight
+            position={[24, 26, -34]}
+            intensity={t.fillIntensity}
+            color="#6b5a8c"
+          />
+        </>
+      )}
     </>
   );
 }

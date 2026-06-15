@@ -10,6 +10,8 @@ export interface QualitySettings {
   heatShimmer: number;
   /** IBL strength applied to `scene.environment` (the procedural sky map). */
   environmentIntensity: number;
+  /** Real HDRI for IBL + sky (WebGPU); WebGL2/mobile use the procedural sky. */
+  hdri: boolean;
   shadowMapSize: number;
   maxParticles: number;
 }
@@ -21,6 +23,7 @@ const WEBGPU: QualitySettings = {
   bloomRadius: 0.6,
   heatShimmer: 0.006,
   environmentIntensity: 1.0,
+  hdri: true,
   shadowMapSize: 2048,
   maxParticles: 20000,
 };
@@ -32,6 +35,7 @@ const WEBGL: QualitySettings = {
   bloomRadius: 0.5,
   heatShimmer: 0,
   environmentIntensity: 0.85,
+  hdri: false,
   shadowMapSize: 1024,
   maxParticles: 5000,
 };
