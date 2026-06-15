@@ -5,7 +5,14 @@ import base from "./eslint.base.config.mjs";
 
 export default [
   {
-    ignores: ["apps/**", "packages/**", "services/**", "infra/**", "corpus/**"],
+    ignores: [
+      ".claude/**",
+      "apps/**",
+      "packages/**",
+      "services/**",
+      "infra/**",
+      "corpus/**",
+    ],
   },
   ...base,
   {

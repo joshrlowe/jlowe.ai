@@ -31,7 +31,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Corpus up-to-date
-        run: pnpm corpus && git diff --exit-code apps/web/src/data/corpus.generated.ts
+        run: pnpm corpus && git diff --exit-code apps/web/src/data/corpus.generated.ts services/chat/src/system-prompt.ts
 
       - name: Typecheck
         run: pnpm typecheck
