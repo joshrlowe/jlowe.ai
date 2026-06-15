@@ -9,6 +9,7 @@ describe("qualityForTier", () => {
     expect(hi.maxParticles).toBeGreaterThan(lo.maxParticles);
     expect(hi.msaaSamples).toBeGreaterThan(lo.msaaSamples);
     expect(hi.shadowMapSize).toBeGreaterThan(lo.shadowMapSize);
+    expect(hi.environmentIntensity).toBeGreaterThan(lo.environmentIntensity);
   });
 
   it("maps the 2d tier to the webgl floor", () => {

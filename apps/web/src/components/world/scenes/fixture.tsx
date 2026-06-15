@@ -5,6 +5,7 @@ import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { useControls } from "leva";
 
 import { CameraRig } from "../core/camera-rig";
+import { GoldenHourEnvironment } from "./circuit/environment";
 
 /**
  * Fixture scene proving the whole pipeline: a pure-light golden rig (WebGPU-
@@ -17,10 +18,7 @@ export function FixtureScene() {
 
   return (
     <>
-      <color attach="background" args={["#0a0705"]} />
-      <hemisphereLight args={["#6a6a8a", "#1a1410", 0.55]} />
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[5, 8, 5]} intensity={1.8} />
+      <GoldenHourEnvironment />
 
       <Physics paused={paused} gravity={[0, -9.81, 0]}>
         <RigidBody
