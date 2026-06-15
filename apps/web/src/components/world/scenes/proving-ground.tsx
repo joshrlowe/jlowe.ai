@@ -11,6 +11,7 @@ import type * as THREE from "three/webgpu";
 
 import { CameraRig } from "../core/camera-rig";
 import { Vehicle } from "../vehicle/vehicle";
+import { GoldenHourEnvironment } from "./circuit/environment";
 
 /**
  * Flat tuning surface for the vehicle (reach via ?scene=proving-ground). The
@@ -23,10 +24,7 @@ export function ProvingGroundScene() {
 
   return (
     <>
-      <color attach="background" args={["#0a0705"]} />
-      <hemisphereLight args={["#6a6a8a", "#1a1410", 0.55]} />
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[8, 12, 6]} intensity={1.6} />
+      <GoldenHourEnvironment />
 
       <Physics>
         <Vehicle chassisRef={chassisRef} cameraTargetRef={cameraTargetRef} />
