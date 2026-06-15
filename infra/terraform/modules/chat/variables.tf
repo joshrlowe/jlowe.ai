@@ -17,14 +17,3 @@ variable "lambda_zip_path" {
   description = "Path to the bundled handler zip (services/chat/dist/handler.zip)."
   type        = string
 }
-
-variable "cloudfront_distribution_arn" {
-  description = <<-EOT
-    ARN of the CloudFront distribution allowed to invoke the Function URL. Left
-    null on the first apply (the CDN module isn't wired to chat yet) to avoid an
-    apply-ordering cycle; when null the lambda_permission is skipped. The
-    follow-up PR that adds the /api/chat* behavior passes this.
-  EOT
-  type        = string
-  default     = null
-}

@@ -120,17 +120,5 @@ resource "aws_lambda_function_url" "chat" {
   invoke_mode        = "RESPONSE_STREAM"
 }
 
-# --- CloudFront invoke permission -------------------------------------------
-# Gated on a passed-in distribution ARN to avoid an apply-ordering cycle: the
-# CDN module isn't wired to this function yet, so on the first apply the ARN is
-# null and the permission is simply skipped (count = 0). The follow-up PR that
-# adds the /api/chat* behavior will pass the ARN and create this.
-resource "aws_lambda_permission" "cloudfront_invoke_url" {
-  count                  = var.cloudfront_distribution_arn == null ? 0 : 1
-  statement_id           = "AllowCloudFrontInvokeFunctionUrl"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.chat.function_name
-  principal              = "cloudfront.amazonaws.com"
-  source_arn             = var.cloudfront_distribution_arn
-  function_url_auth_type = "AWS_IAM"
-}
+# The CloudFront → Function URL invoke permission lives in the cdn module (it
+# needs the distribution ARN locally — defining it there avoids a cdn↔chat cycle).
