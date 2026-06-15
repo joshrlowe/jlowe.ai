@@ -13,6 +13,9 @@ export interface BeaconDef {
   t: number;
 }
 
+// Chapter 1 ("Ignition") beacons. The registry in `chapters.ts` re-exposes this
+// array as that chapter's `beacons`; the HUD reads the *active* chapter's count
+// (`chapterById(id).beacons.length`), so this stays the circuit's own set.
 export const BEACONS: readonly BeaconDef[] = [
   { slug: "bidops", t: 0.1 },
   { slug: "velocity", t: 0.24 },
@@ -21,4 +24,8 @@ export const BEACONS: readonly BeaconDef[] = [
   { slug: "about", t: 0.82 },
 ];
 
+/**
+ * Chapter 1's beacon count — its test invariant. The live HUD count is the
+ * active chapter's `beacons.length`, not this constant.
+ */
 export const BEACON_COUNT = BEACONS.length;
