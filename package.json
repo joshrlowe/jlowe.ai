@@ -14,7 +14,7 @@
     "test": "pnpm -r run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "corpus": "node scripts/build-corpus.mjs"
+    "corpus": "node scripts/build-corpus.mjs && node scripts/build-chat-prompt.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
