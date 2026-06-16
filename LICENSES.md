@@ -23,12 +23,25 @@ fetched at runtime, so no attribution is required.
   the car runs on four code-generated wheels; the body is re-skinned at runtime
   with a clearcoat paint + tinted-glass material (`vehicle/car.tsx`).
 
-## 3D geometry & textures
+## 3D geometry
 
 The rest of the world geometry is original — generated in code or built from
 primitives (the coastal circuit, the road wheels, cliffs, and foliage). Nothing
 is derived from any franchise or third-party asset, per the project's
 no-copyrighted-IP rule.
+
+## PBR textures
+
+CC0 (public domain) material sets from **ambientCG** (ambientcg.com). CC0
+requires no attribution; credited here as good practice. Each set ships only the
+albedo (Color), OpenGL normal (NormalGL), and roughness maps at 1K-JPG.
+
+- **`apps/web/public/textures/road/asphalt_*.jpg`** — ambientCG **"Asphalt002"**.
+  Tiled along the track ribbon's UVs (`scenes/circuit/track.tsx`) for the road
+  surface.
+- **`apps/web/public/textures/ground/rock_*.jpg`** — ambientCG **"Rock035"**
+  (dark volcanic rock). Tiles the coastal land plane and the cliff instances
+  (`scenes/circuit/scenery.tsx`).
 
 ## HDRI / environment maps
 
