@@ -61,22 +61,31 @@ export function CircuitScene() {
 
   const phase = useChapter((s) => s.phase);
 
-  // Cinematic timers: intro flyover → brief handoff → driving.
+  // A short intro flyover → brief handoff → driving. Any key/tap skips straight
+  // to driving so you can grab the wheel immediately.
   useEffect(() => {
-    if (phase === "intro") {
-      const id = setTimeout(
-        () => chapterStore.getState().dispatch("INTRO_DONE"),
-        5000,
-      );
-      return () => clearTimeout(id);
-    }
-    if (phase === "handoff") {
-      const id = setTimeout(
-        () => chapterStore.getState().dispatch("HANDOFF_DONE"),
-        1500,
-      );
-      return () => clearTimeout(id);
-    }
+    if (phase !== "intro" && phase !== "handoff") return;
+
+    const toDriving = () => {
+      const s = chapterStore.getState();
+      s.dispatch("INTRO_DONE");
+      s.dispatch("HANDOFF_DONE");
+    };
+    window.addEventListener("keydown", toDriving);
+    window.addEventListener("pointerdown", toDriving);
+
+    const id = setTimeout(
+      () =>
+        chapterStore
+          .getState()
+          .dispatch(phase === "intro" ? "INTRO_DONE" : "HANDOFF_DONE"),
+      phase === "intro" ? 2500 : 700,
+    );
+    return () => {
+      clearTimeout(id);
+      window.removeEventListener("keydown", toDriving);
+      window.removeEventListener("pointerdown", toDriving);
+    };
   }, [phase]);
 
   return (
