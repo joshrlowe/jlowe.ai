@@ -12,11 +12,22 @@ generated brown-noise ambient bed (`apps/web/src/components/world/audio/`).
 There are **no third-party audio files** in this repository and nothing is
 fetched at runtime, so no attribution is required.
 
+## 3D models
+
+- **`apps/web/public/models/car.glb`** — low-poly "Car" sedan from the **"Cars"
+  pack by Quaternius** (quaternius.com). Quaternius releases all assets as
+  **CC0** (public domain); the poly.pizza mirror this file was fetched from
+  (`static.poly.pizza`, model `HQ0hvRM2XR`) labels it **CC-BY 3.0**. Either way
+  it is original art (no real-brand car / livery) and attribution is given here.
+  Only the body shell ships — the source's combined wheel meshes are dropped and
+  the car runs on four code-generated wheels; the body is re-skinned at runtime
+  with a clearcoat paint + tinted-glass material (`vehicle/car.tsx`).
+
 ## 3D geometry & textures
 
-All world geometry is original — generated in code or built from primitives
-(the coastal circuit, the placeholder vehicle, cliffs, and foliage). Nothing is
-derived from any franchise or third-party asset, per the project's
+The rest of the world geometry is original — generated in code or built from
+primitives (the coastal circuit, the road wheels, cliffs, and foliage). Nothing
+is derived from any franchise or third-party asset, per the project's
 no-copyrighted-IP rule.
 
 ## HDRI / environment maps
