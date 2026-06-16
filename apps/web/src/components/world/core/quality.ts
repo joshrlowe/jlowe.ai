@@ -21,7 +21,9 @@ const WEBGPU: QualitySettings = {
   msaaSamples: 4,
   bloomStrength: 0.9,
   bloomRadius: 0.6,
-  heatShimmer: 0.006,
+  // Heat-shimmer disabled by default: animating the whole screen reads as the
+  // scene "wobbling". Re-enable (e.g. 0.003) for a subtle haze once tuned.
+  heatShimmer: 0,
   environmentIntensity: 1.0,
   hdri: true,
   shadowMapSize: 2048,

@@ -40,6 +40,8 @@ export function CameraRig({
   const t = useRef(0);
   const scratch = useRef(new THREE.Vector3());
   const desired = useRef(new THREE.Vector3());
+  const lookAtSmoothed = useRef(new THREE.Vector3());
+  const lookReady = useRef(false);
   const quat = useRef(new THREE.Quaternion());
 
   useFrame((_, delta) => {
@@ -53,9 +55,18 @@ export function CameraRig({
       // nested inside a moving rigid body). Car forward is +z, so behind = -z.
       const pos = target.current.getWorldPosition(scratch.current);
       const heading = target.current.getWorldQuaternion(quat.current);
-      desired.current.set(0, 2.5, -7).applyQuaternion(heading).add(pos);
-      camera.position.lerp(desired.current, 1 - Math.pow(0.0015, delta));
-      camera.lookAt(pos);
+      desired.current.set(0, 3, -7.5).applyQuaternion(heading).add(pos);
+      camera.position.lerp(desired.current, 1 - Math.pow(0.0025, delta));
+      // Smooth the look target so per-step suspension jitter in the chassis
+      // transform doesn't wobble the whole view (snap on the first frame to
+      // avoid an initial swoop).
+      if (!lookReady.current) {
+        lookAtSmoothed.current.copy(pos);
+        lookReady.current = true;
+      } else {
+        lookAtSmoothed.current.lerp(pos, 1 - Math.pow(0.02, delta));
+      }
+      camera.lookAt(lookAtSmoothed.current);
     }
   });
 
