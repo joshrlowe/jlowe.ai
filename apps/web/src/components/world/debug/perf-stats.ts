@@ -17,3 +17,15 @@ export function writePerf(sample: PerfSample): void {
 export function readPerf(): PerfSample {
   return { ...current };
 }
+
+/**
+ * Per-frame draw-call / triangle count from a monotonically-accumulating
+ * `renderer.info` counter. The PostFX RenderPipeline never resets
+ * `renderer.info`, so its totals climb every frame; the per-frame value is the
+ * delta against the previous sample. A negative delta means the counter was
+ * reset between samples, so the current total is itself the latest frame.
+ */
+export function frameDelta(current: number, previous: number): number {
+  const delta = current - previous;
+  return delta >= 0 ? delta : current;
+}

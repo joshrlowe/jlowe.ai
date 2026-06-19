@@ -30,10 +30,30 @@ type PrimitiveProps = Omit<ThreeElements["primitive"], "object">;
 
 /**
  * A GLB rendered as a fresh clone, so the same model can be placed multiple
- * times (props) without the single cached scene being re-parented.
+ * times (props) without the single cached scene being re-parented. Hero meshes
+ * cast (and receive) the sun's soft shadow by default; `castShadow` /
+ * `receiveShadow` flow down to every mesh in the clone (primitive props don't
+ * propagate to children).
  */
-export function HeroModel({ url, ...props }: { url: string } & PrimitiveProps) {
+export function HeroModel({
+  url,
+  castShadow = true,
+  receiveShadow = true,
+  ...props
+}: { url: string; castShadow?: boolean; receiveShadow?: boolean } & Omit<
+  PrimitiveProps,
+  "castShadow" | "receiveShadow"
+>) {
   const scene = useGltfScene(url);
-  const object = useMemo(() => scene.clone(true), [scene]);
+  const object = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.traverse((child) => {
+      if ((child as { isMesh?: boolean }).isMesh) {
+        child.castShadow = castShadow;
+        child.receiveShadow = receiveShadow;
+      }
+    });
+    return clone;
+  }, [scene, castShadow, receiveShadow]);
   return <primitive object={object} {...props} />;
 }

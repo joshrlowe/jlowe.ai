@@ -10,6 +10,15 @@ describe("qualityForTier", () => {
     expect(hi.msaaSamples).toBeGreaterThan(lo.msaaSamples);
     expect(hi.shadowMapSize).toBeGreaterThan(lo.shadowMapSize);
     expect(hi.environmentIntensity).toBeGreaterThan(lo.environmentIntensity);
+    expect(hi.maxDpr).toBeGreaterThanOrEqual(lo.maxDpr);
+  });
+
+  it("exposes the renderer-wired shadow/dpr knobs as positive numbers", () => {
+    for (const tier of ["webgpu", "webgl"] as const) {
+      const q = qualityForTier(tier);
+      expect(q.shadowMapSize).toBeGreaterThan(0);
+      expect(q.maxDpr).toBeGreaterThan(0);
+    }
   });
 
   it("maps the 2d tier to the webgl floor", () => {

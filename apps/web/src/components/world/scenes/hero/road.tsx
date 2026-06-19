@@ -54,13 +54,13 @@ export function HeroRoad() {
   return (
     <>
       {/* ground plane — distinct, darker, surrounds the road */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[300, 300]} />
         <meshStandardMaterial color="#15110d" roughness={0.96} metalness={0.04} />
       </mesh>
 
       {/* asphalt road ribbon */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
         <planeGeometry args={[ROAD_WIDTH, ROAD_LENGTH]} />
         <meshStandardMaterial
           map={albedo}
@@ -72,7 +72,7 @@ export function HeroRoad() {
       </mesh>
 
       {/* glossy "wet" zone — low roughness, reserved for later SSR */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 11]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 11]} receiveShadow>
         <planeGeometry args={[ROAD_WIDTH, 16]} />
         <meshStandardMaterial color="#0b0b0f" roughness={0.08} metalness={0.5} />
       </mesh>

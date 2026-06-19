@@ -1,9 +1,11 @@
 "use client";
 
 import { CameraRig } from "../core/camera-rig";
+import { useQuality } from "../core/quality-provider";
 import { GoldenHourEnvironment } from "./circuit/environment";
 import type { CinematicPathConfig } from "./hero/camera-path";
 import { HeroCar } from "./hero/hero-car";
+import { HeroGrade } from "./hero/hero-grade";
 import { HeroProps } from "./hero/props";
 import { HeroRoad } from "./hero/road";
 
@@ -25,9 +27,11 @@ const CINEMATIC: CinematicPathConfig = {
  * reuses the universal bloom+vignette post-FX floor mounted by world-canvas.
  */
 export function HeroScene() {
+  const { shadowMapSize } = useQuality();
   return (
     <>
-      <GoldenHourEnvironment />
+      <HeroGrade />
+      <GoldenHourEnvironment sunCastShadow shadowMapSize={shadowMapSize} />
       <HeroRoad />
       <HeroProps />
       <HeroCar />

@@ -7,6 +7,7 @@ import type { CapabilityTier } from "@/lib/capabilities";
 import { rendererInitForTier } from "@/lib/renderer";
 
 import { PostFX } from "./core/post-fx";
+import { qualityForTier } from "./core/quality";
 import { QualityProvider } from "./core/quality-provider";
 import {
   resolveSceneKey,
@@ -68,10 +69,18 @@ export function WorldCanvas({
 }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
   const active = resolveSceneKey(activeScene, SCENES, DEFAULT_SCENE);
+  const quality = qualityForTier(tier);
 
   return (
     <Canvas
       className="h-full w-full"
+      dpr={[1, quality.maxDpr]}
+      // Soft (PCFSoft) sun shadows. R3F owns shadowMap.enabled/type via this
+      // prop (it overrides anything the gl factory sets), so enable it here.
+      // Global enable is safe: only the hero scene opts in (its meshes
+      // castShadow, its ground receiveShadow), so circuit / proving-ground
+      // render identically.
+      shadows="soft"
       camera={{ position: [6, 4, 8], fov: 50 }}
       gl={async (props) => {
         const renderer = new THREE.WebGPURenderer({
