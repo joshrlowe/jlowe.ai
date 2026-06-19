@@ -40,6 +40,9 @@ export function WorldExperience({
   const storeScene = useChapter((s) => s.activeScene);
   const activeScene = sceneParam ?? storeScene;
   const isChapterScene = chapterForSceneKey(activeScene) !== undefined;
+  // The hero vignette is a non-interactive cinematic; its driving touch pads
+  // would be dead controls, so they must not mount there.
+  const showTouchControls = activeScene !== "hero";
 
   // ?chapter=<id> selects the starting chapter (ignored if it names no chapter).
   useEffect(() => {
@@ -52,7 +55,7 @@ export function WorldExperience({
     <>
       <WorldCanvas tier={tier} debug={debug} activeScene={activeScene} />
       <PreflightHud />
-      <TouchControls />
+      {showTouchControls ? <TouchControls /> : null}
       <ChapterRouter />
       {isChapterScene ? <ChapterHud /> : null}
       {isChapterScene ? <BeaconPanel /> : null}
