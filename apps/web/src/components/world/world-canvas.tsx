@@ -7,7 +7,7 @@ import type { CapabilityTier } from "@/lib/capabilities";
 import { rendererInitForTier } from "@/lib/renderer";
 
 import { PostFX } from "./core/post-fx";
-import { qualityForTier } from "./core/quality";
+import { qualityFor } from "./core/quality";
 import { QualityProvider } from "./core/quality-provider";
 import {
   resolveSceneKey,
@@ -60,16 +60,18 @@ const DEFAULT_SCENE = CHAPTERS[0]?.sceneKey ?? "circuit";
  */
 export function WorldCanvas({
   tier,
+  isUltra,
   debug,
   activeScene,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
+  isUltra: boolean;
   debug: boolean;
   activeScene: string;
 }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
   const active = resolveSceneKey(activeScene, SCENES, DEFAULT_SCENE);
-  const quality = qualityForTier(tier);
+  const quality = qualityFor(tier, isUltra);
 
   return (
     <Canvas
@@ -93,7 +95,7 @@ export function WorldCanvas({
         return renderer;
       }}
     >
-      <QualityProvider tier={tier}>
+      <QualityProvider tier={tier} isUltra={isUltra}>
         <InputBridge />
         <SceneManager scenes={SCENES} active={active} />
         {/* Single TSL chain (ACES → bloom → vignette); drives the render loop. */}

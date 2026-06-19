@@ -8,6 +8,8 @@ import { toast } from "sonner";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCapabilityTier } from "@/lib/use-capability-tier";
+import { useQualityParam } from "@/lib/use-quality-param";
+import { selectIsUltra } from "@/lib/ultra";
 
 function CanvasLoading() {
   return (
@@ -26,6 +28,7 @@ const WorldExperience = dynamic(
 
 export function WorldRoot() {
   const report = useCapabilityTier();
+  const qualityOverride = useQualityParam();
   const router = useRouter();
   const notified = useRef(false);
 
@@ -44,5 +47,12 @@ export function WorldRoot() {
   }, [report?.tier, router]);
 
   if (report === null || report.tier === "2d") return <CanvasLoading />;
-  return <WorldExperience tier={report.tier} />;
+
+  const isUltra = selectIsUltra({
+    tier: report.tier,
+    override: qualityOverride,
+    adapterConfirmed: report.signals.adapterConfirmed,
+    deviceMemory: report.signals.deviceMemory,
+  });
+  return <WorldExperience tier={report.tier} isUltra={isUltra} />;
 }

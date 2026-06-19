@@ -14,6 +14,16 @@ export interface QualitySettings {
   hdri: boolean;
   shadowMapSize: number;
   maxParticles: number;
+  /**
+   * Ultra-only heavy post-FX gates. These mark WHICH passes the ultra tier
+   * intends to stack; the passes themselves stay gated to
+   * `isUltra && backend.isWebGPUBackend` in `core/post-fx.tsx` (never built on
+   * webgl/2d). Off on every non-ultra preset — the bloom+vignette floor.
+   */
+  gtao: boolean;
+  ssr: boolean;
+  traa: boolean;
+  motionBlur: boolean;
 }
 
 const WEBGPU: QualitySettings = {
@@ -28,6 +38,10 @@ const WEBGPU: QualitySettings = {
   hdri: true,
   shadowMapSize: 2048,
   maxParticles: 20000,
+  gtao: false,
+  ssr: false,
+  traa: false,
+  motionBlur: false,
 };
 
 const WEBGL: QualitySettings = {
@@ -40,6 +54,24 @@ const WEBGL: QualitySettings = {
   hdri: false,
   shadowMapSize: 1024,
   maxParticles: 5000,
+  gtao: false,
+  ssr: false,
+  traa: false,
+  motionBlur: false,
+};
+
+/**
+ * The "ultra" preset — an additive extension of WEBGPU (never a tier of its
+ * own). It raises `shadowMapSize`/`maxDpr` and flags the heavy WebGPU-only
+ * passes; it only applies when the orthogonal ultra axis resolves ON and the
+ * tier is `webgpu` (see `qualityFor`).
+ */
+const ULTRA: QualitySettings = {
+  ...WEBGPU,
+  maxDpr: 2.5,
+  shadowMapSize: 4096,
+  gtao: true,
+  ssr: true,
 };
 
 /**
@@ -48,4 +80,17 @@ const WEBGL: QualitySettings = {
  */
 export function qualityForTier(tier: CapabilityTier): QualitySettings {
   return tier === "webgpu" ? WEBGPU : WEBGL;
+}
+
+/**
+ * Tier preset with the ultra axis folded in. Ultra is gated to `webgpu`; on
+ * any other tier `isUltra` is ignored (webgl/2d never get the ultra preset),
+ * which keeps the lower tiers byte-identical to the floor.
+ */
+export function qualityFor(
+  tier: CapabilityTier,
+  isUltra: boolean,
+): QualitySettings {
+  if (tier === "webgpu") return isUltra ? ULTRA : WEBGPU;
+  return WEBGL;
 }

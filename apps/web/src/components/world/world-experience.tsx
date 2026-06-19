@@ -31,8 +31,10 @@ import { WorldCanvas } from "./world-canvas";
  */
 export function WorldExperience({
   tier,
+  isUltra,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
+  isUltra: boolean;
 }) {
   const debug = useDebugFlag();
   const sceneParam = useSceneParam();
@@ -53,7 +55,12 @@ export function WorldExperience({
 
   return (
     <>
-      <WorldCanvas tier={tier} debug={debug} activeScene={activeScene} />
+      <WorldCanvas
+        tier={tier}
+        isUltra={isUltra}
+        debug={debug}
+        activeScene={activeScene}
+      />
       <PreflightHud />
       {showTouchControls ? <TouchControls /> : null}
       <ChapterRouter />
