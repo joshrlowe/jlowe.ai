@@ -9,13 +9,18 @@ export type SceneRegistry = Record<string, () => ReactNode>;
  * default scene when the key names no registered scene (e.g. an unregistered
  * `?scene=` value). Keeps the registry the single keyed source of truth so
  * scenes stay independent and a missing key degrades to the default geometry.
+ *
+ * Uses an own-property check, not `key in scenes`: `in` walks the prototype
+ * chain, so untrusted values like `__proto__`/`constructor`/`toString` would
+ * otherwise "match" `Object.prototype` members and skip the fallback,
+ * resolving to a non-component and crashing inside Suspense.
  */
 export function resolveSceneKey(
   requested: string,
   scenes: SceneRegistry,
   fallback: string,
 ): string {
-  return requested in scenes ? requested : fallback;
+  return Object.hasOwn(scenes, requested) ? requested : fallback;
 }
 
 /**
@@ -32,6 +37,6 @@ export function SceneManager({
   active: string;
   fallback?: ReactNode;
 }) {
-  const render = scenes[active];
+  const render = Object.hasOwn(scenes, active) ? scenes[active] : undefined;
   return <Suspense fallback={fallback}>{render ? render() : null}</Suspense>;
 }
