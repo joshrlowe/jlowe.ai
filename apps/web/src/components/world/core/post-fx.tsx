@@ -27,6 +27,7 @@ import * as THREE from "three/webgpu";
 
 import type { QualitySettings } from "./quality";
 import { useIsUltra, useQuality } from "./quality-provider";
+import { sceneSupportsUltraPostFX } from "./scene-capabilities";
 
 type ScenePass = ReturnType<typeof pass>;
 
@@ -91,7 +92,7 @@ function composeUltra(
  * webgpu_postprocessing_bloom example: RenderPipeline + `pass` + `bloom`, and
  * `TextureNode.sample(screenUV + offset)` for the screen-space heat distortion.
  */
-export function PostFX() {
+export function PostFX({ activeScene }: { activeScene: string }) {
   const { gl, scene, camera } = useThree();
   const quality = useQuality();
   const isUltra = useIsUltra();
@@ -106,11 +107,13 @@ export function PostFX() {
     const backend = renderer.backend as { isWebGPUBackend?: boolean };
     const isWebGPU = backend.isWebGPUBackend === true;
 
-    // Ultra branch (WebGPU backend only): MRT + GTAO + wet-road SSR over the
-    // floor. The webgl/2d backends and every non-ultra path skip this entirely
-    // — no MRT, no ultra nodes — keeping the bloom+vignette floor byte-for-byte
-    // identical to before.
-    if (isUltra && isWebGPU) {
+    // Ultra branch (WebGPU backend only, AND only scenes that opt in): MRT +
+    // GTAO + wet-road SSR over the floor. The post-FX chain is scene-agnostic,
+    // so the scene gate is what keeps circuit / proving-ground floor-only under
+    // ?quality=ultra. The webgl/2d backends, every non-ultra path, and
+    // non-opted-in scenes skip this entirely — no MRT, no ultra nodes — keeping
+    // the bloom+vignette floor byte-for-byte identical to before.
+    if (isUltra && isWebGPU && sceneSupportsUltraPostFX(activeScene)) {
       const renderPipeline = new THREE.RenderPipeline(renderer);
       renderPipeline.outputNode = composeUltra(scenePass, camera, quality);
       return renderPipeline;
@@ -152,7 +155,7 @@ export function PostFX() {
     const renderPipeline = new THREE.RenderPipeline(renderer);
     renderPipeline.outputNode = base.add(bloomPass).mul(vignette);
     return renderPipeline;
-  }, [gl, scene, camera, isUltra, quality]);
+  }, [gl, scene, camera, isUltra, quality, activeScene]);
 
   // A frame callback with priority > 0 takes the render loop over from R3F.
   useFrame(() => {

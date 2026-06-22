@@ -98,8 +98,10 @@ export function WorldCanvas({
       <QualityProvider tier={tier} isUltra={isUltra}>
         <InputBridge />
         <SceneManager scenes={SCENES} active={active} />
-        {/* Single TSL chain (ACES → bloom → vignette); drives the render loop. */}
-        <PostFX />
+        {/* Single TSL chain (ACES → bloom → vignette); drives the render loop.
+            The resolved scene key scopes the ultra MRT branch to opted-in
+            scenes so circuit / proving-ground stay floor-only under ultra. */}
+        <PostFX activeScene={active} />
         {debug ? <PerfProbe /> : null}
       </QualityProvider>
     </Canvas>
