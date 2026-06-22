@@ -1,7 +1,7 @@
 "use client";
 
 import { useThree } from "@react-three/fiber";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import * as THREE from "three/webgpu";
 
 // Cinematic golden-hour grade for the hero vignette: AgX rolls highlights off
@@ -31,11 +31,15 @@ function applyGrade(
  * on unmount — circuit / proving-ground stay pixel-identical. The PostFX
  * RenderPipeline re-derives its output transform when `toneMapping` changes, so
  * the grade applies (and reverts) cleanly on both backends.
+ *
+ * Applied via useLayoutEffect (synchronous, pre-paint) so the first hero frame
+ * is already graded and no AgX frame leaks past unmount before the prior values
+ * are restored.
  */
 export function HeroGrade() {
   const { gl } = useThree();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const renderer = gl as unknown as Gradeable;
     const prevToneMapping = renderer.toneMapping;
     const prevExposure = renderer.toneMappingExposure;
