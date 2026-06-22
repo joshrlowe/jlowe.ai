@@ -7,7 +7,10 @@ interface FakeNode {
   parent: FakeNode | null;
 }
 
-function node(name: string | undefined, parent: FakeNode | null = null): FakeNode {
+function node(
+  name: string | undefined,
+  parent: FakeNode | null = null,
+): FakeNode {
   return { name, parent };
 }
 

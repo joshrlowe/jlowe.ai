@@ -36,7 +36,10 @@ export function isWheelDescendant(object: NamedNode | null): boolean {
  * physical car part. `Grey` is metal on both the chassis trim and the wheel
  * rim; `Black` is the tire on a wheel but dark trim on the body.
  */
-export function classifyCarPart(materialName: string, isWheel: boolean): CarPart {
+export function classifyCarPart(
+  materialName: string,
+  isWheel: boolean,
+): CarPart {
   switch (materialName) {
     case "White":
       return "body";

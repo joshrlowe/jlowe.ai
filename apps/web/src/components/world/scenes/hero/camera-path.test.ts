@@ -36,7 +36,10 @@ describe("cinematicCameraPose", () => {
   it("stays on the orbit radius around the center in the XZ plane", () => {
     for (const t of [0, 1.7, 3.2, 6.9]) {
       const { position } = cinematicCameraPose(t, CFG);
-      const r = Math.hypot(position[0] - CFG.center[0], position[2] - CFG.center[2]);
+      const r = Math.hypot(
+        position[0] - CFG.center[0],
+        position[2] - CFG.center[2],
+      );
       expect(r).toBeCloseTo(CFG.radius);
     }
   });
@@ -44,8 +47,12 @@ describe("cinematicCameraPose", () => {
   it("keeps height within the bob amplitude of the base height", () => {
     for (const t of [0, 0.9, 2.2, 5.5, 9.1]) {
       const y = cinematicCameraPose(t, CFG).position[1];
-      expect(y).toBeGreaterThanOrEqual(CFG.baseHeight - CFG.heightAmplitude - 1e-9);
-      expect(y).toBeLessThanOrEqual(CFG.baseHeight + CFG.heightAmplitude + 1e-9);
+      expect(y).toBeGreaterThanOrEqual(
+        CFG.baseHeight - CFG.heightAmplitude - 1e-9,
+      );
+      expect(y).toBeLessThanOrEqual(
+        CFG.baseHeight + CFG.heightAmplitude + 1e-9,
+      );
     }
   });
 });

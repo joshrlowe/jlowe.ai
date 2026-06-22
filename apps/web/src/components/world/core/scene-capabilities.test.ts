@@ -19,7 +19,12 @@ describe("sceneSupportsUltraPostFX", () => {
   });
 
   it("returns false for prototype-chain keys (no `in`-style leak)", () => {
-    for (const key of ["__proto__", "constructor", "toString", "hasOwnProperty"]) {
+    for (const key of [
+      "__proto__",
+      "constructor",
+      "toString",
+      "hasOwnProperty",
+    ]) {
       expect(sceneSupportsUltraPostFX(key)).toBe(false);
     }
   });

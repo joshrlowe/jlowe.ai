@@ -34,7 +34,7 @@ franchise/film/game IP is present in any model, node name, texture, or material.
 
 **Car model**
 
-- **`apps/web/public/assets/car/sports-car.glb`** — "Sports Car" by
+- **`apps/web/public/hero/car/sports-car.glb`** — "Sports Car" by
   **Quaternius** via **Poly Pizza**, **CC0** (Public Domain).
   Source: https://poly.pizza/m/1mkmFkAz5v
   Original mesh node names were remapped for the vehicle rig to
@@ -44,21 +44,21 @@ franchise/film/game IP is present in any model, node name, texture, or material.
 
 **Roadside props**
 
-- **`apps/web/public/assets/props/traffic-cone.glb`** — "Traffic Cone" by
+- **`apps/web/public/hero/props/traffic-cone.glb`** — "Traffic Cone" by
   **Quaternius** via **Poly Pizza**, **CC0** (Public Domain).
   Source: https://poly.pizza/m/lAx8JytxGD
-- **`apps/web/public/assets/props/street-light.glb`** — "Street Light" by
+- **`apps/web/public/hero/props/street-light.glb`** — "Street Light" by
   **Quaternius** via **Poly Pizza**, **CC0** (Public Domain).
   Source: https://poly.pizza/m/nFwrlcLvM5
-- **`apps/web/public/assets/props/traffic-light.glb`** — "Traffic Light" by
+- **`apps/web/public/hero/props/traffic-light.glb`** — "Traffic Light" by
   **Quaternius** via **Poly Pizza**, **CC0** (Public Domain).
   Source: https://poly.pizza/m/lg9AKWejnF
 
 **Asphalt / road PBR textures**
 
-- **`apps/web/public/assets/road/asphalt_albedo.jpg`**,
-  **`apps/web/public/assets/road/asphalt_normal.jpg`** (OpenGL normal),
-  **`apps/web/public/assets/road/asphalt_roughness.jpg`** — "Asphalt012" from
+- **`apps/web/public/hero/road/asphalt_albedo.jpg`**,
+  **`apps/web/public/hero/road/asphalt_normal.jpg`** (OpenGL normal),
+  **`apps/web/public/hero/road/asphalt_roughness.jpg`** — "Asphalt012" from
   **ambientCG**, **CC0** (Public Domain). Resized from 2K to 1024² JPG.
   Source: https://ambientcg.com/view?id=Asphalt012
 

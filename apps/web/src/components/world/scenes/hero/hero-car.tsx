@@ -7,7 +7,7 @@ import { createCarMaterial } from "./car-materials";
 import { classifyCarPart, isWheelDescendant } from "./car-part";
 import { useGltfScene } from "./hero-model";
 
-const CAR_URL = "/assets/car/sports-car.glb";
+const CAR_URL = "/hero/car/sports-car.glb";
 
 /**
  * The curated CC0 sports car, the prominent foreground subject. Each source
@@ -28,9 +28,9 @@ export function HeroCar() {
       if (!mesh.isMesh) return;
       mesh.castShadow = true;
       mesh.receiveShadow = true;
-      const source = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as
-        | Material
-        | undefined;
+      const source = (
+        Array.isArray(mesh.material) ? mesh.material[0] : mesh.material
+      ) as Material | undefined;
       const part = classifyCarPart(source?.name ?? "", isWheelDescendant(mesh));
       const material = createCarMaterial(part);
       mesh.material = material;
@@ -39,7 +39,16 @@ export function HeroCar() {
     return { object: clone, materials: created };
   }, [scene]);
 
-  useEffect(() => () => materials.forEach((material) => material.dispose()), [materials]);
+  useEffect(
+    () => () => materials.forEach((material) => material.dispose()),
+    [materials],
+  );
 
-  return <primitive object={object} position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />;
+  return (
+    <primitive
+      object={object}
+      position={[0, 0, 0]}
+      rotation={[0, Math.PI, 0]}
+    />
+  );
 }

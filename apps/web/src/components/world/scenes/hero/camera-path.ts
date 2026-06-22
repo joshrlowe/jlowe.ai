@@ -31,6 +31,7 @@ export function cinematicCameraPose(
   const [cx, cy, cz] = cfg.center;
   const x = cx + cfg.radius * Math.cos(angle);
   const z = cz + cfg.radius * Math.sin(angle);
-  const y = cfg.baseHeight + cfg.heightAmplitude * Math.sin(elapsed * cfg.bobSpeed);
+  const y =
+    cfg.baseHeight + cfg.heightAmplitude * Math.sin(elapsed * cfg.bobSpeed);
   return { position: [x, y, z], lookAt: [cx, cy, cz] };
 }

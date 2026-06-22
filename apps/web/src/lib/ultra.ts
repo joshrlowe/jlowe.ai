@@ -22,7 +22,8 @@ const QUALITY_OVERRIDES: readonly QualityOverride[] = [
 /** `?quality=ultra|high|standard` override (null = no override / heuristic). */
 export function parseQualityOverride(search: string): QualityOverride | null {
   const value = new URLSearchParams(search).get("quality");
-  return value !== null && (QUALITY_OVERRIDES as readonly string[]).includes(value)
+  return value !== null &&
+    (QUALITY_OVERRIDES as readonly string[]).includes(value)
     ? (value as QualityOverride)
     : null;
 }

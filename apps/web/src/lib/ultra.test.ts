@@ -59,7 +59,11 @@ describe("selectIsUltra", () => {
   it("override ?quality=ultra wins over a declining heuristic", () => {
     expect(
       selectIsUltra(
-        strongGpu({ override: "ultra", deviceMemory: 2, adapterConfirmed: null }),
+        strongGpu({
+          override: "ultra",
+          deviceMemory: 2,
+          adapterConfirmed: null,
+        }),
       ),
     ).toBe(true);
   });
@@ -70,18 +74,16 @@ describe("selectIsUltra", () => {
   });
 
   it("webgl never selects ultra (heuristic or override)", () => {
-    expect(
-      selectIsUltra(strongGpu({ tier: "webgl" })),
-    ).toBe(false);
-    expect(
-      selectIsUltra(strongGpu({ tier: "webgl", override: "ultra" })),
-    ).toBe(false);
+    expect(selectIsUltra(strongGpu({ tier: "webgl" }))).toBe(false);
+    expect(selectIsUltra(strongGpu({ tier: "webgl", override: "ultra" }))).toBe(
+      false,
+    );
   });
 
   it("2d never selects ultra (heuristic or override)", () => {
     expect(selectIsUltra(strongGpu({ tier: "2d" }))).toBe(false);
-    expect(
-      selectIsUltra(strongGpu({ tier: "2d", override: "ultra" })),
-    ).toBe(false);
+    expect(selectIsUltra(strongGpu({ tier: "2d", override: "ultra" }))).toBe(
+      false,
+    );
   });
 });

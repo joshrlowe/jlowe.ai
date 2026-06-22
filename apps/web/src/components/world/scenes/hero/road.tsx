@@ -5,9 +5,9 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three/webgpu";
 
 const ROAD_TEXTURES = [
-  "/assets/road/asphalt_albedo.jpg",
-  "/assets/road/asphalt_normal.jpg",
-  "/assets/road/asphalt_roughness.jpg",
+  "/hero/road/asphalt_albedo.jpg",
+  "/hero/road/asphalt_normal.jpg",
+  "/hero/road/asphalt_roughness.jpg",
 ] as const;
 
 const ROAD_WIDTH = 9;
@@ -56,11 +56,19 @@ export function HeroRoad() {
       {/* ground plane — distinct, darker, surrounds the road */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[300, 300]} />
-        <meshStandardMaterial color="#15110d" roughness={0.96} metalness={0.04} />
+        <meshStandardMaterial
+          color="#15110d"
+          roughness={0.96}
+          metalness={0.04}
+        />
       </mesh>
 
       {/* asphalt road ribbon */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.01, 0]}
+        receiveShadow
+      >
         <planeGeometry args={[ROAD_WIDTH, ROAD_LENGTH]} />
         <meshStandardMaterial
           map={albedo}
@@ -72,9 +80,17 @@ export function HeroRoad() {
       </mesh>
 
       {/* glossy "wet" zone — low roughness, reserved for later SSR */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 11]} receiveShadow>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.02, 11]}
+        receiveShadow
+      >
         <planeGeometry args={[ROAD_WIDTH, 16]} />
-        <meshStandardMaterial color="#0b0b0f" roughness={0.08} metalness={0.5} />
+        <meshStandardMaterial
+          color="#0b0b0f"
+          roughness={0.08}
+          metalness={0.5}
+        />
       </mesh>
     </>
   );
