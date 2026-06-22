@@ -1,23 +1,65 @@
+import {
+  add,
+  mix,
+  mul,
+  mx_fractal_noise_vec3,
+  normalize,
+  normalView,
+  positionLocal,
+  vec3,
+} from "three/tsl";
 import * as THREE from "three/webgpu";
 
 import type { CarPart } from "./car-part";
 
 /**
  * Physically-based node materials for the hero car. The body gets a clearcoat
- * car paint (high metalness + mid roughness under a near-perfect clearcoat), so
- * it reads as glossy and mirrors the HDRI on both the WebGPU and WebGL2
+ * car paint (high metalness + low roughness under a near-perfect clearcoat),
+ * so it reads as glossy and mirrors the HDRI on both the WebGPU and WebGL2
  * backends; wheels get a metallic rim + a rough tire.
  */
 export const HERO_CAR_BODY_COLOR = "#9a1b1b";
 
+/**
+ * Marker on the body paint material's `userData`. The hero cube-reflection
+ * helper (`scenes/hero/cube-reflection.tsx`) traverses the scene for materials
+ * carrying this flag to (a) feed them the per-frame `CubeCamera` env map and
+ * (b) hide them while the cube is captured (so the paint never reflects itself).
+ * Keeping the seam in `userData` avoids exporting a brittle material registry.
+ */
+export const HERO_CAR_BODY_FLAG = "heroCarBody";
+
 function createCarPaintMaterial(): THREE.MeshPhysicalNodeMaterial {
   const material = new THREE.MeshPhysicalNodeMaterial();
   material.color = new THREE.Color(HERO_CAR_BODY_COLOR);
-  material.metalness = 0.9;
-  material.roughness = 0.38;
+  // Near-mirror metal under a perfect clearcoat: a deep automotive 2-coat look.
+  material.metalness = 0.95;
+  material.roughness = 0.28;
   material.clearcoat = 1;
-  material.clearcoatRoughness = 0.06;
-  material.envMapIntensity = 1.35;
+  material.clearcoatRoughness = 0.04;
+  material.envMapIntensity = 1.5;
+
+  // Metallic-flake sparkle: high-frequency fractal noise jitters the shading
+  // normal so tiny facets catch the low sun and the env map as the camera
+  // orbits — the glittery metallic-paint micro-detail. The noise is sampled in
+  // LOCAL position (a fine, surface-anchored grain that twinkles as the view
+  // moves), but the jitter is added to the VIEW-space normal, since `normalNode`
+  // feeds the lighting in view space (`NodeMaterial.setupNormal`). The perfect
+  // clearcoat on top keeps the macro surface glossy. `mx_fractal_noise_vec3`
+  // is roughly in [-1,1].
+  const flake = mx_fractal_noise_vec3(positionLocal.mul(420), 2, 2, 0.5);
+  material.normalNode = normalize(add(normalView, mul(flake, vec3(0.06))));
+
+  // A faint dual-tone clearcoat tint deepens the candy-paint richness without a
+  // texture: lerp the base toward a slightly hotter red in the noise highlights.
+  const candy = mix(
+    vec3(0.6, 0.105, 0.105),
+    vec3(0.72, 0.14, 0.12),
+    flake.x.mul(0.5).add(0.5),
+  );
+  material.colorNode = candy;
+
+  material.userData[HERO_CAR_BODY_FLAG] = true;
   return material;
 }
 
@@ -72,10 +114,14 @@ function createTaillightMaterial(): THREE.MeshStandardNodeMaterial {
 function createTrimMaterial(): THREE.MeshPhysicalNodeMaterial {
   const material = new THREE.MeshPhysicalNodeMaterial();
   material.color = new THREE.Color("#15161a");
-  material.metalness = 0.6;
-  material.roughness = 0.35;
+  material.metalness = 0.75;
+  material.roughness = 0.3;
   material.clearcoat = 0.6;
   material.clearcoatRoughness = 0.2;
+  // Brushed-metal anisotropy: stretches the specular highlight into a
+  // directional streak (grille / vents / sill trim), the automotive-render tell.
+  material.anisotropy = 0.6;
+  material.anisotropyRotation = Math.PI / 2;
   return material;
 }
 

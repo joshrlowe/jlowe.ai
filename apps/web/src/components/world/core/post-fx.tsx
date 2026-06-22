@@ -3,11 +3,17 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
+import { dof } from "three/addons/tsl/display/DepthOfFieldNode.js";
 import { ao } from "three/addons/tsl/display/GTAONode.js";
+import { motionBlur } from "three/addons/tsl/display/MotionBlur.js";
+import { ssgi } from "three/addons/tsl/display/SSGINode.js";
 import { ssr } from "three/addons/tsl/display/SSRNode.js";
+import { traa } from "three/addons/tsl/display/TRAANode.js";
 import {
   cos,
+  int,
   metalness,
+  mix,
   mrt,
   normalView,
   output,
@@ -24,24 +30,55 @@ import {
   velocity,
 } from "three/tsl";
 import * as THREE from "three/webgpu";
+import type { Node, TextureNode } from "three/webgpu";
 
+import { gradeColor } from "./color-grade";
 import type { QualitySettings } from "./quality";
 import { useIsUltra, useQuality } from "./quality-provider";
 import { sceneSupportsUltraPostFX } from "./scene-capabilities";
 
 type ScenePass = ReturnType<typeof pass>;
 
+/** A chainable vec4 colour node (the post-FX chain works in vec4 throughout). */
+type ColorNode = Node<"vec4">;
+
 /**
- * Ultra-only post-FX graph (WebGPU backend only — never reached on webgl/2d or
- * when `isUltra` is false). Promotes the scene pass to MRT (output + normal +
- * metalness + roughness + velocity), then stacks GTAO contact-darkening and
- * wet-road SSR over the same bloom + vignette floor the floor path renders.
+ * `SSGINode`/`TRAANode`/`DepthOfFieldNode` all expose `getTextureNode(): Texture`
+ * at runtime (verified in the r184 source), but `@types/three@0.184` omits the
+ * declaration on these three (it IS declared on GTAONode/SSRNode/BloomNode).
+ * This narrows the gap without an `any`: a structural type for "an effect node
+ * whose rendered result is reachable as a chainable texture node".
+ */
+interface HasTextureNode {
+  getTextureNode(): TextureNode;
+}
+
+// Cinematic depth-of-field defaults (world units), tuned for the parked hero car
+// ~9u from the orbiting camera. These want a real GPU to dial — see PR notes.
+const DOF_FOCUS_DISTANCE = 9;
+const DOF_FOCAL_LENGTH = 3.2;
+const DOF_BOKEH_SCALE = 2.4;
+const MOTION_BLUR_SAMPLES = 12;
+
+/**
+ * Ultra-only cinematic post-FX graph (WebGPU backend only — never reached on
+ * webgl/2d or when `isUltra` is false). Promotes the scene pass to MRT (output +
+ * normal + metalness + roughness + velocity), then stacks the Forza-style
+ * chain over the bloom + vignette floor:
+ *
+ *   scene → SSGI (indirect bounce + AO) → SSR (wet road / car metal) →
+ *   TRAA (temporal AA) → motion-blur (velocity MRT) → DoF → bloom → warm grade
+ *
+ * Every pass is independently gated on a `quality` flag so it can be dialed
+ * (or dropped on a tighter GPU) without touching the order. Each node verified
+ * against the installed three r184 build (see PR notes): `ssgi`, `ssr`, `traa`,
+ * `motionBlur`, `dof` all exist with the signatures used here.
  */
 function composeUltra(
   scenePass: ScenePass,
   camera: THREE.Camera,
   quality: QualitySettings,
-): THREE.Node {
+): ColorNode {
   scenePass.setMRT(
     mrt({
       output,
@@ -52,37 +89,111 @@ function composeUltra(
     }),
   );
 
+  // SSGI + DoF are typed for a `PerspectiveCamera`; the world only ever mounts
+  // a perspective camera, so narrow structurally (no `any`).
+  const perspective = camera as THREE.PerspectiveCamera;
+
   const color = scenePass.getTextureNode("output");
   const depth = scenePass.getTextureNode("depth");
   const normalTex = scenePass.getTextureNode("normal");
   const metalnessTex = scenePass.getTextureNode("metalness");
   const roughnessTex = scenePass.getTextureNode("roughness");
+  const velocityTex = scenePass.getTextureNode("velocity");
 
-  // GTAO grounds objects: multiply the lit color by the AO factor so contacts
-  // (car-to-road, prop bases, wheel wells) darken.
-  const aoFactor = ao(depth, normalTex, camera).getTextureNode();
-  const grounded = color.mul(vec4(vec3(aoFactor.r), 1));
+  // --- Indirect lighting / AO ---------------------------------------------
+  // SSGI evaluates to vec4(indirectGI.rgb, ao.a). The physically-correct
+  // composite is `beauty * AO + GI`, which folds ambient occlusion in — so the
+  // standalone GTAO pass is intentionally skipped under SSGI (the ULTRA preset
+  // sets `gtao:false`) to avoid double-darkening. `gtao` stays the lighter
+  // contact-AO path for an ultra config that disables SSGI.
+  let lit: ColorNode = color;
+  if (quality.ssgi) {
+    // `SSGINode extends TempNode<"vec4">`, so the node is itself a chainable
+    // vec4 colour node — `.rgb`/`.a` read straight off it.
+    const gi: ColorNode = ssgi(color, depth, normalTex, perspective);
+    lit = color.mul(gi.a).add(gi.rgb);
+  } else if (quality.gtao) {
+    const aoFactor = ao(depth, normalTex, camera).getTextureNode();
+    lit = color.mul(vec4(vec3(aoFactor.r), 1));
+  }
 
-  // Wet-road SSR: the node discards non-metallic fragments internally, so only
-  // the glossy road zone + metallic car body reflect; add it over the color.
-  const reflections = ssr(
-    color,
-    depth,
-    normalTex,
-    metalnessTex,
-    roughnessTex,
-    camera,
-  ).getTextureNode();
-  const reflective = grounded.add(reflections);
+  // --- Screen-space reflections (wet road + car metal) --------------------
+  // The node discards non-metallic fragments internally, so only the glossy
+  // road zone + metallic body reflect; add it over the lit color.
+  let reflective: ColorNode = lit;
+  if (quality.ssr) {
+    const reflections = ssr(
+      lit,
+      depth,
+      normalTex,
+      metalnessTex,
+      roughnessTex,
+      camera,
+    ).getTextureNode();
+    reflective = lit.add(reflections);
+  }
 
+  // --- Temporal AA ---------------------------------------------------------
+  // TRAA resolves edge/temporal aliasing using history + the velocity MRT; it
+  // jitters the camera projection internally (no camera-rig change needed).
+  let resolved: ColorNode = reflective;
+  if (quality.traa) {
+    // `getTextureNode()` exists at runtime but is absent from TRAANode's r184
+    // `.d.ts` — go through `unknown` to reach the structural `HasTextureNode`.
+    const node = traa(
+      reflective,
+      depth,
+      velocityTex,
+      camera,
+    ) as unknown as HasTextureNode;
+    resolved = node.getTextureNode();
+  }
+
+  // --- Motion blur (velocity MRT) -----------------------------------------
+  // Smears along per-pixel screen motion — the orbiting camera streaks the
+  // background past the car. `velocity` is a vec2 motion-vector texture.
+  let moving: ColorNode = resolved;
+  if (quality.motionBlur) {
+    moving = motionBlur(resolved, velocityTex.xy, int(MOTION_BLUR_SAMPLES));
+  }
+
+  // --- Depth of field ------------------------------------------------------
+  // Bokeh falloff focused on the car. `dof` takes a viewZ node (negative view-
+  // space depth) derived from the pass's depth attachment.
+  let focused: ColorNode = moving;
+  if (quality.dof) {
+    const viewZ = scenePass.getViewZNode("depth");
+    // `getTextureNode()` exists at runtime but is absent from
+    // DepthOfFieldNode's r184 `.d.ts` — go through `unknown` to reach it.
+    const node = dof(
+      moving,
+      viewZ,
+      DOF_FOCUS_DISTANCE,
+      DOF_FOCAL_LENGTH,
+      DOF_BOKEH_SCALE,
+    ) as unknown as HasTextureNode;
+    focused = node.getTextureNode();
+  }
+
+  // --- Bloom + warm grade + vignette --------------------------------------
   const bloomPass = bloom(
-    reflective,
+    focused,
     quality.bloomStrength,
     quality.bloomRadius,
     0.8,
   );
+  const withBloom: ColorNode = focused.add(bloomPass);
+
+  // Warm/teal cinematic grade as the very last colour op (zero-asset TSL node,
+  // not a 3D-LUT). `colorGrade` blends it in so it stays dialable.
+  let finalColor: ColorNode = withBloom;
+  if (quality.colorGrade > 0) {
+    const graded = gradeColor(withBloom.rgb);
+    finalColor = vec4(mix(withBloom.rgb, graded, quality.colorGrade), 1);
+  }
+
   const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
-  return reflective.add(bloomPass).mul(vignette);
+  return finalColor.mul(vignette);
 }
 
 /**

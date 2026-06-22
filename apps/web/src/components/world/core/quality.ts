@@ -19,11 +19,24 @@ export interface QualitySettings {
    * intends to stack; the passes themselves stay gated to
    * `isUltra && backend.isWebGPUBackend` in `core/post-fx.tsx` (never built on
    * webgl/2d). Off on every non-ultra preset — the bloom+vignette floor.
+   *
+   * `ssgi` carries its own ambient-occlusion term, so when it is on the
+   * standalone `gtao` pass is dropped (compose-time) to avoid double-darkening;
+   * `gtao` is the lighter contact-AO fallback for ultra without SSGI.
    */
   gtao: boolean;
   ssr: boolean;
   traa: boolean;
   motionBlur: boolean;
+  /** Screen-space global illumination (indirect bounce + AO). Heaviest pass. */
+  ssgi: boolean;
+  /** Depth-of-field bokeh (cinematic focus falloff). */
+  dof: boolean;
+  /**
+   * Warm/teal cinematic colour grade strength (lift-gamma-gain, 0 disables).
+   * A scene-end TSL grade node — NOT a 3D-LUT — so it ships zero asset bytes.
+   */
+  colorGrade: number;
 }
 
 const WEBGPU: QualitySettings = {
@@ -42,6 +55,9 @@ const WEBGPU: QualitySettings = {
   ssr: false,
   traa: false,
   motionBlur: false,
+  ssgi: false,
+  dof: false,
+  colorGrade: 0,
 };
 
 const WEBGL: QualitySettings = {
@@ -58,6 +74,9 @@ const WEBGL: QualitySettings = {
   ssr: false,
   traa: false,
   motionBlur: false,
+  ssgi: false,
+  dof: false,
+  colorGrade: 0,
 };
 
 /**
@@ -65,13 +84,25 @@ const WEBGL: QualitySettings = {
  * own). It raises `shadowMapSize`/`maxDpr` and flags the heavy WebGPU-only
  * passes; it only applies when the orthogonal ultra axis resolves ON and the
  * tier is `webgpu` (see `qualityFor`).
+ *
+ * The cinematic Forza-style stack — SSGI (indirect bounce + AO), wet-road SSR,
+ * velocity motion-blur, depth-of-field, TRAA, and a warm/teal grade — is flagged
+ * here but only ever BUILT in `core/post-fx.tsx` under
+ * `isUltra && isWebGPUBackend && sceneSupportsUltraPostFX(scene)`. `gtao` stays
+ * OFF because SSGI already supplies ambient occlusion (enabling both would
+ * double-darken contacts).
  */
 const ULTRA: QualitySettings = {
   ...WEBGPU,
   maxDpr: 2.5,
   shadowMapSize: 4096,
-  gtao: true,
+  gtao: false,
   ssr: true,
+  ssgi: true,
+  motionBlur: true,
+  dof: true,
+  traa: true,
+  colorGrade: 1,
 };
 
 /**
