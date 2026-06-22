@@ -12,12 +12,17 @@ generated brown-noise ambient bed (`apps/web/src/components/world/audio/`).
 There are **no third-party audio files** in this repository and nothing is
 fetched at runtime, so no attribution is required.
 
-## 3D geometry & textures
+## 3D models
 
-Most world geometry is original — generated in code or built from primitives
-(the coastal circuit, the placeholder vehicle, cliffs, and foliage). Nothing is
-derived from any franchise or third-party asset, per the project's
-no-copyrighted-IP rule.
+- **`apps/web/public/models/car.glb`** — low-poly "Car" sedan from the **"Cars"
+  pack by Quaternius** (quaternius.com). Quaternius releases all assets as
+  **CC0** (public domain); the poly.pizza mirror this file was fetched from
+  (`static.poly.pizza`, model `HQ0hvRM2XR`) labels it **CC-BY 3.0**. Either way
+  it is original art (no real-brand car / livery) and attribution is given here.
+  Only the body shell ships — the source's combined wheel meshes are dropped and
+  the car runs on four code-generated wheels; the body is re-skinned at runtime
+  with a clearcoat paint + tinted-glass material (`vehicle/car.tsx`). Used by the
+  drivable circuit (Chapter 1).
 
 ### Sourced CC0 assets (hero scene)
 
@@ -56,6 +61,26 @@ franchise/film/game IP is present in any model, node name, texture, or material.
   **`apps/web/public/assets/road/asphalt_roughness.jpg`** — "Asphalt012" from
   **ambientCG**, **CC0** (Public Domain). Resized from 2K to 1024² JPG.
   Source: https://ambientcg.com/view?id=Asphalt012
+
+## 3D geometry
+
+The rest of the world geometry is original — generated in code or built from
+primitives (the coastal circuit, the placeholder vehicle, cliffs, and foliage).
+Nothing is derived from any franchise or third-party asset, per the project's
+no-copyrighted-IP rule.
+
+## PBR textures
+
+CC0 (public domain) material sets from **ambientCG** (ambientcg.com). CC0
+requires no attribution; credited here as good practice. Each set ships only the
+albedo (Color), OpenGL normal (NormalGL), and roughness maps at 1K-JPG.
+
+- **`apps/web/public/textures/road/asphalt_*.jpg`** — ambientCG **"Asphalt002"**.
+  Tiled along the track ribbon's UVs (`scenes/circuit/track.tsx`) for the road
+  surface.
+- **`apps/web/public/textures/ground/rock_*.jpg`** — ambientCG **"Rock035"**
+  (dark volcanic rock). Tiles the coastal land plane and the cliff instances
+  (`scenes/circuit/scenery.tsx`).
 
 ## HDRI / environment maps
 

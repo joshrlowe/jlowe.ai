@@ -17,6 +17,13 @@ export const CIRCUIT_POINTS: readonly Point3[] = [
 
 export const TRACK_HALF_WIDTH = 5.5;
 
+/**
+ * Real-world metres covered by one tile of the tarmac texture. Drives the UV
+ * scale so the asphalt stays the same physical size whether it's swept across
+ * the width or along the (much longer) length of the loop.
+ */
+export const ROAD_TILE_METERS = 4;
+
 export interface TrackData {
   geometry: THREE.BufferGeometry;
   curve: THREE.CatmullRomCurve3;
@@ -26,8 +33,11 @@ export interface TrackData {
 /**
  * Build a flat road ribbon swept along a closed Catmull-Rom spline: two edge
  * vertices per sample (left/right of the tangent), triangulated into one
- * BufferGeometry (→ a single draw call) with a subtle edge-darkening baked into
- * vertex colors. The same curve drives beacon placement and the spawn pose.
+ * BufferGeometry (→ a single draw call). Carries a `uv` attribute (U across the
+ * width, V along the cumulative centre-line distance, both scaled by
+ * ROAD_TILE_METERS) so a tiling PBR tarmac material maps on at a constant
+ * physical size; a legacy flat `color` attribute is kept for back-compat. The
+ * same curve drives beacon placement and the spawn pose.
  */
 export function buildTrack(
   points: readonly Point3[] = CIRCUIT_POINTS,
@@ -43,24 +53,38 @@ export function buildTrack(
 
   const positions: number[] = [];
   const colors: number[] = [];
+  const uvs: number[] = [];
   const indices: number[] = [];
   const up = new THREE.Vector3(0, 1, 0);
   const point = new THREE.Vector3();
+  const prev = new THREE.Vector3();
   const tangent = new THREE.Vector3();
   const side = new THREE.Vector3();
+
+  // V follows cumulative centre-line distance so the tarmac tiles at a constant
+  // physical size around the loop; U runs across the full width. Both are scaled
+  // by ROAD_TILE_METERS so a tile is the same size lengthwise and widthwise.
+  const widthU = (halfWidth * 2) / ROAD_TILE_METERS;
+  let dist = 0;
 
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     curve.getPointAt(t, point);
     curve.getTangentAt(t, tangent);
     side.crossVectors(tangent, up).normalize();
+    if (i > 0) dist += point.distanceTo(prev);
+    prev.copy(point);
+    const v = dist / ROAD_TILE_METERS;
+    let u = 0;
     for (const s of [-1, 1]) {
       positions.push(
         point.x + side.x * halfWidth * s,
         point.y,
         point.z + side.z * halfWidth * s,
       );
-      colors.push(0.05, 0.05, 0.06); // dark asphalt
+      colors.push(0.05, 0.05, 0.06); // dark asphalt (inert; PBR maps drive the look)
+      uvs.push(u, v);
+      u = widthU;
     }
   }
 
@@ -78,6 +102,7 @@ export function buildTrack(
     new THREE.Float32BufferAttribute(positions, 3),
   );
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
 

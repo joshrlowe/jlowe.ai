@@ -12,7 +12,7 @@ import { type RefObject, useRef } from "react";
 import * as THREE from "three/webgpu";
 
 import { inputStore } from "../state/input-store";
-import { PlaceholderCarBody } from "./placeholder-car";
+import { CarBody } from "./car";
 import {
   CHASSIS_HALF,
   SUSPENSION_DOWN,
@@ -20,6 +20,7 @@ import {
   WHEEL_CONNECTIONS,
 } from "./tuning";
 import { useVehicleTuning } from "./use-vehicle-tuning";
+import { DetailedWheel } from "./wheel";
 
 type VehicleController = ReturnType<
   ReturnType<typeof useRapier>["world"]["createVehicleController"]
@@ -31,15 +32,6 @@ export interface SpawnPose {
 }
 
 const DEFAULT_SPAWN: SpawnPose = { position: [0, 1.2, 0], heading: 0 };
-
-function Wheel({ radius }: { radius: number }) {
-  return (
-    <mesh rotation={[0, 0, Math.PI / 2]}>
-      <cylinderGeometry args={[radius, radius, 0.3, 18]} />
-      <meshStandardMaterial color="#0a0807" roughness={0.85} metalness={0.1} />
-    </mesh>
-  );
-}
 
 interface VehicleProps {
   chassisRef: RefObject<RapierRigidBody | null>;
@@ -186,7 +178,7 @@ export function Vehicle({
         args={[CHASSIS_HALF.x, CHASSIS_HALF.y, CHASSIS_HALF.z]}
         mass={tuning.chassisMass}
       />
-      <PlaceholderCarBody />
+      <CarBody />
       <object3D ref={cameraTargetRef} position={[0, 1, -0.5]} />
       {WHEEL_CONNECTIONS.map((_, i) => (
         <group
@@ -195,7 +187,7 @@ export function Vehicle({
             wheels.current[i] = el;
           }}
         >
-          <Wheel radius={tuning.wheelRadius} />
+          <DetailedWheel radius={tuning.wheelRadius} />
         </group>
       ))}
     </RigidBody>
