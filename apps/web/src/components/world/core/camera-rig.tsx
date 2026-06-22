@@ -5,7 +5,12 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { type RefObject, useMemo, useRef } from "react";
 import * as THREE from "three/webgpu";
 
-export type CameraMode = "rails" | "free" | "chase";
+import {
+  cinematicCameraPose,
+  type CinematicPathConfig,
+} from "../scenes/hero/camera-path";
+
+export type CameraMode = "rails" | "free" | "chase" | "cinematic";
 
 interface CameraRigProps {
   mode?: CameraMode;
@@ -16,6 +21,8 @@ interface CameraRigProps {
   /** Object to follow in `chase` mode. */
   target?: RefObject<THREE.Object3D | null>;
   speed?: number;
+  /** Slow dolly-orbit config for `cinematic` mode (non-interactive scenes). */
+  cinematic?: CinematicPathConfig;
 }
 
 /**
@@ -28,6 +35,7 @@ export function CameraRig({
   lookAt = [0, 0, 0],
   target,
   speed = 0.04,
+  cinematic,
 }: CameraRigProps) {
   const { camera } = useThree();
 
@@ -44,8 +52,12 @@ export function CameraRig({
   const lookReady = useRef(false);
   const quat = useRef(new THREE.Quaternion());
 
-  useFrame((_, delta) => {
-    if (mode === "rails" && curve) {
+  useFrame((state, delta) => {
+    if (mode === "cinematic" && cinematic) {
+      const pose = cinematicCameraPose(state.clock.elapsedTime, cinematic);
+      camera.position.set(pose.position[0], pose.position[1], pose.position[2]);
+      camera.lookAt(pose.lookAt[0], pose.lookAt[1], pose.lookAt[2]);
+    } else if (mode === "rails" && curve) {
       t.current = (t.current + delta * speed) % 1;
       curve.getPointAt(t.current, scratch.current);
       camera.position.copy(scratch.current);

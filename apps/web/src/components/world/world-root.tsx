@@ -1,13 +1,14 @@
 "use client";
 
-import type { Route } from "next";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCapabilityTier } from "@/lib/use-capability-tier";
+import { useQualityParam } from "@/lib/use-quality-param";
+import { queueTwoDNotice } from "@/lib/two-d-notice";
+import { selectIsUltra } from "@/lib/ultra";
 
 function CanvasLoading() {
   return (
@@ -26,23 +27,26 @@ const WorldExperience = dynamic(
 
 export function WorldRoot() {
   const report = useCapabilityTier();
+  const qualityOverride = useQualityParam();
   const router = useRouter();
   const notified = useRef(false);
 
   useEffect(() => {
     if (report?.tier !== "2d" || notified.current) return;
     notified.current = true;
-    toast("This device runs the 2D experience", {
-      description: "Your browser or settings don't support the 3D world.",
-      action: {
-        label: "Try 3D anyway",
-        // typedRoutes can't type a query string; the path itself is valid.
-        onClick: () => router.replace("/world/?mode=webgl" as Route),
-      },
-    });
+    // Queue the 2D notice; the (lazy) Toaster emits it once subscribed so it
+    // survives this redirect on a cold load. See lib/two-d-notice.
+    queueTwoDNotice();
     router.replace("/");
   }, [report?.tier, router]);
 
   if (report === null || report.tier === "2d") return <CanvasLoading />;
-  return <WorldExperience tier={report.tier} />;
+
+  const isUltra = selectIsUltra({
+    tier: report.tier,
+    override: qualityOverride,
+    adapterConfirmed: report.signals.adapterConfirmed,
+    deviceMemory: report.signals.deviceMemory,
+  });
+  return <WorldExperience tier={report.tier} isUltra={isUltra} />;
 }
