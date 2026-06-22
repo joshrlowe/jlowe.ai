@@ -36,8 +36,21 @@ describe("qualityFor", () => {
     const webgpu = qualityForTier("webgpu");
     expect(ultra.shadowMapSize).toBeGreaterThan(webgpu.shadowMapSize);
     expect(ultra.maxDpr).toBeGreaterThanOrEqual(webgpu.maxDpr);
-    expect(ultra.gtao).toBe(true);
     expect(ultra.ssr).toBe(true);
+  });
+
+  it("stacks the cinematic ultra post-FX passes (SSGI/MB/DoF/TRAA/grade)", () => {
+    const ultra = qualityFor("webgpu", true);
+    expect(ultra.ssgi).toBe(true);
+    expect(ultra.motionBlur).toBe(true);
+    expect(ultra.dof).toBe(true);
+    expect(ultra.traa).toBe(true);
+    expect(ultra.colorGrade).toBeGreaterThan(0);
+  });
+
+  it("drops standalone GTAO under ultra (SSGI carries the AO term)", () => {
+    // Enabling both would double-darken contacts; SSGI's `.a` is the AO factor.
+    expect(qualityFor("webgpu", true).gtao).toBe(false);
   });
 
   it("never enables ultra heavy passes on the floor presets", () => {
@@ -46,6 +59,9 @@ describe("qualityFor", () => {
       expect(q.ssr).toBe(false);
       expect(q.traa).toBe(false);
       expect(q.motionBlur).toBe(false);
+      expect(q.ssgi).toBe(false);
+      expect(q.dof).toBe(false);
+      expect(q.colorGrade).toBe(0);
     }
   });
 

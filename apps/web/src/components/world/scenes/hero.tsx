@@ -4,7 +4,9 @@ import { CameraRig } from "../core/camera-rig";
 import { useQuality } from "../core/quality-provider";
 import { GoldenHourEnvironment } from "./circuit/environment";
 import type { CinematicPathConfig } from "./hero/camera-path";
+import { HeroCubeReflection } from "./hero/cube-reflection";
 import { HeroCar } from "./hero/hero-car";
+import { HeroEnvironment } from "./hero/hero-environment";
 import { HeroGrade } from "./hero/hero-grade";
 import { HeroProps } from "./hero/props";
 import { HeroRoad } from "./hero/road";
@@ -31,10 +33,12 @@ export function HeroScene() {
   return (
     <>
       <HeroGrade />
+      <HeroEnvironment />
       <GoldenHourEnvironment sunCastShadow shadowMapSize={shadowMapSize} />
       <HeroRoad />
       <HeroProps />
       <HeroCar />
+      <HeroCubeReflection />
       <CameraRig mode="cinematic" cinematic={CINEMATIC} />
     </>
   );
