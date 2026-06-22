@@ -15,29 +15,30 @@ function node(
 }
 
 describe("classifyCarPart", () => {
-  it("maps the body paint material to the clearcoat body", () => {
-    expect(classifyCarPart("White", false)).toBe("body");
+  it("maps the red bodywork material to the clearcoat body", () => {
+    expect(classifyCarPart("Material.005", false)).toBe("body");
   });
 
-  it("treats Grey as a metallic part (rim/trim) regardless of location", () => {
-    expect(classifyCarPart("Grey", true)).toBe("rim");
-    expect(classifyCarPart("Grey", false)).toBe("rim");
+  it("maps the blue accent material to dark metallic trim", () => {
+    expect(classifyCarPart("Material.006", false)).toBe("trim");
   });
 
-  it("splits Black into a tire on a wheel and dark trim on the body", () => {
-    expect(classifyCarPart("Black", true)).toBe("tire");
-    expect(classifyCarPart("Black", false)).toBe("trim");
+  it("maps the grey material to a metallic rim", () => {
+    expect(classifyCarPart("Material.007", false)).toBe("rim");
   });
 
-  it("maps the glass + light materials to their parts", () => {
-    expect(classifyCarPart("Windows", false)).toBe("glass");
-    expect(classifyCarPart("Headlights", false)).toBe("headlight");
-    expect(classifyCarPart("TailLights", false)).toBe("taillight");
+  it("maps the black material to the tire", () => {
+    expect(classifyCarPart("Material.008", false)).toBe("tire");
   });
 
-  it("falls back to trim for unknown material names", () => {
+  it("maps the dark cockpit material to glass", () => {
+    expect(classifyCarPart("Material.009", false)).toBe("glass");
+  });
+
+  it("falls back to tire on a wheel and trim elsewhere for unknown names", () => {
+    expect(classifyCarPart("Mystery", true)).toBe("tire");
     expect(classifyCarPart("Mystery", false)).toBe("trim");
-    expect(classifyCarPart("", true)).toBe("trim");
+    expect(classifyCarPart("", false)).toBe("trim");
   });
 });
 

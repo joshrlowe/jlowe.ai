@@ -34,13 +34,16 @@ franchise/film/game IP is present in any model, node name, texture, or material.
 
 **Car model**
 
-- **`apps/web/public/hero/car/sports-car.glb`** — "Sports Car" by
-  **Quaternius** via **Poly Pizza**, **CC0** (Public Domain).
-  Source: https://poly.pizza/m/1mkmFkAz5v
-  Original mesh node names were remapped for the vehicle rig to
-  `chassis`, `wheel_FL`, `wheel_FR`, `wheel_RL`, `wheel_RR` (the source merged
-  both rear wheels into one mesh; it was split into `wheel_RL`/`wheel_RR`).
-  Geometry Draco-compressed.
+- **`apps/web/public/hero/car/f1-car.glb`** — "Racing car" by **scaranto** via
+  **Poly Pizza**, **CC0 1.0** (Public Domain). A generic open-wheel / F1-style
+  single-seater — original art with **no real team livery or sponsor logos**.
+  Source: https://poly.pizza/m/EMcTJiXibv
+  The whole body is one mesh of five flat-coloured materials
+  (`Material.005`–`Material.009`); no node names were changed. Optimized with
+  gltf-transform (`dedup` → `weld` → `prune` → Draco geometry compression);
+  the untextured TEXCOORD_0 attributes were pruned. ~1.1k triangles; the
+  compressed GLB is ≈10 KB. Re-skinned at runtime with clearcoat paint, metallic
+  rims, rough tires, dark cockpit glass, and dark trim (`scenes/hero/`).
 
 **Roadside props**
 
