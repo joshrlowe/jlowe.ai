@@ -2,7 +2,6 @@
 
 import { useProgress } from "@react-three/drei";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { queueTwoDNotice } from "@/lib/two-d-notice";
@@ -46,24 +45,32 @@ export function PreflightHud() {
   }, [active]);
 
   // Stall watchdog. The loader hides only when the manager goes idle, so a hung
-  // load (an asset that never resolves AND never errors) would pin it forever.
-  // Bail to the 2D site if progress stops advancing for STALL_TIMEOUT_MS. The
-  // effect re-runs on every `maxSeen` advance, resetting the timer — so only a
-  // genuinely stalled load trips it, never a slow-but-progressing one.
+  // load (an asset/decoder that never resolves AND never errors — e.g. a Draco
+  // worker the CSP blocks) would pin it forever. If progress stops advancing for
+  // STALL_TIMEOUT_MS, fall forward to the 2D site. A stable 1s interval polls a
+  // last-advance timestamp ref, so nothing — re-render churn, a fluctuating
+  // asset total, an unstable router — can perpetually reset or defeat it; the
+  // hard navigation is router-independent on purpose.
   // NOTE (P5): once the arrival lives on "/", revisit this target so a stall on
   // the home route dismisses the 3D layer instead of self-navigating.
-  const router = useRouter();
   const bailed = useRef(false);
+  const lastAdvance = useRef(0);
   useEffect(() => {
-    if (done || bailed.current) return;
-    const timer = setTimeout(() => {
+    lastAdvance.current = Date.now();
+  }, [maxSeen]);
+  useEffect(() => {
+    if (done) return;
+    const id = window.setInterval(() => {
       if (bailed.current) return;
-      bailed.current = true;
-      queueTwoDNotice();
-      router.replace("/");
-    }, STALL_TIMEOUT_MS);
-    return () => clearTimeout(timer);
-  }, [maxSeen, done, router]);
+      if (Date.now() - lastAdvance.current > STALL_TIMEOUT_MS) {
+        bailed.current = true;
+        window.clearInterval(id);
+        queueTwoDNotice();
+        window.location.assign("/");
+      }
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [done]);
 
   return (
     <div
