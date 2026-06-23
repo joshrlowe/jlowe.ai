@@ -2,11 +2,21 @@
 
 import { useProgress } from "@react-three/drei";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
+import { queueTwoDNotice } from "@/lib/two-d-notice";
 import { cn } from "@/lib/utils";
 
 import { latchProgress, loadingLabel } from "./preflight-progress";
+
+// Progress hasn't advanced for this long while the loader is still up → treat
+// the load as hung (an asset/decoder that neither resolved nor errored, so the
+// manager never goes idle) and fall forward to the 2D site. Generous enough not
+// to bail a slow-but-working download — manager progress is flat for the whole
+// of a single in-flight item — but a hard ceiling on the "stuck forever" the
+// loader used to allow.
+const STALL_TIMEOUT_MS = 20_000;
 
 /**
  * Diegetic "pre-flight systems check" loader — a DOM overlay (outside the
@@ -34,6 +44,26 @@ export function PreflightHud() {
     const timer = setTimeout(() => setDone(true), 600);
     return () => clearTimeout(timer);
   }, [active]);
+
+  // Stall watchdog. The loader hides only when the manager goes idle, so a hung
+  // load (an asset that never resolves AND never errors) would pin it forever.
+  // Bail to the 2D site if progress stops advancing for STALL_TIMEOUT_MS. The
+  // effect re-runs on every `maxSeen` advance, resetting the timer — so only a
+  // genuinely stalled load trips it, never a slow-but-progressing one.
+  // NOTE (P5): once the arrival lives on "/", revisit this target so a stall on
+  // the home route dismisses the 3D layer instead of self-navigating.
+  const router = useRouter();
+  const bailed = useRef(false);
+  useEffect(() => {
+    if (done || bailed.current) return;
+    const timer = setTimeout(() => {
+      if (bailed.current) return;
+      bailed.current = true;
+      queueTwoDNotice();
+      router.replace("/");
+    }, STALL_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [maxSeen, done, router]);
 
   return (
     <div
