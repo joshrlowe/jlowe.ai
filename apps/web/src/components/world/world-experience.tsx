@@ -32,9 +32,12 @@ import { WorldCanvas } from "./world-canvas";
 export function WorldExperience({
   tier,
   isUltra,
+  onRendererError,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
   isUltra: boolean;
+  /** Fatal renderer-init failure → the parent steps down a tier (or to 2D). */
+  onRendererError?: (error: unknown) => void;
 }) {
   const debug = useDebugFlag();
   const sceneParam = useSceneParam();
@@ -60,6 +63,7 @@ export function WorldExperience({
         isUltra={isUltra}
         debug={debug}
         activeScene={activeScene}
+        onRendererError={onRendererError}
       />
       <PreflightHud />
       {showTouchControls ? <TouchControls /> : null}

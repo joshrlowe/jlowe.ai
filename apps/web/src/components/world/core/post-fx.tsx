@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { dof } from "three/addons/tsl/display/DepthOfFieldNode.js";
 import { ao } from "three/addons/tsl/display/GTAONode.js";
@@ -211,66 +211,99 @@ export function PostFX({ activeScene }: { activeScene: string }) {
   const pipeline = useMemo(() => {
     // Tone mapping is set on the renderer at construction (see world-canvas).
     const renderer = gl as unknown as THREE.WebGPURenderer;
-    const scenePass = pass(scene, camera);
 
     // `isWebGPUBackend` lives on the WebGPUBackend subclass; the typed
     // `renderer.backend` is the base `Backend`, so reach it structurally.
     const backend = renderer.backend as { isWebGPUBackend?: boolean };
     const isWebGPU = backend.isWebGPUBackend === true;
 
-    // Ultra branch (WebGPU backend only, AND only scenes that opt in): MRT +
-    // GTAO + wet-road SSR over the floor. The post-FX chain is scene-agnostic,
-    // so the scene gate is what keeps circuit / proving-ground floor-only under
-    // ?quality=ultra. The webgl/2d backends, every non-ultra path, and
-    // non-opted-in scenes skip this entirely — no MRT, no ultra nodes — keeping
-    // the bloom+vignette floor byte-for-byte identical to before.
-    if (isUltra && isWebGPU && sceneSupportsUltraPostFX(activeScene)) {
+    // The universal floor — heat-shimmer (WebGPU only) → bloom → vignette — on
+    // its own scene pass so it stands alone as the ultra fallback. Byte-for-byte
+    // the previous floor chain; only lifted into a closure.
+    const buildFloor = () => {
+      const scenePass = pass(scene, camera);
+      const color = scenePass.getTextureNode("output");
+
+      // Heat-shimmer: resample the rendered scene at a time-animated, horizon-
+      // masked UV offset — hot air rising off the tarmac at golden hour. WebGPU
+      // only (gated on the backend); on the WebGL2 fallback `base` stays the
+      // undistorted scene color, so the chain is a clean no-op there.
+      // Widen to the resample-result node type so the shimmer branch can reassign.
+      let base: ReturnType<typeof color.sample> = color;
+      if (isWebGPU && quality.heatShimmer > 0) {
+        const amp = quality.heatShimmer;
+        const t = time.mul(1.6);
+        // Strongest low on screen (near tarmac), fading out into the sky.
+        const heat = smoothstep(0.78, 0.18, screenUV.y);
+        const dx = sin(screenUV.y.mul(38).add(t))
+          .add(sin(screenUV.x.mul(19).sub(t.mul(1.3))))
+          .mul(amp)
+          .mul(heat);
+        const dy = cos(screenUV.x.mul(27).add(t.mul(0.8)))
+          .mul(amp * 0.6)
+          .mul(heat);
+        base = color.sample(screenUV.add(vec2(dx, dy)));
+      }
+
+      const bloomPass = bloom(
+        base,
+        quality.bloomStrength,
+        quality.bloomRadius,
+        0.8,
+      );
+
+      // Radial vignette from screen-space UV (no dedicated TSL node ships).
+      const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
+
       const renderPipeline = new THREE.RenderPipeline(renderer);
-      renderPipeline.outputNode = composeUltra(scenePass, camera, quality);
+      renderPipeline.outputNode = base.add(bloomPass).mul(vignette);
       return renderPipeline;
+    };
+
+    // Ultra branch (WebGPU backend only, AND only scenes that opt in): MRT +
+    // SSGI/SSR/TRAA/motion-blur/DoF over the floor. The chain is scene-agnostic,
+    // so the scene gate is what keeps circuit / proving-ground floor-only under
+    // ?quality=ultra. If the cinematic graph throws while building (a node or
+    // typings drift on this GPU/driver), fall down to the floor instead of
+    // bricking the frame loop — reliability over fidelity.
+    if (isUltra && isWebGPU && sceneSupportsUltraPostFX(activeScene)) {
+      try {
+        const scenePass = pass(scene, camera);
+        const renderPipeline = new THREE.RenderPipeline(renderer);
+        renderPipeline.outputNode = composeUltra(scenePass, camera, quality);
+        return renderPipeline;
+      } catch (error) {
+        console.warn(
+          "[world] ultra post-FX failed to build; using the bloom+vignette floor",
+          error,
+        );
+        return buildFloor();
+      }
     }
 
-    const color = scenePass.getTextureNode("output");
-
-    // Heat-shimmer: resample the rendered scene at a time-animated, horizon-
-    // masked UV offset — hot air rising off the tarmac at golden hour. WebGPU
-    // only (gated on the backend); on the WebGL2 fallback `base` stays the
-    // undistorted scene color, so the chain is a clean no-op there.
-    // Widen to the resample-result node type so the shimmer branch can reassign.
-    let base: ReturnType<typeof color.sample> = color;
-    if (isWebGPU && quality.heatShimmer > 0) {
-      const amp = quality.heatShimmer;
-      const t = time.mul(1.6);
-      // Strongest low on screen (near tarmac), fading out into the sky.
-      const heat = smoothstep(0.78, 0.18, screenUV.y);
-      const dx = sin(screenUV.y.mul(38).add(t))
-        .add(sin(screenUV.x.mul(19).sub(t.mul(1.3))))
-        .mul(amp)
-        .mul(heat);
-      const dy = cos(screenUV.x.mul(27).add(t.mul(0.8)))
-        .mul(amp * 0.6)
-        .mul(heat);
-      base = color.sample(screenUV.add(vec2(dx, dy)));
-    }
-
-    const bloomPass = bloom(
-      base,
-      quality.bloomStrength,
-      quality.bloomRadius,
-      0.8,
-    );
-
-    // Radial vignette from screen-space UV (no dedicated TSL node ships).
-    const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
-
-    const renderPipeline = new THREE.RenderPipeline(renderer);
-    renderPipeline.outputNode = base.add(bloomPass).mul(vignette);
-    return renderPipeline;
+    return buildFloor();
   }, [gl, scene, camera, isUltra, quality, activeScene]);
 
-  // A frame callback with priority > 0 takes the render loop over from R3F.
-  useFrame(() => {
-    pipeline.render();
+  // A frame callback with priority > 0 takes the render loop over from R3F, so
+  // the pipeline drives every frame. WebGPU compiles the TSL graph lazily on the
+  // first render(); if that throws (or any later frame does), stop driving the
+  // post-FX and fall back to a direct scene render so the world stays visible
+  // instead of freezing or black-screening.
+  const postFxFailed = useRef(false);
+  useFrame((state) => {
+    if (!postFxFailed.current) {
+      try {
+        pipeline.render();
+        return;
+      } catch (error) {
+        postFxFailed.current = true;
+        console.error(
+          "[world] post-FX render failed; falling back to direct render",
+          error,
+        );
+      }
+    }
+    (gl as unknown as THREE.WebGPURenderer).render(state.scene, state.camera);
   }, 1);
 
   useEffect(() => () => pipeline.dispose(), [pipeline]);

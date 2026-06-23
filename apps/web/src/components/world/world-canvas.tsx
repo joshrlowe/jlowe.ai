@@ -26,6 +26,27 @@ type WebGPURendererParams = ConstructorParameters<
   typeof THREE.WebGPURenderer
 >[0];
 
+/**
+ * Hard ceiling on `WebGPURenderer.init()`. A confirmed adapter can still hang or
+ * reject device creation (memory pressure, a lost GPU, a flaky driver); without
+ * a bound, R3F awaits the gl promise forever and the loader spins at its last
+ * percent with no recovery. Racing a timeout turns that into a normal rejection
+ * the caller can fall forward from.
+ */
+const RENDERER_INIT_TIMEOUT_MS = 10_000;
+
+function withInitTimeout<T>(init: Promise<T>): Promise<T> {
+  return Promise.race([
+    init,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () => reject(new Error("WebGPURenderer.init() timed out")),
+        RENDERER_INIT_TIMEOUT_MS,
+      ),
+    ),
+  ]);
+}
+
 // Scenes own their own camera (CameraRig). Every chapter scene's renderer lives
 // here keyed by its sceneKey; the chapter scene set is sourced from CHAPTERS so
 // registering a chapter wires its scene automatically.
@@ -63,11 +84,14 @@ export function WorldCanvas({
   isUltra,
   debug,
   activeScene,
+  onRendererError,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
   isUltra: boolean;
   debug: boolean;
   activeScene: string;
+  /** Renderer create/init failed — caller steps down a tier (or to 2D). */
+  onRendererError?: (error: unknown) => void;
 }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
   const active = resolveSceneKey(activeScene, SCENES, DEFAULT_SCENE);
@@ -85,14 +109,22 @@ export function WorldCanvas({
       shadows="soft"
       camera={{ position: [6, 4, 8], fov: 50 }}
       gl={async (props) => {
-        const renderer = new THREE.WebGPURenderer({
-          ...(props as WebGPURendererParams),
-          forceWebGL,
-          antialias: true,
-        });
-        await renderer.init();
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        return renderer;
+        try {
+          const renderer = new THREE.WebGPURenderer({
+            ...(props as WebGPURendererParams),
+            forceWebGL,
+            antialias: true,
+          });
+          await withInitTimeout(renderer.init());
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          return renderer;
+        } catch (error) {
+          // Surface to the caller (WorldRoot) so it can remount on WebGL2 or
+          // bounce to the 2D site, then rethrow so the error boundary also trips
+          // if R3F doesn't reject the canvas commit on its own.
+          onRendererError?.(error);
+          throw error;
+        }
       }}
     >
       <QualityProvider tier={tier} isUltra={isUltra}>
