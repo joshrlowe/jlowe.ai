@@ -140,13 +140,19 @@ resource "aws_cloudfront_response_headers_policy" "site" {
       # physics, three) without permitting general eval().
       # Next (inline bootstrap, no server to mint nonces). Hash-tightening is a
       # later-phase TODO.
+      # `blob:` is required by the 3D loaders: DRACOLoader runs its decoder in a
+      # blob-URL Web Worker (worker-src — set explicitly so script-src stays
+      # tight for general scripts), and GLTFLoader materialises GLB-embedded
+      # textures as blob: object URLs it fetches / loads as images (connect-src,
+      # img-src). Every blob: URL is same-origin and app-generated.
       content_security_policy = join(" ", [
         "default-src 'self';",
         "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';",
+        "worker-src 'self' blob:;",
         "style-src 'self' 'unsafe-inline';",
-        "img-src 'self' data:;",
+        "img-src 'self' data: blob:;",
         "font-src 'self' data:;",
-        "connect-src 'self';",
+        "connect-src 'self' blob:;",
         "object-src 'none';",
         "base-uri 'self';",
         "form-action 'self';",
