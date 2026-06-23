@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { type RefObject, useEffect, useMemo } from "react";
 import type { Material, Mesh, Object3D } from "three/webgpu";
 
 import { createCarMaterial } from "./car-materials";
@@ -24,10 +24,10 @@ const SCALE = 0.9;
 const LIFT = 0.372 * SCALE;
 
 /**
- * Yaw that aims the nose down +z (the road direction, matching the old car).
- * The model is authored with its nose toward local −x, so a +90° turn about y
- * maps that to +z. The cinematic camera orbits the car a full 360°, so the
- * exact heading is cosmetic — it just needs to read as "facing forward".
+ * The model's intrinsic yaw offset: its nose is authored toward local −x, so a
+ * +90° turn about y points it down +z. It's applied to the car primitive; the
+ * wrapping node (driven by the scene) adds the path-following yaw on top, so at
+ * node-yaw 0 the nose faces +z (the +z straight of the drive loop). car-rail.ts.
  */
 const HEADING_Y = Math.PI / 2;
 
@@ -41,8 +41,16 @@ const HEADING_Y = Math.PI / 2;
  * golden-hour HDRI on both backends. The wheels are part of the single body
  * mesh (not separable nodes), so the whole car renders as one object; every
  * mesh casts and receives the sun's soft shadow.
+ *
+ * The car rides an `<object3D>` node that the scene drives along the closed loop
+ * each frame (see hero.tsx + car-rail.ts); the cinematic camera chases the same
+ * node. Without a `driveRef` it renders parked at the origin.
  */
-export function HeroCar() {
+export function HeroCar({
+  driveRef,
+}: {
+  driveRef?: RefObject<Object3D | null>;
+}) {
   const scene = useGltfScene(CAR_URL);
 
   const { object, materials } = useMemo(() => {
@@ -70,11 +78,13 @@ export function HeroCar() {
   );
 
   return (
-    <primitive
-      object={object}
-      position={[0, LIFT, 0]}
-      rotation={[0, HEADING_Y, 0]}
-      scale={SCALE}
-    />
+    <object3D ref={driveRef}>
+      <primitive
+        object={object}
+        position={[0, LIFT, 0]}
+        rotation={[0, HEADING_Y, 0]}
+        scale={SCALE}
+      />
+    </object3D>
   );
 }
