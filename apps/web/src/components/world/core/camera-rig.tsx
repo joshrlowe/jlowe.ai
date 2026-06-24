@@ -10,36 +10,32 @@ import {
   type CinematicPathConfig,
 } from "../scenes/hero/camera-path";
 
-export type CameraMode =
-  | "rails"
-  | "free"
-  | "chase"
-  | "cinematic"
-  | "cinematic-drive";
+export type CameraMode = "rails" | "free" | "chase" | "cinematic" | "hero-pass";
 
-/** Config for `cinematic-drive`: an eased chase that arcs around the moving car. */
-export interface CinematicDriveConfig {
-  /** Chase distance from the car on the ground plane (world units). */
-  distance: number;
-  /** Camera height above the car. */
-  height: number;
-  /** Azimuth sweep amplitude (radians) — how far the camera arcs side to side. */
-  sweep: number;
-  /** Sweep speed (radians/sec of the sine driver). */
-  sweepSpeed: number;
+/**
+ * Config for `hero-pass`: a fixed, low cinematic camera planted to the side of
+ * the road that PANS to track the car as it drives past — a car-commercial
+ * beauty pass, not a chase or an orbit.
+ */
+export interface HeroPassConfig {
+  /** Fixed camera position (world units) — low and to the side of the road. */
+  position: readonly [number, number, number];
   /** Raise the look target above the car origin, onto the body. */
   lookHeight: number;
-  /** Position-follow retention per second (smaller = snappier). */
-  positionDamping: number;
+  /** Look-tracking retention per second (smaller = snappier pan). */
+  lookDamping: number;
+  /** Amplitude (world units) of a slow dolly drift along z, for parallax/life. */
+  dollyAmplitude: number;
+  /** Dolly drift speed (radians/sec). */
+  dollySpeed: number;
 }
 
-const CINEMATIC_DRIVE_DEFAULTS: CinematicDriveConfig = {
-  distance: 9,
-  height: 3,
-  sweep: 0.55,
-  sweepSpeed: 0.22,
-  lookHeight: 0.7,
-  positionDamping: 0.0018,
+const HERO_PASS_DEFAULTS: HeroPassConfig = {
+  position: [-8, 0.85, 0],
+  lookHeight: 0.5,
+  lookDamping: 0.0008,
+  dollyAmplitude: 1.1,
+  dollySpeed: 0.12,
 };
 
 interface CameraRigProps {
@@ -53,15 +49,15 @@ interface CameraRigProps {
   speed?: number;
   /** Slow dolly-orbit config for `cinematic` mode (non-interactive scenes). */
   cinematic?: CinematicPathConfig;
-  /** Chase-orbit config for `cinematic-drive` mode (follows `target`). */
-  cinematicDrive?: CinematicDriveConfig;
+  /** Fixed-camera config for `hero-pass` mode (tracks a moving `target`). */
+  heroPass?: HeroPassConfig;
 }
 
 /**
  * Drives the active camera: `rails` follows a closed Catmull-Rom spline, `free`
  * hands control to OrbitControls, `chase` lerp-follows a target, `cinematic`
- * dolly-orbits a fixed point, and `cinematic-drive` chase-orbits a moving target
- * (the on-rails hero car) for the cinematic trailer.
+ * dolly-orbits a fixed point, and `hero-pass` holds a fixed low cinematic camera
+ * that pans to track a moving target (the on-rails hero car) as it drives past.
  */
 export function CameraRig({
   mode = "rails",
@@ -70,7 +66,7 @@ export function CameraRig({
   target,
   speed = 0.04,
   cinematic,
-  cinematicDrive,
+  heroPass,
 }: CameraRigProps) {
   const { camera } = useThree();
 
@@ -114,32 +110,27 @@ export function CameraRig({
         lookAtSmoothed.current.lerp(pos, 1 - Math.pow(0.02, delta));
       }
       camera.lookAt(lookAtSmoothed.current);
-    } else if (mode === "cinematic-drive" && target?.current) {
-      // Cinematic chase: trail the car (local -z = behind) but slowly sweep the
-      // azimuth so the camera arcs around it as it drives — trailer energy, not
-      // a dead-astern follow. Smoothed so the U-turn yaw never whips the view.
-      const cfg = cinematicDrive ?? CINEMATIC_DRIVE_DEFAULTS;
+    } else if (mode === "hero-pass" && target?.current) {
+      // A fixed, LOW cinematic camera planted to the side of the road. It holds
+      // its position (with a slow dolly drift for parallax/life) and PANS to
+      // track the car as it sweeps past — a car-commercial beauty pass, not a
+      // chase or an orbit. The car rides a smooth rail (no physics jitter), so
+      // light look-damping keeps the pan glued to it without whipping.
+      const cfg = heroPass ?? HERO_PASS_DEFAULTS;
       const pos = target.current.getWorldPosition(scratch.current);
-      const heading = target.current.getWorldQuaternion(quat.current);
-      const azim =
-        Math.sin(state.clock.elapsedTime * cfg.sweepSpeed) * cfg.sweep;
-      desired.current
-        .set(
-          Math.sin(azim) * cfg.distance,
-          cfg.height,
-          -Math.cos(azim) * cfg.distance,
-        )
-        .applyQuaternion(heading)
-        .add(pos);
-      camera.position.lerp(
-        desired.current,
-        1 - Math.pow(cfg.positionDamping, delta),
+      const driftZ =
+        Math.sin(state.clock.elapsedTime * cfg.dollySpeed) * cfg.dollyAmplitude;
+      camera.position.set(
+        cfg.position[0],
+        cfg.position[1],
+        cfg.position[2] + driftZ,
       );
+      // Snap on the first frame to avoid an initial swoop, then damped-track.
       if (!lookReady.current) {
         lookAtSmoothed.current.copy(pos);
         lookReady.current = true;
       } else {
-        lookAtSmoothed.current.lerp(pos, 1 - Math.pow(0.02, delta));
+        lookAtSmoothed.current.lerp(pos, 1 - Math.pow(cfg.lookDamping, delta));
       }
       camera.lookAt(
         lookAtSmoothed.current.x,
