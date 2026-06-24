@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { pmremTexture } from "three/tsl";
 import * as THREE from "three/webgpu";
 
-import { useIsUltra } from "../../core/quality-provider";
+import { useExplicitUltra } from "../../core/quality-provider";
 import { HERO_CAR_BODY_FLAG } from "./car-materials";
 
 /**
@@ -40,7 +40,7 @@ interface BodyMesh {
 
 export function HeroCubeReflection() {
   const { gl, scene } = useThree();
-  const isUltra = useIsUltra();
+  const explicitUltra = useExplicitUltra();
 
   // WebGPU-native cube target (NOT drei's `CubeCamera`, which allocates a
   // `WebGLCubeRenderTarget` — a WebGL-only class that the WebGPU backend can't
@@ -65,10 +65,13 @@ export function HeroCubeReflection() {
   const wired = useRef(false);
 
   useFrame(() => {
-    // Ultra + WebGPU only: `isUltra` is already gated to the webgpu tier in
-    // `lib/ultra.ts`, and the backend check below is the hard runtime guard
-    // (the native cube target + PMREM envNode are WebGPU graph constructs).
-    if (!isUltra) return;
+    // Explicit-ultra + WebGPU only. Per-frame cube capture re-renders the scene
+    // 6× (+ PMREM), so it stays OFF the auto-ultra default — gated on the
+    // explicit `?quality=ultra` opt-in, not the strong-GPU heuristic — to keep
+    // the default first impression in budget. The backend check below is the
+    // hard runtime guard (the native cube target + PMREM envNode are WebGPU
+    // graph constructs).
+    if (!explicitUltra) return;
 
     const renderer = gl as unknown as THREE.WebGPURenderer;
     const backend = renderer.backend as { isWebGPUBackend?: boolean };

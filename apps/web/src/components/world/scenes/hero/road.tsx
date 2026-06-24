@@ -14,7 +14,7 @@ import {
 } from "three/tsl";
 import * as THREE from "three/webgpu";
 
-import { useIsUltra, useQuality } from "../../core/quality-provider";
+import { useExplicitUltra, useQuality } from "../../core/quality-provider";
 
 const ROAD_TEXTURES = [
   "/hero/road/asphalt_albedo.jpg",
@@ -96,11 +96,14 @@ function WetGlossy() {
  * the ultra WebGPU path; every lower tier keeps the byte-identical glossy mesh.
  */
 export function HeroRoad() {
-  const isUltra = useIsUltra();
+  const explicitUltra = useExplicitUltra();
   const { hdri } = useQuality();
-  // `hdri` is the WebGPU-tier marker (HDRI IBL is WebGPU-only here); pairing it
-  // with ultra keeps the reflector strictly on the ultra + WebGPU hero path.
-  const reflectorActive = isUltra && hdri;
+  // `hdri` is the WebGPU-tier marker (HDRI IBL is WebGPU-only here). The planar
+  // reflector renders the scene a second time, so it's gated on the explicit
+  // `?quality=ultra` opt-in (not the strong-GPU auto-heuristic): the default
+  // hero keeps the cheap static-glossy wet zone; explicit ultra upgrades it to
+  // the live mirror. Keeps the auto-ultra first impression in budget.
+  const reflectorActive = explicitUltra && hdri;
 
   const [rawAlbedo, rawNormal, rawRoughness] = useLoader(THREE.TextureLoader, [
     ...ROAD_TEXTURES,

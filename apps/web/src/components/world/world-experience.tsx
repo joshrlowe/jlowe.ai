@@ -32,10 +32,13 @@ import { WorldCanvas } from "./world-canvas";
 export function WorldExperience({
   tier,
   isUltra,
+  explicitUltra,
   onRendererError,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
   isUltra: boolean;
+  /** Visitor explicitly opted into ultra (`?quality=ultra`); see QualityProvider. */
+  explicitUltra: boolean;
   /** Fatal renderer-init failure → the parent steps down a tier (or to 2D). */
   onRendererError?: (error: unknown) => void;
 }) {
@@ -61,6 +64,7 @@ export function WorldExperience({
       <WorldCanvas
         tier={tier}
         isUltra={isUltra}
+        explicitUltra={explicitUltra}
         debug={debug}
         activeScene={activeScene}
         onRendererError={onRendererError}

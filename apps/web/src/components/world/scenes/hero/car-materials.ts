@@ -118,10 +118,11 @@ function createTrimMaterial(): THREE.MeshPhysicalNodeMaterial {
   material.roughness = 0.3;
   material.clearcoat = 0.6;
   material.clearcoatRoughness = 0.2;
-  // Brushed-metal anisotropy: stretches the specular highlight into a
-  // directional streak (grille / vents / sill trim), the automotive-render tell.
-  material.anisotropy = 0.6;
-  material.anisotropyRotation = Math.PI / 2;
+  // NB: no anisotropy. Brushed-metal anisotropy would stretch the specular into
+  // a directional streak (the automotive-render tell), but three derives its
+  // tangent frame from `uv` derivatives — and the placeholder GLB has no
+  // TEXCOORD_0, so enabling it only logs `AttributeNode: uv not found` and
+  // shades a broken tangent. Re-add once the real car (P4) ships with UVs.
   return material;
 }
 

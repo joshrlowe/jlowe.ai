@@ -82,12 +82,15 @@ const DEFAULT_SCENE = CHAPTERS[0]?.sceneKey ?? "circuit";
 export function WorldCanvas({
   tier,
   isUltra,
+  explicitUltra,
   debug,
   activeScene,
   onRendererError,
 }: {
   tier: Exclude<CapabilityTier, "2d">;
   isUltra: boolean;
+  /** Visitor explicitly opted into ultra (`?quality=ultra`); see QualityProvider. */
+  explicitUltra: boolean;
   debug: boolean;
   activeScene: string;
   /** Renderer create/init failed — caller steps down a tier (or to 2D). */
@@ -127,7 +130,11 @@ export function WorldCanvas({
         }
       }}
     >
-      <QualityProvider tier={tier} isUltra={isUltra}>
+      <QualityProvider
+        tier={tier}
+        isUltra={isUltra}
+        explicitUltra={explicitUltra}
+      >
         <InputBridge />
         <SceneManager scenes={SCENES} active={active} />
         {/* Single TSL chain (ACES → bloom → vignette); drives the render loop.
