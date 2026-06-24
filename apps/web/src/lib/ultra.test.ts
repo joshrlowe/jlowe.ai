@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   parseQualityOverride,
+  selectExplicitUltra,
   selectIsUltra,
   type UltraSignals,
 } from "./ultra";
@@ -85,5 +86,27 @@ describe("selectIsUltra", () => {
     expect(selectIsUltra(strongGpu({ tier: "2d", override: "ultra" }))).toBe(
       false,
     );
+  });
+});
+
+describe("selectExplicitUltra", () => {
+  it("ON only when ultra is active AND ?quality=ultra was explicit", () => {
+    expect(selectExplicitUltra(true, "ultra")).toBe(true);
+  });
+
+  it("OFF for the strong-GPU auto-heuristic (ultra active, no override)", () => {
+    // The key case: a capable visitor lands on the reliable floor by default,
+    // not the heavy cinematic stack.
+    expect(selectExplicitUltra(true, null)).toBe(false);
+  });
+
+  it("OFF when ultra is not active, even with ?quality=ultra", () => {
+    // e.g. webgl/2d tier where selectIsUltra already returned false.
+    expect(selectExplicitUltra(false, "ultra")).toBe(false);
+  });
+
+  it("OFF for non-ultra overrides", () => {
+    expect(selectExplicitUltra(true, "high")).toBe(false);
+    expect(selectExplicitUltra(true, "standard")).toBe(false);
   });
 });

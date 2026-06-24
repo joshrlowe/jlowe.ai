@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCapabilityTier } from "@/lib/use-capability-tier";
 import { useQualityParam } from "@/lib/use-quality-param";
 import { queueTwoDNotice } from "@/lib/two-d-notice";
-import { selectIsUltra } from "@/lib/ultra";
+import { selectExplicitUltra, selectIsUltra } from "@/lib/ultra";
 
 import { WorldErrorBoundary } from "./world-error-boundary";
 
@@ -59,6 +59,11 @@ export function WorldRoot() {
     adapterConfirmed: report.signals.adapterConfirmed,
     deviceMemory: report.signals.deviceMemory,
   });
+  // Ultra the visitor explicitly asked for, vs. the strong-GPU auto-heuristic.
+  // The heaviest still-being-tuned effects gate on this (see QualityProvider),
+  // so a capable visitor's DEFAULT is the proven in-budget floor, not the
+  // fragile cinematic stack. `?quality=ultra` opts back into the full chain.
+  const explicitUltra = selectExplicitUltra(isUltra, qualityOverride);
 
   // A fatal canvas error — a rejected/timed-out renderer init, or any throw in
   // the 3D subtree — degrades one step at a time instead of white-screening:
@@ -78,6 +83,7 @@ export function WorldRoot() {
         key={effectiveTier}
         tier={effectiveTier}
         isUltra={isUltra}
+        explicitUltra={explicitUltra}
         onRendererError={handleFatal}
       />
     </WorldErrorBoundary>

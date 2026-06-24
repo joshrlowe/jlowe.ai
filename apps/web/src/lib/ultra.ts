@@ -60,3 +60,20 @@ export function selectIsUltra({
     deviceMemory >= STRONG_GPU_MEMORY_GB
   );
 }
+
+/**
+ * Whether the heaviest, still-being-tuned ultra effects should run. They require
+ * BOTH that ultra is active AND that the visitor EXPLICITLY asked for it
+ * (`?quality=ultra`) — never the strong-GPU auto-heuristic. This keeps the
+ * over-budget cinematic stack (the SSGI/SSR/TRAA/motion-blur/DoF post-FX chain,
+ * the per-frame cube reflection, the planar wet reflector) OFF the default first
+ * impression — a capable visitor's default is the proven, in-budget floor — and
+ * makes the full chain a deliberate opt-in we reintroduce one effect at a time.
+ * Surfaced to the scene framework through `core/quality-provider`.
+ */
+export function selectExplicitUltra(
+  isUltra: boolean,
+  override: QualityOverride | null,
+): boolean {
+  return isUltra && override === "ultra";
+}

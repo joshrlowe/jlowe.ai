@@ -34,7 +34,7 @@ import type { Node, TextureNode } from "three/webgpu";
 
 import { gradeColor } from "./color-grade";
 import type { QualitySettings } from "./quality";
-import { useIsUltra, useQuality } from "./quality-provider";
+import { useExplicitUltra, useQuality } from "./quality-provider";
 import { sceneSupportsUltraPostFX } from "./scene-capabilities";
 
 type ScenePass = ReturnType<typeof pass>;
@@ -59,6 +59,13 @@ const DOF_FOCUS_DISTANCE = 9;
 const DOF_FOCAL_LENGTH = 3.2;
 const DOF_BOKEH_SCALE = 2.4;
 const MOTION_BLUR_SAMPLES = 12;
+
+// Warm/teal grade strength carried by the reliable FLOOR on cinematic scenes
+// (hero). The ultra branch grades at full `quality.colorGrade`; the floor uses a
+// slightly gentler fixed amount so the DEFAULT arrival keeps the signature look
+// without depending on the heavy stack. Scene-scoped — circuit / proving-ground
+// stay ungraded.
+const FLOOR_COLOR_GRADE = 0.8;
 
 /**
  * Ultra-only cinematic post-FX graph (WebGPU backend only — never reached on
@@ -206,7 +213,7 @@ function composeUltra(
 export function PostFX({ activeScene }: { activeScene: string }) {
   const { gl, scene, camera } = useThree();
   const quality = useQuality();
-  const isUltra = useIsUltra();
+  const explicitUltra = useExplicitUltra();
 
   const pipeline = useMemo(() => {
     // Tone mapping is set on the renderer at construction (see world-canvas).
@@ -255,18 +262,32 @@ export function PostFX({ activeScene }: { activeScene: string }) {
       // Radial vignette from screen-space UV (no dedicated TSL node ships).
       const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
 
+      // Warm/teal cinematic grade — the hero arrival's signature look, now baked
+      // into the reliable floor (it used to live only in the ultra branch, so a
+      // capable visitor on the auto-floor default kept its grade). Scene-scoped
+      // via the same opt-in set, so circuit / proving-ground stay ungraded and
+      // pixel-identical. Zero asset bytes (a TSL node, not a 3D-LUT).
+      const lit = base.add(bloomPass);
+      const graded = sceneSupportsUltraPostFX(activeScene)
+        ? vec4(mix(lit.rgb, gradeColor(lit.rgb), FLOOR_COLOR_GRADE), 1)
+        : lit;
+
       const renderPipeline = new THREE.RenderPipeline(renderer);
-      renderPipeline.outputNode = base.add(bloomPass).mul(vignette);
+      renderPipeline.outputNode = graded.mul(vignette);
       return renderPipeline;
     };
 
-    // Ultra branch (WebGPU backend only, AND only scenes that opt in): MRT +
-    // SSGI/SSR/TRAA/motion-blur/DoF over the floor. The chain is scene-agnostic,
-    // so the scene gate is what keeps circuit / proving-ground floor-only under
-    // ?quality=ultra. If the cinematic graph throws while building (a node or
-    // typings drift on this GPU/driver), fall down to the floor instead of
-    // bricking the frame loop — reliability over fidelity.
-    if (isUltra && isWebGPU && sceneSupportsUltraPostFX(activeScene)) {
+    // Heavy cinematic branch (WebGPU backend only, scenes that opt in, AND only
+    // when the visitor EXPLICITLY asked for `?quality=ultra`): MRT +
+    // SSGI/SSR/TRAA/motion-blur/DoF over the floor. Gating on `explicitUltra`
+    // (not the strong-GPU auto-heuristic) keeps this still-being-tuned, over-
+    // budget stack OFF the default first impression — capable visitors get the
+    // reliable graded floor above; the full chain is a deliberate opt-in we
+    // reintroduce one effect at a time (see plan P2/P6). The scene gate still
+    // keeps circuit / proving-ground floor-only. If the graph throws while
+    // building (a node/typings drift on this GPU/driver), fall to the floor
+    // rather than brick the frame loop — reliability over fidelity.
+    if (explicitUltra && isWebGPU && sceneSupportsUltraPostFX(activeScene)) {
       try {
         const scenePass = pass(scene, camera);
         const renderPipeline = new THREE.RenderPipeline(renderer);
@@ -282,7 +303,7 @@ export function PostFX({ activeScene }: { activeScene: string }) {
     }
 
     return buildFloor();
-  }, [gl, scene, camera, isUltra, quality, activeScene]);
+  }, [gl, scene, camera, explicitUltra, quality, activeScene]);
 
   // A frame callback with priority > 0 takes the render loop over from R3F, so
   // the pipeline drives every frame. WebGPU compiles the TSL graph lazily on the
