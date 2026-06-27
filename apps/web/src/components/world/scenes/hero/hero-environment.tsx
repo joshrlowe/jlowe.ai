@@ -1,7 +1,6 @@
 "use client";
 
 import { useThree } from "@react-three/fiber";
-import { useControls } from "leva";
 import { useLayoutEffect } from "react";
 import type { Scene } from "three/webgpu";
 
@@ -56,21 +55,17 @@ function applyEnv(scene: EnvScene, settings: EnvSettings): void {
  *
  * Applies on EVERY tier (it only nudges IBL strength + sky yaw, which the
  * procedural-sky fallback honours too), so it is not gated to ultra; the heavy
- * ultra-only effects live elsewhere. Leva-tunable under ?debug=1.
+ * ultra-only effects live elsewhere. Hard-coded — no ?debug knobs.
  */
 export function HeroEnvironment() {
   const { scene } = useThree();
   const { environmentIntensity: tierIntensity } = useQuality();
 
-  const { envIntensity, envYawDeg } = useControls("hero-environment", {
-    envIntensity: {
-      value: DEFAULT_ENV_INTENSITY * tierIntensity,
-      min: 0,
-      max: 3,
-      step: 0.05,
-    },
-    envYawDeg: { value: DEFAULT_ENV_YAW_DEG, min: -180, max: 180, step: 1 },
-  });
+  // Hard-coded best-look values — no ?debug knobs. The hero is a fixed,
+  // art-directed scene, not a tuning surface. Intensity is scaled by the
+  // per-tier IBL strength so the WebGL fallback doesn't over-brighten.
+  const envIntensity = DEFAULT_ENV_INTENSITY * tierIntensity;
+  const envYawDeg = DEFAULT_ENV_YAW_DEG;
 
   useLayoutEffect(() => {
     const target = scene as unknown as EnvScene;

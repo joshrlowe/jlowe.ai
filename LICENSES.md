@@ -89,8 +89,14 @@ albedo (Color), OpenGL normal (NormalGL), and roughness maps at 1K-JPG.
 
 - **`apps/web/public/hdri/venice_sunset_1k.hdr`** — "Venice Sunset" via
   **Poly Haven**, **CC0** (public domain; no attribution required, credited
-  here as good practice). Drives WebGPU image-based lighting + the sky
-  background; the WebGL2/mobile tiers use a zero-byte procedural sky instead.
+  here as good practice). Drives WebGPU image-based lighting; on the circuit it
+  also provides the sky background. The WebGL2/mobile tiers use a zero-byte
+  procedural sky instead.
+- **`apps/web/public/hdri/belfast_sunset_puresky_1k.hdr`** — "Belfast Sunset
+  (Pure Sky)" via **Poly Haven**, **CC0** (public domain; no attribution
+  required, credited here as good practice). A skyline-free golden-hour sky used
+  as the **hero** scene's visible background (an F1 track, not a city); the
+  Venice HDRI still drives image-based lighting there.
 
 ## Fonts
 
