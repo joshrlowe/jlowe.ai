@@ -6,7 +6,7 @@ import { useMemo } from "react";
 // The hero road is a straight ribbon 9 wide (x ∈ [-4.5, 4.5]) along z (road.tsx).
 // The fixed hero-pass camera sits at x≈-8 looking ACROSS the road toward +x, so:
 //   • kerbs hug BOTH edges (low — they never occlude the car),
-//   • the Armco barrier + gravel run-off live on the FAR (+x) side only — the
+//   • a concrete wall + steel Armco barrier line the FAR (+x) side only — the
 //     backdrop behind the car — leaving the near (-x) camera side open so the
 //     foreground stays clear of the shot.
 // Everything is procedural + instanced (≈0 bytes, a handful of draw calls) and
@@ -41,9 +41,12 @@ function kerbSegments(): KerbSeg[] {
   return segs;
 }
 
-// --- Armco barrier (far +x backdrop side only) ---------------------------
-const BARRIER_X = ROAD_HALF_WIDTH + 0.7;
-const RAIL_Y = 0.5;
+// --- Monaco barrier (far +x side only): a concrete wall + a steel Armco rail
+// flush to the track. No run-off — a street circuit is walled to the kerb.
+const WALL_X = ROAD_HALF_WIDTH + 0.6; // 5.1 — concrete wall just off the kerb
+const WALL_HEIGHT = 1.0;
+const RAIL_X = ROAD_HALF_WIDTH + 0.32; // 4.82 — steel rail on the track face
+const RAIL_Y = 0.42;
 const POST_SPACING = 3;
 
 function postPositions(): number[] {
@@ -53,9 +56,10 @@ function postPositions(): number[] {
 }
 
 /**
- * Procedural F1-track set-dressing for the fixed hero-pass camera: red/white
- * kerbs on both road edges, plus an Armco barrier + a gravel run-off strip on
- * the far (+x) backdrop side. No textures; instanced so it stays a few draws.
+ * Procedural Monaco-style barrier set-dressing for the fixed hero-pass camera:
+ * red/white kerbs on both road edges, plus a concrete wall + steel Armco flush
+ * to the track on the far (+x) side (a street circuit is walled to the kerb, no
+ * run-off). No textures; instanced so it stays a few draws.
  */
 export function TrackDressing() {
   const kerbs = useMemo(() => kerbSegments(), []);
@@ -83,30 +87,30 @@ export function TrackDressing() {
         ))}
       </Instances>
 
-      {/* Armco rail (one long box) on the far side. */}
-      <mesh position={[BARRIER_X, RAIL_Y, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.14, 0.46, Z_MAX - Z_MIN]} />
-        <meshStandardMaterial color="#c8ccd0" roughness={0.5} metalness={0.4} />
+      {/* Concrete wall — the Monaco barrier, flush behind the kerb. */}
+      <mesh position={[WALL_X, WALL_HEIGHT / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.45, WALL_HEIGHT, Z_MAX - Z_MIN]} />
+        <meshStandardMaterial color="#c9c3b6" roughness={0.92} metalness={0} />
       </mesh>
 
-      {/* Barrier posts. */}
+      {/* Steel Armco rail on the track-facing side of the wall. */}
+      <mesh position={[RAIL_X, RAIL_Y, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.12, 0.42, Z_MAX - Z_MIN]} />
+        <meshStandardMaterial
+          color="#c8ccd0"
+          roughness={0.45}
+          metalness={0.5}
+        />
+      </mesh>
+
+      {/* Barrier posts (track-facing). */}
       <Instances limit={posts.length} castShadow receiveShadow>
-        <boxGeometry args={[0.12, 0.72, 0.12]} />
-        <meshStandardMaterial color="#6a6e73" roughness={0.7} metalness={0.3} />
+        <boxGeometry args={[0.1, 0.6, 0.1]} />
+        <meshStandardMaterial color="#5f6368" roughness={0.7} metalness={0.3} />
         {posts.map((z, i) => (
-          <Instance key={i} position={[BARRIER_X, 0.36, z]} />
+          <Instance key={i} position={[RAIL_X, 0.3, z]} />
         ))}
       </Instances>
-
-      {/* Gravel run-off strip on the +x verge, beyond the barrier. */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[BARRIER_X + 4, 0.006, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[8, Z_MAX - Z_MIN]} />
-        <meshStandardMaterial color="#9a8a6a" roughness={0.97} metalness={0} />
-      </mesh>
     </>
   );
 }
