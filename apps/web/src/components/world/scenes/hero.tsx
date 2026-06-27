@@ -17,6 +17,7 @@ import { HeroCar } from "./hero/hero-car";
 import { HeroEnvironment } from "./hero/hero-environment";
 import { HeroGrade } from "./hero/hero-grade";
 import { HeroSky } from "./hero/hero-sky";
+import { MonacoBuildings } from "./hero/monaco-buildings";
 import { HeroProps } from "./hero/props";
 import { HeroRoad } from "./hero/road";
 import { TrackDressing } from "./hero/track-dressing";
@@ -103,6 +104,7 @@ export function HeroScene() {
       {hdri ? <HeroSky /> : null}
       <HeroRoad />
       <TrackDressing />
+      <MonacoBuildings />
       <HeroProps />
       <HeroCar driveRef={carRef} />
       {/* Ultra-only car-paint reflection; capture point is the scene origin.
