@@ -16,6 +16,7 @@ import { HeroCubeReflection } from "./hero/cube-reflection";
 import { HeroCar } from "./hero/hero-car";
 import { HeroEnvironment } from "./hero/hero-environment";
 import { HeroGrade } from "./hero/hero-grade";
+import { HeroSky } from "./hero/hero-sky";
 import { HeroProps } from "./hero/props";
 import { HeroRoad } from "./hero/road";
 
@@ -55,7 +56,7 @@ function applyHeroFov(camera: PerspectiveCamera, fov: number): void {
  * explicit `?quality=ultra` opt-in layers the heavy cinematic post-FX on top.
  */
 export function HeroScene() {
-  const { shadowMapSize } = useQuality();
+  const { shadowMapSize, hdri } = useQuality();
   const { camera } = useThree();
   // Shared between the scene (which drives it below) and the hero-pass camera
   // (which tracks it). A direct <object3D> ref, matching the circuit chase cam.
@@ -94,6 +95,11 @@ export function HeroScene() {
       <HeroGrade />
       <HeroEnvironment />
       <GoldenHourEnvironment sunCastShadow shadowMapSize={shadowMapSize} />
+      {/* Clean F1-track sky: overrides the shared HDRI's city skyline on the
+          background only (golden IBL stays). WebGPU/hdri tier only — the lower
+          tiers already render a clean procedural sky. Mounted AFTER
+          GoldenHourEnvironment so its background attach wins (LIFO-restored). */}
+      {hdri ? <HeroSky /> : null}
       <HeroRoad />
       <HeroProps />
       <HeroCar driveRef={carRef} />
