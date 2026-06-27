@@ -2,8 +2,6 @@
 
 import { HeroModel } from "./hero-model";
 
-const STREET_LIGHT = "/hero/props/street-light.glb";
-const TRAFFIC_LIGHT = "/hero/props/traffic-light.glb";
 const TRAFFIC_CONE = "/hero/props/traffic-cone.glb";
 
 interface Placement {
@@ -13,25 +11,17 @@ interface Placement {
   scale?: number;
 }
 
-// Roadside dressing along both shoulders (road half-width ~4.5).
+// Track-edge cones on the far (+x) verge. The street lights / traffic lights
+// that used to line the road read as a CITY STREET — the wrong genre for an F1
+// track — so they're gone; a few cones stay as trackside dressing. The kerbs,
+// barrier and run-off live in track-dressing.tsx.
 const PLACEMENTS: Placement[] = [
-  {
-    url: STREET_LIGHT,
-    position: [-6.5, 0, -14],
-    rotation: [0, Math.PI / 2, 0],
-  },
-  { url: STREET_LIGHT, position: [-6.5, 0, 12], rotation: [0, Math.PI / 2, 0] },
-  {
-    url: TRAFFIC_LIGHT,
-    position: [6.5, 0, -10],
-    rotation: [0, -Math.PI / 2, 0],
-  },
-  { url: TRAFFIC_CONE, position: [3.6, 0, 6] },
-  { url: TRAFFIC_CONE, position: [-3.4, 0, 9] },
-  { url: TRAFFIC_CONE, position: [3.9, 0, -4] },
+  { url: TRAFFIC_CONE, position: [5.6, 0, -12] },
+  { url: TRAFFIC_CONE, position: [5.6, 0, 0] },
+  { url: TRAFFIC_CONE, position: [5.6, 0, 12] },
 ];
 
-/** A few CC0 roadside props lining the asphalt. */
+/** A few CC0 track-edge cones. */
 export function HeroProps() {
   return (
     <>

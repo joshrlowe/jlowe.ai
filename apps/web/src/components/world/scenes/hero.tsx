@@ -19,6 +19,7 @@ import { HeroGrade } from "./hero/hero-grade";
 import { HeroSky } from "./hero/hero-sky";
 import { HeroProps } from "./hero/props";
 import { HeroRoad } from "./hero/road";
+import { TrackDressing } from "./hero/track-dressing";
 
 // A fixed, low camera to the (sun-lit) side of the road; the car drives past it
 // and the camera pans to track it. First-pass framing — dial in-browser.
@@ -101,6 +102,7 @@ export function HeroScene() {
           GoldenHourEnvironment so its background attach wins (LIFO-restored). */}
       {hdri ? <HeroSky /> : null}
       <HeroRoad />
+      <TrackDressing />
       <HeroProps />
       <HeroCar driveRef={carRef} />
       {/* Ultra-only car-paint reflection; capture point is the scene origin.
