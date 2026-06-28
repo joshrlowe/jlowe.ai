@@ -42,11 +42,14 @@ interface Row {
   spacing: number;
 }
 
-// Three depth tiers stepping back (+x) and up (+y) the hillside.
+// Three depth tiers stepping back (+x) and up (+y) the hillside. Pushed back
+// behind the harbour band (harbour.tsx fills x≈5.3–12.8) so the pastel city
+// rises BEHIND the moored yachts — the Port-Hercule layering. Heights bumped to
+// keep the hillside looming now that it sits farther from the camera.
 const ROWS: Row[] = [
-  { seed: 11, xMin: 6.5, xMax: 8.5, hMin: 5, hMax: 9, spacing: 5 },
-  { seed: 23, xMin: 10, xMax: 12.5, hMin: 9, hMax: 15, spacing: 5.5 },
-  { seed: 37, xMin: 14.5, xMax: 18, hMin: 13, hMax: 21, spacing: 6.5 },
+  { seed: 11, xMin: 13, xMax: 15, hMin: 6, hMax: 11, spacing: 5 },
+  { seed: 23, xMin: 17, xMax: 19.5, hMin: 11, hMax: 18, spacing: 5.5 },
+  { seed: 37, xMin: 21.5, xMax: 25, hMin: 16, hMax: 26, spacing: 6.5 },
 ];
 
 function buildingsForRow(row: Row): Building[] {
