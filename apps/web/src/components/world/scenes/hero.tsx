@@ -14,6 +14,7 @@ import {
   HERO_DRIVE_LAP_SECONDS,
 } from "./hero/car-rail";
 import { HeroCubeReflection } from "./hero/cube-reflection";
+import { Harbour } from "./hero/harbour";
 import { HeroCar } from "./hero/hero-car";
 import { HeroEnvironment } from "./hero/hero-environment";
 import { HeroGrade } from "./hero/hero-grade";
@@ -29,10 +30,14 @@ import {
 import { HeroRoad } from "./hero/road";
 import { TrackDressing } from "./hero/track-dressing";
 
-// A fixed, low camera to the (sun-lit) side of the road; the car drives past it
-// and the camera pans to track it. First-pass framing — dial in-browser.
+// A fixed camera to the (sun-lit) side of the road; the cars drive past it and
+// it pans to track them. Lifted from tyre height (0.85) to ~3.0 m — a trackside
+// vantage — so the shot looks OVER the 1.0 m harbour wall onto the water +
+// moored yachts (harbour.tsx). Below ~2.8 m the wall fully occludes the flat
+// water from this distance; higher reveals more water but shrinks the cars.
+// First-pass framing — dial in-browser.
 const HERO_PASS: HeroPassConfig = {
-  position: [-8, 0.85, 0],
+  position: [-8, 3.0, 0],
   lookHeight: 0.5,
   lookDamping: 0.0008,
   dollyAmplitude: 1.1,
@@ -138,6 +143,7 @@ export function HeroScene() {
       {hdri ? <HeroSky /> : null}
       <HeroRoad />
       <TrackDressing />
+      <Harbour />
       <MonacoBuildings />
       <HeroProps />
       {RACE_CARS.map((car, i) => (
