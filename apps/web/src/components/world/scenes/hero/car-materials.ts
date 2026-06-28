@@ -29,9 +29,12 @@ export const HERO_CAR_BODY_COLOR = "#9a1b1b";
  */
 export const HERO_CAR_BODY_FLAG = "heroCarBody";
 
-function createCarPaintMaterial(): THREE.MeshPhysicalNodeMaterial {
+function createCarPaintMaterial(
+  bodyColor: string,
+): THREE.MeshPhysicalNodeMaterial {
   const material = new THREE.MeshPhysicalNodeMaterial();
-  material.color = new THREE.Color(HERO_CAR_BODY_COLOR);
+  const base = new THREE.Color(bodyColor);
+  material.color = base;
   // Near-mirror metal under a perfect clearcoat: a deep automotive 2-coat look.
   material.metalness = 0.95;
   material.roughness = 0.28;
@@ -51,10 +54,14 @@ function createCarPaintMaterial(): THREE.MeshPhysicalNodeMaterial {
   material.normalNode = normalize(add(normalView, mul(flake, vec3(0.06))));
 
   // A faint dual-tone clearcoat tint deepens the candy-paint richness without a
-  // texture: lerp the base toward a slightly hotter red in the noise highlights.
+  // texture: lerp between a deeper and a hotter shade of the livery in the
+  // flake's shadows/highlights — derived from `bodyColor`, so each car keeps the
+  // candy look in its own hue.
+  const lo = base.clone().multiplyScalar(0.78);
+  const hi = base.clone().multiplyScalar(1.16);
   const candy = mix(
-    vec3(0.6, 0.105, 0.105),
-    vec3(0.72, 0.14, 0.12),
+    vec3(lo.r, lo.g, lo.b),
+    vec3(hi.r, hi.g, hi.b),
     flake.x.mul(0.5).add(0.5),
   );
   material.colorNode = candy;
@@ -126,11 +133,14 @@ function createTrimMaterial(): THREE.MeshPhysicalNodeMaterial {
   return material;
 }
 
-/** Build a fresh node material for a classified car part. */
-export function createCarMaterial(part: CarPart): THREE.Material {
+/** Build a fresh node material for a classified car part, in the given livery. */
+export function createCarMaterial(
+  part: CarPart,
+  bodyColor: string = HERO_CAR_BODY_COLOR,
+): THREE.Material {
   switch (part) {
     case "body":
-      return createCarPaintMaterial();
+      return createCarPaintMaterial(bodyColor);
     case "rim":
       return createRimMaterial();
     case "tire":

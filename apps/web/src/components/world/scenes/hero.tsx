@@ -9,7 +9,8 @@ import { useQuality } from "../core/quality-provider";
 import { GoldenHourEnvironment } from "./circuit/environment";
 import {
   buildHeroDriveCurve,
-  carPoseAlongCurve,
+  carPoseAlongCurveOffset,
+  type CarPose,
   HERO_DRIVE_LAP_SECONDS,
 } from "./hero/car-rail";
 import { HeroCubeReflection } from "./hero/cube-reflection";
@@ -19,6 +20,12 @@ import { HeroGrade } from "./hero/hero-grade";
 import { HeroSky } from "./hero/hero-sky";
 import { MonacoBuildings } from "./hero/monaco-buildings";
 import { HeroProps } from "./hero/props";
+import {
+  laneEnvelope,
+  LANE_OFFSET,
+  overtakeProgress,
+  RACE_CARS,
+} from "./hero/race-grid";
 import { HeroRoad } from "./hero/road";
 import { TrackDressing } from "./hero/track-dressing";
 
@@ -49,6 +56,20 @@ function applyHeroFov(camera: PerspectiveCamera, fov: number): void {
 }
 
 /**
+ * Drive a car node along the rail via a plain function (parameter mutation), so
+ * the react-hooks immutability lint is satisfied — same idiom as applyHeroFov.
+ */
+function driveCar(node: Object3D, pose: CarPose): void {
+  node.position.set(pose.position[0], pose.position[1], pose.position[2]);
+  node.rotation.set(0, pose.yaw, 0);
+}
+
+/** Park `node` at the midpoint of two others — the camera focus. */
+function setMidpoint(node: Object3D, a: Object3D, b: Object3D): void {
+  node.position.lerpVectors(a.position, b.position, 0.5);
+}
+
+/**
  * The additive `?scene=hero` vignette: the curated F1-style car driving a
  * scripted loop down a short asphalt road with roadside props, lit by the
  * golden-hour HDRI and framed by a fixed, low cinematic camera the car drives
@@ -60,9 +81,13 @@ function applyHeroFov(camera: PerspectiveCamera, fov: number): void {
 export function HeroScene() {
   const { shadowMapSize, hdri } = useQuality();
   const { camera } = useThree();
-  // Shared between the scene (which drives it below) and the hero-pass camera
-  // (which tracks it). A direct <object3D> ref, matching the circuit chase cam.
-  const carRef = useRef<Object3D | null>(null);
+  // One ref per race car + a focus node the camera tracks (the leader/challenger
+  // midpoint). Direct <object3D> refs, mutated via methods each frame.
+  const ref0 = useRef<Object3D | null>(null);
+  const ref1 = useRef<Object3D | null>(null);
+  const ref2 = useRef<Object3D | null>(null);
+  const carRefs = [ref0, ref1, ref2];
+  const focusRef = useRef<Object3D | null>(null);
   const curve = useMemo(() => buildHeroDriveCurve(), []);
   const elapsed = useRef(0);
 
@@ -75,21 +100,30 @@ export function HeroScene() {
     return () => applyHeroFov(cam, prevFov);
   }, [camera]);
 
-  // Drive the car around the closed loop on a timeline. carRef is a direct ref
-  // mutated via methods; the camera then tracks the freshly-driven transform.
+  // Drive the three cars from one shared clock. The challenger gains a transient
+  // forward Δt and swings into the overtaking lane to draw ALONGSIDE the leader
+  // at the apex, then gives it back (net-zero → the grid loops seamlessly). The
+  // camera tracks the leader/challenger midpoint so the battle stays framed.
   useFrame((_, delta) => {
-    if (!carRef.current) return;
     elapsed.current += delta;
-    const pose = carPoseAlongCurve(
-      elapsed.current / HERO_DRIVE_LAP_SECONDS,
-      curve,
-    );
-    carRef.current.position.set(
-      pose.position[0],
-      pose.position[1],
-      pose.position[2],
-    );
-    carRef.current.rotation.set(0, pose.yaw, 0);
+    const baseT = elapsed.current / HERO_DRIVE_LAP_SECONDS;
+    const phase = ((baseT % 1) + 1) % 1;
+    const gain = overtakeProgress(phase);
+    const lane = laneEnvelope(phase) * LANE_OFFSET;
+
+    RACE_CARS.forEach((car, i) => {
+      const node = carRefs[i]?.current;
+      if (!node) return;
+      const challenging = car.role === "challenger";
+      const t = baseT + car.tOffset + (challenging ? gain : 0);
+      driveCar(node, carPoseAlongCurveOffset(t, curve, challenging ? lane : 0));
+    });
+
+    const leader = ref1.current;
+    const challenger = ref2.current;
+    if (focusRef.current && leader && challenger) {
+      setMidpoint(focusRef.current, leader, challenger);
+    }
   });
 
   return (
@@ -106,12 +140,15 @@ export function HeroScene() {
       <TrackDressing />
       <MonacoBuildings />
       <HeroProps />
-      <HeroCar driveRef={carRef} />
+      {RACE_CARS.map((car, i) => (
+        <HeroCar key={i} driveRef={carRefs[i]} bodyColor={car.bodyColor} />
+      ))}
+      {/* Camera focus — parked at the leader/challenger midpoint each frame. */}
+      <object3D ref={focusRef} />
       {/* Ultra-only car-paint reflection; capture point is the scene origin.
-          P6: make it follow the moving car (needs a lint-clean restructure of
-          the memoised cube camera). */}
+          P6: make it follow the moving cars. */}
       <HeroCubeReflection />
-      <CameraRig mode="hero-pass" target={carRef} heroPass={HERO_PASS} />
+      <CameraRig mode="hero-pass" target={focusRef} heroPass={HERO_PASS} />
     </>
   );
 }

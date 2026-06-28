@@ -3,7 +3,7 @@
 import { type RefObject, useEffect, useMemo } from "react";
 import type { Material, Mesh, Object3D } from "three/webgpu";
 
-import { createCarMaterial } from "./car-materials";
+import { createCarMaterial, HERO_CAR_BODY_COLOR } from "./car-materials";
 import { classifyCarPart, isWheelDescendant } from "./car-part";
 import { useGltfScene } from "./hero-model";
 
@@ -48,8 +48,11 @@ const HEADING_Y = Math.PI / 2;
  */
 export function HeroCar({
   driveRef,
+  bodyColor = HERO_CAR_BODY_COLOR,
 }: {
   driveRef?: RefObject<Object3D | null>;
+  /** Body livery colour — lets a multi-car grid run distinct liveries. */
+  bodyColor?: string;
 }) {
   const scene = useGltfScene(CAR_URL);
 
@@ -65,12 +68,12 @@ export function HeroCar({
         Array.isArray(mesh.material) ? mesh.material[0] : mesh.material
       ) as Material | undefined;
       const part = classifyCarPart(source?.name ?? "", isWheelDescendant(mesh));
-      const material = createCarMaterial(part);
+      const material = createCarMaterial(part, bodyColor);
       mesh.material = material;
       created.push(material);
     });
     return { object: clone, materials: created };
-  }, [scene]);
+  }, [scene, bodyColor]);
 
   useEffect(
     () => () => materials.forEach((material) => material.dispose()),
