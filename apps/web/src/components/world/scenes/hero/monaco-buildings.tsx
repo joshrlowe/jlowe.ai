@@ -98,7 +98,9 @@ function buildBuildingMaterial(): THREE.MeshStandardNodeMaterial {
     .mul(12.99)
     .add(floor(positionWorld.y.div(WIN_H)).mul(78.23));
   const lit = step(0.4, fract(sin(cell).mul(43758.5)));
-  material.emissiveNode = vec3(1.0, 0.78, 0.45).mul(pane).mul(lit).mul(1.2);
+  // Boosted for the night scene: the warm windows are a primary light source, so
+  // they glow hot enough to read across the harbour and bloom.
+  material.emissiveNode = vec3(1.0, 0.78, 0.45).mul(pane).mul(lit).mul(2.6);
   return material;
 }
 

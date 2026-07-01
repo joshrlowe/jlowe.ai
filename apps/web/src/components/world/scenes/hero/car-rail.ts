@@ -1,28 +1,36 @@
 import * as THREE from "three/webgpu";
 
 /**
- * The closed path the hero car laps — a long, narrow loop that stays entirely on
- * the asphalt ribbon (the road is 9 wide × 70 long, centred on the origin and
- * running along ±z). The two long straights at x = ±2 read as "driving down the
- * road"; the U-turns at z ≈ ±30 keep the motion continuous (no teleport) and add
- * a banked sweep for the camera to play with. All within |x| ≤ 4.5, |z| ≤ 35.
+ * The closed path the field laps — one long STRAIGHT down the road on the
+ * camera-facing side (x = 0, z ∈ [−50, 50], travelling +z), then a wide return
+ * leg that bulges far out to +x (apex x ≈ 40, turns at z ≈ ±60) BEHIND the
+ * Monaco buildings so the loop closes with no teleport and the U-turns never
+ * enter frame. Every car runs the SAME direction down the visible straight — a
+ * pack racing past, not two lines passing head-on. The camera clamps its look to
+ * the straight's window (hero.tsx `HERO_PASS.lookClamp`) so it never yaws around
+ * to the hidden return.
  *
  * Tunable: these control points are art direction, not contract — the spine is
  * `carPoseAlongCurve` sampling whatever curve this returns.
  */
 const HERO_DRIVE_POINTS: readonly [number, number, number][] = [
-  [2, 0, -24],
-  [2, 0, 0],
-  [2, 0, 24],
-  [0, 0, 30],
-  [-2, 0, 24],
-  [-2, 0, 0],
-  [-2, 0, -24],
-  [0, 0, -30],
+  // Long straight on the racing line (x = 0), nose toward +z.
+  [0, 0, -50],
+  [0, 0, -25],
+  [0, 0, 0],
+  [0, 0, 25],
+  [0, 0, 50],
+  // Return leg — a teardrop bulging out to +x, hidden behind the city; its two
+  // turns sit at z ≈ ±60, outside the camera's clamped look window.
+  [20, 0, 60],
+  [40, 0, 40],
+  [40, 0, 0],
+  [40, 0, -40],
+  [20, 0, -60],
 ];
 
-/** Seconds for one full lap of the drive loop. */
-export const HERO_DRIVE_LAP_SECONDS = 14;
+/** Seconds for one full lap of the drive loop — short, so the pack rips past. */
+export const HERO_DRIVE_LAP_SECONDS = 7;
 
 /**
  * Build the closed drive curve. `centripetal` Catmull-Rom avoids the cusps and

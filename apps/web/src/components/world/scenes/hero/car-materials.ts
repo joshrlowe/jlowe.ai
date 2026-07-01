@@ -104,7 +104,8 @@ function createHeadlightMaterial(): THREE.MeshStandardNodeMaterial {
   material.metalness = 0.1;
   material.roughness = 0.15;
   material.emissive = new THREE.Color("#fff1d6");
-  material.emissiveIntensity = 0.6;
+  // Bright enough to read as lit headlamps against the night + bloom into a glow.
+  material.emissiveIntensity = 3;
   return material;
 }
 
@@ -114,7 +115,8 @@ function createTaillightMaterial(): THREE.MeshStandardNodeMaterial {
   material.metalness = 0.1;
   material.roughness = 0.2;
   material.emissive = new THREE.Color("#ff1f1f");
-  material.emissiveIntensity = 0.7;
+  // Hot red brake lights — the trailing signature down the night straight.
+  material.emissiveIntensity = 2.4;
   return material;
 }
 

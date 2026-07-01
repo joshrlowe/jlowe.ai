@@ -28,6 +28,13 @@ export interface HeroPassConfig {
   dollyAmplitude: number;
   /** Dolly drift speed (radians/sec). */
   dollySpeed: number;
+  /**
+   * Optional box the look target is clamped into (world units) so the pan never
+   * chases the cars off the visible straight and around the hidden return leg.
+   * `x` caps how far toward the backdrop the look drifts; `z` caps the along-road
+   * sweep. Omit for an unclamped free pan.
+   */
+  lookClamp?: { x: number; z: number };
 }
 
 const HERO_PASS_DEFAULTS: HeroPassConfig = {
@@ -118,6 +125,14 @@ export function CameraRig({
       // light look-damping keeps the pan glued to it without whipping.
       const cfg = heroPass ?? HERO_PASS_DEFAULTS;
       const pos = target.current.getWorldPosition(scratch.current);
+      // Clamp the look target into the straight's window so the pan eases to the
+      // frame edge as the pack rips off down the road, rather than yawing around
+      // to chase them through the hidden return leg (car-rail.ts).
+      if (cfg.lookClamp) {
+        const { x: cx, z: cz } = cfg.lookClamp;
+        pos.x = Math.min(Math.max(pos.x, -cx), cx);
+        pos.z = Math.min(Math.max(pos.z, -cz), cz);
+      }
       const driftZ =
         Math.sin(state.clock.elapsedTime * cfg.dollySpeed) * cfg.dollyAmplitude;
       camera.position.set(
