@@ -22,8 +22,10 @@ const ROAD_TEXTURES = [
   "/hero/road/asphalt_roughness.jpg",
 ] as const;
 
+// The asphalt runs past the corner blocks (z ≈ ±56) and on toward the fogged
+// vista (monaco-buildings.tsx), so the road never visibly dead-ends in frame.
 const ROAD_WIDTH = 9;
-const ROAD_LENGTH = 70;
+const ROAD_LENGTH = 140;
 const WET_LENGTH = 16;
 const WET_CENTER_Z = 11;
 const WET_Y = 0.02;
@@ -117,7 +119,7 @@ export function HeroRoad() {
       tex.colorSpace = colorSpace;
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(2, 14);
+      tex.repeat.set(2, 28); // 5 m/tile, matching the previous 70 m / 14 tiles
       tex.needsUpdate = true;
       return tex;
     };

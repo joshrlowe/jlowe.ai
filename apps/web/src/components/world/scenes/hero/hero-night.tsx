@@ -2,27 +2,19 @@
 
 import { useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo } from "react";
-import type { Scene } from "three/webgpu";
+import * as THREE from "three/webgpu";
 
 import { buildEnvTexture } from "../../core/env-texture";
 import { NIGHT_HARBOUR } from "../../core/env-gradient";
 import { useQuality } from "../../core/quality-provider";
-
-/**
- * Base IBL strength for the night hero scene (scaled by the per-tier factor).
- * Deliberately dim — the deep blue-violet sky is a low, cool key that only gives
- * the cars and set-dressing their shape; the warm building windows, yacht
- * cabins, headlights and brake lights (boosted emissives + bloom) are what the
- * eye actually reads.
- */
-const NIGHT_ENV_INTENSITY = 0.6;
+import { HERO_TUNING } from "./tuning";
 
 /** Radiance baked into the procedural night sky texture (kept at 1; the dim look
- * comes from `scene.environmentIntensity` above + the dark palette). */
+ * comes from `scene.environmentIntensity` + the dark palette). */
 const NIGHT_SKY_RADIANCE = 1;
 
 interface EnvScene {
-  environmentIntensity: Scene["environmentIntensity"];
+  environmentIntensity: THREE.Scene["environmentIntensity"];
 }
 
 /**
@@ -35,24 +27,69 @@ function applyEnvIntensity(scene: EnvScene, intensity: number): void {
   scene.environmentIntensity = intensity;
 }
 
+type SceneFog = THREE.Scene["fog"];
+
+/** Assign `scene.fog` via a plain function — same lint idiom as above. */
+function applySceneFog(scene: { fog: SceneFog }, fog: SceneFog): void {
+  scene.fog = fog;
+}
+
+/** Retune the shared Fog instance — same lint idiom as above. The node renderer
+ * reads `near`/`far` as live uniform references off this instance, so mutating
+ * it updates the haze without any shader rebuild. */
+function applyFogRange(fog: THREE.Fog, near: number, far: number): void {
+  fog.near = near;
+  fog.far = far;
+}
+
+/** The night haze colour = the sky palette's horizon band (sRGB → working
+ * space), so the fogged far end of the straight dissolves seamlessly into the
+ * procedural sky behind it. */
+function nightFogColor(): THREE.Color {
+  const [r, g, b] = NIGHT_HARBOUR.horizon;
+  return new THREE.Color().setRGB(
+    r / 255,
+    g / 255,
+    b / 255,
+    THREE.SRGBColorSpace,
+  );
+}
+
 /**
  * HERO-SCOPED night lighting: swaps the shared golden-hour sun/HDRI for a
  * Mediterranean night. A zero-byte procedural night sky (`NIGHT_HARBOUR`) drives
  * both the background and a dim cool IBL on every tier (no HDRI download); a
  * low, cool moon directional gives shape + the same soft shadow frustum the
- * golden sun used (opt-in via `sunCastShadow`), and a cool hemisphere fill lifts
- * the shadows just off black. `scene.environmentIntensity` is snapshotted and
- * restored on unmount so circuit / proving-ground stay pixel-identical.
+ * golden sun used (opt-in via `sunCastShadow`); a cool hemisphere fill lifts
+ * the shadows just off black; and a range fog tinted to the sky's horizon band
+ * hazes out the far straight — night air, and the curtain that swallows the
+ * set's edges and the drive loop's hidden U-turns. The scene is otherwise lit
+ * by its emissives (building windows, yacht cabins, the cars' rain lights)
+ * through bloom. `scene.environmentIntensity` and `scene.fog` are snapshotted
+ * and restored on unmount so circuit / proving-ground stay pixel-identical.
  *
  * Mounted INSTEAD of `GoldenHourEnvironment` + `HeroSky` + `HeroEnvironment` for
- * the hero scene (see hero.tsx).
+ * the hero scene (see hero.tsx). All intensities are leva-dialable via
+ * `useHeroTuning`.
  */
 export function HeroNight({
   sunCastShadow = false,
   shadowMapSize = 2048,
+  envIntensity = HERO_TUNING.envIntensity,
+  moonIntensity = HERO_TUNING.moonIntensity,
+  hemiIntensity = HERO_TUNING.hemiIntensity,
+  cityPointIntensity = HERO_TUNING.cityPointIntensity,
+  fogNear = HERO_TUNING.fogNear,
+  fogFar = HERO_TUNING.fogFar,
 }: {
   sunCastShadow?: boolean;
   shadowMapSize?: number;
+  envIntensity?: number;
+  moonIntensity?: number;
+  hemiIntensity?: number;
+  cityPointIntensity?: number;
+  fogNear?: number;
+  fogFar?: number;
 } = {}) {
   const { scene } = useThree();
   const { environmentIntensity: tierIntensity } = useQuality();
@@ -63,13 +100,26 @@ export function HeroNight({
   );
   useEffect(() => () => sky.dispose(), [sky]);
 
-  const intensity = NIGHT_ENV_INTENSITY * tierIntensity;
+  const intensity = envIntensity * tierIntensity;
   useLayoutEffect(() => {
     const target = scene as unknown as EnvScene;
     const previous = target.environmentIntensity;
     applyEnvIntensity(target, intensity);
     return () => applyEnvIntensity(target, previous);
   }, [scene, intensity]);
+
+  // ONE stable Fog instance for the scene's lifetime; range dials mutate it in
+  // place (live uniforms — no rebuild), and the scene assignment is snapshotted
+  // so unmount restores whatever fog (usually none) the previous scene had.
+  const fog = useMemo(() => new THREE.Fog(nightFogColor(), 35, 95), []);
+  useLayoutEffect(() => {
+    applyFogRange(fog, fogNear, fogFar);
+  }, [fog, fogNear, fogFar]);
+  useLayoutEffect(() => {
+    const previous = scene.fog;
+    applySceneFog(scene, fog);
+    return () => applySceneFog(scene, previous);
+  }, [scene, fog]);
 
   return (
     <>
@@ -81,7 +131,7 @@ export function HeroNight({
           ortho shadow frustum so the cars still drop a soft contact shadow. */}
       <directionalLight
         position={[-30, 40, 20]}
-        intensity={0.55}
+        intensity={moonIntensity}
         color="#7f93cf"
         castShadow={sunCastShadow}
         shadow-mapSize-width={shadowMapSize}
@@ -100,13 +150,17 @@ export function HeroNight({
       </directionalLight>
 
       {/* Cool ambient so the shadow side reads as night, not pure black. */}
-      <hemisphereLight color="#2a3350" groundColor="#050608" intensity={0.35} />
+      <hemisphereLight
+        color="#2a3350"
+        groundColor="#050608"
+        intensity={hemiIntensity}
+      />
 
       {/* One warm accent from the city side — a pool of streetlamp/window bounce
           that keeps the near barrier and road from going flat. */}
       <pointLight
         position={[10, 5, 0]}
-        intensity={40}
+        intensity={cityPointIntensity}
         distance={60}
         decay={2}
         color="#ffb066"

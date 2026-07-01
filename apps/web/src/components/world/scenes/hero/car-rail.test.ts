@@ -46,7 +46,7 @@ describe("carPoseAlongCurve", () => {
   });
 
   it("runs a dead-straight racing line (x≈0, nose +z) through the camera window", () => {
-    // The near straight is the first ~36% of the loop; its interior (control
+    // The near straight is the first ~31% of the loop; its interior (control
     // points collinear on x=0) is exactly straight. Sample well inside it.
     for (let i = 0; i <= 12; i++) {
       const u = 0.12 + (0.12 * i) / 12; // u ∈ [0.12, 0.24]
@@ -63,6 +63,23 @@ describe("carPoseAlongCurve", () => {
       maxX = Math.max(maxX, carPoseAlongCurve(i / 96, curve).position[0]);
     }
     expect(maxX).toBeGreaterThan(20); // the teardrop bulges behind the city
+  });
+
+  it("pushes the U-turns past the corner blocks so they never read in frame", () => {
+    // The end-closure masses stand at z ≈ ±56…64 (monaco-buildings.tsx); the
+    // turns must happen beyond them or their head/brake lights loop in view.
+    let maxZ = -Infinity;
+    let minZ = Infinity;
+    for (let i = 0; i < 192; i++) {
+      const { position } = carPoseAlongCurve(i / 192, curve);
+      if (position[0] > 4.5) {
+        // off the visible straight — the turning/return portion
+        maxZ = Math.max(maxZ, position[2]);
+        minZ = Math.min(minZ, position[2]);
+      }
+    }
+    expect(maxZ).toBeGreaterThan(66);
+    expect(minZ).toBeLessThan(-66);
   });
 
   it("drives roughly in the ground plane (y stays ~0)", () => {

@@ -12,14 +12,16 @@ import { useMemo } from "react";
 // Everything is procedural + instanced (≈0 bytes, a handful of draw calls) and
 // runs the full visible z-length so the car never drives "off the set".
 
+// Runs to the corner blocks at z ≈ ±56 (monaco-buildings.tsx), so the barrier
+// visually terminates INTO the corner and the set never ends mid-frame.
 const ROAD_HALF_WIDTH = 4.5;
-const Z_MIN = -34;
-const Z_MAX = 34;
+const Z_MIN = -55;
+const Z_MAX = 55;
 
 // --- Kerbs (red/white rumble strips) -------------------------------------
 const KERB_SEG = 1.0; // stripe length along z
 const KERB_WIDTH = 0.6; // x
-const KERB_HEIGHT = 0.09; // slight extrusion catches the raking golden sun
+const KERB_HEIGHT = 0.09; // slight extrusion catches the raking moonlight
 const KERB_X = ROAD_HALF_WIDTH - 0.1; // just inside each road edge
 const KERB_RED = "#b3271e";
 const KERB_WHITE = "#dde3e6";

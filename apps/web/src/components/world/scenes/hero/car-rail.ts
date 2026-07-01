@@ -3,12 +3,14 @@ import * as THREE from "three/webgpu";
 /**
  * The closed path the field laps — one long STRAIGHT down the road on the
  * camera-facing side (x = 0, z ∈ [−50, 50], travelling +z), then a wide return
- * leg that bulges far out to +x (apex x ≈ 40, turns at z ≈ ±60) BEHIND the
- * Monaco buildings so the loop closes with no teleport and the U-turns never
- * enter frame. Every car runs the SAME direction down the visible straight — a
- * pack racing past, not two lines passing head-on. The camera clamps its look to
- * the straight's window (hero.tsx `HERO_PASS.lookClamp`) so it never yaws around
- * to the hidden return.
+ * leg that bulges far out to +x (apex x ≈ 40, turns at z ≈ ±74) BEHIND the
+ * Monaco buildings so the loop closes with no teleport. The turn-in points sit
+ * past z ≈ ±56, where the corner blocks + end vista masses
+ * (monaco-buildings.tsx) stand between them and the camera — so the U-turns
+ * never READ in frame (the camera's look clamp alone only limits where it aims,
+ * not what the frame contains), and the night fog (hero-night.tsx) swallows
+ * what little pokes past. Every car runs the SAME direction down the visible
+ * straight — a pack racing past, not two lines passing head-on.
  *
  * Tunable: these control points are art direction, not contract — the spine is
  * `carPoseAlongCurve` sampling whatever curve this returns.
@@ -20,17 +22,15 @@ const HERO_DRIVE_POINTS: readonly [number, number, number][] = [
   [0, 0, 0],
   [0, 0, 25],
   [0, 0, 50],
-  // Return leg — a teardrop bulging out to +x, hidden behind the city; its two
-  // turns sit at z ≈ ±60, outside the camera's clamped look window.
-  [20, 0, 60],
-  [40, 0, 40],
+  // Return leg — a teardrop bulging out to +x; cars bend away gently after the
+  // straight (14/49 slope, so they stay inside the barrier line until they're
+  // behind the corner blocks) and U-turn at z ≈ ±74, x ≈ 14–40, fully occluded.
+  [14, 0, 74],
+  [40, 0, 48],
   [40, 0, 0],
-  [40, 0, -40],
-  [20, 0, -60],
+  [40, 0, -48],
+  [14, 0, -74],
 ];
-
-/** Seconds for one full lap of the drive loop — short, so the pack rips past. */
-export const HERO_DRIVE_LAP_SECONDS = 7;
 
 /**
  * Build the closed drive curve. `centripetal` Catmull-Rom avoids the cusps and

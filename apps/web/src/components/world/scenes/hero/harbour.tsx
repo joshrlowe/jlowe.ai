@@ -3,6 +3,7 @@
 import { Instance, Instances } from "@react-three/drei";
 
 import { scatter } from "../circuit/scatter";
+import { HERO_TUNING } from "./tuning";
 
 // The Monaco harbour-front on the far (+x) backdrop side, between the track
 // barrier and the city tiers (monaco-buildings pushed back to sit behind it):
@@ -12,8 +13,8 @@ import { scatter } from "../circuit/scatter";
 // bytes; 4 draws: water + hulls + cabins + masts). Runs the full visible
 // z-length so the waterfront never ends mid-shot.
 
-const Z_MIN = -32;
-const Z_MAX = 32;
+const Z_MIN = -55;
+const Z_MAX = 55;
 
 // Water sits just above the dark ground plane (road.tsx), in the band opened up
 // between the +x barrier (x≈5.1) and the pushed-back city (x≈13+).
@@ -23,7 +24,7 @@ const WATER_X_MAX = 12.8;
 
 // Moored band: hull centres sit in the near half of the water so masts rise in
 // front of the city. Hulls run parallel to the quay (length along z).
-const YACHT_COUNT = 7;
+const YACHT_COUNT = 11;
 const YACHT_SEED = 53;
 const YACHT_X_MIN = 6.6;
 const YACHT_X_MAX = 9.2;
@@ -102,7 +103,12 @@ function buildYachts(): Yacht[] {
  * mirrors the golden HDRI via its low roughness, and the yacht hulls catch the
  * raking sun; the masts + superstructures carry the harbour read over the quay.
  */
-export function Harbour() {
+export function Harbour({
+  cabinEmissive = HERO_TUNING.cabinEmissive,
+}: {
+  /** Yacht superstructure warm glow — leva-dialable via `useHeroTuning`. */
+  cabinEmissive?: number;
+} = {}) {
   const yachts = buildYachts();
 
   return (
@@ -143,7 +149,7 @@ export function Harbour() {
           roughness={0.5}
           metalness={0.05}
           emissive="#ffd9a0"
-          emissiveIntensity={0.9}
+          emissiveIntensity={cabinEmissive}
         />
         {yachts.map((y, i) => (
           <Instance key={i} position={y.cabin.position} scale={y.cabin.scale} />
