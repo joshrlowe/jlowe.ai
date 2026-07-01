@@ -4,10 +4,12 @@ import { useThree } from "@react-three/fiber";
 import { useLayoutEffect } from "react";
 import * as THREE from "three/webgpu";
 
-// Cinematic golden-hour grade for the hero vignette: AgX rolls highlights off
-// gently (no blown-out sky) and the slight exposure lift keeps shadow detail.
+import { HERO_TUNING } from "./tuning";
+
+// Cinematic grade for the hero vignette: AgX rolls the night's hot emissives
+// (windows, rain lights, bloom) off gently instead of clipping, and the slight
+// exposure lift keeps shadow detail. Exposure is leva-dialable via tuning.
 const HERO_TONE_MAPPING = THREE.AgXToneMapping;
-const HERO_EXPOSURE = 1.1;
 
 interface Gradeable {
   toneMapping: THREE.ToneMapping;
@@ -36,16 +38,20 @@ function applyGrade(
  * is already graded and no AgX frame leaks past unmount before the prior values
  * are restored.
  */
-export function HeroGrade() {
+export function HeroGrade({
+  exposure = HERO_TUNING.exposure,
+}: {
+  exposure?: number;
+} = {}) {
   const { gl } = useThree();
 
   useLayoutEffect(() => {
     const renderer = gl as unknown as Gradeable;
     const prevToneMapping = renderer.toneMapping;
     const prevExposure = renderer.toneMappingExposure;
-    applyGrade(renderer, HERO_TONE_MAPPING, HERO_EXPOSURE);
+    applyGrade(renderer, HERO_TONE_MAPPING, exposure);
     return () => applyGrade(renderer, prevToneMapping, prevExposure);
-  }, [gl]);
+  }, [gl, exposure]);
 
   return null;
 }

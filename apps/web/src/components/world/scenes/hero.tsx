@@ -10,7 +10,6 @@ import {
   buildHeroDriveCurve,
   carPoseAlongCurveOffset,
   type CarPose,
-  HERO_DRIVE_LAP_SECONDS,
 } from "./hero/car-rail";
 import { HeroCubeReflection } from "./hero/cube-reflection";
 import { Harbour } from "./hero/harbour";
@@ -18,30 +17,10 @@ import { HeroCar } from "./hero/hero-car";
 import { HeroGrade } from "./hero/hero-grade";
 import { HeroNight } from "./hero/hero-night";
 import { MonacoBuildings } from "./hero/monaco-buildings";
-import { HeroProps } from "./hero/props";
-import { CHALLENGER_LANE, passSwap, RACE_CARS } from "./hero/race-grid";
+import { passSwap, RACE_CARS } from "./hero/race-grid";
 import { HeroRoad } from "./hero/road";
 import { TrackDressing } from "./hero/track-dressing";
-
-// A fixed camera to the side of the road; the pack drives past it and it pans to
-// track the battle. Lifted to a trackside ~3.0 m vantage so it looks over the
-// harbour wall onto the water + yachts. `lookClamp` pins the pan to the straight
-// window (car-rail.ts) so it never yaws around to the hidden return leg — the
-// cars just rip off down the road and the next lap sweeps back in. First-pass
-// framing — dial in-browser.
-const HERO_PASS: HeroPassConfig = {
-  position: [-8, 3.0, 0],
-  lookHeight: 0.5,
-  lookDamping: 0.0008,
-  dollyAmplitude: 1.1,
-  dollySpeed: 0.12,
-  lookClamp: { x: 4, z: 20 },
-};
-
-// A longer lens than the global 50° (world-canvas) compresses the scene into a
-// cinematic "product shot." FOV is global on the shared camera, so snapshot +
-// restore on unmount (mirrors HeroGrade) to keep other scenes at 50°.
-const HERO_FOV = 38;
+import { useHeroTuning } from "./hero/use-hero-tuning";
 
 /** Order of `RACE_CARS`: the leader/challenger the camera frames as its battle. */
 const LEADER_INDEX = RACE_CARS.findIndex((c) => c.role === "leader");
@@ -79,10 +58,19 @@ function setMidpoint(node: Object3D, a: Object3D, b: Object3D): void {
  * universal bloom+vignette post-FX floor mounted by world-canvas, so it runs on
  * every tier (webgl baseline and up). An explicit `?quality=ultra` opt-in layers
  * the heavy cinematic post-FX on top.
+ *
+ * Every art dial routes through `useHeroTuning` (tuning.ts defaults + a live
+ * leva panel under ?debug=1), so the night look is tuned in a browser on dev,
+ * not by blind PR round-trips. The camera is a fixed trackside vantage
+ * (~camY 3 m) that looks over the harbour wall onto the water + yachts; its
+ * `lookClamp` pins the pan to the straight's window so it never yaws around to
+ * the hidden return leg — the cars just rip off into the fog behind the corner
+ * blocks and the next lap sweeps back in.
  */
 export function HeroScene() {
   const { shadowMapSize } = useQuality();
   const { camera } = useThree();
+  const t = useHeroTuning();
   // One ref per race car + a focus node the camera tracks (the leader/challenger
   // midpoint). Direct <object3D> refs, mutated via methods each frame.
   const ref0 = useRef<Object3D | null>(null);
@@ -95,33 +83,59 @@ export function HeroScene() {
   const curve = useMemo(() => buildHeroDriveCurve(), []);
   const elapsed = useRef(0);
 
-  // Swap to the longer cinematic lens while the hero scene is mounted; restore
-  // the prior FOV on unmount so circuit / proving-ground keep the default 50°.
+  // The fixed trackside camera config, from the live tuning.
+  const heroPass = useMemo<HeroPassConfig>(
+    () => ({
+      position: [t.camX, t.camY, t.camZ],
+      lookHeight: t.lookHeight,
+      lookDamping: t.lookDamping,
+      dollyAmplitude: t.dollyAmplitude,
+      dollySpeed: t.dollySpeed,
+      lookClamp: { x: t.clampX, z: t.clampZ },
+    }),
+    [
+      t.camX,
+      t.camY,
+      t.camZ,
+      t.lookHeight,
+      t.lookDamping,
+      t.dollyAmplitude,
+      t.dollySpeed,
+      t.clampX,
+      t.clampZ,
+    ],
+  );
+
+  // Swap to the longer cinematic lens while the hero scene is mounted (a longer
+  // lens than the global 50° compresses the pack into a broadcast "product
+  // shot"); restore the prior FOV on unmount so circuit / proving-ground keep
+  // the default. FOV is global on the shared camera, so snapshot + restore —
+  // mirrors HeroGrade.
   useLayoutEffect(() => {
     const cam = camera as PerspectiveCamera;
     const prevFov = cam.fov;
-    applyHeroFov(cam, HERO_FOV);
+    applyHeroFov(cam, t.fov);
     return () => applyHeroFov(cam, prevFov);
-  }, [camera]);
+  }, [camera, t.fov]);
 
   // Drive the field from one shared clock. The challenger rides the near lane
-  // (CHALLENGER_LANE) and saws forward/back relative to the leader on `passSwap`
+  // (challengerLane) and saws forward/back relative to the leader on `passSwap`
   // (net-periodic → the grid loops seamlessly), so across the straight it enters
   // behind, draws level, and noses ahead — a clean pass. The camera tracks the
   // leader/challenger midpoint so the battle stays framed.
   useFrame((_, delta) => {
     elapsed.current += delta;
-    const baseT = elapsed.current / HERO_DRIVE_LAP_SECONDS;
+    const baseT = elapsed.current / t.lapSeconds;
     const basePhase = ((baseT % 1) + 1) % 1;
-    const swap = passSwap(basePhase);
+    const swap = passSwap(basePhase, t.passAmp, t.passCenter);
 
     RACE_CARS.forEach((car, i) => {
       const node = carRefs[i]?.current;
       if (!node) return;
       const challenging = car.role === "challenger";
-      const t = baseT + car.tOffset + (challenging ? swap : 0);
-      const lane = challenging ? CHALLENGER_LANE : 0;
-      driveCar(node, carPoseAlongCurveOffset(t, curve, lane));
+      const carT = baseT + car.tOffset + (challenging ? swap : 0);
+      const lane = challenging ? t.challengerLane : 0;
+      driveCar(node, carPoseAlongCurveOffset(carT, curve, lane));
     });
 
     const leader = carRefs[LEADER_INDEX]?.current;
@@ -133,24 +147,46 @@ export function HeroScene() {
 
   return (
     <>
-      <HeroGrade />
-      {/* Mediterranean night: dim cool moon + procedural night IBL, replacing the
-          shared golden sun/HDRI for this scene only (circuit stays golden). */}
-      <HeroNight sunCastShadow shadowMapSize={shadowMapSize} />
+      <HeroGrade exposure={t.exposure} />
+      {/* Mediterranean night: dim cool moon + procedural night IBL + range fog,
+          replacing the shared golden sun/HDRI for this scene only (circuit
+          stays golden). */}
+      <HeroNight
+        sunCastShadow
+        shadowMapSize={shadowMapSize}
+        envIntensity={t.envIntensity}
+        moonIntensity={t.moonIntensity}
+        hemiIntensity={t.hemiIntensity}
+        cityPointIntensity={t.cityPointIntensity}
+        fogNear={t.fogNear}
+        fogFar={t.fogFar}
+      />
       <HeroRoad />
       <TrackDressing />
-      <Harbour />
-      <MonacoBuildings />
-      <HeroProps />
+      <Harbour cabinEmissive={t.cabinEmissive} />
+      <MonacoBuildings
+        windowEmissive={t.windowEmissive}
+        windowLitRatio={t.windowLitRatio}
+      />
       {RACE_CARS.map((car, i) => (
-        <HeroCar key={i} driveRef={carRefs[i]} bodyColor={car.bodyColor} />
+        <HeroCar
+          key={i}
+          driveRef={carRefs[i]}
+          bodyColor={car.bodyColor}
+          bodyMetalness={t.bodyMetalness}
+          bodyRoughness={t.bodyRoughness}
+          bodyEnvMapIntensity={t.bodyEnvMapIntensity}
+          rainLightEmissive={t.rainLightEmissive}
+          rainLightY={t.rainLightY}
+          rainLightZ={t.rainLightZ}
+        />
       ))}
       {/* Camera focus — parked at the leader/challenger midpoint each frame. */}
       <object3D ref={focusRef} />
       {/* Ultra-only car-paint reflection; capture point is the scene origin.
           P6: make it follow the moving cars. */}
       <HeroCubeReflection />
-      <CameraRig mode="hero-pass" target={focusRef} heroPass={HERO_PASS} />
+      <CameraRig mode="hero-pass" target={focusRef} heroPass={heroPass} />
     </>
   );
 }

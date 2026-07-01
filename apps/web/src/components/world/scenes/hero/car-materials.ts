@@ -11,14 +11,31 @@ import {
 import * as THREE from "three/webgpu";
 
 import type { CarPart } from "./car-part";
+import { HERO_TUNING } from "./tuning";
 
 /**
  * Physically-based node materials for the hero car. The body gets a clearcoat
  * car paint (high metalness + low roughness under a near-perfect clearcoat),
- * so it reads as glossy and mirrors the HDRI on both the WebGPU and WebGL2
- * backends; wheels get a metallic rim + a rough tire.
+ * so it reads as glossy and mirrors the environment on both the WebGPU and
+ * WebGL2 backends; wheels get a metallic rim + a rough tire. The paint's
+ * metalness/roughness/env strength are leva-dialable (`useHeroTuning`) — at
+ * night a near-mirror metal has little to reflect on the non-ultra tiers, so
+ * these are the dials that trade paint-colour readability against gloss.
  */
 export const HERO_CAR_BODY_COLOR = "#9a1b1b";
+
+/** The dialable paint response — see `HeroTuning.body*`. */
+export interface CarPaintTuning {
+  metalness: number;
+  roughness: number;
+  envMapIntensity: number;
+}
+
+const DEFAULT_PAINT: CarPaintTuning = {
+  metalness: HERO_TUNING.bodyMetalness,
+  roughness: HERO_TUNING.bodyRoughness,
+  envMapIntensity: HERO_TUNING.bodyEnvMapIntensity,
+};
 
 /**
  * Marker on the body paint material's `userData`. The hero cube-reflection
@@ -31,20 +48,21 @@ export const HERO_CAR_BODY_FLAG = "heroCarBody";
 
 function createCarPaintMaterial(
   bodyColor: string,
+  paint: CarPaintTuning,
 ): THREE.MeshPhysicalNodeMaterial {
   const material = new THREE.MeshPhysicalNodeMaterial();
   const base = new THREE.Color(bodyColor);
   material.color = base;
   // Near-mirror metal under a perfect clearcoat: a deep automotive 2-coat look.
-  material.metalness = 0.95;
-  material.roughness = 0.28;
+  material.metalness = paint.metalness;
+  material.roughness = paint.roughness;
   material.clearcoat = 1;
   material.clearcoatRoughness = 0.04;
-  material.envMapIntensity = 1.5;
+  material.envMapIntensity = paint.envMapIntensity;
 
   // Metallic-flake sparkle: high-frequency fractal noise jitters the shading
-  // normal so tiny facets catch the low sun and the env map as the camera
-  // orbits — the glittery metallic-paint micro-detail. The noise is sampled in
+  // normal so tiny facets catch the moon and the env map as the pack sweeps
+  // past — the glittery metallic-paint micro-detail. The noise is sampled in
   // LOCAL position (a fine, surface-anchored grain that twinkles as the view
   // moves), but the jitter is added to the VIEW-space normal, since `normalNode`
   // feeds the lighting in view space (`NodeMaterial.setupNormal`). The perfect
@@ -98,13 +116,17 @@ function createGlassMaterial(): THREE.MeshPhysicalNodeMaterial {
   return material;
 }
 
+// NB: the current open-wheel GLB classifies only body/trim/rim/tire/glass
+// (car-part.ts) — the headlight/taillight branches below are dormant until a
+// model with named light materials lands. An open-wheeler's real night
+// signature is the rear RAIN LIGHT, added as its own emissive mesh in
+// hero-car.tsx (a formula car has no headlights).
 function createHeadlightMaterial(): THREE.MeshStandardNodeMaterial {
   const material = new THREE.MeshStandardNodeMaterial();
   material.color = new THREE.Color("#dfe7ff");
   material.metalness = 0.1;
   material.roughness = 0.15;
   material.emissive = new THREE.Color("#fff1d6");
-  // Bright enough to read as lit headlamps against the night + bloom into a glow.
   material.emissiveIntensity = 3;
   return material;
 }
@@ -115,7 +137,6 @@ function createTaillightMaterial(): THREE.MeshStandardNodeMaterial {
   material.metalness = 0.1;
   material.roughness = 0.2;
   material.emissive = new THREE.Color("#ff1f1f");
-  // Hot red brake lights — the trailing signature down the night straight.
   material.emissiveIntensity = 2.4;
   return material;
 }
@@ -139,10 +160,11 @@ function createTrimMaterial(): THREE.MeshPhysicalNodeMaterial {
 export function createCarMaterial(
   part: CarPart,
   bodyColor: string = HERO_CAR_BODY_COLOR,
+  paint: CarPaintTuning = DEFAULT_PAINT,
 ): THREE.Material {
   switch (part) {
     case "body":
-      return createCarPaintMaterial(bodyColor);
+      return createCarPaintMaterial(bodyColor, paint);
     case "rim":
       return createRimMaterial();
     case "tire":
