@@ -3,6 +3,6 @@
     "default": 225,
     "routes": {}
   },
-  "world3dPayloadMb": 8,
-  "_note": "default = gz first-load JS ceiling per route. Measured baseline 2026-06: flat shell ~207-211 KB (Next 16 + React 19 + radix), /world ~199 KB; gate set ~7% above peak to catch regressions. Tightening opportunity: audit radix/lucide weight, lazy-load the mobile Sheet. world3dPayloadMb is the Phase-1 lazy 3D bundle budget, enforced once the world Canvas lands (three is dynamically imported, so it stays out of first-load)."
+  "world3dPayloadMb": 25,
+  "_note": "default = gz first-load JS ceiling per route. Measured baseline 2026-06: flat shell ~207-211 KB (Next 16 + React 19 + radix), /world ~199 KB; gate set ~7% above peak to catch regressions. Tightening opportunity: audit radix/lucide weight, lazy-load the mobile Sheet. world3dPayloadMb is the lazy 3D bundle budget, enforced once the world Canvas lands (three is dynamically imported, so it stays out of first-load). Raised 8→25 MB 2026-07 (user decision): production-grade car/ship assets with KTX2 PBR texture sets need the headroom; the flat-shell budget is untouched and the world payload stays lazy."
 }

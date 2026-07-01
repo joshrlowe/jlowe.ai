@@ -7,7 +7,7 @@ import { join } from "node:path";
 
 const RAW_DIR = "packages/asset-pipeline/raw-assets";
 const OUT_DIR = "apps/web/public/assets";
-const MAX_TOTAL_MB = 8; // matches budgets.json world3dPayloadMb
+const MAX_TOTAL_MB = 25; // matches budgets.json world3dPayloadMb
 
 const errors = [];
 
