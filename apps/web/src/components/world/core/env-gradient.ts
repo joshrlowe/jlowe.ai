@@ -19,6 +19,18 @@ export const GOLDEN_HOUR: SkyPalette = {
   zenith: [0x6b, 0x5a, 0x8c],
 };
 
+/**
+ * Mediterranean night — a deep blue-violet sky with a faint warm city glow at
+ * the horizon (town lights bouncing up). Drives a dim, cool IBL for the night
+ * hero scene; the building windows, yacht cabins, headlights and brake lights
+ * (boosted emissives + bloom) carry the actual illumination.
+ */
+export const NIGHT_HARBOUR: SkyPalette = {
+  nadir: [0x05, 0x07, 0x0d],
+  horizon: [0x34, 0x2c, 0x3a],
+  zenith: [0x06, 0x09, 0x14],
+};
+
 function srgbToLinear(c: number): number {
   return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }

@@ -135,7 +135,7 @@ export function Harbour() {
         ))}
       </Instances>
 
-      {/* Superstructures — off-white, faintly lit cabins for the dusk read. */}
+      {/* Superstructures — off-white cabins, lit warm for the night harbour. */}
       <Instances limit={yachts.length} castShadow receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial
@@ -143,7 +143,7 @@ export function Harbour() {
           roughness={0.5}
           metalness={0.05}
           emissive="#ffd9a0"
-          emissiveIntensity={0.22}
+          emissiveIntensity={0.9}
         />
         {yachts.map((y, i) => (
           <Instance key={i} position={y.cabin.position} scale={y.cabin.scale} />

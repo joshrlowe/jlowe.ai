@@ -45,13 +45,24 @@ describe("carPoseAlongCurve", () => {
     expect(a.position[2]).toBeCloseTo(c.position[2], 4);
   });
 
-  it("stays on the road footprint (|x| ≤ 4.5, |z| ≤ 35) all the way round", () => {
-    const SAMPLES = 48;
-    for (let i = 0; i < SAMPLES; i++) {
-      const { position } = carPoseAlongCurve(i / SAMPLES, curve);
-      expect(Math.abs(position[0])).toBeLessThanOrEqual(4.5);
-      expect(Math.abs(position[2])).toBeLessThanOrEqual(35);
+  it("runs a dead-straight racing line (x≈0, nose +z) through the camera window", () => {
+    // The near straight is the first ~36% of the loop; its interior (control
+    // points collinear on x=0) is exactly straight. Sample well inside it.
+    for (let i = 0; i <= 12; i++) {
+      const u = 0.12 + (0.12 * i) / 12; // u ∈ [0.12, 0.24]
+      const { position, yaw } = carPoseAlongCurve(u, curve);
+      expect(Math.abs(position[0])).toBeLessThan(0.5); // on the racing line
+      expect(Math.abs(position[2])).toBeLessThanOrEqual(50);
+      expect(Math.abs(yaw)).toBeLessThan(0.1); // pointing ~+z down the straight
     }
+  });
+
+  it("closes the loop with a wide return leg hidden off to +x", () => {
+    let maxX = -Infinity;
+    for (let i = 0; i < 96; i++) {
+      maxX = Math.max(maxX, carPoseAlongCurve(i / 96, curve).position[0]);
+    }
+    expect(maxX).toBeGreaterThan(20); // the teardrop bulges behind the city
   });
 
   it("drives roughly in the ground plane (y stays ~0)", () => {
@@ -95,13 +106,12 @@ describe("carPoseAlongCurveOffset", () => {
     expect(left.yaw).toBeCloseTo(base.yaw, 6);
   });
 
-  it("a ±1.45 lane offset stays on the road footprint all the way round", () => {
-    const SAMPLES = 48;
-    for (let i = 0; i < SAMPLES; i++) {
-      for (const lat of [1.45, -1.45]) {
-        const { position } = carPoseAlongCurveOffset(i / SAMPLES, curve, lat);
+  it("a ±1.1 lane offset stays on the road through the camera straight", () => {
+    for (let i = 0; i <= 12; i++) {
+      const u = 0.12 + (0.12 * i) / 12; // u ∈ [0.12, 0.24] — the near straight
+      for (const lat of [1.1, -1.1]) {
+        const { position } = carPoseAlongCurveOffset(u, curve, lat);
         expect(Math.abs(position[0])).toBeLessThanOrEqual(4.5);
-        expect(Math.abs(position[2])).toBeLessThanOrEqual(35);
       }
     }
   });
