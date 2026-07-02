@@ -12,6 +12,7 @@ import {
   type CarPose,
 } from "./hero/car-rail";
 import { HeroCubeReflection } from "./hero/cube-reflection";
+import { Floodlights } from "./hero/floodlights";
 import { Harbour } from "./hero/harbour";
 import { HeroCar } from "./hero/hero-car";
 import { HeroGrade } from "./hero/hero-grade";
@@ -160,10 +161,20 @@ export function HeroScene() {
         cityPointIntensity={t.cityPointIntensity}
         fogNear={t.fogNear}
         fogFar={t.fogFar}
+        envGlowIntensity={t.envGlowIntensity}
       />
       <HeroRoad />
       <TrackDressing />
-      <Harbour cabinEmissive={t.cabinEmissive} />
+      {/* The lighting rig the night race is "lit by" — masts, halos, pools. */}
+      <Floodlights
+        headEmissive={t.floodlightHeadEmissive}
+        poolIntensity={t.floodlightPoolIntensity}
+      />
+      <Harbour
+        cabinEmissive={t.cabinEmissive}
+        waterStreakIntensity={t.waterStreakIntensity}
+        windowLitRatio={t.windowLitRatio}
+      />
       <MonacoBuildings
         windowEmissive={t.windowEmissive}
         windowLitRatio={t.windowLitRatio}

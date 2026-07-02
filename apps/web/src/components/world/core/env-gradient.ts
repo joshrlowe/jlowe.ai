@@ -54,3 +54,45 @@ export function envTexel(
     srgbToLinear((a[2] + (b[2] - a[2]) * f) / 255),
   ];
 }
+
+/**
+ * A comb of bright pulses around the horizon band of the equirect env map —
+ * floodlight heads ringing a night circuit. Baked INTO the IBL texture (not
+ * geometry) so PMREM convolution turns each pulse into a hot specular the car
+ * paint and wet surfaces can actually reflect on every tier; a metalness-0.95
+ * body against a plain dark night gradient otherwise renders as a silhouette.
+ */
+export interface HorizonGlowComb {
+  /** Number of pulses around the full 360° azimuth. */
+  count: number;
+  /** Equirect latitude of the band centre (0.5 = horizon). */
+  vCenter: number;
+  /** Half-width of the band in latitude. */
+  vWidth: number;
+  /** Azimuthal tightness exponent (higher = tighter, hotter spots). */
+  sharpness: number;
+  /** Peak added radiance, LINEAR RGB (HDR — deliberately > 1). */
+  color: readonly [number, number, number];
+  /** Overall scale on `color`. 0 disables. */
+  intensity: number;
+}
+
+/**
+ * Added linear radiance of the glow comb at equirect (u, v). Pure math (no
+ * three import) so the pulse layout is unit-testable; `buildEnvTexture` adds
+ * this on top of the palette gradient per texel.
+ */
+export function glowCombAt(
+  u: number,
+  v: number,
+  comb: HorizonGlowComb,
+): [number, number, number] {
+  const azimuthal = Math.pow(
+    Math.max(0, Math.cos(comb.count * 2 * Math.PI * u)),
+    comb.sharpness,
+  );
+  const dv = Math.abs(v - comb.vCenter) / comb.vWidth;
+  const band = Math.max(0, 1 - dv);
+  const s = azimuthal * band * band * comb.intensity;
+  return [comb.color[0] * s, comb.color[1] * s, comb.color[2] * s];
+}

@@ -81,6 +81,24 @@ export function useHeroTuning(): HeroTuning {
       exposure: { value: HERO_TUNING.exposure, min: 0.4, max: 2, step: 0.05 },
       fogNear: { value: HERO_TUNING.fogNear, min: 5, max: 80, step: 1 },
       fogFar: { value: HERO_TUNING.fogFar, min: 40, max: 220, step: 5 },
+      envGlowIntensity: {
+        value: HERO_TUNING.envGlowIntensity,
+        min: 0,
+        max: 8,
+        step: 0.1,
+      },
+      floodlightHeadEmissive: {
+        value: HERO_TUNING.floodlightHeadEmissive,
+        min: 0,
+        max: 16,
+        step: 0.5,
+      },
+      floodlightPoolIntensity: {
+        value: HERO_TUNING.floodlightPoolIntensity,
+        min: 0,
+        max: 800,
+        step: 10,
+      },
     }),
     set: folder({
       windowEmissive: {
@@ -99,6 +117,12 @@ export function useHeroTuning(): HeroTuning {
         value: HERO_TUNING.cabinEmissive,
         min: 0,
         max: 4,
+        step: 0.05,
+      },
+      waterStreakIntensity: {
+        value: HERO_TUNING.waterStreakIntensity,
+        min: 0,
+        max: 2,
         step: 0.05,
       },
     }),

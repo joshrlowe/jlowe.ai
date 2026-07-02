@@ -57,6 +57,15 @@ export interface HeroTuning {
   /** Night haze — swallows the far straight and the distant set edges. */
   fogNear: number;
   fogFar: number;
+  /**
+   * Floodlight glow comb baked into the night IBL (env-gradient.ts) — the hot
+   * spots the car paint + wet surfaces reflect on every tier. 0 disables.
+   */
+  envGlowIntensity: number;
+  /** Floodlight head emissive (the bloom halos on the masts). */
+  floodlightHeadEmissive: number;
+  /** SpotLight pool intensity — the bright/dark strobe down the straight. */
+  floodlightPoolIntensity: number;
 
   // --- set dressing emissives ----------------------------------------------
   /** Building window-pane emissive strength (the night's primary light motif). */
@@ -65,6 +74,8 @@ export interface HeroTuning {
   windowLitRatio: number;
   /** Yacht superstructure warm glow. */
   cabinEmissive: number;
+  /** Fake mirrored window-streaks on the harbour water. 0 disables. */
+  waterStreakIntensity: number;
 
   // --- car ------------------------------------------------------------------
   bodyMetalness: number;
@@ -106,10 +117,14 @@ export const HERO_TUNING: HeroTuning = {
   exposure: 1.1,
   fogNear: 35,
   fogFar: 95,
+  envGlowIntensity: 2.5,
+  floodlightHeadEmissive: 6,
+  floodlightPoolIntensity: 260,
 
   windowEmissive: 2.6,
   windowLitRatio: 0.6,
   cabinEmissive: 0.9,
+  waterStreakIntensity: 0.5,
 
   bodyMetalness: 0.95,
   bodyRoughness: 0.28,
