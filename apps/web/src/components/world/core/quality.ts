@@ -80,17 +80,37 @@ const WEBGL: QualitySettings = {
 };
 
 /**
- * The "ultra" preset — an additive extension of WEBGPU (never a tier of its
- * own). It raises `shadowMapSize`/`maxDpr` and flags the heavy WebGPU-only
- * passes; it only applies when the orthogonal ultra axis resolves ON and the
- * tier is `webgpu` (see `qualityFor`).
+ * The AUTO-ultra preset — what a strong GPU gets BY DEFAULT (the `isUltra`
+ * heuristic, no URL opt-in). A curated, perf-safe slice of the cinematic
+ * stack: TRAA (the temporal AA that fixes the post-pipeline's missing MSAA),
+ * depth-of-field (the broadcast long-lens look), and the full warm/teal grade.
+ * The heavy screen-space passes (SSGI/SSR/motion-blur) stay explicit-only
+ * until they're browser-verified — they are the frame-budget and artifact
+ * risks. dpr/shadow stay at the WEBGPU floor so the default never gambles
+ * fill-rate on the first impression.
+ */
+const AUTO_ULTRA: QualitySettings = {
+  ...WEBGPU,
+  gtao: false,
+  ssr: false,
+  ssgi: false,
+  motionBlur: false,
+  dof: true,
+  traa: true,
+  colorGrade: 1,
+};
+
+/**
+ * The EXPLICIT "ultra" preset (`?quality=ultra`) — an additive extension of
+ * WEBGPU (never a tier of its own). It raises `shadowMapSize`/`maxDpr` and
+ * flags the full heavy WebGPU-only stack.
  *
  * The cinematic Forza-style stack — SSGI (indirect bounce + AO), wet-road SSR,
- * velocity motion-blur, depth-of-field, TRAA, and a warm/teal grade — is flagged
- * here but only ever BUILT in `core/post-fx.tsx` under
- * `isUltra && isWebGPUBackend && sceneSupportsUltraPostFX(scene)`. `gtao` stays
- * OFF because SSGI already supplies ambient occlusion (enabling both would
- * double-darken contacts).
+ * velocity motion-blur, depth-of-field, TRAA, and a warm/teal grade — is
+ * flagged here but only ever BUILT in `core/post-fx.tsx` when the preset
+ * enables at least one pass AND the backend is WebGPU AND the scene opts in
+ * (`sceneSupportsUltraPostFX`). `gtao` stays OFF because SSGI already supplies
+ * ambient occlusion (enabling both would double-darken contacts).
  */
 const ULTRA: QualitySettings = {
   ...WEBGPU,
@@ -115,13 +135,34 @@ export function qualityForTier(tier: CapabilityTier): QualitySettings {
 
 /**
  * Tier preset with the ultra axis folded in. Ultra is gated to `webgpu`; on
- * any other tier `isUltra` is ignored (webgl/2d never get the ultra preset),
- * which keeps the lower tiers byte-identical to the floor.
+ * any other tier both ultra flags are ignored (webgl/2d never get an ultra
+ * preset), which keeps the lower tiers byte-identical to the floor. On webgpu:
+ * explicit `?quality=ultra` → the full stack; the auto strong-GPU heuristic →
+ * the curated AUTO_ULTRA slice; otherwise the floor preset.
  */
 export function qualityFor(
   tier: CapabilityTier,
   isUltra: boolean,
+  explicitUltra = false,
 ): QualitySettings {
-  if (tier === "webgpu") return isUltra ? ULTRA : WEBGPU;
-  return WEBGL;
+  if (tier !== "webgpu") return WEBGL;
+  if (explicitUltra) return ULTRA;
+  return isUltra ? AUTO_ULTRA : WEBGPU;
+}
+
+/**
+ * True when the preset enables any pass of the heavy cinematic chain — the
+ * build gate `core/post-fx.tsx` uses to choose the MRT graph over the floor.
+ * Preset-driven (not ultra-flag-driven) so the gate can never drift from what
+ * the presets actually enable.
+ */
+export function enablesCinematicPostFX(quality: QualitySettings): boolean {
+  return (
+    quality.ssgi ||
+    quality.ssr ||
+    quality.traa ||
+    quality.motionBlur ||
+    quality.dof ||
+    quality.gtao
+  );
 }

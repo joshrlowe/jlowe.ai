@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { qualityFor, qualityForTier } from "./quality";
+import { enablesCinematicPostFX, qualityFor, qualityForTier } from "./quality";
 
 describe("qualityForTier", () => {
   it("gives the webgpu tier the higher budget", () => {
@@ -31,8 +31,24 @@ describe("qualityFor", () => {
     expect(qualityFor("webgpu", false)).toEqual(qualityForTier("webgpu"));
   });
 
-  it("applies the ultra preset only on the webgpu tier", () => {
-    const ultra = qualityFor("webgpu", true);
+  it("gives auto-ultra (strong-GPU heuristic) the curated cinematic slice", () => {
+    const auto = qualityFor("webgpu", true);
+    // The verified-safe passes come on by default…
+    expect(auto.traa).toBe(true);
+    expect(auto.dof).toBe(true);
+    expect(auto.colorGrade).toBeGreaterThan(0);
+    // …the still-being-tuned heavy passes stay explicit-only…
+    expect(auto.ssgi).toBe(false);
+    expect(auto.ssr).toBe(false);
+    expect(auto.motionBlur).toBe(false);
+    // …and fill-rate knobs stay at the floor so the default never gambles.
+    const webgpu = qualityForTier("webgpu");
+    expect(auto.maxDpr).toBe(webgpu.maxDpr);
+    expect(auto.shadowMapSize).toBe(webgpu.shadowMapSize);
+  });
+
+  it("applies the full ultra preset only on explicit ?quality=ultra", () => {
+    const ultra = qualityFor("webgpu", true, true);
     const webgpu = qualityForTier("webgpu");
     expect(ultra.shadowMapSize).toBeGreaterThan(webgpu.shadowMapSize);
     expect(ultra.maxDpr).toBeGreaterThanOrEqual(webgpu.maxDpr);
@@ -40,7 +56,7 @@ describe("qualityFor", () => {
   });
 
   it("stacks the cinematic ultra post-FX passes (SSGI/MB/DoF/TRAA/grade)", () => {
-    const ultra = qualityFor("webgpu", true);
+    const ultra = qualityFor("webgpu", true, true);
     expect(ultra.ssgi).toBe(true);
     expect(ultra.motionBlur).toBe(true);
     expect(ultra.dof).toBe(true);
@@ -48,9 +64,10 @@ describe("qualityFor", () => {
     expect(ultra.colorGrade).toBeGreaterThan(0);
   });
 
-  it("drops standalone GTAO under ultra (SSGI carries the AO term)", () => {
+  it("drops standalone GTAO under both ultra presets (SSGI/AO discipline)", () => {
     // Enabling both would double-darken contacts; SSGI's `.a` is the AO factor.
     expect(qualityFor("webgpu", true).gtao).toBe(false);
+    expect(qualityFor("webgpu", true, true).gtao).toBe(false);
   });
 
   it("never enables ultra heavy passes on the floor presets", () => {
@@ -65,8 +82,17 @@ describe("qualityFor", () => {
     }
   });
 
-  it("ignores isUltra on webgl/2d (lower tiers never go ultra)", () => {
-    expect(qualityFor("webgl", true)).toEqual(qualityForTier("webgl"));
-    expect(qualityFor("2d", true)).toEqual(qualityForTier("webgl"));
+  it("ignores both ultra flags on webgl/2d (lower tiers never go ultra)", () => {
+    expect(qualityFor("webgl", true, true)).toEqual(qualityForTier("webgl"));
+    expect(qualityFor("2d", true, true)).toEqual(qualityForTier("webgl"));
+  });
+});
+
+describe("enablesCinematicPostFX", () => {
+  it("is the preset-driven build gate for the heavy MRT chain", () => {
+    expect(enablesCinematicPostFX(qualityForTier("webgpu"))).toBe(false);
+    expect(enablesCinematicPostFX(qualityForTier("webgl"))).toBe(false);
+    expect(enablesCinematicPostFX(qualityFor("webgpu", true))).toBe(true);
+    expect(enablesCinematicPostFX(qualityFor("webgpu", true, true))).toBe(true);
   });
 });
