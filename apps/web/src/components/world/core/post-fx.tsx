@@ -4,6 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
 import { dof } from "three/addons/tsl/display/DepthOfFieldNode.js";
+import { fxaa } from "three/addons/tsl/display/FXAANode.js";
 import { ao } from "three/addons/tsl/display/GTAONode.js";
 import { motionBlur } from "three/addons/tsl/display/MotionBlur.js";
 import { ssgi } from "three/addons/tsl/display/SSGINode.js";
@@ -19,6 +20,7 @@ import {
   output,
   pass,
   rand,
+  renderOutput,
   roughness,
   screenUV,
   sin,
@@ -34,9 +36,10 @@ import * as THREE from "three/webgpu";
 import type { Node, TextureNode } from "three/webgpu";
 
 import { gradeColor } from "./color-grade";
-import type { QualitySettings } from "./quality";
-import { useExplicitUltra, useQuality } from "./quality-provider";
+import { enablesCinematicPostFX, type QualitySettings } from "./quality";
+import { useQuality } from "./quality-provider";
 import { sceneSupportsUltraPostFX } from "./scene-capabilities";
+import { type PostFxTuning, usePostFxTuning } from "./use-postfx-tuning";
 
 type ScenePass = ReturnType<typeof pass>;
 
@@ -54,11 +57,6 @@ interface HasTextureNode {
   getTextureNode(): TextureNode;
 }
 
-// Cinematic depth-of-field defaults (world units), tuned for the parked hero car
-// ~9u from the orbiting camera. These want a real GPU to dial — see PR notes.
-const DOF_FOCUS_DISTANCE = 9;
-const DOF_FOCAL_LENGTH = 3.2;
-const DOF_BOKEH_SCALE = 2.4;
 const MOTION_BLUR_SAMPLES = 12;
 
 // Warm/teal grade strength carried by the reliable FLOOR on cinematic scenes
@@ -73,8 +71,8 @@ const FLOOR_COLOR_GRADE = 0.8;
 // night gradients otherwise show, and adds the shot-on-a-camera texture.
 // ADDITIVE by design — three's FilmNode only brightens (base + base·noise), so
 // it vanishes exactly where banding lives, in the near-blacks. Same scene gate
-// as the grade; circuit / proving-ground stay pixel-identical.
-const FILM_GRAIN = 0.015;
+// as the grade; circuit / proving-ground stay pixel-identical. Amount is a
+// `usePostFxTuning` dial.
 
 /** Signed grain node — `rand` hashes screen position + time into ±grain/2. */
 function filmGrain(amount: number): Node<"float"> {
@@ -99,14 +97,20 @@ function composeUltra(
   scenePass: ScenePass,
   camera: THREE.Camera,
   quality: QualitySettings,
+  fx: PostFxTuning,
 ): ColorNode {
+  // MRT trimmed to what the ENABLED passes actually consume — the AUTO_ULTRA
+  // default (TRAA + DoF + grade) pays for output + velocity, not the full
+  // five-attachment bandwidth the explicit stack needs.
+  const needsNormal = quality.ssgi || quality.gtao || quality.ssr;
+  const needsMaterialProps = quality.ssr;
+  const needsVelocity = quality.traa || quality.motionBlur;
   scenePass.setMRT(
     mrt({
       output,
-      normal: normalView,
-      metalness,
-      roughness,
-      velocity,
+      ...(needsNormal ? { normal: normalView } : {}),
+      ...(needsMaterialProps ? { metalness, roughness } : {}),
+      ...(needsVelocity ? { velocity } : {}),
     }),
   );
 
@@ -116,10 +120,10 @@ function composeUltra(
 
   const color = scenePass.getTextureNode("output");
   const depth = scenePass.getTextureNode("depth");
-  const normalTex = scenePass.getTextureNode("normal");
-  const metalnessTex = scenePass.getTextureNode("metalness");
-  const roughnessTex = scenePass.getTextureNode("roughness");
-  const velocityTex = scenePass.getTextureNode("velocity");
+  const normalTex = needsNormal ? scenePass.getTextureNode("normal") : null;
+  const velocityTex = needsVelocity
+    ? scenePass.getTextureNode("velocity")
+    : null;
 
   // --- Indirect lighting / AO ---------------------------------------------
   // SSGI evaluates to vec4(indirectGI.rgb, ao.a). The physically-correct
@@ -128,12 +132,12 @@ function composeUltra(
   // sets `gtao:false`) to avoid double-darkening. `gtao` stays the lighter
   // contact-AO path for an ultra config that disables SSGI.
   let lit: ColorNode = color;
-  if (quality.ssgi) {
+  if (quality.ssgi && normalTex) {
     // `SSGINode extends TempNode<"vec4">`, so the node is itself a chainable
     // vec4 colour node — `.rgb`/`.a` read straight off it.
     const gi: ColorNode = ssgi(color, depth, normalTex, perspective);
     lit = color.mul(gi.a).add(gi.rgb);
-  } else if (quality.gtao) {
+  } else if (quality.gtao && normalTex) {
     const aoFactor = ao(depth, normalTex, camera).getTextureNode();
     lit = color.mul(vec4(vec3(aoFactor.r), 1));
   }
@@ -142,13 +146,13 @@ function composeUltra(
   // The node discards non-metallic fragments internally, so only the glossy
   // road zone + metallic body reflect; add it over the lit color.
   let reflective: ColorNode = lit;
-  if (quality.ssr) {
+  if (quality.ssr && normalTex) {
     const reflections = ssr(
       lit,
       depth,
       normalTex,
-      metalnessTex,
-      roughnessTex,
+      scenePass.getTextureNode("metalness"),
+      scenePass.getTextureNode("roughness"),
       camera,
     ).getTextureNode();
     reflective = lit.add(reflections);
@@ -158,7 +162,7 @@ function composeUltra(
   // TRAA resolves edge/temporal aliasing using history + the velocity MRT; it
   // jitters the camera projection internally (no camera-rig change needed).
   let resolved: ColorNode = reflective;
-  if (quality.traa) {
+  if (quality.traa && velocityTex) {
     // `getTextureNode()` exists at runtime but is absent from TRAANode's r184
     // `.d.ts` — go through `unknown` to reach the structural `HasTextureNode`.
     const node = traa(
@@ -171,16 +175,17 @@ function composeUltra(
   }
 
   // --- Motion blur (velocity MRT) -----------------------------------------
-  // Smears along per-pixel screen motion — the orbiting camera streaks the
-  // background past the car. `velocity` is a vec2 motion-vector texture.
+  // Smears along per-pixel screen motion — the pan streaks the background
+  // past the pack. `velocity` is a vec2 motion-vector texture.
   let moving: ColorNode = resolved;
-  if (quality.motionBlur) {
+  if (quality.motionBlur && velocityTex) {
     moving = motionBlur(resolved, velocityTex.xy, int(MOTION_BLUR_SAMPLES));
   }
 
   // --- Depth of field ------------------------------------------------------
-  // Bokeh falloff focused on the car. `dof` takes a viewZ node (negative view-
-  // space depth) derived from the pass's depth attachment.
+  // Bokeh falloff focused on the battle pair's lane (`usePostFxTuning` dials).
+  // `dof` takes a viewZ node (negative view-space depth) from the depth
+  // attachment.
   let focused: ColorNode = moving;
   if (quality.dof) {
     const viewZ = scenePass.getViewZNode("depth");
@@ -189,9 +194,9 @@ function composeUltra(
     const node = dof(
       moving,
       viewZ,
-      DOF_FOCUS_DISTANCE,
-      DOF_FOCAL_LENGTH,
-      DOF_BOKEH_SCALE,
+      fx.dofFocusDistance,
+      fx.dofFocalLength,
+      fx.dofBokehScale,
     ) as unknown as HasTextureNode;
     focused = node.getTextureNode();
   }
@@ -216,7 +221,10 @@ function composeUltra(
   // Grain rides after TRAA (so temporal accumulation can't smear it away) and
   // after the grade, right before the vignette. composeUltra is only built for
   // scenes that pass sceneSupportsUltraPostFX, so no extra gate is needed.
-  const grained: ColorNode = vec4(finalColor.rgb.add(filmGrain(FILM_GRAIN)), 1);
+  const grained: ColorNode = vec4(
+    finalColor.rgb.add(filmGrain(fx.filmGrain)),
+    1,
+  );
 
   const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
   return grained.mul(vignette);
@@ -232,9 +240,22 @@ function composeUltra(
 export function PostFX({ activeScene }: { activeScene: string }) {
   const { gl, scene, camera } = useThree();
   const quality = useQuality();
-  const explicitUltra = useExplicitUltra();
+  // Destructured to primitives so the pipeline memo can dep on VALUES — the
+  // hook returns a fresh object per render, which would rebuild every frame.
+  const {
+    dofFocusDistance,
+    dofFocalLength,
+    dofBokehScale,
+    filmGrain: grainAmount,
+  } = usePostFxTuning();
 
   const pipeline = useMemo(() => {
+    const fx: PostFxTuning = {
+      dofFocusDistance,
+      dofFocalLength,
+      dofBokehScale,
+      filmGrain: grainAmount,
+    };
     // Tone mapping is set on the renderer at construction (see world-canvas).
     const renderer = gl as unknown as THREE.WebGPURenderer;
 
@@ -294,29 +315,50 @@ export function PostFX({ activeScene }: { activeScene: string }) {
       // Film grain rides the same cinematic-scene gate as the grade — it
       // dithers the hero's dark night gradients; other scenes stay untouched.
       const grained = cinematic
-        ? vec4(graded.rgb.add(filmGrain(FILM_GRAIN)), 1)
+        ? vec4(graded.rgb.add(filmGrain(fx.filmGrain)), 1)
         : graded;
 
       const renderPipeline = new THREE.RenderPipeline(renderer);
-      renderPipeline.outputNode = grained.mul(vignette);
+      if (cinematic) {
+        // FXAA needs sRGB/LDR input, so on cinematic scenes the floor applies
+        // the output transform (tonemap + colour space) IN-GRAPH via
+        // `renderOutput`, runs FXAA on the result, and switches the pipeline's
+        // own output transform off so it isn't applied twice. This is the AA
+        // for every floor visitor (the post pipeline has no MSAA; the heavy
+        // branch gets TRAA instead). Other scenes keep the untouched default
+        // path — pixel-identical to before.
+        renderPipeline.outputColorTransform = false;
+        renderPipeline.outputNode = fxaa(renderOutput(grained.mul(vignette)));
+      } else {
+        renderPipeline.outputNode = grained.mul(vignette);
+      }
       return renderPipeline;
     };
 
-    // Heavy cinematic branch (WebGPU backend only, scenes that opt in, AND only
-    // when the visitor EXPLICITLY asked for `?quality=ultra`): MRT +
-    // SSGI/SSR/TRAA/motion-blur/DoF over the floor. Gating on `explicitUltra`
-    // (not the strong-GPU auto-heuristic) keeps this still-being-tuned, over-
-    // budget stack OFF the default first impression — capable visitors get the
-    // reliable graded floor above; the full chain is a deliberate opt-in we
-    // reintroduce one effect at a time (see plan P2/P6). The scene gate still
-    // keeps circuit / proving-ground floor-only. If the graph throws while
-    // building (a node/typings drift on this GPU/driver), fall to the floor
-    // rather than brick the frame loop — reliability over fidelity.
-    if (explicitUltra && isWebGPU && sceneSupportsUltraPostFX(activeScene)) {
+    // Heavy cinematic branch (WebGPU backend only, scenes that opt in): MRT +
+    // the passes the ACTIVE PRESET enables, over the floor. Preset-driven
+    // (`enablesCinematicPostFX`) rather than ultra-flag-driven: the strong-GPU
+    // auto-heuristic preset (AUTO_ULTRA) enables the verified-safe slice
+    // (TRAA + DoF + grade) by DEFAULT, while the still-being-tuned heavy
+    // passes (SSGI/SSR/motion-blur) exist only in the explicit `?quality=ultra`
+    // preset. The scene gate still keeps circuit / proving-ground floor-only.
+    // If the graph throws while building (a node/typings drift on this
+    // GPU/driver), fall to the floor rather than brick the frame loop —
+    // reliability over fidelity.
+    if (
+      enablesCinematicPostFX(quality) &&
+      isWebGPU &&
+      sceneSupportsUltraPostFX(activeScene)
+    ) {
       try {
         const scenePass = pass(scene, camera);
         const renderPipeline = new THREE.RenderPipeline(renderer);
-        renderPipeline.outputNode = composeUltra(scenePass, camera, quality);
+        renderPipeline.outputNode = composeUltra(
+          scenePass,
+          camera,
+          quality,
+          fx,
+        );
         return renderPipeline;
       } catch (error) {
         console.warn(
@@ -328,7 +370,17 @@ export function PostFX({ activeScene }: { activeScene: string }) {
     }
 
     return buildFloor();
-  }, [gl, scene, camera, explicitUltra, quality, activeScene]);
+  }, [
+    gl,
+    scene,
+    camera,
+    quality,
+    activeScene,
+    dofFocusDistance,
+    dofFocalLength,
+    dofBokehScale,
+    grainAmount,
+  ]);
 
   // A frame callback with priority > 0 takes the render loop over from R3F, so
   // the pipeline drives every frame. WebGPU compiles the TSL graph lazily on the

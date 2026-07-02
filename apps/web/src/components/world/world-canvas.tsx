@@ -98,7 +98,7 @@ export function WorldCanvas({
 }) {
   const forceWebGL = rendererInitForTier(tier)?.forceWebGL ?? false;
   const active = resolveSceneKey(activeScene, SCENES, DEFAULT_SCENE);
-  const quality = qualityFor(tier, isUltra);
+  const quality = qualityFor(tier, isUltra, explicitUltra);
 
   return (
     <Canvas
