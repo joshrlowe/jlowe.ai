@@ -5,13 +5,32 @@ import { useEffect, useLayoutEffect, useMemo } from "react";
 import * as THREE from "three/webgpu";
 
 import { buildEnvTexture } from "../../core/env-texture";
-import { NIGHT_HARBOUR } from "../../core/env-gradient";
+import { type HorizonGlowComb, NIGHT_HARBOUR } from "../../core/env-gradient";
 import { useQuality } from "../../core/quality-provider";
 import { HERO_TUNING } from "./tuning";
 
 /** Radiance baked into the procedural night sky texture (kept at 1; the dim look
  * comes from `scene.environmentIntensity` + the dark palette). */
 const NIGHT_SKY_RADIANCE = 1;
+
+/**
+ * The floodlight-rig glow comb baked into the night IBL: a ring of hot warm
+ * pulses just above the horizon. PMREM turns each pulse into a specular the
+ * car paint and wet asphalt reflect on EVERY tier — without it a
+ * metalness-0.95 body has only the near-black night gradient to mirror and
+ * renders as a silhouette. `intensity` is the leva dial; the layout matches
+ * the visual masts' vibe (floodlights.tsx), not their exact azimuths.
+ */
+function floodlightGlow(intensity: number): HorizonGlowComb {
+  return {
+    count: 14,
+    vCenter: 0.53,
+    vWidth: 0.05,
+    sharpness: 24,
+    color: [1.0, 0.93, 0.78],
+    intensity,
+  };
+}
 
 interface EnvScene {
   environmentIntensity: THREE.Scene["environmentIntensity"];
@@ -81,6 +100,7 @@ export function HeroNight({
   cityPointIntensity = HERO_TUNING.cityPointIntensity,
   fogNear = HERO_TUNING.fogNear,
   fogFar = HERO_TUNING.fogFar,
+  envGlowIntensity = HERO_TUNING.envGlowIntensity,
 }: {
   sunCastShadow?: boolean;
   shadowMapSize?: number;
@@ -90,13 +110,21 @@ export function HeroNight({
   cityPointIntensity?: number;
   fogNear?: number;
   fogFar?: number;
+  envGlowIntensity?: number;
 } = {}) {
   const { scene } = useThree();
   const { environmentIntensity: tierIntensity } = useQuality();
 
+  // Rebuilt when the glow dial moves (a 256×128 float texture — debug-only
+  // cost); the IBL re-convolves and the paint highlights follow live.
   const sky = useMemo(
-    () => buildEnvTexture(NIGHT_HARBOUR, NIGHT_SKY_RADIANCE),
-    [],
+    () =>
+      buildEnvTexture(
+        NIGHT_HARBOUR,
+        NIGHT_SKY_RADIANCE,
+        floodlightGlow(envGlowIntensity),
+      ),
+    [envGlowIntensity],
   );
   useEffect(() => () => sky.dispose(), [sky]);
 

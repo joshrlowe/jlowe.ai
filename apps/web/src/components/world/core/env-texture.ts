@@ -1,6 +1,12 @@
 import * as THREE from "three/webgpu";
 
-import { envTexel, GOLDEN_HOUR, type SkyPalette } from "./env-gradient";
+import {
+  envTexel,
+  glowCombAt,
+  GOLDEN_HOUR,
+  type HorizonGlowComb,
+  type SkyPalette,
+} from "./env-gradient";
 
 export { GOLDEN_HOUR, type SkyPalette } from "./env-gradient";
 
@@ -19,15 +25,23 @@ const HEIGHT = 128;
 export function buildEnvTexture(
   palette: SkyPalette = GOLDEN_HOUR,
   intensity = 1,
+  glow?: HorizonGlowComb,
 ): THREE.DataTexture {
   const data = new Float32Array(WIDTH * HEIGHT * 4);
   for (let y = 0; y < HEIGHT; y++) {
-    const [r, g, b] = envTexel(y / (HEIGHT - 1), palette);
+    const v = y / (HEIGHT - 1);
+    const [r, g, b] = envTexel(v, palette);
     for (let x = 0; x < WIDTH; x++) {
+      // Optional floodlight glow comb splatted on top of the gradient (only the
+      // night hero passes one; every other caller stays byte-identical).
+      const [gr, gg, gb] =
+        glow && glow.intensity > 0
+          ? glowCombAt(x / (WIDTH - 1), v, glow)
+          : [0, 0, 0];
       const i = (y * WIDTH + x) * 4;
-      data[i] = r * intensity;
-      data[i + 1] = g * intensity;
-      data[i + 2] = b * intensity;
+      data[i] = r * intensity + gr;
+      data[i + 1] = g * intensity + gg;
+      data[i + 2] = b * intensity + gb;
       data[i + 3] = 1;
     }
   }

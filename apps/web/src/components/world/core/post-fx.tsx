@@ -18,6 +18,7 @@ import {
   normalView,
   output,
   pass,
+  rand,
   roughness,
   screenUV,
   sin,
@@ -66,6 +67,19 @@ const MOTION_BLUR_SAMPLES = 12;
 // without depending on the heavy stack. Scene-scoped — circuit / proving-ground
 // stay ungraded.
 const FLOOR_COLOR_GRADE = 0.8;
+
+// Additive film grain on cinematic scenes: a signed per-pixel dither (animated
+// by the shared `time` clock) that breaks up the 8-bit banding the hero's dark
+// night gradients otherwise show, and adds the shot-on-a-camera texture.
+// ADDITIVE by design — three's FilmNode only brightens (base + base·noise), so
+// it vanishes exactly where banding lives, in the near-blacks. Same scene gate
+// as the grade; circuit / proving-ground stay pixel-identical.
+const FILM_GRAIN = 0.015;
+
+/** Signed grain node — `rand` hashes screen position + time into ±grain/2. */
+function filmGrain(amount: number): Node<"float"> {
+  return rand(screenUV.add(time)).sub(0.5).mul(amount) as Node<"float">;
+}
 
 /**
  * Ultra-only cinematic post-FX graph (WebGPU backend only — never reached on
@@ -199,8 +213,13 @@ function composeUltra(
     finalColor = vec4(mix(withBloom.rgb, graded, quality.colorGrade), 1);
   }
 
+  // Grain rides after TRAA (so temporal accumulation can't smear it away) and
+  // after the grade, right before the vignette. composeUltra is only built for
+  // scenes that pass sceneSupportsUltraPostFX, so no extra gate is needed.
+  const grained: ColorNode = vec4(finalColor.rgb.add(filmGrain(FILM_GRAIN)), 1);
+
   const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
-  return finalColor.mul(vignette);
+  return grained.mul(vignette);
 }
 
 /**
@@ -268,12 +287,18 @@ export function PostFX({ activeScene }: { activeScene: string }) {
       // via the same opt-in set, so circuit / proving-ground stay ungraded and
       // pixel-identical. Zero asset bytes (a TSL node, not a 3D-LUT).
       const lit = base.add(bloomPass);
-      const graded = sceneSupportsUltraPostFX(activeScene)
+      const cinematic = sceneSupportsUltraPostFX(activeScene);
+      const graded = cinematic
         ? vec4(mix(lit.rgb, gradeColor(lit.rgb), FLOOR_COLOR_GRADE), 1)
         : lit;
+      // Film grain rides the same cinematic-scene gate as the grade — it
+      // dithers the hero's dark night gradients; other scenes stay untouched.
+      const grained = cinematic
+        ? vec4(graded.rgb.add(filmGrain(FILM_GRAIN)), 1)
+        : graded;
 
       const renderPipeline = new THREE.RenderPipeline(renderer);
-      renderPipeline.outputNode = graded.mul(vignette);
+      renderPipeline.outputNode = grained.mul(vignette);
       return renderPipeline;
     };
 
