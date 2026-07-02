@@ -80,10 +80,11 @@ Candidates found (verify current price/quality, prefer 4.26+ ratings):
 
 Recreate the composition that already works — do not redesign it:
 
-- **Set**: one ~120 m harbour straight. Track at x/y origin; 1 m concrete wall
-  - Armco on the far side; marina band behind it (water + yachts); tiered
-    pastel city rising behind the marina; corner buildings closing both ends so
-    the road visibly bends away behind them. Floodlight masts every ~12 m.
+- **Set**: one ~120 m harbour straight. Track at x/y origin; 1 m concrete
+  wall with Armco on the far side; marina band behind it (water + yachts);
+  tiered pastel city rising behind the marina; corner buildings closing both
+  ends so the road visibly bends away behind them. Floodlight masts every
+  ~12 m.
 - **Night lighting**: no sun; moonlight directional at ~0.5 lux from the
   camera side; floodlight SpotLights (2 700 K, IES profiles if the pack has
   them) making alternating pools down the straight; emissive windows across
