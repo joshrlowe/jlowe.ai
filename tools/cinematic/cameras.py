@@ -60,15 +60,20 @@ def build_cameras(cfg: dict) -> dict:
     pan_target = bpy.data.objects["pan-target"]
     focus = bpy.data.objects["battle-focus"]
 
-    # 1 — trackside long-lens pan (the web hero's vantage, damped + clamped).
-    # video.* keys override the shared tuning for cinematic-only framing.
+    # 1 — trackside long-lens pan. Pulled BACK from the web vantage (−8 →
+    # video.camX −14) with a longer lens: at 8 m the pan whips ~130° in a
+    # second as the pack passes abeam and the whole frame smears; from
+    # further out with tight tracking the CAR stays pinned + sharp while the
+    # city does the smearing — the broadcast money look.
+    cam_x = video.get("camX", t["camX"])
     cam_y = video.get("camY", t["camY"])
-    trackside = _camera("cam-trackside", (t["camX"], cam_y, t["camZ"]), t["fov"])
+    fov = video.get("fov", t["fov"])
+    trackside = _camera("cam-trackside", (cam_x, cam_y, t["camZ"]), fov)
     _track(trackside, pan_target)
     trackside.data.dof.use_dof = True
     trackside.data.dof.focus_object = focus
     trackside.data.dof.aperture_fstop = 2.2
-    _handheld(trackside, scale=45, strength=0.05, seed_phase=3.1)
+    _handheld(trackside, scale=45, strength=0.03, seed_phase=3.1)
 
     # 2 — low kerb-level wide: the pack sweeps INTO the lens through a pool.
     # Hugs the road edge and aims DOWN the road so tarmac + oncoming cars own
