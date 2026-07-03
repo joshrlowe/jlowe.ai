@@ -180,8 +180,11 @@
     "lapSeconds": 9,
     "width": 1920,
     "height": 1080,
-    "panDamping": 0.02,
-    "camY": 2.3,
+    "panDamping": 0.006,
+    "camX": -14,
+    "camY": 2.6,
+    "fov": 34,
+    "clampZ": 18,
     "lookHeight": 0.6,
     "windowLitRatio": 0.35,
     "shots": [

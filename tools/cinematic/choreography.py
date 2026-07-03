@@ -195,8 +195,9 @@ def build_race(cfg: dict) -> dict:
             for k in range(3)
         ]
         # clamp the pan like the web rig, then exponential-damp it
+        clamp_z = video.get("clampZ", tuning["clampZ"])
         mid[0] = max(-tuning["clampX"], min(tuning["clampX"], mid[0]))
-        mid[2] = max(-tuning["clampZ"], min(tuning["clampZ"], mid[2]))
+        mid[2] = max(-clamp_z, min(clamp_z, mid[2]))
         pan_pos = mid if pan_pos is None else [
             pan_pos[k] + (mid[k] - pan_pos[k]) * damp for k in range(3)
         ]
