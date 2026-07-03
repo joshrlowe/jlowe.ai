@@ -1,0 +1,209 @@
+{
+  "_provenance": "Single source of truth for the Blender cinematic. Fields under tuning/raceCars/railPoints/palettes.nightHarbour are PARITY-TESTED against the three.js hero constants (apps/web/src/components/world/scenes/hero/scene-config-parity.test.ts) — edit those in TS first. The set/* dims mirror module-private constants in track-dressing/monaco-buildings/harbour/road/floodlights .tsx files; keep them in sync by hand when those change. video/* are cinematic-only knobs (pacing may differ from the web scene).",
+  "railPoints": [
+    [0, 0, -50],
+    [0, 0, -25],
+    [0, 0, 0],
+    [0, 0, 25],
+    [0, 0, 50],
+    [14, 0, 74],
+    [40, 0, 48],
+    [40, 0, 0],
+    [40, 0, -48],
+    [14, 0, -74]
+  ],
+  "raceCars": [
+    { "role": "field", "tOffset": 0.2, "bodyColor": "#1f5fd0" },
+    { "role": "field", "tOffset": 0.42, "bodyColor": "#1f9d6d" },
+    { "role": "leader", "tOffset": 0.6, "bodyColor": "#9a1b1b" },
+    { "role": "challenger", "tOffset": 0.6, "bodyColor": "#e0a92e" },
+    { "role": "field", "tOffset": 0.82, "bodyColor": "#d8dde3" }
+  ],
+  "tuning": {
+    "lapSeconds": 7,
+    "challengerLane": -1.1,
+    "passAmp": 0.03,
+    "passCenter": 0.55,
+    "camX": -8,
+    "camY": 3,
+    "camZ": 0,
+    "fov": 38,
+    "lookHeight": 0.5,
+    "lookDamping": 0.0008,
+    "dollyAmplitude": 1.1,
+    "dollySpeed": 0.12,
+    "clampX": 4,
+    "clampZ": 20,
+    "envIntensity": 0.6,
+    "moonIntensity": 0.55,
+    "hemiIntensity": 0.35,
+    "cityPointIntensity": 40,
+    "exposure": 1.1,
+    "fogNear": 35,
+    "fogFar": 95,
+    "envGlowIntensity": 2.5,
+    "floodlightHeadEmissive": 6,
+    "floodlightPoolIntensity": 260,
+    "windowEmissive": 2.6,
+    "windowLitRatio": 0.6,
+    "cabinEmissive": 0.9,
+    "waterStreakIntensity": 0.5,
+    "bodyMetalness": 0.95,
+    "bodyRoughness": 0.28,
+    "bodyEnvMapIntensity": 1.5,
+    "rainLightEmissive": 4,
+    "rainLightY": 0.5,
+    "rainLightZ": -1.85
+  },
+  "palettes": {
+    "nightHarbour": {
+      "nadir": [5, 7, 13],
+      "horizon": [52, 44, 58],
+      "zenith": [6, 9, 20]
+    },
+    "pastels": [
+      "#e8c9a0",
+      "#d98c6a",
+      "#e6d3b3",
+      "#cf9b7a",
+      "#b5c4b1",
+      "#e9b59a",
+      "#dcc7a8",
+      "#c98f74"
+    ],
+    "duskMasses": ["#4a4440", "#3f3a3d", "#54483f", "#463f45"],
+    "hullColors": [
+      "#f3f0ea",
+      "#eceae3",
+      "#f6f3ec",
+      "#e7e3d8",
+      "#1d2a44",
+      "#f3f0ea",
+      "#2a2f36"
+    ]
+  },
+  "set": {
+    "zMin": -55,
+    "zMax": 55,
+    "roadHalfWidth": 4.5,
+    "roadWidth": 9,
+    "roadLength": 140,
+    "wetLength": 16,
+    "wetCenterZ": 11,
+    "kerb": { "seg": 1.0, "width": 0.6, "height": 0.09, "x": 4.4 },
+    "wall": { "x": 5.1, "height": 1.0, "thickness": 0.45 },
+    "armco": { "x": 4.82, "y": 0.42, "height": 0.42, "width": 0.12 },
+    "postSpacing": 3,
+    "buildings": {
+      "winW": 1.3,
+      "winH": 1.7,
+      "rows": [
+        {
+          "seed": 11,
+          "xMin": 13,
+          "xMax": 15,
+          "hMin": 6,
+          "hMax": 11,
+          "spacing": 5
+        },
+        {
+          "seed": 23,
+          "xMin": 17,
+          "xMax": 19.5,
+          "hMin": 11,
+          "hMax": 18,
+          "spacing": 5.5
+        },
+        {
+          "seed": 37,
+          "xMin": 21.5,
+          "xMax": 25,
+          "hMin": 16,
+          "hMax": 26,
+          "spacing": 6.5
+        }
+      ],
+      "endClusters": [
+        {
+          "seed": 61,
+          "xMin": 5.5,
+          "xMax": 45,
+          "zCenter": 60,
+          "hMin": 8,
+          "hMax": 16,
+          "count": 8
+        },
+        {
+          "seed": 73,
+          "xMin": -14,
+          "xMax": 10,
+          "zCenter": 79,
+          "hMin": 10,
+          "hMax": 20,
+          "count": 4
+        }
+      ],
+      "endClusterNegSeedOffset": 7
+    },
+    "harbour": {
+      "waterY": 0.06,
+      "waterXMin": 5.3,
+      "waterXMax": 12.8,
+      "yachtCount": 11,
+      "yachtSeed": 53,
+      "yachtXMin": 6.6,
+      "yachtXMax": 9.2
+    },
+    "floodlights": {
+      "zMin": -54,
+      "zMax": 54,
+      "spacing": 12,
+      "mastX": 5.35,
+      "baseY": 1.0,
+      "topY": 8.2,
+      "headX": 4.75,
+      "headY": 8.0,
+      "headTilt": 0.5,
+      "poolZs": [-28, 0, 28],
+      "poolY": 8.2
+    }
+  },
+  "car": {
+    "url": "apps/web/public/hero/car/f1-car.glb",
+    "scale": 0.9,
+    "lift": 0.335,
+    "bodyMaterialName": "Material.005"
+  },
+  "video": {
+    "fps": 24,
+    "laps": 2,
+    "lapSeconds": 9,
+    "width": 1920,
+    "height": 1080,
+    "panDamping": 0.02,
+    "camY": 2.3,
+    "lookHeight": 0.6,
+    "windowLitRatio": 0.35,
+    "shots": [
+      { "name": "establish-A", "camera": "cam-high", "u2Start": 0.0 },
+      { "name": "pan-lunge-A", "camera": "cam-trackside", "u2Start": 0.2 },
+      { "name": "kerb-sweep-A", "camera": "cam-kerb", "u2Start": 0.36 },
+      { "name": "establish-B", "camera": "cam-high", "u2Start": 0.55 },
+      { "name": "pan-pass-B", "camera": "cam-trackside", "u2Start": 0.7 },
+      { "name": "kerb-exit-B", "camera": "cam-kerb", "u2Start": 0.88 }
+    ],
+    "duel": {
+      "_note": "2-lap story keys: [u2 over two laps, offset in passAmp units]. Lap A the lunge falls short (apex u2≈passCenter/2), lap B the pass completes (zero-crossing rising at u2≈(1+passCenter)/2).",
+      "keys": [
+        [0.0, -1.0],
+        [0.275, -0.15],
+        [0.45, -0.85],
+        [0.62, -0.6],
+        [0.7, -0.3],
+        [0.775, 0.0],
+        [0.86, 0.55],
+        [0.95, -0.35]
+      ]
+    }
+  }
+}

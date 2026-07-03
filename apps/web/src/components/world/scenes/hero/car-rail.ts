@@ -15,7 +15,7 @@ import * as THREE from "three/webgpu";
  * Tunable: these control points are art direction, not contract — the spine is
  * `carPoseAlongCurve` sampling whatever curve this returns.
  */
-const HERO_DRIVE_POINTS: readonly [number, number, number][] = [
+export const HERO_DRIVE_POINTS: readonly [number, number, number][] = [
   // Long straight on the racing line (x = 0), nose toward +z.
   [0, 0, -50],
   [0, 0, -25],

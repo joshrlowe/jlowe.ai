@@ -34,3 +34,7 @@ packages/asset-pipeline/raw-assets/*
 verification-*/
 VERIFICATION_REPORT.md
 *.log
+
+# Blender cinematic pipeline outputs (frames, blends)
+tools/cinematic/out/
+__pycache__/
