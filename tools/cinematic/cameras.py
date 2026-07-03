@@ -99,7 +99,19 @@ def build_cameras(cfg: dict) -> dict:
         for kp in fc.keyframe_points:
             kp.interpolation = "LINEAR"
 
+    # 4 — the drone: parented to the baked follow empty, tracking the battle.
+    # Deep focus (small-sensor drone look — also the sharpness fix), light
+    # float noise for the FPV feel.
     cams = {"cam-trackside": trackside, "cam-kerb": kerb, "cam-high": high}
+    drone_cfg = video.get("drone")
+    if drone_cfg:
+        drone = _camera("cam-drone", (0, 0, 0), drone_cfg.get("fov", 47))
+        drone.parent = bpy.data.objects["drone-cam-pos"]
+        drone.location = (0, 0, 0)
+        _track(drone, focus)
+        drone.data.dof.use_dof = False
+        _handheld(drone, scale=55, strength=0.04, seed_phase=12.3)
+        cams["cam-drone"] = drone
 
     # marker-bound cuts
     scene.timeline_markers.clear()

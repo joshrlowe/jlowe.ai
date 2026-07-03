@@ -50,9 +50,14 @@ def wet_asphalt(name: str, set_cfg: dict) -> bpy.types.Material:
     # real asphalt albedo ~0.07-0.12 — pure black eats the spot pools
     b.inputs["Base Color"].default_value = (0.062, 0.062, 0.07, 1)
 
+    # Object-space coords: the default Generated coords are bbox-normalised,
+    # which breaks noise scale on the loop-long road ribbon.
+    coords = n.new("ShaderNodeTexCoord")
+
     tex = n.new("ShaderNodeTexNoise")
     tex.inputs["Scale"].default_value = 0.35
     tex.inputs["Detail"].default_value = 6.0
+    tree.links.new(coords.outputs["Object"], tex.inputs["Vector"])
 
     ramp = n.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.46
@@ -63,6 +68,7 @@ def wet_asphalt(name: str, set_cfg: dict) -> bpy.types.Material:
     grain = n.new("ShaderNodeTexNoise")
     grain.inputs["Scale"].default_value = 90.0
     grain.inputs["Detail"].default_value = 4.0
+    tree.links.new(coords.outputs["Object"], grain.inputs["Vector"])
     bump = n.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.06
 
@@ -91,12 +97,18 @@ def water(name: str) -> bpy.types.Material:
     return mat
 
 
-def facade_windows(name: str, base_hex: str, cfg: dict) -> bpy.types.Material:
-    """Pastel facade with the emissive window grid — the same dominant-normal
-    trick as the web's TSL shader, built from Cycles nodes: the grid's
-    horizontal coordinate is world-x on ±y(three z) faces and world-y on ±x
-    faces; roofs are masked; a per-cell hash lights `windowLitRatio` of cells.
-    In Cycles these windows genuinely LIGHT the street and the water."""
+def facade_windows(
+    name: str,
+    base_hex: str,
+    cfg: dict,
+    window_rgb: tuple[float, float, float] = (1.0, 0.62, 0.28),
+) -> bpy.types.Material:
+    """Facade with the emissive window grid — the same dominant-normal trick
+    as the web's TSL shader, built from Cycles nodes: the grid's horizontal
+    coordinate is world-x on ±y(three z) faces and world-y on ±x faces; roofs
+    are masked; a per-cell hash lights `windowLitRatio` of cells. In Cycles
+    these windows genuinely LIGHT the street and the water. `window_rgb` picks
+    the pane temperature (Abu-Dhabi towers run cool with a warm minority)."""
     win_w = cfg["set"]["buildings"]["winW"]
     win_h = cfg["set"]["buildings"]["winH"]
     # video override: a real city at night is ~a third lit, not 60%
@@ -108,7 +120,9 @@ def facade_windows(name: str, base_hex: str, cfg: dict) -> bpy.types.Material:
     ln = tree.links.new
     b = _bsdf(tree)
     b.inputs["Base Color"].default_value = (*srgb_hex_to_linear(base_hex), 1)
-    b.inputs["Roughness"].default_value = 0.86
+    # glassier than the Monaco pastels — modern curtain-wall towers
+    b.inputs["Roughness"].default_value = 0.45
+    b.inputs["Metallic"].default_value = 0.15
 
     geo = n.new("ShaderNodeNewGeometry")
     sep_p = n.new("ShaderNodeSeparateXYZ")
@@ -183,7 +197,7 @@ def facade_windows(name: str, base_hex: str, cfg: dict) -> bpy.types.Material:
         "MULTIPLY", math2("MULTIPLY", pane, lit), math2("MULTIPLY", wall, emissive * 2)
     )
     ln(strength, b.inputs["Emission Strength"])
-    b.inputs["Emission Color"].default_value = (1.0, 0.62, 0.28, 1)
+    b.inputs["Emission Color"].default_value = (*window_rgb, 1)
     return mat
 
 

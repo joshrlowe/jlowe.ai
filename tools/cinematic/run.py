@@ -65,11 +65,13 @@ def main() -> None:
 
     if args.selftest:
         total = cfg["video"]["fps"] * cfg["video"]["laps"] * cfg["video"]["lapSeconds"]
+        n_shots = len(cfg["video"]["shots"])
+        n_cams = 4 if cfg["video"].get("drone") else 3
         assert counts["objects"] > 250, counts
         assert counts["cars"] == 5, counts
         assert counts["frames"] == total, counts
-        assert counts["cameras"] == 3 and counts["shots"] == 6, counts
-        assert len(bpy.context.scene.timeline_markers) == 6
+        assert counts["cameras"] == n_cams and counts["shots"] == n_shots, counts
+        assert len(bpy.context.scene.timeline_markers) == n_shots
         print("[cinematic] selftest OK")
         if args.save_blend:
             bpy.ops.wm.save_as_mainfile(filepath=os.path.join(args.out, "selftest.blend"))
@@ -95,7 +97,7 @@ def main() -> None:
                 f"[probe] car-{i} blender=({x:+.1f},{y:+.1f},{z:+.2f}) "
                 f"kids={len(kids)} meshes={len(meshes)} mats={mats}"
             )
-        for name in ("pan-target", "battle-focus", "cam-trackside"):
+        for name in ("pan-target", "battle-focus", "drone-cam-pos", "cam-drone"):
             o = bpy.data.objects[name].evaluated_get(deps)
             x, y, z = o.matrix_world.translation
             print(f"[probe] {name} blender=({x:+.1f},{y:+.1f},{z:+.2f})")
