@@ -152,7 +152,8 @@ def build_race(cfg: dict) -> dict:
     # camera-focus empties, baked alongside the cars
     focus = bpy.data.objects.new("battle-focus", None)
     pan_target = bpy.data.objects.new("pan-target", None)
-    for e in (focus, pan_target):
+    drone_pos = bpy.data.objects.new("drone-cam-pos", None)
+    for e in (focus, pan_target, drone_pos):
         bpy.context.scene.collection.objects.link(e)
 
     leader_i = next(i for i, c in enumerate(cfg["raceCars"]) if c["role"] == "leader")
@@ -167,6 +168,15 @@ def build_race(cfg: dict) -> dict:
     # Video override: the web's heavy damping trails the pack by ~5 m, which
     # reads laggy in a broadcast cut — the cinematic pans snappier.
     damp = 1 - math.pow(video.get("panDamping", tuning["lookDamping"]), dt)
+
+    # drone-follow: rides the rail `backMeters` behind the battle midpoint at
+    # `height`, with a slow lateral sway and damped position — FPV-chase feel
+    drone_cfg = video.get("drone", {})
+    drone_prev = None
+    drone_damp = 1 - math.pow(drone_cfg.get("damp", 0.04), dt) if drone_cfg else 0
+    back_u = (drone_cfg.get("backMeters", 8.5) / curve.length) if drone_cfg else 0
+    lead_off = cfg["raceCars"][leader_i]["tOffset"]
+    chal_off = cfg["raceCars"][chall_i]["tOffset"]
 
     for f in range(1, total + 1):
         u2 = (f - 1) / total
@@ -194,16 +204,43 @@ def build_race(cfg: dict) -> dict:
             (poses[leader_i][k] + poses[chall_i][k]) / 2 + (look_h if k == 1 else 0)
             for k in range(3)
         ]
-        # clamp the pan like the web rig, then exponential-damp it
-        clamp_z = video.get("clampZ", tuning["clampZ"])
-        mid[0] = max(-tuning["clampX"], min(tuning["clampX"], mid[0]))
-        mid[2] = max(-clamp_z, min(clamp_z, mid[2]))
-        pan_pos = mid if pan_pos is None else [
-            pan_pos[k] + (mid[k] - pan_pos[k]) * damp for k in range(3)
-        ]
+        # battle-focus = the RAW battle midpoint (the drone and DoF aim here —
+        # clamping it once pinned the drone's gaze 80 m off the pack)
         focus.location = B(*mid)
         focus.keyframe_insert("location", frame=f)
+
+        # the trackside pan-target alone gets the web rig's clamp + damping
+        clamp_z = video.get("clampZ", tuning["clampZ"])
+        clamped = [
+            max(-tuning["clampX"], min(tuning["clampX"], mid[0])),
+            mid[1],
+            max(-clamp_z, min(clamp_z, mid[2])),
+        ]
+        pan_pos = clamped if pan_pos is None else [
+            pan_pos[k] + (clamped[k] - pan_pos[k]) * damp for k in range(3)
+        ]
         pan_target.location = B(*pan_pos)
         pan_target.keyframe_insert("location", frame=f)
+
+        if drone_cfg:
+            lead_t = car_param(u2, laps, lead_off, "leader", keys, amp)
+            chal_t = car_param(u2, laps, chal_off, "challenger", keys, amp)
+            mid_t = (lead_t + chal_t) / 2
+            sway = (
+                math.sin(2 * math.pi * u2 * drone_cfg.get("swayCycles", 3))
+                * drone_cfg.get("swayAmp", 0.7)
+            )
+            dpos, _ = pose_along_curve(curve, mid_t - back_u, sway)
+            target = (dpos[0], drone_cfg.get("height", 2.6), dpos[2])
+            drone_prev = (
+                list(target)
+                if drone_prev is None
+                else [
+                    drone_prev[k] + (target[k] - drone_prev[k]) * drone_damp
+                    for k in range(3)
+                ]
+            )
+            drone_pos.location = B(*drone_prev)
+            drone_pos.keyframe_insert("location", frame=f)
 
     return {"cars": len(rigs), "frames": total}

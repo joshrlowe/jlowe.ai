@@ -125,19 +125,20 @@
       ],
       "endClusters": [
         {
+          "_note": "inner-corner pocket — the rail crosses z=60 at x≈5.8 and x≈28, so buildings live between the legs (drone-era: nothing may sit ON the corridor)",
           "seed": 61,
-          "xMin": 5.5,
-          "xMax": 45,
-          "zCenter": 60,
-          "hMin": 8,
-          "hMax": 16,
-          "count": 8
+          "xMin": 13,
+          "xMax": 20,
+          "zCenter": 58,
+          "hMin": 6,
+          "hMax": 10,
+          "count": 3
         },
         {
           "seed": 73,
           "xMin": -14,
-          "xMax": 10,
-          "zCenter": 79,
+          "xMax": 6,
+          "zCenter": 82,
           "hMin": 10,
           "hMax": 20,
           "count": 4
@@ -188,13 +189,71 @@
     "lookHeight": 0.6,
     "windowLitRatio": 0.35,
     "shots": [
-      { "name": "establish-A", "camera": "cam-high", "u2Start": 0.0 },
-      { "name": "pan-lunge-A", "camera": "cam-trackside", "u2Start": 0.2 },
-      { "name": "kerb-sweep-A", "camera": "cam-kerb", "u2Start": 0.36 },
-      { "name": "establish-B", "camera": "cam-high", "u2Start": 0.55 },
-      { "name": "pan-pass-B", "camera": "cam-trackside", "u2Start": 0.7 },
-      { "name": "kerb-exit-B", "camera": "cam-kerb", "u2Start": 0.88 }
+      { "name": "drone-follow", "camera": "cam-drone", "u2Start": 0.0 }
     ],
+    "drone": {
+      "_note": "One continuous drone-follow shot behind the battle pair — the whole loop, no cuts, seam-free by construction. Deep focus (real drones have small sensors), light float noise.",
+      "backMeters": 8.5,
+      "height": 2.6,
+      "damp": 0.0005,
+      "swayAmp": 0.7,
+      "swayCycles": 3,
+      "fov": 47
+    },
+    "look": {
+      "_note": "Abu-Dhabi-night re-skin (user direction 2026-07-02): cool WHITE track floodlighting on both sides + the return leg, glass-tower palette with cool windows (a warm minority for life), deep blue twilight sky, left grandstand band + LED boards, and a glowing lattice-shell landmark at the far U-turn the drone sweeps past.",
+      "sky": {
+        "nadir": [3, 5, 10],
+        "horizon": [16, 26, 48],
+        "zenith": [2, 4, 12]
+      },
+      "floodColor": [0.92, 0.96, 1.0],
+      "floodEnergyScale": 14,
+      "floodSpacing": 8,
+      "returnFloodUs": [0.34, 0.4, 0.46, 0.52],
+      "returnSkyline": {
+        "xMin": 50,
+        "xMax": 60,
+        "zMin": -70,
+        "zMax": 70,
+        "spacing": 7,
+        "hMin": 10,
+        "hMax": 22,
+        "seed": 131
+      },
+      "towerPalette": [
+        "#9fb2c8",
+        "#8797ad",
+        "#b3c2d4",
+        "#7e8ea6",
+        "#a8b6c6",
+        "#93a5bd",
+        "#8fa0b5",
+        "#7b8ba0"
+      ],
+      "windowCool": [0.85, 0.93, 1.0],
+      "windowWarm": [1.0, 0.72, 0.4],
+      "warmEvery": 4,
+      "grandstand": {
+        "xMin": -13,
+        "xMax": -8.5,
+        "zMin": -50,
+        "zMax": 50,
+        "spacing": 9,
+        "hMin": 4,
+        "hMax": 7,
+        "seed": 97
+      },
+      "adBoardZStep": 9,
+      "landmark": {
+        "_note": "outer side of the far turn exit — in frame while the drone rounds the corner AND visible down the straight; ~16 m clear of the rail",
+        "center": [55, 0, 58],
+        "radius": 10,
+        "height": 15,
+        "color": [0.45, 0.6, 1.0],
+        "strength": 6
+      }
+    },
     "duel": {
       "_note": "2-lap story keys: [u2 over two laps, offset in passAmp units]. Lap A the lunge falls short (apex u2≈passCenter/2), lap B the pass completes (zero-crossing rising at u2≈(1+passCenter)/2).",
       "keys": [
