@@ -182,6 +182,7 @@
     "width": 1920,
     "height": 1080,
     "panDamping": 0.006,
+    "challengerLane": -2.1,
     "camX": -14,
     "camY": 2.6,
     "fov": 34,
@@ -190,6 +191,12 @@
     "windowLitRatio": 0.35,
     "shots": [
       { "name": "drone-follow", "camera": "cam-drone", "u2Start": 0.0 }
+    ],
+    "grid": [
+      { "role": "field", "tOffset": 0.3, "livery": "rosso" },
+      { "role": "leader", "tOffset": 0.6, "livery": "silver-arrow" },
+      { "role": "challenger", "tOffset": 0.6, "livery": "navy-bull" },
+      { "role": "field", "tOffset": 0.85, "livery": "papaya" }
     ],
     "drone": {
       "_note": "One continuous drone-follow shot behind the battle pair — the whole loop, no cuts, seam-free by construction. Deep focus (real drones have small sensors), light float noise.",

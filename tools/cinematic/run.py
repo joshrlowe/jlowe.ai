@@ -14,6 +14,7 @@ Frames land in tools/cinematic/out/ (git-ignored)."""
 from __future__ import annotations
 
 import argparse
+import math
 import os
 import sys
 
@@ -21,6 +22,7 @@ TOOL_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOL_DIR)
 
 import bpy  # noqa: E402
+import mathutils  # noqa: E402
 
 import cameras  # noqa: E402
 import choreography  # noqa: E402
@@ -40,6 +42,12 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--save-blend", action="store_true")
     ap.add_argument("--camera", default=None, help="force a camera for --still")
     ap.add_argument("--probe", type=int, default=None, help="print car positions at frame")
+    ap.add_argument(
+        "--car-studio",
+        default=None,
+        help="render ONE procedural car (by livery key) on a studio floor — fast car look-dev",
+    )
+    ap.add_argument("--angle", default="rear34", choices=["rear34", "front34", "side", "top"])
     return ap.parse_args(argv)
 
 
@@ -54,10 +62,78 @@ def build_all(cfg: dict) -> dict:
     return counts
 
 
+def car_studio(cfg: dict, livery: str, angle: str, out_dir: str) -> None:
+    """One car, a grey floor, soft studio light — seconds-fast car look-dev."""
+    import f1car
+    import materials
+
+    reset_scene()
+    floor_mat = materials.simple("studio-floor", "#3c4046", roughness=0.5)
+    mesh = bpy.data.meshes.new("studio-floor")
+    mesh.from_pydata(
+        [(-30, -30, 0), (30, -30, 0), (30, 30, 0), (-30, 30, 0)], [], [[0, 1, 2, 3]]
+    )
+    mesh.materials.append(floor_mat)
+    fl = bpy.data.objects.new("studio-floor", mesh)
+    bpy.context.scene.collection.objects.link(fl)
+
+    world = bpy.data.worlds.new("studio")
+    bpy.context.scene.world = world
+    world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.18, 0.2, 0.24, 1)
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.8
+
+    for name, loc, energy in (
+        ("key", (4, -5, 5), 800),
+        ("fill", (-5, 3, 4), 300),
+        ("rim", (-4, -3, 2.2), 400),
+    ):
+        light = bpy.data.lights.new(name, type="AREA")
+        light.energy = energy
+        light.size = 3.5
+        lo = bpy.data.objects.new(name, light)
+        lo.location = loc
+        lo.rotation_euler = (
+            (mathutils.Vector((0, 0, 0.6)) - mathutils.Vector(loc)).to_track_quat("-Z", "Y").to_euler()
+        )
+        bpy.context.scene.collection.objects.link(lo)
+
+    f1car.build_f1_car(0, livery)
+
+    cam = bpy.data.cameras.new("studio-cam")
+    cam.sensor_fit = "VERTICAL"
+    cam.angle_y = math.radians(30)
+    co = bpy.data.objects.new("studio-cam", cam)
+    angles = {
+        "rear34": (-6.5, -4.5, 2.4),
+        "front34": (6.5, -4.5, 2.2),
+        "side": (0, -8.5, 1.6),
+        "top": (0.5, -0.01, 12),
+    }
+    co.location = angles[angle]
+    co.rotation_euler = (
+        (mathutils.Vector((0.2, 0, 0.45)) - mathutils.Vector(co.location))
+        .to_track_quat("-Z", "Y")
+        .to_euler()
+    )
+    bpy.context.scene.collection.objects.link(co)
+    bpy.context.scene.camera = co
+
+    render.configure(cfg, "look", out_dir)
+    bpy.context.scene.render.use_motion_blur = False
+    path = os.path.join(out_dir, f"car-{livery}-{angle}.png")
+    render.render_still(1, path)
+    print(f"[cinematic] wrote {path}")
+
+
 def main() -> None:
     args = parse_args()
     cfg = load_config()
     os.makedirs(args.out, exist_ok=True)
+
+    if args.car_studio:
+        car_studio(cfg, args.car_studio, args.angle, args.out)
+        return
 
     reset_scene()
     counts = build_all(cfg)
@@ -67,8 +143,9 @@ def main() -> None:
         total = cfg["video"]["fps"] * cfg["video"]["laps"] * cfg["video"]["lapSeconds"]
         n_shots = len(cfg["video"]["shots"])
         n_cams = 4 if cfg["video"].get("drone") else 3
+        n_cars = len(cfg["video"].get("grid") or cfg["raceCars"])
         assert counts["objects"] > 250, counts
-        assert counts["cars"] == 5, counts
+        assert counts["cars"] == n_cars, counts
         assert counts["frames"] == total, counts
         assert counts["cameras"] == n_cams and counts["shots"] == n_shots, counts
         assert len(bpy.context.scene.timeline_markers) == n_shots
