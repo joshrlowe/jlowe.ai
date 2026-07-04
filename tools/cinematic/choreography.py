@@ -137,17 +137,35 @@ def build_race(cfg: dict) -> dict:
     scene.frame_start = 1
     scene.frame_end = total
 
-    # Clone the FULL grid first, then dress each rig — painting or adding the
-    # rain light before cloning would leak car-0's livery + a duplicate light
-    # into every copy.
-    proto = _import_car(cfg)
-    rigs: list[bpy.types.Object] = [proto]
-    for i in range(1, len(cfg["raceCars"])):
-        rigs.append(_clone_car(proto, i))
-    for i, car in enumerate(cfg["raceCars"]):
-        rigs[i].name = f"car-{i}"
-        _paint_body(rigs[i], cfg, car["bodyColor"], i)
-        _rain_light(rigs[i], cfg, i)
+    # The grid: video.grid (procedural parametric cars, per-livery, spinning
+    # wheels) when present; otherwise the legacy GLB clone path.
+    grid = video.get("grid") or cfg["raceCars"]
+    wheels: list[dict] = []
+    if video.get("grid"):
+        import f1car
+
+        rigs = []
+        for i, entry in enumerate(grid):
+            rigs.append(f1car.build_f1_car(i, entry["livery"]))
+            spin = [
+                bpy.data.objects[f"f1-{i}-wheel-{tag}"] for tag in ("FL", "FR", "RL", "RR")
+            ]
+            steer = [
+                bpy.data.objects[f"f1-{i}-wheel-{tag}-steer"] for tag in ("FL", "FR")
+            ]
+            wheels.append({"spin": spin, "steer": steer, "angle": 0.0, "prev": None, "prev_yaw": None})
+    else:
+        # Clone the FULL grid first, then dress each rig — painting or adding
+        # the rain light before cloning would leak car-0's livery + a duplicate
+        # light into every copy.
+        proto = _import_car(cfg)
+        rigs = [proto]
+        for i in range(1, len(grid)):
+            rigs.append(_clone_car(proto, i))
+        for i, car in enumerate(grid):
+            rigs[i].name = f"car-{i}"
+            _paint_body(rigs[i], cfg, car["bodyColor"], i)
+            _rain_light(rigs[i], cfg, i)
 
     # camera-focus empties, baked alongside the cars
     focus = bpy.data.objects.new("battle-focus", None)
@@ -156,8 +174,8 @@ def build_race(cfg: dict) -> dict:
     for e in (focus, pan_target, drone_pos):
         bpy.context.scene.collection.objects.link(e)
 
-    leader_i = next(i for i, c in enumerate(cfg["raceCars"]) if c["role"] == "leader")
-    chall_i = next(i for i, c in enumerate(cfg["raceCars"]) if c["role"] == "challenger")
+    leader_i = next(i for i, c in enumerate(grid) if c["role"] == "leader")
+    chall_i = next(i for i, c in enumerate(grid) if c["role"] == "challenger")
 
     keys = video["duel"]["keys"]
     amp = tuning["passAmp"]
@@ -175,15 +193,19 @@ def build_race(cfg: dict) -> dict:
     drone_prev = None
     drone_damp = 1 - math.pow(drone_cfg.get("damp", 0.04), dt) if drone_cfg else 0
     back_u = (drone_cfg.get("backMeters", 8.5) / curve.length) if drone_cfg else 0
-    lead_off = cfg["raceCars"][leader_i]["tOffset"]
-    chal_off = cfg["raceCars"][chall_i]["tOffset"]
+    lead_off = grid[leader_i]["tOffset"]
+    chal_off = grid[chall_i]["tOffset"]
+    wheel_r = 0.36
 
     for f in range(1, total + 1):
         u2 = (f - 1) / total
         poses = []
-        for i, car in enumerate(cfg["raceCars"]):
+        for i, car in enumerate(grid):
             t_par = car_param(u2, laps, car["tOffset"], car["role"], keys, amp)
-            lateral = tuning["challengerLane"] if car["role"] == "challenger" else 0.0
+            # video override: the 5.5 m procedural cars are 1.9 m wide — the
+            # web's 1.1 m lane would interpenetrate the pair
+            lane = video.get("challengerLane", tuning["challengerLane"])
+            lateral = lane if car["role"] == "challenger" else 0.0
             pos, yaw = pose_along_curve(curve, t_par, lateral)
             # unwrap yaw so euler interpolation never spins the long way round
             if prev_yaw[i] is not None:
@@ -191,6 +213,7 @@ def build_race(cfg: dict) -> dict:
                     yaw -= 2 * math.pi
                 while yaw - prev_yaw[i] < -math.pi:
                     yaw += 2 * math.pi
+            yaw_delta = 0.0 if prev_yaw[i] is None else yaw - prev_yaw[i]
             prev_yaw[i] = yaw
             poses.append(pos)
             rig = rigs[i]
@@ -198,6 +221,21 @@ def build_race(cfg: dict) -> dict:
             rig.rotation_euler = (0, 0, yaw_to_bz(yaw))
             rig.keyframe_insert("location", frame=f)
             rig.keyframe_insert("rotation_euler", frame=f)
+
+            if wheels:
+                w = wheels[i]
+                if w["prev"] is not None:
+                    dist = math.dist(pos, w["prev"])
+                    # nose is +x; forward roll is negative about the axle (car-Y)
+                    w["angle"] -= dist / wheel_r
+                w["prev"] = pos
+                for wheel in w["spin"]:
+                    wheel.rotation_euler = (math.pi / 2, w["angle"], 0)
+                    wheel.keyframe_insert("rotation_euler", frame=f)
+                steer_angle = max(-0.42, min(0.42, yaw_delta * 9.0))
+                for hub in w["steer"]:
+                    hub.rotation_euler = (0, 0, -steer_angle)
+                    hub.keyframe_insert("rotation_euler", frame=f)
 
         look_h = video.get("lookHeight", tuning["lookHeight"])
         mid = [
