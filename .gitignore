@@ -65,3 +65,13 @@ FUTURE_PLANS.md
 /.audit-baseline/
 /.audit-post-phase1/
 /.audit-final/
+
+# lighthouse ci output
+/.lighthouseci/
+
+# terraform — state can contain secrets; never commit it
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
