@@ -11,7 +11,11 @@ describe("mapCalendarToData", () => {
     const data = mapCalendarToData([
       {
         contributionDays: [
-          { date: "2026-05-01", contributionCount: 0, contributionLevel: "NONE" },
+          {
+            date: "2026-05-01",
+            contributionCount: 0,
+            contributionLevel: "NONE",
+          },
           {
             date: "2026-05-02",
             contributionCount: 4,
@@ -43,7 +47,11 @@ describe("mapCalendarToData", () => {
     const data = mapCalendarToData([
       {
         contributionDays: [
-          { date: "2026-05-01", contributionCount: 1, contributionLevel: "MYSTERY" },
+          {
+            date: "2026-05-01",
+            contributionCount: 1,
+            contributionLevel: "MYSTERY",
+          },
         ],
       },
     ]);

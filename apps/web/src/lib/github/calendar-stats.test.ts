@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import {
   calculateContributionStats,
   type ContributionDay,
@@ -55,7 +56,10 @@ describe("calculateContributionStats", () => {
   });
 
   it("does not mutate the input array", () => {
-    const input: ContributionDay[] = [day("2026-05-02", 1), day("2026-05-01", 2)];
+    const input: ContributionDay[] = [
+      day("2026-05-02", 1),
+      day("2026-05-01", 2),
+    ];
     const before = [...input];
     calculateContributionStats(input);
     expect(input).toEqual(before);
