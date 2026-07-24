@@ -1,4 +1,4 @@
 environment    = "dev"
 domain_name    = "dev.jlowe.ai"
-dns_delegated  = false # flip true via PR after the NS flip + `dig NS` check
+dns_delegated  = true # delegated to Route53 — enables dev.jlowe.ai + ACM
 robots_noindex = true
