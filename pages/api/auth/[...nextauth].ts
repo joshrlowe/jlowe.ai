@@ -1,8 +1,10 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import NextAuthModule from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsModule from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "../../../lib/prisma";
+import { checkRateLimit } from "../../../lib/utils/rateLimit";
 
 // Handle next-auth ESM/CJS interop - webpack bundling may export as { default: fn }
 const NextAuth =
@@ -30,25 +32,23 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Email and password required");
           }
 
-          console.log("[Auth] Attempting login for:", credentials.email);
-
           const user = await prisma.adminUser.findUnique({
             where: { email: credentials.email },
           });
 
           if (!user) {
-            console.log("[Auth] User not found:", credentials.email);
+            console.warn("[Auth] Login failed: unknown user");
             throw new Error("Invalid email or password");
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
           if (!isPasswordValid) {
-            console.log("[Auth] Invalid password for:", credentials.email);
+            console.warn("[Auth] Login failed: invalid password");
             throw new Error("Invalid email or password");
           }
 
-          console.log("[Auth] Login successful for:", credentials.email);
+          console.log("[Auth] Login successful");
           return {
             id: user.id,
             email: user.email,
@@ -87,4 +87,23 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-export default NextAuth(authOptions);
+export default async function auth(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  // POST /api/auth/callback/credentials is the password-check endpoint. Rate
+  // limit it (by IP) so the single admin account can't be password-sprayed.
+  const isCredentialsCallback =
+    req.method === "POST" &&
+    Array.isArray(req.query.nextauth) &&
+    req.query.nextauth[0] === "callback" &&
+    req.query.nextauth[1] === "credentials";
+
+  if (isCredentialsCallback) {
+    const allowed = await checkRateLimit(req, res, {
+      maxRequests: 5,
+      windowSeconds: 60,
+      keyPrefix: "login",
+    });
+    if (!allowed) return; // checkRateLimit already sent the 429
+  }
+
+  return NextAuth(req, res, authOptions);
+}

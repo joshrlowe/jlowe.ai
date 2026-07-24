@@ -188,6 +188,39 @@ describe("/api/chat", () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it("returns 400 when more than 20 messages are sent", async () => {
+    const messages = Array.from({ length: 21 }, () => ({ role: "user", content: "x" }));
+    const req = createReq({ body: { messages } });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("returns 400 when a message exceeds 4000 characters", async () => {
+    const req = createReq({ body: { messages: [{ role: "user", content: "a".repeat(4001) }] } });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("does not emit a reflected Access-Control-Allow-Origin header", async () => {
+    const req = createReq({ headers: { origin: "https://evil.example" } });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("returns 405 for an OPTIONS preflight (no CORS handling)", async () => {
+    const req = createReq({ method: "OPTIONS" });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(405);
+  });
+
   it("does NOT expose tools on a researching message", async () => {
     intentMock.mockResolvedValue("researching");
     const req = createReq();

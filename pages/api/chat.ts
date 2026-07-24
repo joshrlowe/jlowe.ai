@@ -33,9 +33,15 @@ import { bookMeetingTool, getCalcomBookingUrl } from "@/lib/chat/tools";
 const SYSTEM_PROMPT_BASE = `You are Vulture, Josh Lowe's AI assistant. You help visitors learn about Josh's background, projects, research, and experience. Be helpful, concise, and professional. If you don't know something, say so. Do not make up information.`;
 const CLAUDE_MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0";
 
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_CHARS = 4000;
+
 function validateMessages(messages: unknown): asserts messages is Message[] {
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error("messages must be a non-empty array");
+  }
+  if (messages.length > MAX_MESSAGES) {
+    throw new Error(`messages must contain at most ${MAX_MESSAGES} items`);
   }
   for (const m of messages) {
     if (!m || typeof m.role !== "string" || typeof m.content !== "string") {
@@ -43,6 +49,9 @@ function validateMessages(messages: unknown): asserts messages is Message[] {
     }
     if (m.role !== "user" && m.role !== "assistant") {
       throw new Error("role must be 'user' or 'assistant'");
+    }
+    if (m.content.length > MAX_MESSAGE_CHARS) {
+      throw new Error(`message content must be ${MAX_MESSAGE_CHARS} characters or fewer`);
     }
   }
 }
@@ -111,17 +120,11 @@ function writeEvent(res: NextApiResponse, payload: unknown, eventName?: string):
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
-
+  // The chat widget only ever calls this endpoint same-origin, so no CORS
+  // headers are emitted — the previous reflected Access-Control-Allow-Origin
+  // let any site stream from this endpoint and burn Bedrock budget.
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST, OPTIONS");
+    res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
     return;
   }

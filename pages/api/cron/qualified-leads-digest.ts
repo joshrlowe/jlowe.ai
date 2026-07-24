@@ -5,6 +5,7 @@
  * automatically when the env var is set.
  */
 
+import crypto from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getConfig } from "@/lib/config";
@@ -20,7 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
   const auth = req.headers.authorization || "";
-  if (auth !== `Bearer ${cfg.cronSecret}`) {
+  const expected = `Bearer ${cfg.cronSecret}`;
+  const authBuf = Buffer.from(auth);
+  const expectedBuf = Buffer.from(expected);
+  // timingSafeEqual throws on length mismatch, so gate on length first
+  // (this leaks only the length of the header, which is acceptable).
+  const authorized =
+    authBuf.length === expectedBuf.length && crypto.timingSafeEqual(authBuf, expectedBuf);
+  if (!authorized) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }

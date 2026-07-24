@@ -1,14 +1,41 @@
+const securityHeaders = [
+  // 2 years; no `preload` — the preload list is effectively irreversible, so
+  // that flag is deferred until after the v2 cutover has burned in.
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=()",
+  },
+  // NOTE: no Content-Security-Policy yet — deliberately deferred. The hero runs
+  // Three.js blob: workers plus Next.js inline bootstrap scripts, so a workable
+  // CSP needs worker-src blob: + script nonce plumbing. Revisit with v2.
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   images: {
+    // https-only: the plaintext-http optimizer origin was an unnecessary SSRF
+    // surface. The wildcard host still wants tightening to the known image
+    // hosts (Vercel Blob) — pending a prod DB enumeration of legacy image URLs.
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**",
-      },
-      {
-        protocol: "http",
         hostname: "**",
       },
     ],
@@ -32,6 +59,11 @@ const nextConfig = {
   },
   async headers() {
     return [
+      {
+        // Security headers on every route, including /api and /admin.
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
       {
         // Apply to all public pages (exclude admin and API routes)
         source: "/((?!admin|api).*)",

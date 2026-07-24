@@ -84,6 +84,15 @@ describe("/api/cron/qualified-leads-digest", () => {
     expect(res.statusCode).toBe(401);
   });
 
+  it("returns 401 with an equal-length wrong bearer (timing-safe branch)", async () => {
+    // Same length as "Bearer topsecret" so the compare reaches timingSafeEqual.
+    const req = createReq({ authorization: "Bearer topsecreX" });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(401);
+  });
+
   it("returns 200 with sent: 0 when no qualified sessions", async () => {
     const req = createReq({ authorization: "Bearer topsecret" });
     const res = createRes();
