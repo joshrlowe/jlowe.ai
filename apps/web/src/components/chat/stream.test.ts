@@ -45,6 +45,21 @@ describe("streamChat", () => {
     expect(options.headers["content-type"]).toBe("application/json");
     expect(JSON.parse(options.body)).toEqual(req);
     expect(options.signal).toBe(controller.signal);
+
+    // OAC-signed Lambda Function URLs reject POSTs without the body's payload
+    // hash (see docs/audit/chat-404-diagnosis.md). It must be the hex SHA-256
+    // of the exact body bytes we send.
+    const expectedHash = Array.from(
+      new Uint8Array(
+        await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(options.body),
+        ),
+      ),
+    )
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    expect(options.headers["x-amz-content-sha256"]).toBe(expectedHash);
   });
 
   it("yields each decoded text delta until the stream ends", async () => {
