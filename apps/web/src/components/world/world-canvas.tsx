@@ -102,6 +102,13 @@ export function WorldCanvas({
 
   return (
     <Canvas
+      // Accessible name for the WebGPU/WebGL render surface, which is otherwise
+      // an unlabeled graphic to assistive tech. The equivalent content and
+      // navigation live in accessible HTML (the flat 2D shell + the world HUD),
+      // so this presents the live scene as a single named image. a11y attrs
+      // only — no change to the 3D rendering.
+      role="img"
+      aria-label="Interactive 3D world: a drivable coastal circuit through Josh Lowe's work. The same content is available on the standard site."
       className="h-full w-full"
       dpr={[1, quality.maxDpr]}
       // Soft (PCFSoft) sun shadows. R3F owns shadowMap.enabled/type via this
