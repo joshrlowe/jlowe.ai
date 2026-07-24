@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ChatLauncherMount } from "@/components/chat/chat-launcher-mount";
+import { JsonLd } from "@/components/json-ld";
 import { ToasterMount } from "@/components/toaster-mount";
+import { personSchema, websiteSchema } from "@/lib/seo/schema";
 import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +32,15 @@ export const metadata: Metadata = {
     siteName: "jlowe.ai",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+  },
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  // Brand red; matches the manifest theme_color and the v1 <meta theme-color>.
+  themeColor: "#bb1313",
 };
 
 export default function RootLayout({
@@ -47,6 +58,8 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-full flex-col">
+        <JsonLd data={personSchema()} id="ld-person" />
+        <JsonLd data={websiteSchema()} id="ld-website" />
         {children}
         <ChatLauncherMount />
         <ToasterMount />
