@@ -31,10 +31,7 @@ export default function ProjectsEmptyState({
         {hasFilters ? "No matching projects" : "No projects yet"}
       </h3>
 
-      <p
-        className="text-[var(--color-text-secondary)] mx-auto mb-8"
-        style={{ maxWidth: "80%" }}
-      >
+      <p className="text-[var(--color-text-secondary)] mx-auto mb-8" style={{ maxWidth: "80%" }}>
         {hasFilters
           ? "Try adjusting your filters or search query to find what you're looking for."
           : "Projects will appear here once they're published. Check back soon!"}

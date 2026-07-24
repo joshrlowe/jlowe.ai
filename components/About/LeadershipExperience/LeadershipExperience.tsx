@@ -47,10 +47,7 @@ export default function LeadershipExperience({
           Leadership Experience
         </h2>
         {subtitle && (
-          <p
-            className="text-sm mt-1"
-            style={{ color: "var(--color-text-muted)" }}
-          >
+          <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
             {subtitle}
           </p>
         )}
@@ -78,10 +75,7 @@ export default function LeadershipExperience({
                   >
                     {item.role || item.title || item.position}
                   </h3>
-                  <div
-                    className="font-medium mt-1"
-                    style={{ color: "#FAA307" }}
-                  >
+                  <div className="font-medium mt-1" style={{ color: "#FAA307" }}>
                     {item.organization || item.company}
                   </div>
                 </div>
@@ -99,10 +93,7 @@ export default function LeadershipExperience({
 
               {item.description && (
                 <div className="mt-3">
-                  <MarkdownContent
-                    content={item.description}
-                    variant="compact"
-                  />
+                  <MarkdownContent content={item.description} variant="compact" />
                 </div>
               )}
             </div>

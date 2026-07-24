@@ -1,9 +1,9 @@
 /**
  * Mock: next/navigation
- * 
+ *
  * Mocks Next.js App Router navigation hooks.
  * This prevents errors when testing components that use navigation features.
- * 
+ *
  * Mocked exports:
  * - useRouter: Returns mock router with navigation methods
  * - usePathname: Returns current pathname
@@ -31,7 +31,7 @@ export const useRouter = jest.fn(() => ({
   prefetch: mockPrefetch,
 }));
 
-export const usePathname = jest.fn(() => '/');
+export const usePathname = jest.fn(() => "/");
 
 export const useSearchParams = jest.fn(() => new URLSearchParams());
 
@@ -42,7 +42,7 @@ export const redirect = jest.fn((url) => {
 });
 
 export const notFound = jest.fn(() => {
-  throw new Error('NEXT_NOT_FOUND');
+  throw new Error("NEXT_NOT_FOUND");
 });
 
 export const useSelectedLayoutSegment = jest.fn(() => null);
@@ -74,7 +74,3 @@ export const resetNavigationMocks = () => {
   redirect.mockClear();
   notFound.mockClear();
 };
-
-
-
-

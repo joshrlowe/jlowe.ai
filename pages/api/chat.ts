@@ -27,28 +27,31 @@ import { checkRateLimit } from "@/lib/utils/rateLimit";
 import { startTrace } from "@/lib/observability/langfuse";
 import { getOrCreateSessionId } from "@/lib/observability/session";
 import { getClientIp, hashIp } from "@/lib/observability/ip";
-import {
-  classifyIntent,
-  highestPriorityIntent,
-  type Intent,
-} from "@/lib/chat/intent";
+import { classifyIntent, highestPriorityIntent, type Intent } from "@/lib/chat/intent";
 import { bookMeetingTool, getCalcomBookingUrl } from "@/lib/chat/tools";
 
 const SYSTEM_PROMPT_BASE = `You are Vulture, Josh Lowe's AI assistant. You help visitors learn about Josh's background, projects, research, and experience. Be helpful, concise, and professional. If you don't know something, say so. Do not make up information.`;
 const CLAUDE_MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0";
 
+const MAX_MESSAGES = 20;
+const MAX_MESSAGE_CHARS = 4000;
+
 function validateMessages(messages: unknown): asserts messages is Message[] {
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error("messages must be a non-empty array");
   }
+  if (messages.length > MAX_MESSAGES) {
+    throw new Error(`messages must contain at most ${MAX_MESSAGES} items`);
+  }
   for (const m of messages) {
     if (!m || typeof m.role !== "string" || typeof m.content !== "string") {
-      throw new Error(
-        "Each message must have role (string) and content (string)",
-      );
+      throw new Error("Each message must have role (string) and content (string)");
     }
     if (m.role !== "user" && m.role !== "assistant") {
       throw new Error("role must be 'user' or 'assistant'");
+    }
+    if (m.content.length > MAX_MESSAGE_CHARS) {
+      throw new Error(`message content must be ${MAX_MESSAGE_CHARS} characters or fewer`);
     }
   }
 }
@@ -61,10 +64,8 @@ interface Citation {
 }
 
 function urlFor(c: RetrievedChunk): string | null {
-  if (c.sourceType === "article" && c.sourceSlug)
-    return `/articles/${c.sourceSlug}`;
-  if (c.sourceType === "project" && c.sourceSlug)
-    return `/projects/${c.sourceSlug}`;
+  if (c.sourceType === "article" && c.sourceSlug) return `/articles/${c.sourceSlug}`;
+  if (c.sourceType === "project" && c.sourceSlug) return `/projects/${c.sourceSlug}`;
   if (c.sourceType === "about") return "/about";
   if (c.sourceType === "welcome") return "/";
   if (c.sourceType === "contact") return "/contact";
@@ -79,9 +80,8 @@ function buildCitations(chunks: RetrievedChunk[]): Citation[] {
       const headingTail = c.headingPath.length
         ? ` — ${c.headingPath[c.headingPath.length - 1]}`
         : "";
-      const snippet = c.content.length > 200
-        ? c.content.slice(0, 200).trim() + "…"
-        : c.content.trim();
+      const snippet =
+        c.content.length > 200 ? c.content.slice(0, 200).trim() + "…" : c.content.trim();
       return {
         index: i + 1,
         title: c.sourceTitle + headingTail,
@@ -95,54 +95,36 @@ function buildCitations(chunks: RetrievedChunk[]): Citation[] {
 function formatContext(chunks: RetrievedChunk[]): string {
   return chunks
     .map((c, i) => {
-      const heading = c.headingPath.length
-        ? ` › ${c.headingPath.join(" › ")}`
-        : "";
+      const heading = c.headingPath.length ? ` › ${c.headingPath.join(" › ")}` : "";
       return `[${i + 1}] ${c.sourceTitle}${heading}\n${c.content}`;
     })
     .join("\n\n---\n\n");
 }
 
-function writeEvent(
-  res: NextApiResponse,
-  payload: { type: "text"; content: string },
-): void;
+function writeEvent(res: NextApiResponse, payload: { type: "text"; content: string }): void;
 function writeEvent(
   res: NextApiResponse,
   payload: { type: "citations"; items: Citation[] },
-  eventName: "citations",
+  eventName: "citations"
 ): void;
 function writeEvent(
   res: NextApiResponse,
   payload: { type: "meeting_booking"; url: string; message: string },
-  eventName: "meeting_booking",
+  eventName: "meeting_booking"
 ): void;
-function writeEvent(
-  res: NextApiResponse,
-  payload: unknown,
-  eventName?: string,
-): void {
+function writeEvent(res: NextApiResponse, payload: unknown, eventName?: string): void {
   const lines: string[] = [];
   if (eventName) lines.push(`event: ${eventName}`);
   lines.push(`data: ${JSON.stringify(payload)}`);
   res.write(lines.join("\n") + "\n\n");
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-): Promise<void> {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  // The chat widget only ever calls this endpoint same-origin, so no CORS
+  // headers are emitted — the previous reflected Access-Control-Allow-Origin
+  // let any site stream from this endpoint and burn Bedrock budget.
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST, OPTIONS");
+    res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
@@ -201,9 +183,7 @@ export default async function handler(
 
   const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
   const userText = lastUserMessage?.content?.trim() || "Josh Lowe portfolio";
-  const history = messages
-    .slice(0, -1)
-    .map((m) => ({ role: m.role, content: m.content }));
+  const history = messages.slice(0, -1).map((m) => ({ role: m.role, content: m.content }));
 
   // Persist user message + classify + retrieve in parallel.
   let intent: Intent;
@@ -228,8 +208,7 @@ export default async function handler(
   }
 
   const becomesQualified = session.qualified || intent === "evaluating";
-  const tools: ToolSpec[] =
-    becomesQualified && !session.bookingOffered ? [bookMeetingTool] : [];
+  const tools: ToolSpec[] = becomesQualified && !session.bookingOffered ? [bookMeetingTool] : [];
 
   const formatted = formatContext(retrieved);
   const citations = buildCitations(retrieved);
@@ -305,7 +284,7 @@ export default async function handler(
       writeEvent(
         res,
         { type: "meeting_booking", url: payload.url, message: payload.message },
-        "meeting_booking",
+        "meeting_booking"
       );
     }
     writeEvent(res, { type: "citations", items: citations }, "citations");

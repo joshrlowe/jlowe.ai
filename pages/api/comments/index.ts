@@ -30,41 +30,66 @@ const getUserIP = (req: NextApiRequest): string => {
   return req.socket?.remoteAddress || "0.0.0.0";
 };
 
-const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { postId, approved = "true" } = req.query;
-  const userIP = getUserIP(req);
-
-  // Public read: filter on the moderation pipeline column. The legacy
-  // `approved` query param is preserved for backwards compat — when a
-  // caller explicitly opts out of filtering by passing `approved=false`
-  // we return everything (admin tooling does this).
-  const publicOnly = approved === "true";
-  const moderationFilter = publicOnly
-    ? { moderationStatus: "approved" as const }
-    : {};
-
-  const where = {
-    postId: postId as string,
-    parentId: null as string | null,
-    ...moderationFilter,
-  };
-
-  const comments = await prisma.comment.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: COMMENTS_PER_PAGE_LIMIT,
-    include: {
+// Public select projection. Excludes PII (authorEmail, ipAddress) and
+// moderation metadata (moderationStatus, moderationScores, moderationModel,
+// moderatedAt, approved, updatedAt). Includes only what the public UI
+// renders (see components/Articles/PostComments.tsx).
+const COMMENT_PUBLIC_SELECT = {
+  id: true,
+  postId: true,
+  authorName: true,
+  content: true,
+  likes: true,
+  dislikes: true,
+  parentId: true,
+  createdAt: true,
+  replies: {
+    where: { moderationStatus: "approved" as const },
+    orderBy: { createdAt: "asc" as const },
+    select: {
+      id: true,
+      postId: true,
+      authorName: true,
+      content: true,
+      likes: true,
+      dislikes: true,
+      parentId: true,
+      createdAt: true,
       replies: {
-        where: moderationFilter,
-        orderBy: { createdAt: "asc" },
-        include: {
-          replies: {
-            where: moderationFilter,
-            orderBy: { createdAt: "asc" },
-          },
+        where: { moderationStatus: "approved" as const },
+        orderBy: { createdAt: "asc" as const },
+        select: {
+          id: true,
+          postId: true,
+          authorName: true,
+          content: true,
+          likes: true,
+          dislikes: true,
+          parentId: true,
+          createdAt: true,
         },
       },
     },
+  },
+} as const;
+
+const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { postId } = req.query;
+  const userIP = getUserIP(req);
+
+  // Public read: held/rejected comments never surface here. The
+  // moderationStatus filter is hardcoded (no longer toggleable via a
+  // query param) and the response uses an explicit select that strips
+  // PII and moderation metadata even if defense-in-depth is needed.
+  const comments = await prisma.comment.findMany({
+    where: {
+      postId: postId as string,
+      parentId: null,
+      moderationStatus: "approved",
+    },
+    orderBy: { createdAt: "desc" },
+    take: COMMENTS_PER_PAGE_LIMIT,
+    select: COMMENT_PUBLIC_SELECT,
   });
 
   // Get user's votes for all comments
@@ -104,11 +129,7 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   const { postId, authorName, authorEmail, content, parentId } = req.body;
 
-  const requiredValidation = validateRequiredFields(req.body, [
-    "postId",
-    "authorName",
-    "content",
-  ]);
+  const requiredValidation = validateRequiredFields(req.body, ["postId", "authorName", "content"]);
 
   if (!requiredValidation.isValid) {
     return res.status(400).json({ message: requiredValidation.message });
@@ -117,7 +138,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
   const validation = combineValidations(
     validateMaxLength(authorName, "authorName", 100),
     validateMaxLength(content, "content", 5000),
-    authorEmail ? validateEmail(authorEmail) : { isValid: true },
+    authorEmail ? validateEmail(authorEmail) : { isValid: true }
   );
 
   if (!validation.isValid) {
@@ -191,8 +212,7 @@ const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse) => {
       content,
       approved: moderationStatus === "approved",
       moderationStatus,
-      moderationScores:
-        moderationScores === null ? Prisma.JsonNull : moderationScores,
+      moderationScores: moderationScores === null ? Prisma.JsonNull : moderationScores,
       moderationModel,
       moderatedAt,
       parentId: parentId || null,

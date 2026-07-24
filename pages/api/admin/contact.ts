@@ -21,13 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "PUT") {
     try {
-      const {
-        emailAddress,
-        phoneNumber,
-        socialMediaLinks,
-        heroWords,
-        heroSubtitle,
-      } = req.body;
+      const { emailAddress, phoneNumber, socialMediaLinks, heroWords, heroSubtitle } = req.body;
 
       // Validate required fields
       if (!emailAddress || typeof emailAddress !== "string") {
@@ -56,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (emitErr) {
         console.warn(
           "[contact] failed to emit contact.upserted event:",
-          (emitErr as Error).message,
+          (emitErr as Error).message
         );
       }
 

@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userIP =
       typeof forwarded === "string"
         ? forwarded.split(",")[0].trim()
-        : (req.socket?.remoteAddress || "0.0.0.0");
+        : req.socket?.remoteAddress || "0.0.0.0";
 
     // Check if comment exists
     const comment = await prisma.comment.findUnique({

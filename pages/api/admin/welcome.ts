@@ -17,9 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
       const { name, briefBio, callToAction } = req.body;
 
       if (!name || !briefBio) {
-        return res
-          .status(400)
-          .json({ message: "Name and briefBio are required" });
+        return res.status(400).json({ message: "Name and briefBio are required" });
       }
 
       // Delete existing and create new (upsert pattern)
@@ -41,7 +39,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
       } catch (emitErr) {
         console.warn(
           "[welcome] failed to emit welcome.upserted event:",
-          (emitErr as Error).message,
+          (emitErr as Error).message
         );
       }
 

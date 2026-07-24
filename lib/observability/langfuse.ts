@@ -7,7 +7,12 @@
  * Mirrors the fail-open pattern of lib/utils/rateLimit.ts.
  */
 
-import type { Langfuse, LangfuseTraceClient, LangfuseSpanClient, LangfuseGenerationClient } from "langfuse";
+import type {
+  Langfuse,
+  LangfuseTraceClient,
+  LangfuseSpanClient,
+  LangfuseGenerationClient,
+} from "langfuse";
 
 let _client: Langfuse | null = null;
 let _initialized = false;
@@ -15,10 +20,7 @@ let _initialized = false;
 async function getClient(): Promise<Langfuse | null> {
   if (_initialized) return _client;
   _initialized = true;
-  if (
-    !process.env.LANGFUSE_PUBLIC_KEY ||
-    !process.env.LANGFUSE_SECRET_KEY
-  ) {
+  if (!process.env.LANGFUSE_PUBLIC_KEY || !process.env.LANGFUSE_SECRET_KEY) {
     return null;
   }
   try {
@@ -169,7 +171,7 @@ function wrapTrace(client: Langfuse, trace: LangfuseTraceClient): TraceHandle {
             model: params.model,
             input: params.input,
             modelParameters: params.modelParameters as never,
-          }),
+          })
         );
       } catch (err) {
         console.warn("[langfuse] trace.generation failed:", (err as Error).message);

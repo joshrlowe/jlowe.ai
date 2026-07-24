@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 
 function getYouTubeId(url: string): string {
   const match = url.match(
-    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
   );
   return match ? match[1] : "";
 }
@@ -136,9 +136,7 @@ export default function MediaUpload({
             {uploading ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-[var(--color-text-muted)]">
-                  Uploading...
-                </span>
+                <span className="text-sm text-[var(--color-text-muted)]">Uploading...</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
@@ -156,17 +154,11 @@ export default function MediaUpload({
                   />
                 </svg>
                 <div>
-                  <span className="text-[var(--color-primary)] font-medium">
-                    Click to upload
-                  </span>
-                  <span className="text-[var(--color-text-muted)]">
-                    {" "}or drag and drop
-                  </span>
+                  <span className="text-[var(--color-primary)] font-medium">Click to upload</span>
+                  <span className="text-[var(--color-text-muted)]"> or drag and drop</span>
                 </div>
                 <span className="text-xs text-[var(--color-text-muted)]">
-                  {type === "image"
-                    ? "PNG, JPG, GIF, WebP up to 10MB"
-                    : "MP4, WebM up to 10MB"}
+                  {type === "image" ? "PNG, JPG, GIF, WebP up to 10MB" : "MP4, WebM up to 10MB"}
                 </span>
               </div>
             )}
@@ -180,9 +172,7 @@ export default function MediaUpload({
           className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
           placeholder={
             placeholder ||
-            (type === "image"
-              ? "https://example.com/image.jpg"
-              : "https://youtube.com/watch?v=...")
+            (type === "image" ? "https://example.com/image.jpg" : "https://youtube.com/watch?v=...")
           }
         />
       )}
@@ -211,11 +201,7 @@ export default function MediaUpload({
                   allowFullScreen
                 />
               ) : (
-                <video
-                  src={value}
-                  controls
-                  className="w-full h-full object-contain"
-                />
+                <video src={value} controls className="w-full h-full object-contain" />
               )}
             </div>
           )}
@@ -224,12 +210,7 @@ export default function MediaUpload({
             onClick={handleRemove}
             className="absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
@@ -122,9 +120,7 @@ export default function AdminArticles() {
       )}
 
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
-          Articles
-        </h2>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Articles</h2>
         <Link
           href="/admin/articles/new"
           className="px-6 py-2 rounded-lg bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary-dark)] transition-colors"
@@ -199,9 +195,7 @@ export default function AdminArticles() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
-                    {post.datePublished
-                      ? formatAdminDate(post.datePublished)
-                      : "Not published"}
+                    {post.datePublished ? formatAdminDate(post.datePublished) : "Not published"}
                   </td>
                   <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">
                     {post.viewCount || 0}

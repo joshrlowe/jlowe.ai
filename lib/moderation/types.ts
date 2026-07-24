@@ -19,29 +19,26 @@ export interface CommentScores {
   summary: string;
 }
 
-export type ModerationStatus = 'approved' | 'held' | 'rejected';
+export type ModerationStatus = "approved" | "held" | "rejected";
 
 export type ModerationDecision =
-  | { status: 'approved' }
-  | { status: 'held'; reason: string }
-  | { status: 'rejected'; reason: string };
+  | { status: "approved" }
+  | { status: "held"; reason: string }
+  | { status: "rejected"; reason: string };
 
 /**
  * Tagged kinds so the API layer can fail-open to "held" on any of these
  * without re-classifying the failure mode. The pipeline never auto-rejects
  * or auto-approves on a `ModerationError` — see policy / API wiring.
  */
-export type ModerationErrorKind =
-  | 'timeout'
-  | 'bedrock_failure'
-  | 'malformed_response';
+export type ModerationErrorKind = "timeout" | "bedrock_failure" | "malformed_response";
 
 export class ModerationError extends Error {
   readonly kind: ModerationErrorKind;
   readonly cause?: unknown;
   constructor(kind: ModerationErrorKind, message?: string, cause?: unknown) {
     super(message ?? kind);
-    this.name = 'ModerationError';
+    this.name = "ModerationError";
     this.kind = kind;
     this.cause = cause;
   }

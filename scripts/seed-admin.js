@@ -11,9 +11,7 @@ async function main() {
   const password = process.env.ADMIN_PASSWORD;
 
   if (!email || !password) {
-    console.error(
-      "❌ ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required",
-    );
+    console.error("❌ ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required");
     process.exit(1);
   }
 

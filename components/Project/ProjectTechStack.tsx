@@ -29,8 +29,7 @@ function ProjectTechStack({ techStack }: ProjectTechStackProps) {
     <>
       {highLevelTechStack && (
         <p className={styles.paragraphText}>
-          <span className={styles.emphasisText}>Technology Stack:</span>{" "}
-          {highLevelTechStack}
+          <span className={styles.emphasisText}>Technology Stack:</span> {highLevelTechStack}
         </p>
       )}
 
@@ -89,8 +88,7 @@ function ProjectTechStack({ techStack }: ProjectTechStackProps) {
       )}
       {techStack.operatingSystem && (
         <p className={styles.paragraphText}>
-          <span className={styles.emphasisText}>Operating System:</span>{" "}
-          {techStack.operatingSystem}
+          <span className={styles.emphasisText}>Operating System:</span> {techStack.operatingSystem}
         </p>
       )}
     </>

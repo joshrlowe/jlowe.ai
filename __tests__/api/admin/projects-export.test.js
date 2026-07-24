@@ -4,18 +4,18 @@
  * Tests admin projects export API route (GET)
  */
 
-import exportHandler from '../../../pages/api/admin/projects/export';
-import prisma from '../../../lib/prisma';
-import { getToken } from 'next-auth/jwt';
+import exportHandler from "../../../pages/api/admin/projects/export";
+import prisma from "../../../lib/prisma";
+import { getToken } from "next-auth/jwt";
 import {
   createMockRequest,
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from '../../setup/api-test-utils.js';
+} from "../../setup/api-test-utils.js";
 
 // Mock prisma
-jest.mock('../../../lib/prisma', () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     project: {
@@ -25,15 +25,15 @@ jest.mock('../../../lib/prisma', () => ({
 }));
 
 // Mock next-auth/jwt
-jest.mock('next-auth/jwt', () => ({
+jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
 
-describe('/api/admin/projects/export', () => {
+describe("/api/admin/projects/export", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -41,37 +41,37 @@ describe('/api/admin/projects/export', () => {
     console.error.mockRestore();
   });
 
-  describe('Authentication', () => {
-    it('should return 401 when not authenticated', async () => {
+  describe("Authentication", () => {
+    it("should return 401 when not authenticated", async () => {
       getToken.mockResolvedValue(null);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = createMockResponse();
 
       await exportHandler(req, res);
 
       expect(getStatusCode(res)).toBe(401);
-      expect(getJsonResponse(res).message).toBe('Unauthorized');
+      expect(getJsonResponse(res).message).toBe("Unauthorized");
     });
   });
 
-  describe('HTTP method restrictions', () => {
+  describe("HTTP method restrictions", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should return 405 for POST requests', async () => {
-      const req = createMockRequest({ method: 'POST' });
+    it("should return 405 for POST requests", async () => {
+      const req = createMockRequest({ method: "POST" });
       const res = createMockResponse();
 
       await exportHandler(req, res);
 
       expect(getStatusCode(res)).toBe(405);
-      expect(getJsonResponse(res).message).toBe('Method Not Allowed');
+      expect(getJsonResponse(res).message).toBe("Method Not Allowed");
     });
 
-    it('should return 405 for PUT requests', async () => {
-      const req = createMockRequest({ method: 'PUT' });
+    it("should return 405 for PUT requests", async () => {
+      const req = createMockRequest({ method: "PUT" });
       const res = createMockResponse();
 
       await exportHandler(req, res);
@@ -80,31 +80,31 @@ describe('/api/admin/projects/export', () => {
     });
   });
 
-  describe('GET requests - JSON format', () => {
+  describe("GET requests - JSON format", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should export projects as JSON by default', async () => {
+    it("should export projects as JSON by default", async () => {
       const mockProjects = [
         {
-          id: '1',
-          title: 'Project 1',
-          slug: 'project-1',
-          status: 'Published',
+          id: "1",
+          title: "Project 1",
+          slug: "project-1",
+          status: "Published",
           teamMembers: [],
         },
         {
-          id: '2',
-          title: 'Project 2',
-          slug: 'project-2',
-          status: 'Draft',
+          id: "2",
+          title: "Project 2",
+          slug: "project-2",
+          status: "Draft",
           teamMembers: [],
         },
       ];
       prisma.project.findMany.mockResolvedValue(mockProjects);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = {
         ...createMockResponse(),
         setHeader: jest.fn(),
@@ -112,20 +112,20 @@ describe('/api/admin/projects/export', () => {
 
       await exportHandler(req, res);
 
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
+      expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "application/json");
       expect(res.setHeader).toHaveBeenCalledWith(
-        'Content-Disposition',
+        "Content-Disposition",
         expect.stringContaining('attachment; filename="projects-')
       );
       expect(getJsonResponse(res)).toEqual(mockProjects);
     });
 
-    it('should export projects as JSON when format=json', async () => {
+    it("should export projects as JSON when format=json", async () => {
       prisma.project.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { format: 'json' },
+        method: "GET",
+        query: { format: "json" },
       });
       const res = {
         ...createMockResponse(),
@@ -134,13 +134,13 @@ describe('/api/admin/projects/export', () => {
 
       await exportHandler(req, res);
 
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
+      expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "application/json");
     });
 
-    it('should include teamMembers in the export', async () => {
+    it("should include teamMembers in the export", async () => {
       prisma.project.findMany.mockResolvedValue([]);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = {
         ...createMockResponse(),
         setHeader: jest.fn(),
@@ -155,10 +155,10 @@ describe('/api/admin/projects/export', () => {
       );
     });
 
-    it('should order by createdAt descending', async () => {
+    it("should order by createdAt descending", async () => {
       prisma.project.findMany.mockResolvedValue([]);
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = {
         ...createMockResponse(),
         setHeader: jest.fn(),
@@ -168,39 +168,39 @@ describe('/api/admin/projects/export', () => {
 
       expect(prisma.project.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         })
       );
     });
   });
 
-  describe('GET requests - CSV format', () => {
+  describe("GET requests - CSV format", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should export projects as CSV when format=csv', async () => {
+    it("should export projects as CSV when format=csv", async () => {
       const mockProjects = [
         {
-          id: '1',
-          title: 'Project 1',
-          slug: 'project-1',
-          shortDescription: 'Description 1',
-          status: 'Published',
+          id: "1",
+          title: "Project 1",
+          slug: "project-1",
+          shortDescription: "Description 1",
+          status: "Published",
           featured: true,
-          startDate: new Date('2024-01-01'),
-          releaseDate: new Date('2024-06-01'),
-          tags: ['react', 'typescript'],
-          techStack: ['Next.js', 'Prisma'],
-          links: { github: 'https://github.com/test', live: 'https://test.com' },
+          startDate: new Date("2024-01-01"),
+          releaseDate: new Date("2024-06-01"),
+          tags: ["react", "typescript"],
+          techStack: ["Next.js", "Prisma"],
+          links: { github: "https://github.com/test", live: "https://test.com" },
           teamMembers: [],
         },
       ];
       prisma.project.findMany.mockResolvedValue(mockProjects);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { format: 'csv' },
+        method: "GET",
+        query: { format: "csv" },
       });
       const res = {
         ...createMockResponse(),
@@ -210,20 +210,20 @@ describe('/api/admin/projects/export', () => {
 
       await exportHandler(req, res);
 
-      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/csv');
+      expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "text/csv");
       expect(res.setHeader).toHaveBeenCalledWith(
-        'Content-Disposition',
+        "Content-Disposition",
         expect.stringContaining('attachment; filename="projects-')
       );
-      expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Title'));
+      expect(res.send).toHaveBeenCalledWith(expect.stringContaining("Title"));
     });
 
-    it('should include CSV headers', async () => {
+    it("should include CSV headers", async () => {
       prisma.project.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { format: 'csv' },
+        method: "GET",
+        query: { format: "csv" },
       });
       const res = {
         ...createMockResponse(),
@@ -240,14 +240,14 @@ describe('/api/admin/projects/export', () => {
       expect(csvContent).toContain('"Featured"');
     });
 
-    it('should handle projects with null values', async () => {
+    it("should handle projects with null values", async () => {
       const mockProjects = [
         {
-          id: '1',
-          title: 'Project 1',
-          slug: 'project-1',
+          id: "1",
+          title: "Project 1",
+          slug: "project-1",
           shortDescription: null,
-          status: 'Draft',
+          status: "Draft",
           featured: false,
           startDate: null,
           releaseDate: null,
@@ -260,8 +260,8 @@ describe('/api/admin/projects/export', () => {
       prisma.project.findMany.mockResolvedValue(mockProjects);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { format: 'csv' },
+        method: "GET",
+        query: { format: "csv" },
       });
       const res = {
         ...createMockResponse(),
@@ -275,15 +275,15 @@ describe('/api/admin/projects/export', () => {
     });
   });
 
-  describe('Error handling', () => {
+  describe("Error handling", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should handle database errors', async () => {
-      prisma.project.findMany.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors", async () => {
+      prisma.project.findMany.mockRejectedValue(new Error("Database error"));
 
-      const req = createMockRequest({ method: 'GET' });
+      const req = createMockRequest({ method: "GET" });
       const res = {
         ...createMockResponse(),
         setHeader: jest.fn(),
@@ -295,4 +295,3 @@ describe('/api/admin/projects/export', () => {
     });
   });
 });
-

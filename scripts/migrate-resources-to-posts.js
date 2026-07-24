@@ -68,9 +68,7 @@ async function migrateResourcesToPosts() {
             slug: resource.slug,
             author: resource.author || "Josh Lowe",
             status: "Published", // Default to published for migrated content
-            datePublished: resource.datePublished
-              ? new Date(resource.datePublished)
-              : new Date(),
+            datePublished: resource.datePublished ? new Date(resource.datePublished) : new Date(),
             readingTime,
           },
         });
@@ -80,15 +78,10 @@ async function migrateResourcesToPosts() {
       } catch (createError) {
         // Skip duplicates (if slug already exists)
         if (createError.code === "P2002") {
-          console.log(
-            `  ⚠️  Skipped duplicate: ${resource.title} (slug already exists)`,
-          );
+          console.log(`  ⚠️  Skipped duplicate: ${resource.title} (slug already exists)`);
           skipped++;
         } else {
-          console.error(
-            `  ❌ Error migrating: ${resource.title}`,
-            createError.message,
-          );
+          console.error(`  ❌ Error migrating: ${resource.title}`, createError.message);
           errors++;
         }
       }

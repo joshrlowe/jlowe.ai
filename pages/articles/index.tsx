@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useMemo } from "react";
 import type { GetStaticProps } from "next";
 import prisma from "../../lib/prisma";
@@ -8,11 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import NewsletterSubscription from "@/components/Articles/NewsletterSubscription";
 import { Pagination } from "@/components/ui";
-import {
-  filterAndSortPosts,
-  paginate,
-  calculateTotalPages,
-} from "@/lib/utils/postFilters";
+import { filterAndSortPosts, paginate, calculateTotalPages } from "@/lib/utils/postFilters";
 import { formatArticleDate } from "@/lib/utils/dateUtils";
 import { POSTS_PER_PAGE } from "@/lib/utils/constants";
 import type { Post } from "@/lib/types";
@@ -23,11 +17,7 @@ interface ArticlesPageProps {
   allTags: string[];
 }
 
-export default function ArticlesPage({
-  recentPosts,
-  allTopics,
-  allTags,
-}: ArticlesPageProps) {
+export default function ArticlesPage({ recentPosts, allTopics, allTags }: ArticlesPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -46,11 +36,7 @@ export default function ArticlesPage({
   }, [recentPosts, searchQuery, selectedTopic, selectedTag, sortBy, sortOrder]);
 
   const paginatedPosts = useMemo(() => {
-    return paginate(
-      filteredPosts,
-      currentPage,
-      POSTS_PER_PAGE,
-    ) as unknown as Post[];
+    return paginate(filteredPosts, currentPage, POSTS_PER_PAGE) as unknown as Post[];
   }, [filteredPosts, currentPage]);
 
   const totalPages = calculateTotalPages(filteredPosts.length, POSTS_PER_PAGE);
@@ -73,8 +59,7 @@ export default function ArticlesPage({
               className="text-lg text-[var(--color-text-secondary)] mx-auto"
               style={{ maxWidth: "80%" }}
             >
-              Latest articles, tutorials, and insights on web development and
-              technology.
+              Latest articles, tutorials, and insights on web development and technology.
             </p>
           </div>
 
@@ -179,9 +164,7 @@ export default function ArticlesPage({
                           </span>
                           <span className="text-xs text-[var(--color-text-muted)]">
                             {post.datePublished
-                              ? formatArticleDate(
-                                  post.datePublished as Date | string,
-                                )
+                              ? formatArticleDate(post.datePublished as Date | string)
                               : ""}
                           </span>
                           {post.readingTime && (
@@ -261,7 +244,7 @@ export const getStaticProps: GetStaticProps<ArticlesPageProps> = async () => {
     } catch (dbError) {
       console.warn(
         "Post model not found - database may need migration:",
-        dbError instanceof Error ? dbError.message : String(dbError),
+        dbError instanceof Error ? dbError.message : String(dbError)
       );
     }
 

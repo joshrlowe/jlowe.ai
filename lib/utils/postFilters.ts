@@ -38,7 +38,7 @@ export function filterBySearch(posts: PostItem[], searchQuery: string): PostItem
     (post) =>
       post.title?.toLowerCase().includes(query) ||
       post.description?.toLowerCase().includes(query) ||
-      post.tags?.some((tag) => tag.toLowerCase().includes(query)),
+      post.tags?.some((tag) => tag.toLowerCase().includes(query))
   );
 }
 
@@ -63,7 +63,7 @@ export function filterByTag(posts: PostItem[], tag: string): PostItem[] {
  */
 export function applyFilters(
   posts: PostItem[],
-  { searchQuery, topic, tag }: FilterOptions,
+  { searchQuery, topic, tag }: FilterOptions
 ): PostItem[] {
   let filtered = [...posts];
   if (searchQuery) filtered = filterBySearch(filtered, searchQuery);
@@ -75,16 +75,10 @@ export function applyFilters(
 /**
  * Get sort value for a post based on sort field
  */
-function getSortValue(
-  post: PostItem,
-  sortBy: string,
-): number | string {
+function getSortValue(post: PostItem, sortBy: string): number | string {
   const value = post[sortBy];
 
-  if (
-    sortBy === SORT_OPTIONS.DATE_PUBLISHED ||
-    sortBy === SORT_OPTIONS.CREATED_AT
-  ) {
+  if (sortBy === SORT_OPTIONS.DATE_PUBLISHED || sortBy === SORT_OPTIONS.CREATED_AT) {
     return value ? new Date(value as string).getTime() : 0;
   }
 
@@ -101,7 +95,7 @@ function getSortValue(
 export function sortPosts(
   posts: PostItem[],
   sortBy: string = SORT_OPTIONS.DATE_PUBLISHED,
-  sortOrder: string = SORT_ORDER.DESC,
+  sortOrder: string = SORT_ORDER.DESC
 ): PostItem[] {
   const sorted = [...posts];
 
@@ -121,10 +115,7 @@ export function sortPosts(
 /**
  * Apply filters and sorting to posts
  */
-export function filterAndSortPosts(
-  posts: PostItem[],
-  options: FilterAndSortOptions,
-): PostItem[] {
+export function filterAndSortPosts(posts: PostItem[], options: FilterAndSortOptions): PostItem[] {
   const { searchQuery, topic, tag, sortBy, sortOrder } = options;
   const filtered = applyFilters(posts, { searchQuery, topic, tag });
   return sortPosts(filtered, sortBy, sortOrder);
@@ -141,9 +132,6 @@ export function paginate<T>(items: T[], page: number, itemsPerPage: number): T[]
 /**
  * Calculate total pages
  */
-export function calculateTotalPages(
-  totalItems: number,
-  itemsPerPage: number,
-): number {
+export function calculateTotalPages(totalItems: number, itemsPerPage: number): number {
   return Math.ceil(totalItems / itemsPerPage);
 }

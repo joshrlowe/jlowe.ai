@@ -11,7 +11,7 @@ import type { ValidationResult } from "../types";
  */
 export function validateRequiredFields(
   data: Record<string, unknown>,
-  requiredFields: string[],
+  requiredFields: string[]
 ): ValidationResult {
   const missing = requiredFields.filter((field) => !data[field]);
 
@@ -28,10 +28,7 @@ export function validateRequiredFields(
 /**
  * Validates that a field is an array
  */
-export function validateArrayField(
-  value: unknown,
-  fieldName: string,
-): ValidationResult {
+export function validateArrayField(value: unknown, fieldName: string): ValidationResult {
   if (!Array.isArray(value)) {
     return {
       isValid: false,
@@ -47,7 +44,7 @@ export function validateArrayField(
  */
 export function validateArrayFields(
   data: Record<string, unknown>,
-  arrayFields: string[],
+  arrayFields: string[]
 ): ValidationResult {
   for (const field of arrayFields) {
     const validation = validateArrayField(data[field], field);
@@ -62,9 +59,7 @@ export function validateArrayFields(
 /**
  * Combines multiple validations
  */
-export function combineValidations(
-  ...validations: ValidationResult[]
-): ValidationResult {
+export function combineValidations(...validations: ValidationResult[]): ValidationResult {
   for (const validation of validations) {
     if (!validation.isValid) {
       return validation;
@@ -85,11 +80,7 @@ export function validateEmail(email: unknown): ValidationResult {
   return { isValid: true };
 }
 
-export function validateMaxLength(
-  value: unknown,
-  field: string,
-  max: number,
-): ValidationResult {
+export function validateMaxLength(value: unknown, field: string, max: number): ValidationResult {
   if (typeof value === "string" && value.length > max) {
     return {
       isValid: false,

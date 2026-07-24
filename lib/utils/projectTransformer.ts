@@ -22,9 +22,7 @@ interface TeamMemberApiFormat {
 /**
  * Converts teamMembers relation array to team array format.
  */
-function transformTeamMembersToTeam(
-  teamMembers: TeamMemberRecord[],
-): TeamMemberApiFormat[] {
+function transformTeamMembersToTeam(teamMembers: TeamMemberRecord[]): TeamMemberApiFormat[] {
   return teamMembers.map((member) => ({
     name: member.name,
     email: member.email || null,
@@ -35,7 +33,7 @@ function transformTeamMembersToTeam(
  * Transforms a Prisma project (with teamMembers) to API format (with team).
  */
 export function transformProjectToApiFormat(
-  project: ProjectWithTeamMembers,
+  project: ProjectWithTeamMembers
 ): Record<string, unknown> {
   const { teamMembers, ...rest } = project;
   return {
@@ -48,7 +46,7 @@ export function transformProjectToApiFormat(
  * Transforms multiple Prisma projects to API format.
  */
 export function transformProjectsToApiFormat(
-  projects: ProjectWithTeamMembers[],
+  projects: ProjectWithTeamMembers[]
 ): Record<string, unknown>[] {
   return projects.map(transformProjectToApiFormat);
 }
@@ -56,9 +54,7 @@ export function transformProjectsToApiFormat(
 /**
  * Transforms team array (API format) to Prisma create format for teamMembers.
  */
-export function transformTeamToTeamMembers(
-  team: unknown,
-): TeamMemberApiFormat[] {
+export function transformTeamToTeamMembers(team: unknown): TeamMemberApiFormat[] {
   if (!Array.isArray(team)) {
     return [];
   }

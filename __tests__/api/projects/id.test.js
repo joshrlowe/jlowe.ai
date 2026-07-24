@@ -4,17 +4,17 @@
  * Tests public project detail API route (GET)
  */
 
-import projectHandler from '../../../pages/api/projects/[id]';
-import prisma from '../../../lib/prisma';
+import projectHandler from "../../../pages/api/projects/[id]";
+import prisma from "../../../lib/prisma";
 import {
   createMockRequest,
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from '../../setup/api-test-utils.js';
+} from "../../setup/api-test-utils.js";
 
 // Mock prisma
-jest.mock('../../../lib/prisma', () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     project: {
@@ -24,18 +24,18 @@ jest.mock('../../../lib/prisma', () => ({
 }));
 
 // Mock project transformer
-jest.mock('../../../lib/utils/projectTransformer', () => ({
+jest.mock("../../../lib/utils/projectTransformer", () => ({
   transformProjectToApiFormat: jest.fn((project) => ({
     ...project,
     transformed: true,
   })),
 }));
 
-describe('/api/projects/[id]', () => {
+describe("/api/projects/[id]", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -43,70 +43,70 @@ describe('/api/projects/[id]', () => {
     console.error.mockRestore();
   });
 
-  describe('GET requests', () => {
-    it('should return a project by id', async () => {
+  describe("GET requests", () => {
+    it("should return a project by id", async () => {
       const mockProject = {
-        id: 'project-123',
-        title: 'Test Project',
-        slug: 'test-project',
-        shortDescription: 'A test project',
-        status: 'Published',
-        teamMembers: [{ id: '1', name: 'Josh' }],
+        id: "project-123",
+        title: "Test Project",
+        slug: "test-project",
+        shortDescription: "A test project",
+        status: "Published",
+        teamMembers: [{ id: "1", name: "Josh" }],
       };
       prisma.project.findUnique.mockResolvedValue(mockProject);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { id: 'project-123' },
+        method: "GET",
+        query: { id: "project-123" },
       });
       const res = createMockResponse();
 
       await projectHandler(req, res);
 
       const response = getJsonResponse(res);
-      expect(response.title).toBe('Test Project');
+      expect(response.title).toBe("Test Project");
       expect(response.transformed).toBe(true);
     });
 
-    it('should include teamMembers in the query', async () => {
+    it("should include teamMembers in the query", async () => {
       prisma.project.findUnique.mockResolvedValue({
-        id: '1',
-        title: 'Test',
+        id: "1",
+        title: "Test",
         teamMembers: [],
       });
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { id: '1' },
+        method: "GET",
+        query: { id: "1" },
       });
       const res = createMockResponse();
 
       await projectHandler(req, res);
 
       expect(prisma.project.findUnique).toHaveBeenCalledWith({
-        where: { id: '1' },
+        where: { id: "1" },
         include: { teamMembers: true },
       });
     });
 
-    it('should return 404 when project not found', async () => {
+    it("should return 404 when project not found", async () => {
       prisma.project.findUnique.mockResolvedValue(null);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { id: 'nonexistent-id' },
+        method: "GET",
+        query: { id: "nonexistent-id" },
       });
       const res = createMockResponse();
 
       await projectHandler(req, res);
 
       expect(getStatusCode(res)).toBe(404);
-      expect(getJsonResponse(res).message).toBe('Project not found');
+      expect(getJsonResponse(res).message).toBe("Project not found");
     });
 
-    it('should return 400 when id is missing', async () => {
+    it("should return 400 when id is missing", async () => {
       const req = createMockRequest({
-        method: 'GET',
+        method: "GET",
         query: {},
       });
       const res = createMockResponse();
@@ -114,35 +114,35 @@ describe('/api/projects/[id]', () => {
       await projectHandler(req, res);
 
       expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toBe('Project ID is required');
+      expect(getJsonResponse(res).message).toBe("Project ID is required");
     });
 
-    it('should transform project using projectTransformer', async () => {
+    it("should transform project using projectTransformer", async () => {
       const mockProject = {
-        id: '1',
-        title: 'Test',
+        id: "1",
+        title: "Test",
         teamMembers: [],
       };
       prisma.project.findUnique.mockResolvedValue(mockProject);
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { id: '1' },
+        method: "GET",
+        query: { id: "1" },
       });
       const res = createMockResponse();
 
       await projectHandler(req, res);
 
-      const { transformProjectToApiFormat } = require('../../../lib/utils/projectTransformer.js');
+      const { transformProjectToApiFormat } = require("../../../lib/utils/projectTransformer.js");
       expect(transformProjectToApiFormat).toHaveBeenCalledWith(mockProject);
     });
 
-    it('should handle database errors', async () => {
-      prisma.project.findUnique.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors", async () => {
+      prisma.project.findUnique.mockRejectedValue(new Error("Database error"));
 
       const req = createMockRequest({
-        method: 'GET',
-        query: { id: '1' },
+        method: "GET",
+        query: { id: "1" },
       });
       const res = createMockResponse();
 
@@ -152,36 +152,24 @@ describe('/api/projects/[id]', () => {
     });
   });
 
-  describe('HTTP method restrictions', () => {
-    it('should return 405 for POST requests', async () => {
+  describe("HTTP method restrictions", () => {
+    it("should return 405 for POST requests", async () => {
       const req = createMockRequest({
-        method: 'POST',
-        query: { id: '1' },
+        method: "POST",
+        query: { id: "1" },
       });
       const res = createMockResponse();
 
       await projectHandler(req, res);
 
       expect(getStatusCode(res)).toBe(405);
-      expect(getJsonResponse(res).message).toBe('Method Not Allowed');
+      expect(getJsonResponse(res).message).toBe("Method Not Allowed");
     });
 
-    it('should return 405 for PUT requests', async () => {
+    it("should return 405 for PUT requests", async () => {
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: '1' },
-      });
-      const res = createMockResponse();
-
-      await projectHandler(req, res);
-
-      expect(getStatusCode(res)).toBe(405);
-    });
-
-    it('should return 405 for DELETE requests', async () => {
-      const req = createMockRequest({
-        method: 'DELETE',
-        query: { id: '1' },
+        method: "PUT",
+        query: { id: "1" },
       });
       const res = createMockResponse();
 
@@ -190,10 +178,22 @@ describe('/api/projects/[id]', () => {
       expect(getStatusCode(res)).toBe(405);
     });
 
-    it('should return 405 for PATCH requests', async () => {
+    it("should return 405 for DELETE requests", async () => {
       const req = createMockRequest({
-        method: 'PATCH',
-        query: { id: '1' },
+        method: "DELETE",
+        query: { id: "1" },
+      });
+      const res = createMockResponse();
+
+      await projectHandler(req, res);
+
+      expect(getStatusCode(res)).toBe(405);
+    });
+
+    it("should return 405 for PATCH requests", async () => {
+      const req = createMockRequest({
+        method: "PATCH",
+        query: { id: "1" },
       });
       const res = createMockResponse();
 
@@ -203,4 +203,3 @@ describe('/api/projects/[id]', () => {
     });
   });
 });
-

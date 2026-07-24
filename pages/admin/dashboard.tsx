@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
@@ -47,11 +45,7 @@ export default function AdminDashboard() {
       const published = projects.filter((p) => p.status === "Published").length;
       const drafts = projects.filter((p) => p.status === "Draft").length;
       const recent = projects
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() -
-            new Date(a.updatedAt).getTime(),
-        )
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
         .slice(0, 5)
         .map<ActivityRow>((p) => ({
           type: "project",
@@ -109,12 +103,8 @@ export default function AdminDashboard() {
               key={index}
               className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]"
             >
-              <div className="text-sm text-[var(--color-text-muted)] mb-1">
-                {stat.label}
-              </div>
-              <div className={`text-3xl font-bold ${stat.color}`}>
-                {stat.value}
-              </div>
+              <div className="text-sm text-[var(--color-text-muted)] mb-1">{stat.label}</div>
+              <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
             </div>
           ))}
         </div>

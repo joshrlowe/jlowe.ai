@@ -85,7 +85,7 @@ describe("Button", () => {
     render(
       <Button icon={icon} iconPosition="left">
         With Icon
-      </Button>,
+      </Button>
     );
     expect(screen.getByTestId("icon")).toBeInTheDocument();
   });
@@ -105,7 +105,7 @@ describe("Button", () => {
   it("applies magnetic effect on mouse move when magnetic is true", () => {
     render(<Button magnetic>Magnetic</Button>);
     const button = screen.getByRole("button");
-    
+
     fireEvent.mouseMove(button, { clientX: 100, clientY: 100 });
     expect(button.style.transform).toContain("translate");
   });
@@ -113,7 +113,7 @@ describe("Button", () => {
   it("resets transform on mouse leave when magnetic", () => {
     render(<Button magnetic>Magnetic</Button>);
     const button = screen.getByRole("button");
-    
+
     fireEvent.mouseMove(button, { clientX: 100, clientY: 100 });
     fireEvent.mouseLeave(button);
     expect(button.style.transform).toBe("");
@@ -123,10 +123,10 @@ describe("Button", () => {
     render(
       <Button magnetic disabled>
         Disabled Magnetic
-      </Button>,
+      </Button>
     );
     const button = screen.getByRole("button");
-    
+
     fireEvent.mouseMove(button, { clientX: 100, clientY: 100 });
     expect(button.style.transform).toBe("");
   });
@@ -142,7 +142,7 @@ describe("Button", () => {
     render(
       <Button href="/test" ref={ref}>
         Link Ref
-      </Button>,
+      </Button>
     );
     expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
   });
@@ -152,4 +152,3 @@ describe("Button", () => {
     expect(screen.getByTestId("test-btn")).toBeInTheDocument();
   });
 });
-

@@ -28,21 +28,15 @@ export default function CameraController() {
     targetRotation.current.x = mouse.current.y * MOUSE_ROTATION_FACTOR_X;
     targetRotation.current.y = mouse.current.x * MOUSE_ROTATION_FACTOR_Y;
 
-    /* eslint-disable react-hooks/immutability */
     camera.position.x +=
-      (mouse.current.x * MOUSE_POSITION_SCALE_X - camera.position.x) *
-      CAMERA_FOLLOW_SPEED;
+      (mouse.current.x * MOUSE_POSITION_SCALE_X - camera.position.x) * CAMERA_FOLLOW_SPEED;
     camera.position.y +=
-      (mouse.current.y * MOUSE_POSITION_SCALE_Y - camera.position.y) *
-      CAMERA_FOLLOW_SPEED;
+      (mouse.current.y * MOUSE_POSITION_SCALE_Y - camera.position.y) * CAMERA_FOLLOW_SPEED;
 
-    camera.rotation.x +=
-      (targetRotation.current.x - camera.rotation.x) * ROTATION_LERP_SPEED;
-    camera.rotation.y +=
-      (targetRotation.current.y - camera.rotation.y) * ROTATION_LERP_SPEED;
+    camera.rotation.x += (targetRotation.current.x - camera.rotation.x) * ROTATION_LERP_SPEED;
+    camera.rotation.y += (targetRotation.current.y - camera.rotation.y) * ROTATION_LERP_SPEED;
 
     camera.lookAt(0, 0, 0);
-    /* eslint-enable react-hooks/immutability */
   });
 
   return null;

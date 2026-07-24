@@ -1,16 +1,20 @@
-import { useRef, forwardRef, type ReactNode, type MouseEvent, type ButtonHTMLAttributes } from "react";
+import {
+  useRef,
+  forwardRef,
+  type ReactNode,
+  type MouseEvent,
+  type ButtonHTMLAttributes,
+} from "react";
 import Link from "next/link";
 
 const variants = {
   primary: {
     base: "bg-gradient-to-br from-[#E85D04] to-[#C04A03] text-white shadow-[0_0_30px_rgba(232,93,4,0.35)]",
-    hover:
-      "hover:from-[#F48C06] hover:to-[#E85D04] hover:shadow-[0_0_50px_rgba(232,93,4,0.5)]",
+    hover: "hover:from-[#F48C06] hover:to-[#E85D04] hover:shadow-[0_0_50px_rgba(232,93,4,0.5)]",
   },
   secondary: {
     base: "bg-transparent text-[var(--color-text-primary)] border border-[rgba(250,163,7,0.3)]",
-    hover:
-      "hover:border-[#E85D04] hover:text-[#E85D04] hover:bg-[rgba(232,93,4,0.08)]",
+    hover: "hover:border-[#E85D04] hover:text-[#E85D04] hover:bg-[rgba(232,93,4,0.08)]",
   },
   cool: {
     base: "bg-gradient-to-br from-[#4CC9F0] to-[#4895EF] text-[#000] shadow-[0_0_30px_rgba(76,201,240,0.35)]",
@@ -32,8 +36,7 @@ const sizes = {
 export type ButtonVariant = keyof typeof variants;
 export type ButtonSize = keyof typeof sizes;
 
-export interface ButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   children?: ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -60,7 +63,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       className = "",
       ...props
     },
-    ref,
+    ref
   ) {
     const buttonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const combinedRef = (ref ?? buttonRef) as React.Ref<HTMLButtonElement & HTMLAnchorElement>;
@@ -93,11 +96,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     const content = (
       <>
         {loading && (
-          <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
+          <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
               cx="12"
@@ -113,14 +112,10 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
             />
           </svg>
         )}
-        {icon && iconPosition === "left" && (
-          <span className="shrink-0">{icon}</span>
-        )}
+        {icon && iconPosition === "left" && <span className="shrink-0">{icon}</span>}
         <span>{children}</span>
         {icon && iconPosition === "right" && (
-          <span className="shrink-0 transition-transform group-hover:translate-x-1">
-            {icon}
-          </span>
+          <span className="shrink-0 transition-transform group-hover:translate-x-1">{icon}</span>
         )}
       </>
     );
@@ -152,7 +147,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
         {content}
       </button>
     );
-  },
+  }
 );
 
 export default Button;

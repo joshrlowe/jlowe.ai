@@ -38,9 +38,7 @@ describe("MarkdownEditor", () => {
     });
 
     it("should render custom label", () => {
-      renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} label="Custom Label" />
-      );
+      renderWithoutProviders(<MarkdownEditor {...defaultProps} label="Custom Label" />);
       expect(screen.getByText("Custom Label")).toBeInTheDocument();
     });
 
@@ -49,7 +47,6 @@ describe("MarkdownEditor", () => {
       expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Preview" })).toBeInTheDocument();
     });
-
   });
 
   describe("edit mode", () => {
@@ -60,16 +57,12 @@ describe("MarkdownEditor", () => {
     });
 
     it("should display textarea with value", () => {
-      renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} value="Test content" />
-      );
+      renderWithoutProviders(<MarkdownEditor {...defaultProps} value="Test content" />);
       expect(screen.getByTestId("markdown-editor")).toHaveValue("Test content");
     });
 
     it("should use custom placeholder", () => {
-      renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} placeholder="Type here..." />
-      );
+      renderWithoutProviders(<MarkdownEditor {...defaultProps} placeholder="Type here..." />);
       expect(screen.getByPlaceholderText("Type here...")).toBeInTheDocument();
     });
 
@@ -97,9 +90,7 @@ describe("MarkdownEditor", () => {
 
   describe("preview mode", () => {
     it("should switch to preview mode when Preview clicked", async () => {
-      const { user } = renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} value="# Hello" />
-      );
+      const { user } = renderWithoutProviders(<MarkdownEditor {...defaultProps} value="# Hello" />);
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
 
@@ -108,9 +99,7 @@ describe("MarkdownEditor", () => {
     });
 
     it("should have Preview button active when in preview mode", async () => {
-      const { user } = renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} value="# Hello" />
-      );
+      const { user } = renderWithoutProviders(<MarkdownEditor {...defaultProps} value="# Hello" />);
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
 
@@ -119,9 +108,7 @@ describe("MarkdownEditor", () => {
     });
 
     it("should switch back to edit mode when Edit clicked", async () => {
-      const { user } = renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} value="# Hello" />
-      );
+      const { user } = renderWithoutProviders(<MarkdownEditor {...defaultProps} value="# Hello" />);
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
       await user.click(screen.getByRole("button", { name: "Edit" }));
@@ -131,9 +118,7 @@ describe("MarkdownEditor", () => {
     });
 
     it("should hide markdown help hint in preview mode", async () => {
-      const { user } = renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} value="# Hello" />
-      );
+      const { user } = renderWithoutProviders(<MarkdownEditor {...defaultProps} value="# Hello" />);
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
 
@@ -149,9 +134,7 @@ describe("MarkdownEditor", () => {
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
 
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-        "Heading 1"
-      );
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Heading 1");
     });
 
     it("should render paragraph", async () => {
@@ -186,10 +169,7 @@ describe("MarkdownEditor", () => {
 
     it("should render links", async () => {
       const { user } = renderWithoutProviders(
-        <MarkdownEditor
-          {...defaultProps}
-          value="Check out [this link](https://example.com)."
-        />
+        <MarkdownEditor {...defaultProps} value="Check out [this link](https://example.com)." />
       );
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
@@ -200,10 +180,7 @@ describe("MarkdownEditor", () => {
 
     it("should render unordered list content", async () => {
       const { user, container } = renderWithoutProviders(
-        <MarkdownEditor
-          {...defaultProps}
-          value="- Item 1\n- Item 2\n- Item 3"
-        />
+        <MarkdownEditor {...defaultProps} value="- Item 1\n- Item 2\n- Item 3" />
       );
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
@@ -217,10 +194,7 @@ describe("MarkdownEditor", () => {
 
     it("should render ordered list content", async () => {
       const { user } = renderWithoutProviders(
-        <MarkdownEditor
-          {...defaultProps}
-          value="1. First\n2. Second\n3. Third"
-        />
+        <MarkdownEditor {...defaultProps} value="1. First\n2. Second\n3. Third" />
       );
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
@@ -243,10 +217,7 @@ describe("MarkdownEditor", () => {
 
     it("should render code blocks", async () => {
       const { user } = renderWithoutProviders(
-        <MarkdownEditor
-          {...defaultProps}
-          value={'```javascript\nconst x = 1;\n```'}
-        />
+        <MarkdownEditor {...defaultProps} value={"```javascript\nconst x = 1;\n```"} />
       );
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
@@ -286,10 +257,7 @@ describe("MarkdownEditor", () => {
 
     it("should render task lists content", async () => {
       const { user } = renderWithoutProviders(
-        <MarkdownEditor
-          {...defaultProps}
-          value="- [x] Done\n- [ ] Not done"
-        />
+        <MarkdownEditor {...defaultProps} value="- [x] Done\n- [ ] Not done" />
       );
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
@@ -303,9 +271,7 @@ describe("MarkdownEditor", () => {
 
   describe("empty state", () => {
     it("should show empty message when no content in preview", async () => {
-      const { user } = renderWithoutProviders(
-        <MarkdownEditor {...defaultProps} value="" />
-      );
+      const { user } = renderWithoutProviders(<MarkdownEditor {...defaultProps} value="" />);
 
       await user.click(screen.getByRole("button", { name: "Preview" }));
 
@@ -349,15 +315,8 @@ describe("MarkdownEditor", () => {
     it("should have button type on toggle buttons", () => {
       renderWithoutProviders(<MarkdownEditor {...defaultProps} />);
 
-      expect(screen.getByRole("button", { name: "Edit" })).toHaveAttribute(
-        "type",
-        "button"
-      );
-      expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute(
-        "type",
-        "button"
-      );
+      expect(screen.getByRole("button", { name: "Edit" })).toHaveAttribute("type", "button");
+      expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("type", "button");
     });
   });
 });
-

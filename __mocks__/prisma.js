@@ -1,26 +1,26 @@
 /**
  * Mock: lib/prisma (Prisma Client)
- * 
+ *
  * Mocks the Prisma database client for testing.
  * All database operations return mock data or empty arrays.
- * 
+ *
  * Use jest.spyOn to override specific methods in individual tests:
- * 
+ *
  * jest.spyOn(prisma.project, 'findMany').mockResolvedValue([mockProject]);
  */
 
-import { mockProjects, mockProject } from '../__fixtures__/projects';
-import { 
-  mockWelcome, 
-  mockAbout, 
-  mockContact, 
-  mockPosts, 
+import { mockProjects, mockProject } from "../__fixtures__/projects";
+import {
+  mockWelcome,
+  mockAbout,
+  mockContact,
+  mockPosts,
   mockPost,
   mockPlaylists,
   mockComments,
   mockSiteSettings,
   mockActivityLogs,
-} from '../__fixtures__/api-responses';
+} from "../__fixtures__/api-responses";
 
 /**
  * Creates a mock model with standard Prisma methods
@@ -29,14 +29,26 @@ const createMockModel = (defaultData = [], singleItem = null) => ({
   findMany: jest.fn().mockResolvedValue(defaultData),
   findFirst: jest.fn().mockResolvedValue(singleItem),
   findUnique: jest.fn().mockResolvedValue(singleItem),
-  create: jest.fn().mockImplementation(({ data }) => 
-    Promise.resolve({ id: `mock-${Date.now()}`, ...data, createdAt: new Date(), updatedAt: new Date() })
+  create: jest.fn().mockImplementation(({ data }) =>
+    Promise.resolve({
+      id: `mock-${Date.now()}`,
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
   ),
-  update: jest.fn().mockImplementation(({ data, where }) => 
-    Promise.resolve({ id: where.id, ...singleItem, ...data, updatedAt: new Date() })
-  ),
-  upsert: jest.fn().mockImplementation(({ create }) => 
-    Promise.resolve({ id: `mock-${Date.now()}`, ...create, createdAt: new Date(), updatedAt: new Date() })
+  update: jest
+    .fn()
+    .mockImplementation(({ data, where }) =>
+      Promise.resolve({ id: where.id, ...singleItem, ...data, updatedAt: new Date() })
+    ),
+  upsert: jest.fn().mockImplementation(({ create }) =>
+    Promise.resolve({
+      id: `mock-${Date.now()}`,
+      ...create,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
   ),
   delete: jest.fn().mockResolvedValue(singleItem),
   deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -83,7 +95,7 @@ const prisma = {
         ...create,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }),
+      })
     ),
   },
   chatMessageRow: createMockModel([]),
@@ -97,7 +109,7 @@ const prisma = {
   $queryRaw: jest.fn().mockResolvedValue([]),
   $queryRawUnsafe: jest.fn().mockResolvedValue([]),
   $transaction: jest.fn().mockImplementation(async (fn) => {
-    if (typeof fn === 'function') {
+    if (typeof fn === "function") {
       return fn(prisma);
     }
     return Promise.all(fn);
@@ -114,9 +126,9 @@ export { prisma };
  */
 export const resetPrismaMocks = () => {
   Object.values(prisma).forEach((model) => {
-    if (typeof model === 'object' && model !== null) {
+    if (typeof model === "object" && model !== null) {
       Object.values(model).forEach((method) => {
-        if (typeof method === 'function' && method.mockClear) {
+        if (typeof method === "function" && method.mockClear) {
           method.mockClear();
         }
       });
@@ -135,6 +147,3 @@ export const mockPrismaModel = (modelName, data) => {
     prisma[modelName].count.mockResolvedValue(Array.isArray(data) ? data.length : 1);
   }
 };
-
-
-

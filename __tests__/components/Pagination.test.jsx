@@ -19,16 +19,12 @@ describe("Pagination", () => {
   });
 
   it("renders null when totalPages is 1", () => {
-    const { container } = render(
-      <Pagination {...defaultProps} totalPages={1} />,
-    );
+    const { container } = render(<Pagination {...defaultProps} totalPages={1} />);
     expect(container.firstChild).toBeNull();
   });
 
   it("renders null when totalPages is 0", () => {
-    const { container } = render(
-      <Pagination {...defaultProps} totalPages={0} />,
-    );
+    const { container } = render(<Pagination {...defaultProps} totalPages={0} />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -39,13 +35,7 @@ describe("Pagination", () => {
   });
 
   it("renders custom labels", () => {
-    render(
-      <Pagination
-        {...defaultProps}
-        previousLabel="Back"
-        nextLabel="Forward"
-      />,
-    );
+    render(<Pagination {...defaultProps} previousLabel="Back" nextLabel="Forward" />);
     expect(screen.getByText("Back")).toBeInTheDocument();
     expect(screen.getByText("Forward")).toBeInTheDocument();
   });
@@ -78,9 +68,7 @@ describe("Pagination", () => {
 
   it("calls onPageChange with previous page on Previous click", () => {
     const onPageChange = jest.fn();
-    render(
-      <Pagination {...defaultProps} currentPage={3} onPageChange={onPageChange} />,
-    );
+    render(<Pagination {...defaultProps} currentPage={3} onPageChange={onPageChange} />);
 
     fireEvent.click(screen.getByText("Previous"));
     expect(onPageChange).toHaveBeenCalledWith(2);
@@ -88,9 +76,7 @@ describe("Pagination", () => {
 
   it("calls onPageChange with next page on Next click", () => {
     const onPageChange = jest.fn();
-    render(
-      <Pagination {...defaultProps} currentPage={3} onPageChange={onPageChange} />,
-    );
+    render(<Pagination {...defaultProps} currentPage={3} onPageChange={onPageChange} />);
 
     fireEvent.click(screen.getByText("Next"));
     expect(onPageChange).toHaveBeenCalledWith(4);
@@ -98,9 +84,7 @@ describe("Pagination", () => {
 
   it("does not call onPageChange when Previous is disabled and clicked", () => {
     const onPageChange = jest.fn();
-    render(
-      <Pagination {...defaultProps} currentPage={1} onPageChange={onPageChange} />,
-    );
+    render(<Pagination {...defaultProps} currentPage={1} onPageChange={onPageChange} />);
 
     fireEvent.click(screen.getByText("Previous"));
     expect(onPageChange).not.toHaveBeenCalled();
@@ -109,12 +93,7 @@ describe("Pagination", () => {
   it("does not call onPageChange when Next is disabled and clicked", () => {
     const onPageChange = jest.fn();
     render(
-      <Pagination
-        {...defaultProps}
-        currentPage={5}
-        totalPages={5}
-        onPageChange={onPageChange}
-      />,
+      <Pagination {...defaultProps} currentPage={5} totalPages={5} onPageChange={onPageChange} />
     );
 
     fireEvent.click(screen.getByText("Next"));
@@ -123,12 +102,8 @@ describe("Pagination", () => {
 
   it("has proper aria labels", () => {
     render(<Pagination {...defaultProps} />);
-    expect(
-      screen.getByRole("button", { name: "Go to previous page" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Go to next page" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go to previous page" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go to next page" })).toBeInTheDocument();
   });
 
   it("applies custom className", () => {
@@ -154,4 +129,3 @@ describe("Pagination", () => {
     expect(pageInfo).toHaveAttribute("aria-atomic", "true");
   });
 });
-

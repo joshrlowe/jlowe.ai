@@ -22,99 +22,85 @@ describe("Card", () => {
     render(
       <Card as="article" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     expect(screen.getByTestId("card").tagName).toBe("ARTICLE");
   });
 
   it("applies default variant", () => {
     render(<Card data-testid="card">Content</Card>);
-    expect(screen.getByTestId("card").className).toContain(
-      "bg-[rgba(12,12,12,0.9)]",
-    );
+    expect(screen.getByTestId("card").className).toContain("bg-[rgba(12,12,12,0.9)]");
   });
 
   it("applies primary variant", () => {
     render(
       <Card variant="primary" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
-    expect(screen.getByTestId("card").className).toContain(
-      "bg-[rgba(232,93,4,0.08)]",
-    );
+    expect(screen.getByTestId("card").className).toContain("bg-[rgba(232,93,4,0.08)]");
   });
 
   it("applies accent variant", () => {
     render(
       <Card variant="accent" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
-    expect(screen.getByTestId("card").className).toContain(
-      "bg-[rgba(250,163,7,0.08)]",
-    );
+    expect(screen.getByTestId("card").className).toContain("bg-[rgba(250,163,7,0.08)]");
   });
 
   it("applies cool variant", () => {
     render(
       <Card variant="cool" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
-    expect(screen.getByTestId("card").className).toContain(
-      "bg-[rgba(76,201,240,0.08)]",
-    );
+    expect(screen.getByTestId("card").className).toContain("bg-[rgba(76,201,240,0.08)]");
   });
 
   it("applies secondary variant", () => {
     render(
       <Card variant="secondary" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
-    expect(screen.getByTestId("card").className).toContain(
-      "bg-[rgba(157,2,8,0.08)]",
-    );
+    expect(screen.getByTestId("card").className).toContain("bg-[rgba(157,2,8,0.08)]");
   });
 
   it("applies different padding sizes", () => {
     const { rerender } = render(
       <Card padding="sm" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     expect(screen.getByTestId("card").className).toContain("p-4");
 
     rerender(
       <Card padding="md" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     expect(screen.getByTestId("card").className).toContain("p-6");
 
     rerender(
       <Card padding="lg" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     expect(screen.getByTestId("card").className).toContain("p-8");
 
     rerender(
       <Card padding="none" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     // No padding class for "none"
     expect(screen.getByTestId("card").className).not.toContain("p-4");
   });
 
   it("applies glow effect by default", () => {
-    render(
-      <Card data-testid="card">
-        Content
-      </Card>,
-    );
+    render(<Card data-testid="card">Content</Card>);
     expect(screen.getByTestId("card").className).toContain("hover:shadow-");
   });
 
@@ -122,19 +108,17 @@ describe("Card", () => {
     render(
       <Card glow={false} data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     // Primary glow effect should not be present
-    expect(screen.getByTestId("card").className).not.toContain(
-      "hover:shadow-[0_0_40px",
-    );
+    expect(screen.getByTestId("card").className).not.toContain("hover:shadow-[0_0_40px");
   });
 
   it("applies interactive styles when interactive is true", () => {
     render(
       <Card interactive data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     expect(screen.getByTestId("card").className).toContain("cursor-pointer");
     expect(screen.getByTestId("card").className).toContain("hover:-translate-y-1");
@@ -144,10 +128,10 @@ describe("Card", () => {
     render(
       <Card tilt data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     const card = screen.getByTestId("card");
-    
+
     fireEvent.mouseMove(card, { clientX: 100, clientY: 100 });
     expect(card.style.transform).toContain("perspective");
     expect(card.style.transform).toContain("rotateY");
@@ -158,10 +142,10 @@ describe("Card", () => {
     render(
       <Card tilt data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     const card = screen.getByTestId("card");
-    
+
     fireEvent.mouseMove(card, { clientX: 100, clientY: 100 });
     fireEvent.mouseLeave(card);
     expect(card.style.transform).toBe("");
@@ -171,10 +155,10 @@ describe("Card", () => {
     render(
       <Card tilt={false} data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     const card = screen.getByTestId("card");
-    
+
     fireEvent.mouseMove(card, { clientX: 100, clientY: 100 });
     expect(card.style.transform).toBe("");
   });
@@ -183,7 +167,7 @@ describe("Card", () => {
     render(
       <Card className="custom-class" data-testid="card">
         Content
-      </Card>,
+      </Card>
     );
     expect(screen.getByTestId("card")).toHaveClass("custom-class");
   });
@@ -195,7 +179,11 @@ describe("Card", () => {
   });
 
   it("passes additional props to card element", () => {
-    render(<Card data-testid="card" role="article">Content</Card>);
+    render(
+      <Card data-testid="card" role="article">
+        Content
+      </Card>
+    );
     expect(screen.getByTestId("card")).toHaveAttribute("role", "article");
   });
 
@@ -206,4 +194,3 @@ describe("Card", () => {
     expect(card.querySelector(".absolute.top-0.right-0")).toBeInTheDocument();
   });
 });
-

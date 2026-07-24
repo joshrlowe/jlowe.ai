@@ -28,8 +28,7 @@ export const adminStyles = {
   spacingY4: "space-y-4",
   spacingY6: "space-y-6",
 
-  tabActive:
-    "px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-primary)] text-white",
+  tabActive: "px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-primary)] text-white",
   tabInactive:
     "px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-bg-darker)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors",
 } as const;

@@ -10,10 +10,7 @@ interface TeamMemberManagerProps {
   onChange: (members: TeamMember[]) => void;
 }
 
-export default function TeamMemberManager({
-  teamMembers = [],
-  onChange,
-}: TeamMemberManagerProps) {
+export default function TeamMemberManager({ teamMembers = [], onChange }: TeamMemberManagerProps) {
   const [newMember, setNewMember] = useState({ name: "", email: "" });
 
   const addMember = () => {
@@ -47,9 +44,7 @@ export default function TeamMemberManager({
         <input
           type="email"
           value={newMember.email}
-          onChange={(e) =>
-            setNewMember({ ...newMember, email: e.target.value })
-          }
+          onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
           placeholder="Email (optional)"
           className="flex-1 px-4 py-2 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)]"
         />
@@ -71,13 +66,9 @@ export default function TeamMemberManager({
               className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-bg-darker)]"
             >
               <div>
-                <div className="text-[var(--color-text-primary)] font-medium">
-                  {member.name}
-                </div>
+                <div className="text-[var(--color-text-primary)] font-medium">{member.name}</div>
                 {member.email && (
-                  <div className="text-sm text-[var(--color-text-muted)]">
-                    {member.email}
-                  </div>
+                  <div className="text-sm text-[var(--color-text-muted)]">{member.email}</div>
                 )}
               </div>
               <button

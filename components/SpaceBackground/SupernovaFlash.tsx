@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  RING_CONVERGE_DURATION,
-  FLASH_TRIGGER_DELAY,
-  ANIMATION_COMPLETE_DELAY,
-} from "./constants";
+import { RING_CONVERGE_DURATION, FLASH_TRIGGER_DELAY, ANIMATION_COMPLETE_DELAY } from "./constants";
 
 const RING_COUNT = 12;
 
@@ -42,10 +38,7 @@ export default function SupernovaFlash({ onFlash, onComplete }: SupernovaFlashPr
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
       {phase === "rings" && (
-        <div
-          className="absolute left-1/2 top-1/2"
-          style={{ transform: "translate(-50%, -50%)" }}
-        >
+        <div className="absolute left-1/2 top-1/2" style={{ transform: "translate(-50%, -50%)" }}>
           <div
             className="absolute left-1/2 top-1/2 rounded-full"
             style={{
@@ -106,10 +99,7 @@ export default function SupernovaFlash({ onFlash, onComplete }: SupernovaFlashPr
           background:
             "radial-gradient(circle at center, #FFFFFF 0%, rgba(255,255,255,0.9) 30%, rgba(255,255,255,0.5) 60%, transparent 100%)",
           opacity: phase === "flash" ? 1 : phase === "fade" ? 0 : 0,
-          transition:
-            phase === "flash"
-              ? "opacity 0.1s ease-out"
-              : "opacity 1.5s ease-out",
+          transition: phase === "flash" ? "opacity 0.1s ease-out" : "opacity 1.5s ease-out",
         }}
       />
 

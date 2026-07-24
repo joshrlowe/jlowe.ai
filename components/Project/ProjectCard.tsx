@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import StatusBadge from "./StatusBadge";
@@ -19,6 +18,8 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const cardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!cardRef.current) return;
 
     const card = cardRef.current;
@@ -67,11 +68,11 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
 
   const images = parseJsonField(
     project.images as string | unknown[] | Record<string, unknown> | null | undefined,
-    [],
+    []
   ) as Array<string | { url?: string; src?: string }>;
   const techStack = parseJsonField(
     project.techStack as string | unknown[] | Record<string, unknown> | null | undefined,
-    [],
+    []
   ) as Array<string | { name?: string }>;
 
   let thumbnail: unknown = images.length > 0 ? images[0] : null;
@@ -117,8 +118,7 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               loading="lazy"
               unoptimized={
-                displayImageUrl.startsWith("data:") ||
-                displayImageUrl.startsWith("blob:")
+                displayImageUrl.startsWith("data:") || displayImageUrl.startsWith("blob:")
               }
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg-card)] via-transparent to-transparent" />

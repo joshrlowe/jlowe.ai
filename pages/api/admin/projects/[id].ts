@@ -105,7 +105,10 @@ function buildUpdateData(body: ProjectUpdateBody) {
 /**
  * Sync team members - delete existing and create new
  */
-async function syncTeamMembers(projectId: string, teamMembers?: { name: string; email?: string | null }[]) {
+async function syncTeamMembers(
+  projectId: string,
+  teamMembers?: { name: string; email?: string | null }[]
+) {
   if (teamMembers === undefined) return;
 
   // Delete existing team members
@@ -182,7 +185,7 @@ async function handlePutRequest(req: NextApiRequest, res: NextApiResponse, token
   } catch (emitErr) {
     console.warn(
       "[projects/[id]] failed to emit project.upserted event:",
-      (emitErr as Error).message,
+      (emitErr as Error).message
     );
   }
 
@@ -221,7 +224,7 @@ async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse, to
   } catch (emitErr) {
     console.warn(
       "[projects/[id]] failed to emit project.deleted event:",
-      (emitErr as Error).message,
+      (emitErr as Error).message
     );
   }
 

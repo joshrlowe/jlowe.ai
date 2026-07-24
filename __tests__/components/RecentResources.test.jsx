@@ -114,13 +114,13 @@ describe("RecentResources", () => {
       { id: "5", title: "Article Five", slug: "article-five", topic: "tech" },
     ];
     render(<RecentResources resources={manyResources} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText("Article One")).toBeInTheDocument();
       expect(screen.getByText("Article Two")).toBeInTheDocument();
       expect(screen.getByText("Video One")).toBeInTheDocument();
     });
-    
+
     expect(screen.queryByText("Article Four")).not.toBeInTheDocument();
   });
 
@@ -166,7 +166,7 @@ describe("RecentResources", () => {
     }));
 
     render(<RecentResources resources={mockResources} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText("Article One")).toBeInTheDocument();
     });
@@ -179,4 +179,3 @@ describe("RecentResources", () => {
     });
   });
 });
-

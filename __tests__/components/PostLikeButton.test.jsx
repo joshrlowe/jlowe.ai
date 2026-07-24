@@ -38,7 +38,7 @@ describe("PostLikeButton", () => {
     fetch.mockClear();
     mockLocalStorage.clear();
     mockLocalStorage.getItem.mockReturnValue("[]");
-    
+
     // Mock the initial GET request for like status
     fetch.mockImplementation((url) => {
       if (url.includes("/like") && !url.includes("POST")) {
@@ -119,7 +119,7 @@ describe("PostLikeButton", () => {
 
   it("should show error if like fails", async () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    
+
     // First call is GET (success), second call is POST (fail)
     fetch
       .mockResolvedValueOnce({
@@ -189,10 +189,7 @@ describe("PostLikeButton", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        "likedPosts",
-        '["test-post-id"]'
-      );
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith("likedPosts", '["test-post-id"]');
     });
   });
 
@@ -204,7 +201,7 @@ describe("PostLikeButton", () => {
   it("should sync with server-side like status", async () => {
     // User hasn't liked in localStorage but has liked on server
     mockLocalStorage.getItem.mockReturnValue("[]");
-    
+
     fetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ liked: true, likeCount: 10 }),
@@ -228,4 +225,3 @@ describe("PostLikeButton", () => {
     expect(screen.getByText("5")).toBeInTheDocument();
   });
 });
-

@@ -46,25 +46,26 @@ User engagement tracking powered by `@vercel/analytics` with 13 custom events.
 
 ### Custom Events
 
-| Event | Description |
-| ----- | ----------- |
-| `cta_click` | Primary/secondary CTA button clicks |
-| `newsletter_signup` | Successful email subscriptions |
-| `social_share` | Twitter, LinkedIn, Facebook shares |
-| `link_copy` | Article URL copied to clipboard |
-| `article_like` | Article like button clicks |
-| `article_view` | Article page views with reading time |
-| `comment_submit` | New comment submissions |
-| `project_view` | Project card clicks |
-| `filter_change` | Project filter/sort selections |
-| `scroll_depth` | Reading progress milestones (25/50/75/100%) |
-| `read_duration` | Time spent reading articles |
-| `external_link` | Social/external link clicks |
-| `search_query` | Project search submissions |
+| Event               | Description                                 |
+| ------------------- | ------------------------------------------- |
+| `cta_click`         | Primary/secondary CTA button clicks         |
+| `newsletter_signup` | Successful email subscriptions              |
+| `social_share`      | Twitter, LinkedIn, Facebook shares          |
+| `link_copy`         | Article URL copied to clipboard             |
+| `article_like`      | Article like button clicks                  |
+| `article_view`      | Article page views with reading time        |
+| `comment_submit`    | New comment submissions                     |
+| `project_view`      | Project card clicks                         |
+| `filter_change`     | Project filter/sort selections              |
+| `scroll_depth`      | Reading progress milestones (25/50/75/100%) |
+| `read_duration`     | Time spent reading articles                 |
+| `external_link`     | Social/external link clicks                 |
+| `search_query`      | Project search submissions                  |
 
 ### Reading Analytics
 
 Article pages include comprehensive reading analytics via custom hooks:
+
 - **Scroll depth tracking** with IntersectionObserver at 25%, 50%, 75%, 100% milestones
 - **Read duration** with Page Visibility API (pauses when tab is inactive)
 - **Completion tracking** to measure article engagement
@@ -72,17 +73,17 @@ Article pages include comprehensive reading analytics via custom hooks:
 ### Usage
 
 ```javascript
-import { trackEvent, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 // Track custom event
-trackEvent(ANALYTICS_EVENTS.PROJECT_VIEW, { 
-  project_id: '123', 
-  project_title: 'My Project' 
+trackEvent(ANALYTICS_EVENTS.PROJECT_VIEW, {
+  project_id: "123",
+  project_title: "My Project",
 });
 
 // Or use helper functions
-import { trackProjectView } from '@/lib/analytics';
-trackProjectView('123', 'My Project');
+import { trackProjectView } from "@/lib/analytics";
+trackProjectView("123", "My Project");
 ```
 
 ### Verification
@@ -194,21 +195,21 @@ A bold, fiery space theme with true black backgrounds and warm accent colors.
 
 Reusable React hooks in `lib/hooks/`:
 
-| Hook | Description |
-| ---- | ----------- |
-| `useScrollDepth` | IntersectionObserver-based scroll tracking with configurable milestones |
-| `useReadDuration` | Page visibility-aware time tracking for read duration |
-| `useReadingAnalytics` | Composite hook combining scroll depth + read duration for articles |
-| `usePrefersReducedMotion` | Detects user's motion preference for accessible animations |
+| Hook                      | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `useScrollDepth`          | IntersectionObserver-based scroll tracking with configurable milestones |
+| `useReadDuration`         | Page visibility-aware time tracking for read duration                   |
+| `useReadingAnalytics`     | Composite hook combining scroll depth + read duration for articles      |
+| `usePrefersReducedMotion` | Detects user's motion preference for accessible animations              |
 
 ### Example: Reading Analytics
 
 ```javascript
-import { useReadingAnalytics } from '@/lib/hooks/useReadingAnalytics';
+import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
 
 function ArticlePage({ slug, topic, readingTime }) {
   const articleRef = useRef(null);
-  
+
   const { currentDepth, durationSeconds, formattedDuration } = useReadingAnalytics({
     articleRef,
     slug,
@@ -294,7 +295,7 @@ The project uses Jest and React Testing Library for component and utility testin
 Comprehensive end-to-end testing suite covering all user journeys:
 
 - **Location**: `e2e/`
-- **Coverage**: 
+- **Coverage**:
   - Visual regression (desktop, tablet, mobile)
   - SEO validation (meta tags, Open Graph, structured data)
   - Accessibility (WCAG 2.1 AA, keyboard nav, screen readers)
@@ -322,6 +323,7 @@ npm run test:e2e:ui
 ```
 
 For detailed instructions, see:
+
 - `e2e/README.md` - Complete guide
 - `e2e/IMPLEMENTATION_SUMMARY.md` - Test suite overview
 - `e2e/quick-start.sh` - Quick setup script
@@ -336,13 +338,13 @@ Automated testing runs on every push and pull request:
 ```yaml
 # Workflow: .github/workflows/test.yml
 jobs:
-  - lint              # Code quality (ESLint)
-  - unit-tests        # Jest with coverage
-  - e2e-tests         # Playwright (3 browsers × 2 shards)
+  - lint # Code quality (ESLint)
+  - unit-tests # Jest with coverage
+  - e2e-tests # Playwright (3 browsers × 2 shards)
   - visual-regression # Screenshot comparison
-  - accessibility     # WCAG 2.1 AA compliance
-  - performance       # Load times & Web Vitals
-  - test-summary      # Overall results
+  - accessibility # WCAG 2.1 AA compliance
+  - performance # Load times & Web Vitals
+  - test-summary # Overall results
 ```
 
 **Status**: All tests must pass before merging to `main`
@@ -360,6 +362,7 @@ npm run test:e2e
 ### Branch Protection
 
 Required status checks:
+
 - ✅ Lint & Code Quality
 - ✅ Unit & Integration Tests
 - ✅ E2E Tests (Playwright)
@@ -379,6 +382,7 @@ See `.github/BRANCH_PROTECTION.md` for setup instructions.
 ### Artifacts
 
 Test artifacts available in Actions tab:
+
 - Coverage reports (30 day retention)
 - Playwright reports (30 day retention)
 - Screenshots on failure (7 day retention)

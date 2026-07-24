@@ -25,6 +25,12 @@ export default [
   },
   // Next.js recommended config (flat config format)
   ...nextConfig,
+  // Treat dead eslint-disable directives as errors so they can't accumulate
+  {
+    linterOptions: {
+      reportUnusedDisableDirectives: "error",
+    },
+  },
   // Project-specific overrides
   {
     files: ["**/*.{js,jsx}"],
@@ -46,11 +52,14 @@ export default [
       "react-hooks/preserve-manual-memoization": "off",
       // Allow anonymous default exports for API routes
       "import/no-anonymous-default-export": "off",
-      "no-unused-vars": ["warn", { 
-        argsIgnorePattern: "^_",
-        varsIgnorePattern: "^_",
-        caughtErrorsIgnorePattern: "^_",
-      }],
+      "no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "no-console": "off",
     },
   },
@@ -59,6 +68,12 @@ export default [
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
       "no-unused-vars": "off",
+      // Disable React Compiler rules (same rationale as js/jsx block:
+      // too strict for existing codebase patterns). eslint-plugin-react-hooks
+      // 7.1+ applies these to .ts/.tsx where 7.0 did not.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/preserve-manual-memoization": "off",
     },
   },
 ];

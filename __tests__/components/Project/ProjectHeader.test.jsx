@@ -14,9 +14,7 @@ describe("ProjectHeader", () => {
   });
 
   it("renders source code link when repositoryLink is provided", () => {
-    render(
-      <ProjectHeader title="Test" repositoryLink="https://github.com/test" />,
-    );
+    render(<ProjectHeader title="Test" repositoryLink="https://github.com/test" />);
     const link = screen.getByText("Source Code");
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "https://github.com/test");
@@ -26,29 +24,26 @@ describe("ProjectHeader", () => {
   it("shows no source code message when repositoryLink is not provided", () => {
     render(<ProjectHeader title="Test" />);
     expect(
-      screen.getByText("Source code not available - Contact me for a demo."),
+      screen.getByText("Source code not available - Contact me for a demo.")
     ).toBeInTheDocument();
   });
 
   it("shows no source code message when repositoryLink is empty", () => {
     render(<ProjectHeader title="Test" repositoryLink="" />);
     expect(
-      screen.getByText("Source code not available - Contact me for a demo."),
+      screen.getByText("Source code not available - Contact me for a demo.")
     ).toBeInTheDocument();
   });
 
   it("shows no source code message when repositoryLink is null", () => {
     render(<ProjectHeader title="Test" repositoryLink={null} />);
     expect(
-      screen.getByText("Source code not available - Contact me for a demo."),
+      screen.getByText("Source code not available - Contact me for a demo.")
     ).toBeInTheDocument();
   });
 
   it("renders title in h2 element", () => {
     render(<ProjectHeader title="Test Project" />);
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      "Test Project",
-    );
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Test Project");
   });
 });
-

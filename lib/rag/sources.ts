@@ -17,12 +17,7 @@
 import type { About, Contact, Post, Project, Welcome } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-export type KnowledgeSourceType =
-  | "article"
-  | "project"
-  | "about"
-  | "welcome"
-  | "contact";
+export type KnowledgeSourceType = "article" | "project" | "about" | "welcome" | "contact";
 
 export interface KnowledgeSource {
   sourceType: KnowledgeSourceType;
@@ -46,9 +41,7 @@ function formatTechStack(stack: unknown): string {
   if (!stack) return "";
   if (Array.isArray(stack)) {
     const names = stack
-      .map((t) =>
-        typeof t === "string" ? t : (t as { name?: string }).name ?? "",
-      )
+      .map((t) => (typeof t === "string" ? t : ((t as { name?: string }).name ?? "")))
       .filter(Boolean);
     return names.length ? `## Tech Stack\n\n${names.map((n) => `- ${n}`).join("\n")}` : "";
   }
@@ -57,11 +50,7 @@ function formatTechStack(stack: unknown): string {
       .map(([key, value]) => {
         if (Array.isArray(value)) {
           const flat = value
-            .map((v) =>
-              typeof v === "string"
-                ? v
-                : (v as { name?: string }).name ?? "",
-            )
+            .map((v) => (typeof v === "string" ? v : ((v as { name?: string }).name ?? "")))
             .filter(Boolean);
           return flat.length ? `### ${key}\n\n${flat.map((n) => `- ${n}`).join("\n")}` : "";
         }
@@ -128,11 +117,7 @@ interface ContactSocial {
 }
 
 export function formatArticleSource(p: Post): KnowledgeSource {
-  const md = trimAll([
-    `# ${p.title}`,
-    p.description ? `*${p.description}*` : null,
-    p.content,
-  ]);
+  const md = trimAll([`# ${p.title}`, p.description ? `*${p.description}*` : null, p.content]);
   return {
     sourceType: "article",
     sourceId: p.id,
@@ -175,10 +160,7 @@ export function formatAboutSource(about: About): KnowledgeSource {
       const dates = e.isOngoing
         ? `${e.startDate ?? ""} – Present`
         : `${e.startDate ?? ""} – ${e.endDate ?? ""}`;
-      const lines = [
-        `### ${e.role ?? "Role"} at ${e.company ?? "Company"}`,
-        `*${dates.trim()}*`,
-      ];
+      const lines = [`### ${e.role ?? "Role"} at ${e.company ?? "Company"}`, `*${dates.trim()}*`];
       if (e.description) lines.push(e.description);
       if (Array.isArray(e.achievements) && e.achievements.length) {
         lines.push(e.achievements.map((a) => `- ${a}`).join("\n"));
@@ -193,7 +175,7 @@ export function formatAboutSource(about: About): KnowledgeSource {
     const blocks = skills.map((g) => {
       const items = (g.skills ?? [])
         .map((s) =>
-          s.name ? `- ${s.name}${s.expertiseLevel ? ` (${s.expertiseLevel})` : ""}` : "",
+          s.name ? `- ${s.name}${s.expertiseLevel ? ` (${s.expertiseLevel})` : ""}` : ""
         )
         .filter(Boolean)
         .join("\n");
@@ -225,7 +207,7 @@ export function formatAboutSource(about: About): KnowledgeSource {
       .map((c) =>
         c.name
           ? `- ${c.name}${c.organization ? ` — ${c.organization}` : ""}${c.issueDate ? ` (${c.issueDate})` : ""}`
-          : "",
+          : ""
       )
       .filter(Boolean)
       .join("\n");
@@ -251,7 +233,7 @@ export function formatAboutSource(about: About): KnowledgeSource {
   const hobbies = (about.hobbies ?? []) as Array<string | { name?: string }>;
   if (hobbies.length) {
     const items = hobbies
-      .map((h) => (typeof h === "string" ? h : h.name ?? ""))
+      .map((h) => (typeof h === "string" ? h : (h.name ?? "")))
       .filter(Boolean)
       .map((h) => `- ${h}`)
       .join("\n");
@@ -269,11 +251,7 @@ export function formatAboutSource(about: About): KnowledgeSource {
 }
 
 export function formatWelcomeSource(welcome: Welcome): KnowledgeSource {
-  const md = trimAll([
-    `# ${welcome.name}`,
-    welcome.briefBio,
-    welcome.callToAction ?? null,
-  ]);
+  const md = trimAll([`# ${welcome.name}`, welcome.briefBio, welcome.callToAction ?? null]);
   return {
     sourceType: "welcome",
     sourceId: welcome.id,

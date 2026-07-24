@@ -60,9 +60,7 @@ describe("ProjectCard", () => {
 
   it("renders project description", () => {
     render(<ProjectCard project={mockProject} />);
-    expect(
-      screen.getByText("A test project description"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("A test project description")).toBeInTheDocument();
   });
 
   it("renders tech stack badges", () => {
@@ -75,13 +73,7 @@ describe("ProjectCard", () => {
   it("shows +N indicator when more than 3 tech items", () => {
     const projectWithManyTechs = {
       ...mockProject,
-      techStack: JSON.stringify([
-        "React",
-        "Node.js",
-        "MongoDB",
-        "TypeScript",
-        "GraphQL",
-      ]),
+      techStack: JSON.stringify(["React", "Node.js", "MongoDB", "TypeScript", "GraphQL"]),
     };
     render(<ProjectCard project={projectWithManyTechs} />);
     expect(screen.getByText("+2")).toBeInTheDocument();
@@ -188,10 +180,7 @@ describe("ProjectCard", () => {
     render(<ProjectCard project={mockProject} />);
     const card = screen.getByRole("article");
     expect(card).toHaveAttribute("tabIndex", "0");
-    expect(card).toHaveAttribute(
-      "aria-label",
-      "View project: Test Project",
-    );
+    expect(card).toHaveAttribute("aria-label", "View project: Test Project");
   });
 
   it("skips animation when reduced motion is preferred", () => {
@@ -230,4 +219,3 @@ describe("ProjectCard", () => {
     expect(screen.queryByText("React")).not.toBeInTheDocument();
   });
 });
-

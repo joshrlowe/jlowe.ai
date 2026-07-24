@@ -1,6 +1,8 @@
 import { renderQualifiedLeadsDigest } from "@/lib/email/templates/qualified-leads";
 
-function makeSession(overrides: Partial<Parameters<typeof renderQualifiedLeadsDigest>[0][number]> = {}) {
+function makeSession(
+  overrides: Partial<Parameters<typeof renderQualifiedLeadsDigest>[0][number]> = {}
+) {
   return {
     id: "sess-1",
     sessionId: "abcdef0123456789",

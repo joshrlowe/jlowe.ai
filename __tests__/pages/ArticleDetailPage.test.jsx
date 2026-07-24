@@ -5,10 +5,7 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import ArticleDetailPage, {
-  getStaticPaths,
-  getStaticProps,
-} from "@/pages/articles/[topic]/[slug]";
+import ArticleDetailPage, { getStaticPaths, getStaticProps } from "@/pages/articles/[topic]/[slug]";
 
 // Mock router
 jest.mock("next/router", () => ({
@@ -22,7 +19,7 @@ jest.mock("next/router", () => ({
 global.fetch = jest.fn(() =>
   Promise.resolve({
     json: () => Promise.resolve({ liked: false, likeCount: 5 }),
-  }),
+  })
 );
 
 // Mock Prisma - use the actual mock from __mocks__
@@ -49,7 +46,6 @@ const mockPost = {
 };
 
 describe("ArticleDetailPage", () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch.mockClear();
@@ -62,9 +58,7 @@ describe("ArticleDetailPage", () => {
 
   it("renders article description", () => {
     render(<ArticleDetailPage post={mockPost} />);
-    expect(
-      screen.getByText("A test article description"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("A test article description")).toBeInTheDocument();
   });
 
   it("renders author name", () => {
@@ -103,9 +97,7 @@ describe("ArticleDetailPage", () => {
   it("fetches like status on mount", async () => {
     render(<ArticleDetailPage post={mockPost} />);
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/api/posts/tech/test-article/like",
-      );
+      expect(global.fetch).toHaveBeenCalledWith("/api/posts/tech/test-article/like");
     });
   });
 
@@ -289,4 +281,3 @@ describe("getStaticProps", () => {
     expect(result.notFound).toBe(true);
   });
 });
-

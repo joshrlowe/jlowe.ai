@@ -88,9 +88,7 @@ export const getServerSideProps: GetServerSideProps<ComPageProps> = async () => 
             ? dbProject.startDate.toISOString()
             : String(dbProject.startDate),
         releaseDate:
-          dbProject.releaseDate instanceof Date
-            ? dbProject.releaseDate.toISOString()
-            : null,
+          dbProject.releaseDate instanceof Date ? dbProject.releaseDate.toISOString() : null,
         status: dbProject.status ?? null,
         techStack: dbProject.techStack ?? [],
         tags: dbProject.tags ?? [],

@@ -32,7 +32,7 @@ This guide explains how to configure branch protection rules for the jlowe.ai re
    #### ✅ **Require status checks to pass before merging**
    - [x] Require status checks to pass before merging
    - [x] Require branches to be up to date before merging
-   
+
    **Required status checks** (add all of these):
    - `lint` (Lint & Code Quality)
    - `unit-tests` (Unit & Integration Tests)
@@ -72,6 +72,7 @@ This guide explains how to configure branch protection rules for the jlowe.ai re
 ### For `develop` Branch (if using)
 
 Repeat the above steps with:
+
 - Branch name pattern: `develop`
 - Same settings as `main`
 - Can optionally reduce required approvals to `1`
@@ -79,6 +80,7 @@ Repeat the above steps with:
 ### For Feature Branches
 
 Consider adding a pattern for feature branches:
+
 - Branch name pattern: `feature/*`
 - [x] Require status checks to pass before merging
 - Required checks: `lint`, `unit-tests`
@@ -114,7 +116,7 @@ git push origin test-branch-protection
 Wait for all status checks to complete. You should see:
 
 - ✅ Lint & Code Quality
-- ✅ Unit & Integration Tests  
+- ✅ Unit & Integration Tests
 - ✅ E2E Tests (Playwright)
 - ✅ Visual Regression Tests
 - ✅ Accessibility Tests
@@ -141,13 +143,13 @@ The workflow defines these jobs that must pass:
 
 ```yaml
 jobs:
-  lint:                    # Code quality checks
-  unit-tests:             # Unit and integration tests
-  e2e-tests:              # End-to-end tests (sharded across browsers)
-  visual-regression:      # Visual regression tests
-  accessibility:          # Accessibility compliance
-  performance:            # Performance benchmarks
-  test-summary:           # Overall summary (depends on all above)
+  lint: # Code quality checks
+  unit-tests: # Unit and integration tests
+  e2e-tests: # End-to-end tests (sharded across browsers)
+  visual-regression: # Visual regression tests
+  accessibility: # Accessibility compliance
+  performance: # Performance benchmarks
+  test-summary: # Overall summary (depends on all above)
 ```
 
 ## Troubleshooting
@@ -170,6 +172,7 @@ jobs:
 ### Status Checks Always Pending
 
 1. **Check workflow triggers**:
+
    ```yaml
    on:
      pull_request:
@@ -185,7 +188,7 @@ jobs:
 
 1. **Check "Require branches to be up to date"**:
    - If enabled, branch must be rebased/merged with latest main
-   
+
    ```bash
    git checkout your-branch
    git pull origin main
@@ -218,11 +221,13 @@ If you need to bypass temporarily:
 ### 1. Required Status Checks
 
 **Minimum required**:
+
 - ✅ Lint
 - ✅ Unit Tests
 - ✅ E2E Tests
 
 **Recommended**:
+
 - ✅ Accessibility
 - ✅ Visual Regression
 - ✅ Performance
@@ -288,18 +293,21 @@ For production hotfixes:
 ### 1. Prevent Force Push
 
 Never allow force pushes to protected branches:
+
 - [x] Include administrators
 - [ ] Allow force pushes (keep disabled)
 
 ### 2. Require Signed Commits
 
 Ensure commits are from verified sources:
+
 - [x] Require signed commits
 - Configure GPG keys for all contributors
 
 ### 3. Restrict Deployments
 
 Configure deployment protection:
+
 - Settings → Environments → production
 - Required reviewers for production deployments
 - Wait timer before deployment
@@ -307,6 +315,7 @@ Configure deployment protection:
 ### 4. Secret Scanning
 
 Enable:
+
 - Settings → Code security and analysis
 - [x] Secret scanning
 - [x] Push protection
@@ -336,6 +345,7 @@ gh api repos/:owner/:repo/branches/main/protection
 ### Audit Log
 
 Check who modified branch protection:
+
 - Settings → Audit log
 - Filter by "protected_branch"
 
@@ -410,4 +420,3 @@ git push origin main
 
 **Last Updated**: 2026-01-11  
 **Status**: ✅ Ready for Implementation
-

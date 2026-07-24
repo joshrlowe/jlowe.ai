@@ -15,7 +15,7 @@ interface TeamMember {
  */
 export function validateProjectData(
   data: Record<string, unknown>,
-  requiredFields: string[] = ["title", "startDate"],
+  requiredFields: string[] = ["title", "startDate"]
 ): ValidationResult {
   return validateRequiredFields(data, requiredFields);
 }
@@ -57,8 +57,6 @@ export function validateTeamMembers(team: unknown): ValidationResult {
 /**
  * Validates admin project data (includes slug)
  */
-export function validateAdminProjectData(
-  data: Record<string, unknown>,
-): ValidationResult {
+export function validateAdminProjectData(data: Record<string, unknown>): ValidationResult {
   return validateRequiredFields(data, ["title", "slug"]);
 }

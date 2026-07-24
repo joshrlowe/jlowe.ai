@@ -1,6 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * HeroSection.jsx
  *
@@ -15,7 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import { Button } from "@/components/ui";
 import { getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { trackCtaClick } from "@/lib/analytics";
@@ -44,15 +41,10 @@ interface HeroSectionProps {
   homeContent?: HomePageContent | null;
 }
 
-const ReactTyped = dynamic(
-  () => import("react-typed").then((mod) => mod.ReactTyped),
-  {
-    ssr: false,
-    loading: () => (
-      <span className="text-[var(--color-text-secondary)]">I build</span>
-    ),
-  },
-);
+const ReactTyped = dynamic(() => import("react-typed").then((mod) => mod.ReactTyped), {
+  ssr: false,
+  loading: () => <span className="text-[var(--color-text-secondary)]">I build</span>,
+});
 
 export default function HeroSection({ data, homeContent }: HeroSectionProps) {
   const [typingComplete, setTypingComplete] = useState(false);
@@ -102,26 +94,16 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
     tl.fromTo(
       titleRef.current,
       { opacity: 0, y: 50, scale: 0.95 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.9 }
     )
       .fromTo(
         subtitleRef.current,
         { opacity: 0, y: 30 },
         { opacity: 1, y: 0, duration: 0.7 },
-        "-=0.5",
+        "-=0.5"
       )
-      .fromTo(
-        descRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        "-=0.3",
-      )
-      .fromTo(
-        ctaRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5 },
-        "-=0.2",
-      );
+      .fromTo(descRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, "-=0.3")
+      .fromTo(ctaRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, "-=0.2");
 
     return () => {
       tl.kill();
@@ -141,12 +123,12 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
     homeContent?.typingStrings && homeContent.typingStrings.length > 0
       ? homeContent.typingStrings
       : [
-        "production AI systems",
-        "scalable ML pipelines",
-        "full-stack applications",
-        "data-driven solutions",
-        "intelligent platforms",
-      ];
+          "production AI systems",
+          "scalable ML pipelines",
+          "full-stack applications",
+          "data-driven solutions",
+          "intelligent platforms",
+        ];
 
   // Portfolio-first CTAs: Projects primary, Contact secondary
   const primaryCta: HomeCta = homeContent?.primaryCta || {
@@ -162,12 +144,12 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
     homeContent?.techBadges && homeContent.techBadges.length > 0
       ? homeContent.techBadges
       : [
-        { name: "Python", color: "#E85D04" },
-        { name: "TensorFlow", color: "#FAA307" },
-        { name: "React", color: "#4CC9F0" },
-        { name: "AWS", color: "#F48C06" },
-        { name: "LLMs", color: "#F72585" },
-      ];
+          { name: "Python", color: "#E85D04" },
+          { name: "TensorFlow", color: "#FAA307" },
+          { name: "React", color: "#4CC9F0" },
+          { name: "AWS", color: "#F48C06" },
+          { name: "LLMs", color: "#F72585" },
+        ];
 
   return (
     <section
@@ -179,8 +161,9 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
         <div className="text-center">
           {/* Typing intro - starts after stars appear */}
           <p
-            className={`text-lg sm:text-xl mb-4 h-8 transition-opacity duration-500 font-light tracking-wide ${animationReady ? "opacity-100" : "opacity-0"
-              }`}
+            className={`text-lg sm:text-xl mb-4 h-8 transition-opacity duration-500 font-light tracking-wide ${
+              animationReady ? "opacity-100" : "opacity-0"
+            }`}
             style={{ color: "var(--color-text-secondary)" }}
           >
             {typingComplete ? (
@@ -203,8 +186,9 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
           {/* Main title - with typing animation */}
           <h1
             ref={titleRef}
-            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-tight transition-opacity duration-300 ${
+              typingComplete ? "" : "opacity-0"
+            }`}
             style={{
               background:
                 "linear-gradient(135deg, #FAFAFA 0%, #FFBA08 30%, #E85D04 60%, #9D0208 100%)",
@@ -232,8 +216,9 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
           {/* Subtitle / Role - single line, flexible width */}
           <div
             ref={subtitleRef}
-            className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-6 transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
+            className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-6 transition-opacity duration-300 ${
+              typingComplete ? "" : "opacity-0"
+            }`}
           >
             <span
               className="text-xl sm:text-2xl lg:text-3xl font-semibold whitespace-nowrap"
@@ -261,8 +246,9 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
           {/* Description */}
           <p
             ref={descRef}
-            className={`text-base sm:text-lg lg:text-xl w-full mx-auto mb-10 leading-relaxed transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
+            className={`text-base sm:text-lg lg:text-xl w-full mx-auto mb-10 leading-relaxed transition-opacity duration-300 ${
+              typingComplete ? "" : "opacity-0"
+            }`}
             style={{ color: "var(--color-text-secondary)", maxWidth: "80%" }}
           >
             {bio}
@@ -271,8 +257,9 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
           {/* CTAs */}
           <div
             ref={ctaRef}
-            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-opacity duration-300 ${typingComplete ? "" : "opacity-0"
-              }`}
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-opacity duration-300 ${
+              typingComplete ? "" : "opacity-0"
+            }`}
           >
             <Button
               href={primaryCta.href}
@@ -281,12 +268,7 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
               magnetic
               onClick={() => trackCtaClick("primary", primaryCta.href)}
               icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -311,8 +293,9 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
 
           {/* Tech badges */}
           <div
-            className={`flex flex-wrap items-center justify-center gap-2 mt-12 transition-opacity duration-500 delay-300 ${typingComplete ? "opacity-100" : "opacity-0"
-              }`}
+            className={`flex flex-wrap items-center justify-center gap-2 mt-12 transition-opacity duration-500 delay-300 ${
+              typingComplete ? "opacity-100" : "opacity-0"
+            }`}
           >
             {techBadges.map((tech) => (
               <span
@@ -333,21 +316,20 @@ export default function HeroSection({ data, homeContent }: HeroSectionProps) {
 
       {/* Scroll indicator */}
       <div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${typingComplete ? "opacity-100" : "opacity-0"
-          }`}
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${
+          typingComplete ? "opacity-100" : "opacity-0"
+        }`}
       >
         <button
           onClick={() => {
-            document
-              .getElementById("services")
-              ?.scrollIntoView({ behavior: "smooth" });
+            document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
           }}
           className="flex flex-col items-center gap-2 transition-colors group"
           style={{ color: "var(--color-text-muted)" }}
-          aria-label="Scroll to services"
+          aria-label="Scroll to projects"
         >
           <span className="text-xs uppercase tracking-[0.15em] font-medium group-hover:text-[#E85D04] transition-colors">
-            Explore
+            Explore Projects
           </span>
           <svg
             className="w-4 h-4 animate-bounce group-hover:text-[#E85D04] transition-colors"

@@ -19,7 +19,7 @@ export interface UseFormValidationResult {
   validateField: (
     fieldName: string,
     value: unknown,
-    allValues?: Record<string, unknown>,
+    allValues?: Record<string, unknown>
   ) => boolean;
   validateAll: (values: Record<string, unknown>) => boolean;
   setFieldTouched: (fieldName: string) => void;
@@ -28,40 +28,25 @@ export interface UseFormValidationResult {
   isValid: boolean;
 }
 
-export function useFormValidation(
-  rules: ValidationRules = {},
-): UseFormValidationResult {
+export function useFormValidation(rules: ValidationRules = {}): UseFormValidationResult {
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const validate = useCallback(
-    (
-      fieldName: string,
-      value: unknown,
-      allValues: Record<string, unknown> = {},
-    ): string | null => {
+    (fieldName: string, value: unknown, allValues: Record<string, unknown> = {}): string | null => {
       const rule = rules[fieldName];
       if (!rule) return null;
 
-      if (
-        rule.required &&
-        (!value || (typeof value === "string" && !value.trim()))
-      ) {
+      if (rule.required && (!value || (typeof value === "string" && !value.trim()))) {
         return rule.required;
       }
 
       if (rule.minLength && typeof value === "string" && value.length < rule.minLength) {
-        return (
-          rule.minLengthMessage ||
-          `Must be at least ${rule.minLength} characters`
-        );
+        return rule.minLengthMessage || `Must be at least ${rule.minLength} characters`;
       }
 
       if (rule.maxLength && typeof value === "string" && value.length > rule.maxLength) {
-        return (
-          rule.maxLengthMessage ||
-          `Must be less than ${rule.maxLength} characters`
-        );
+        return rule.maxLengthMessage || `Must be less than ${rule.maxLength} characters`;
       }
 
       if (rule.pattern && typeof value === "string" && !rule.pattern.test(value)) {
@@ -75,7 +60,7 @@ export function useFormValidation(
 
       return null;
     },
-    [rules],
+    [rules]
   );
 
   const validateField = useCallback(
@@ -84,7 +69,7 @@ export function useFormValidation(
       setErrors((prev) => ({ ...prev, [fieldName]: error }));
       return !error;
     },
-    [validate],
+    [validate]
   );
 
   const validateAll = useCallback(
@@ -103,7 +88,7 @@ export function useFormValidation(
       setErrors(newErrors);
       return isValid;
     },
-    [rules, validate],
+    [rules, validate]
   );
 
   const setFieldTouched = useCallback((fieldName: string) => {
@@ -119,7 +104,7 @@ export function useFormValidation(
     (fieldName: string) => {
       return touched[fieldName] ? errors[fieldName] : null;
     },
-    [errors, touched],
+    [errors, touched]
   );
 
   return {
@@ -130,8 +115,6 @@ export function useFormValidation(
     setFieldTouched,
     clearErrors,
     getFieldError,
-    isValid:
-      Object.keys(errors).length === 0 ||
-      Object.values(errors).every((e) => !e),
+    isValid: Object.keys(errors).length === 0 || Object.values(errors).every((e) => !e),
   };
 }

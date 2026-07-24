@@ -64,10 +64,10 @@ describe("TableOfContents", () => {
     document.body.appendChild(mockElement);
 
     render(<TableOfContents />);
-    
+
     const summaryLink = screen.getByText("Summary");
     fireEvent.click(summaryLink);
-    
+
     // Component uses window.scrollTo with offset
     expect(window.scrollTo).toHaveBeenCalledWith({
       top: expect.any(Number),
@@ -80,10 +80,10 @@ describe("TableOfContents", () => {
 
   it("prevents default on link click", () => {
     render(<TableOfContents />);
-    
+
     const overviewLink = screen.getByText("Overview");
     const event = { preventDefault: jest.fn() };
-    
+
     // Simulate click with our event
     fireEvent.click(overviewLink, event);
     // The click event is handled internally, so we verify the link doesn't navigate
@@ -93,10 +93,10 @@ describe("TableOfContents", () => {
 
   it("handles missing element gracefully", () => {
     render(<TableOfContents />);
-    
+
     // Click on a link whose element doesn't exist
     const leadershipLink = screen.getByText("Leadership");
-    
+
     // Should not throw an error
     expect(() => fireEvent.click(leadershipLink)).not.toThrow();
   });
@@ -113,4 +113,3 @@ describe("TableOfContents", () => {
     expect(list.querySelectorAll("li").length).toBe(8);
   });
 });
-

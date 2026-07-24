@@ -70,12 +70,12 @@ Remove `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` from `.env.local` and res
 
 ## How it's wired
 
-| File | Role |
-|---|---|
-| `lib/observability/langfuse.ts` | Lazy-imported singleton + `startTrace()` / `scoreTrace()` helpers |
-| `lib/observability/session.ts` | UUIDv4 session cookie (`chat_session_id`) management |
-| `lib/observability/ip.ts` | Shared `getClientIp()` (also used by rate limiter) and `hashIp()` |
-| `pages/api/chat.ts` | Creates the trace, wraps rate-limit/retrieval/generation in spans |
-| `pages/api/chat/feedback.ts` | Validates feedback and calls `scoreTrace()` |
-| `lib/bedrock/client.ts` | Surfaces `onFirstToken` and `onUsage` callbacks parsed from Bedrock stream events |
-| `components/Chat/` | Floating widget UI; reads `x-trace-id` and posts feedback |
+| File                            | Role                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `lib/observability/langfuse.ts` | Lazy-imported singleton + `startTrace()` / `scoreTrace()` helpers                 |
+| `lib/observability/session.ts`  | UUIDv4 session cookie (`chat_session_id`) management                              |
+| `lib/observability/ip.ts`       | Shared `getClientIp()` (also used by rate limiter) and `hashIp()`                 |
+| `pages/api/chat.ts`             | Creates the trace, wraps rate-limit/retrieval/generation in spans                 |
+| `pages/api/chat/feedback.ts`    | Validates feedback and calls `scoreTrace()`                                       |
+| `lib/bedrock/client.ts`         | Surfaces `onFirstToken` and `onUsage` callbacks parsed from Bedrock stream events |
+| `components/Chat/`              | Floating widget UI; reads `x-trace-id` and posts feedback                         |

@@ -9,7 +9,7 @@ import type { IncomingMessage } from "http";
  * Runtime protection is handled by middleware.js which protects /admin routes.
  */
 export async function requireAuth(
-  _context: GetServerSidePropsContext,
+  _context: GetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<Record<string, unknown>>> {
   // Always return props - middleware handles all authentication
   // This prevents any build-time issues with module loading
@@ -30,7 +30,7 @@ interface AdminSession {
  */
 export async function getAdminSession(
   req: IncomingMessage & { cookies: Partial<Record<string, string>> },
-  _res: unknown,
+  _res: unknown
 ): Promise<AdminSession | null> {
   const { getServerSession: _getServerSession } = await import("next-auth/next");
   // Import NextAuth handler to get authOptions

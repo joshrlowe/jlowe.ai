@@ -153,7 +153,7 @@ describe("POST /api/articles", () => {
         title: "New Article",
         description: "Test description",
         topic: "tech",
-      },
+      }
     );
     const res = createMockResponse();
 
@@ -189,7 +189,7 @@ describe("POST /api/articles", () => {
         title: "Test Article",
         description: "Description",
         topic: "tech",
-      },
+      }
     );
     const res = createMockResponse();
 
@@ -200,7 +200,7 @@ describe("POST /api/articles", () => {
         data: expect.objectContaining({
           slug: expect.any(String),
         }),
-      }),
+      })
     );
   });
 
@@ -216,7 +216,7 @@ describe("POST /api/articles", () => {
         description: "Description",
         topic: "tech",
         slug: "test-article",
-      },
+      }
     );
     const res = createMockResponse();
 
@@ -238,7 +238,7 @@ describe("POST /api/articles", () => {
         title: "Test",
         description: "Desc",
         topic: "tech",
-      },
+      }
     );
     const res = createMockResponse();
 

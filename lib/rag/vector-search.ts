@@ -56,7 +56,7 @@ function vectorLiteral(embedding: number[]): string {
 
 export async function searchKnowledge(
   query: string,
-  options: SearchKnowledgeOptions = {},
+  options: SearchKnowledgeOptions = {}
 ): Promise<RetrievedChunk[]> {
   const { topK = 5, sourceTypes, trace } = options;
   const trimmed = query.trim();
@@ -80,7 +80,7 @@ export async function searchKnowledge(
               AND "sourceType" = ANY(${sourceTypes}::text[])
             ORDER BY embedding <=> ${vec}::vector
             LIMIT ${HYBRID_TOP_N}
-          `,
+          `
         )
       : prisma.$queryRaw<SemanticRow[]>(
           Prisma.sql`
@@ -89,7 +89,7 @@ export async function searchKnowledge(
             WHERE embedding IS NOT NULL
             ORDER BY embedding <=> ${vec}::vector
             LIMIT ${HYBRID_TOP_N}
-          `,
+          `
         );
 
   const keywordPromise: Promise<KeywordRow[]> =
@@ -102,7 +102,7 @@ export async function searchKnowledge(
               AND "sourceType" = ANY(${sourceTypes}::text[])
             ORDER BY keyword_score DESC
             LIMIT ${HYBRID_TOP_N}
-          `,
+          `
         )
       : prisma.$queryRaw<KeywordRow[]>(
           Prisma.sql`
@@ -111,7 +111,7 @@ export async function searchKnowledge(
             WHERE tsv @@ plainto_tsquery('english', ${trimmed})
             ORDER BY keyword_score DESC
             LIMIT ${HYBRID_TOP_N}
-          `,
+          `
         );
 
   const [semantic, keyword] = await Promise.all([
@@ -129,7 +129,7 @@ export async function searchKnowledge(
   // Both sides only need {id} for RRF; cast to the common shape.
   const fused = rrfMerge<{ id: string }>(
     [semantic.map((r) => ({ id: r.id })), keyword.map((r) => ({ id: r.id }))],
-    { k: 60, topN: HYBRID_TOP_N },
+    { k: 60, topN: HYBRID_TOP_N }
   );
   rrfSpan?.end({ count: fused.length });
 

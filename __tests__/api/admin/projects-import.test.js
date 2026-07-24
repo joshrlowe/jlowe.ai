@@ -4,18 +4,18 @@
  * Tests admin projects import API route (POST)
  */
 
-import importHandler from '../../../pages/api/admin/projects/import';
-import prisma from '../../../lib/prisma';
-import { getToken } from 'next-auth/jwt';
+import importHandler from "../../../pages/api/admin/projects/import";
+import prisma from "../../../lib/prisma";
+import { getToken } from "next-auth/jwt";
 import {
   createMockRequest,
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from '../../setup/api-test-utils.js';
+} from "../../setup/api-test-utils.js";
 
 // Mock prisma
-jest.mock('../../../lib/prisma', () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     project: {
@@ -25,15 +25,15 @@ jest.mock('../../../lib/prisma', () => ({
 }));
 
 // Mock next-auth/jwt
-jest.mock('next-auth/jwt', () => ({
+jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
 
-describe('/api/admin/projects/import', () => {
+describe("/api/admin/projects/import", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -41,12 +41,12 @@ describe('/api/admin/projects/import', () => {
     console.error.mockRestore();
   });
 
-  describe('Authentication', () => {
-    it('should return 401 when not authenticated', async () => {
+  describe("Authentication", () => {
+    it("should return 401 when not authenticated", async () => {
       getToken.mockResolvedValue(null);
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: { projects: [] },
       });
       const res = createMockResponse();
@@ -54,27 +54,27 @@ describe('/api/admin/projects/import', () => {
       await importHandler(req, res);
 
       expect(getStatusCode(res)).toBe(401);
-      expect(getJsonResponse(res).message).toBe('Unauthorized');
+      expect(getJsonResponse(res).message).toBe("Unauthorized");
     });
   });
 
-  describe('HTTP method restrictions', () => {
+  describe("HTTP method restrictions", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should return 405 for GET requests', async () => {
-      const req = createMockRequest({ method: 'GET' });
+    it("should return 405 for GET requests", async () => {
+      const req = createMockRequest({ method: "GET" });
       const res = createMockResponse();
 
       await importHandler(req, res);
 
       expect(getStatusCode(res)).toBe(405);
-      expect(getJsonResponse(res).message).toBe('Method Not Allowed');
+      expect(getJsonResponse(res).message).toBe("Method Not Allowed");
     });
 
-    it('should return 405 for PUT requests', async () => {
-      const req = createMockRequest({ method: 'PUT' });
+    it("should return 405 for PUT requests", async () => {
+      const req = createMockRequest({ method: "PUT" });
       const res = createMockResponse();
 
       await importHandler(req, res);
@@ -83,27 +83,27 @@ describe('/api/admin/projects/import', () => {
     });
   });
 
-  describe('POST requests - import projects', () => {
+  describe("POST requests - import projects", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should import valid projects', async () => {
+    it("should import valid projects", async () => {
       const createdProject = {
-        id: '1',
-        title: 'Imported Project',
-        slug: 'imported-project',
+        id: "1",
+        title: "Imported Project",
+        slug: "imported-project",
       };
       prisma.project.create.mockResolvedValue(createdProject);
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
           projects: [
             {
-              title: 'Imported Project',
-              slug: 'imported-project',
-              shortDescription: 'Description',
+              title: "Imported Project",
+              slug: "imported-project",
+              shortDescription: "Description",
             },
           ],
         },
@@ -115,29 +115,29 @@ describe('/api/admin/projects/import', () => {
       const response = getJsonResponse(res);
       expect(response.results.successful).toContainEqual(createdProject);
       expect(response.results.failed).toHaveLength(0);
-      expect(response.message).toContain('Imported 1 project(s)');
+      expect(response.message).toContain("Imported 1 project(s)");
     });
 
-    it('should return 400 when projects is not an array', async () => {
+    it("should return 400 when projects is not an array", async () => {
       const req = createMockRequest({
-        method: 'POST',
-        body: { projects: 'not-an-array' },
+        method: "POST",
+        body: { projects: "not-an-array" },
       });
       const res = createMockResponse();
 
       await importHandler(req, res);
 
       expect(getStatusCode(res)).toBe(400);
-      expect(getJsonResponse(res).message).toBe('Projects must be an array');
+      expect(getJsonResponse(res).message).toBe("Projects must be an array");
     });
 
-    it('should fail projects without required fields', async () => {
+    it("should fail projects without required fields", async () => {
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
           projects: [
-            { title: 'No Slug' }, // Missing slug
-            { slug: 'no-title' }, // Missing title
+            { title: "No Slug" }, // Missing slug
+            { slug: "no-title" }, // Missing title
           ],
         },
       });
@@ -148,20 +148,20 @@ describe('/api/admin/projects/import', () => {
       const response = getJsonResponse(res);
       expect(response.results.successful).toHaveLength(0);
       expect(response.results.failed).toHaveLength(2);
-      expect(response.results.failed[0].error).toBe('Title and slug are required');
+      expect(response.results.failed[0].error).toBe("Title and slug are required");
     });
 
-    it('should handle mixed success and failure', async () => {
+    it("should handle mixed success and failure", async () => {
       prisma.project.create
-        .mockResolvedValueOnce({ id: '1', title: 'Valid Project', slug: 'valid' })
-        .mockRejectedValueOnce(new Error('Duplicate slug'));
+        .mockResolvedValueOnce({ id: "1", title: "Valid Project", slug: "valid" })
+        .mockRejectedValueOnce(new Error("Duplicate slug"));
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
           projects: [
-            { title: 'Valid Project', slug: 'valid' },
-            { title: 'Invalid Project', slug: 'duplicate' },
+            { title: "Valid Project", slug: "valid" },
+            { title: "Invalid Project", slug: "duplicate" },
           ],
         },
       });
@@ -172,19 +172,19 @@ describe('/api/admin/projects/import', () => {
       const response = getJsonResponse(res);
       expect(response.results.successful).toHaveLength(1);
       expect(response.results.failed).toHaveLength(1);
-      expect(response.message).toBe('Imported 1 project(s), 1 failed');
+      expect(response.message).toBe("Imported 1 project(s), 1 failed");
     });
 
-    it('should set default values for optional fields', async () => {
-      prisma.project.create.mockResolvedValue({ id: '1' });
+    it("should set default values for optional fields", async () => {
+      prisma.project.create.mockResolvedValue({ id: "1" });
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
           projects: [
             {
-              title: 'Minimal Project',
-              slug: 'minimal',
+              title: "Minimal Project",
+              slug: "minimal",
             },
           ],
         },
@@ -195,10 +195,10 @@ describe('/api/admin/projects/import', () => {
 
       expect(prisma.project.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          title: 'Minimal Project',
-          slug: 'minimal',
-          shortDescription: '',
-          longDescription: '',
+          title: "Minimal Project",
+          slug: "minimal",
+          shortDescription: "",
+          longDescription: "",
           tags: [],
           techStack: [],
           links: {},
@@ -208,17 +208,17 @@ describe('/api/admin/projects/import', () => {
       });
     });
 
-    it('should map status using projectStatusMapper', async () => {
-      prisma.project.create.mockResolvedValue({ id: '1' });
+    it("should map status using projectStatusMapper", async () => {
+      prisma.project.create.mockResolvedValue({ id: "1" });
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
           projects: [
             {
-              title: 'Project',
-              slug: 'project',
-              status: 'In Progress',
+              title: "Project",
+              slug: "project",
+              status: "In Progress",
             },
           ],
         },
@@ -229,23 +229,23 @@ describe('/api/admin/projects/import', () => {
 
       expect(prisma.project.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          status: 'InProgress',
+          status: "InProgress",
         }),
       });
     });
 
-    it('should handle date fields', async () => {
-      prisma.project.create.mockResolvedValue({ id: '1' });
+    it("should handle date fields", async () => {
+      prisma.project.create.mockResolvedValue({ id: "1" });
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
           projects: [
             {
-              title: 'Project',
-              slug: 'project',
-              startDate: '2024-01-01',
-              releaseDate: '2024-06-01',
+              title: "Project",
+              slug: "project",
+              startDate: "2024-01-01",
+              releaseDate: "2024-06-01",
             },
           ],
         },
@@ -262,9 +262,9 @@ describe('/api/admin/projects/import', () => {
       });
     });
 
-    it('should handle empty projects array', async () => {
+    it("should handle empty projects array", async () => {
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: { projects: [] },
       });
       const res = createMockResponse();
@@ -272,24 +272,24 @@ describe('/api/admin/projects/import', () => {
       await importHandler(req, res);
 
       const response = getJsonResponse(res);
-      expect(response.message).toBe('Imported 0 project(s), 0 failed');
+      expect(response.message).toBe("Imported 0 project(s), 0 failed");
       expect(response.results.successful).toHaveLength(0);
       expect(response.results.failed).toHaveLength(0);
     });
   });
 
-  describe('Error handling', () => {
+  describe("Error handling", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should handle database errors', async () => {
-      prisma.project.create.mockRejectedValue(new Error('Connection failed'));
+    it("should handle database errors", async () => {
+      prisma.project.create.mockRejectedValue(new Error("Connection failed"));
 
       const req = createMockRequest({
-        method: 'POST',
+        method: "POST",
         body: {
-          projects: [{ title: 'Project', slug: 'project' }],
+          projects: [{ title: "Project", slug: "project" }],
         },
       });
       const res = createMockResponse();
@@ -298,8 +298,7 @@ describe('/api/admin/projects/import', () => {
 
       const response = getJsonResponse(res);
       expect(response.results.failed).toHaveLength(1);
-      expect(response.results.failed[0].error).toBe('Connection failed');
+      expect(response.results.failed[0].error).toBe("Connection failed");
     });
   });
 });
-

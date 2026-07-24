@@ -24,12 +24,7 @@ export default function AdminSidebar() {
         className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)]"
         aria-label="Toggle menu"
       >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           {isOpen ? (
             <path
               strokeLinecap="round"

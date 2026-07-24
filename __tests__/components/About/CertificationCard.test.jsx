@@ -105,4 +105,3 @@ describe("CertificationCard", () => {
     expect(screen.getByText("C")).toBeInTheDocument();
   });
 });
-

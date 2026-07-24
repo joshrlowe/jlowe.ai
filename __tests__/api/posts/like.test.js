@@ -129,7 +129,7 @@ describe("POST /api/posts/[topic]/[slug]/like", () => {
         data: expect.objectContaining({
           userIP: "127.0.0.1",
         }),
-      }),
+      })
     );
   });
 });
@@ -188,7 +188,7 @@ describe("GET /api/posts/[topic]/[slug]/like", () => {
     const req = createMockRequest(
       "GET",
       { topic: "tech", slug: "test-post" },
-      { "x-forwarded-for": "10.0.0.1, 192.168.1.1" },
+      { "x-forwarded-for": "10.0.0.1, 192.168.1.1" }
     );
     const res = createMockResponse();
 
@@ -264,4 +264,3 @@ describe("Unsupported methods", () => {
     expect(res.status).toHaveBeenCalledWith(405);
   });
 });
-

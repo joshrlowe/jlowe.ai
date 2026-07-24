@@ -12,7 +12,9 @@ describe("buildLikeApiUrl", () => {
 
   it("should handle different topics", () => {
     expect(buildLikeApiUrl("javascript", "intro")).toBe("/api/posts/javascript/intro/like");
-    expect(buildLikeApiUrl("nextjs", "getting-started")).toBe("/api/posts/nextjs/getting-started/like");
+    expect(buildLikeApiUrl("nextjs", "getting-started")).toBe(
+      "/api/posts/nextjs/getting-started/like"
+    );
     expect(buildLikeApiUrl("typescript", "types-101")).toBe("/api/posts/typescript/types-101/like");
   });
 
@@ -46,4 +48,3 @@ describe("buildLikeApiUrl", () => {
     expect(typeof result).toBe("string");
   });
 });
-

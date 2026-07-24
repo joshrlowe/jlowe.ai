@@ -4,19 +4,19 @@
  * Tests admin posts CRUD by ID API route
  */
 
-import postsIdHandler from '../../../pages/api/admin/posts/[id]';
-import prisma from '../../../lib/prisma';
-import { inngest } from '../../../lib/jobs/client';
-import { getToken } from 'next-auth/jwt';
+import postsIdHandler from "../../../pages/api/admin/posts/[id]";
+import prisma from "../../../lib/prisma";
+import { inngest } from "../../../lib/jobs/client";
+import { getToken } from "next-auth/jwt";
 import {
   createMockRequest,
   createMockResponse,
   getJsonResponse,
   getStatusCode,
-} from '../../setup/api-test-utils.js';
+} from "../../setup/api-test-utils.js";
 
 // Mock prisma
-jest.mock('../../../lib/prisma', () => ({
+jest.mock("../../../lib/prisma", () => ({
   __esModule: true,
   default: {
     post: {
@@ -28,58 +28,58 @@ jest.mock('../../../lib/prisma', () => ({
 }));
 
 // Mock next-auth/jwt
-jest.mock('next-auth/jwt', () => ({
+jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
 
 // Mock readingTime utility
-jest.mock('../../../lib/utils/readingTime', () => ({
+jest.mock("../../../lib/utils/readingTime", () => ({
   calculateReadingTime: jest.fn(() => 5),
 }));
 
 // Mock Inngest client so events don't try to ship in tests
-jest.mock('../../../lib/jobs/client', () => ({
+jest.mock("../../../lib/jobs/client", () => ({
   inngest: {
-    send: jest.fn().mockResolvedValue({ ids: ['evt-mock'] }),
+    send: jest.fn().mockResolvedValue({ ids: ["evt-mock"] }),
   },
 }));
 
-describe('/api/admin/posts/[id]', () => {
+describe("/api/admin/posts/[id]", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
     console.error.mockRestore();
   });
 
-  describe('Authentication', () => {
-    it('should return 401 when not authenticated', async () => {
+  describe("Authentication", () => {
+    it("should return 401 when not authenticated", async () => {
       getToken.mockResolvedValue(null);
 
-      const req = createMockRequest({ method: 'GET', query: { id: 'post-1' } });
+      const req = createMockRequest({ method: "GET", query: { id: "post-1" } });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(getStatusCode(res)).toBe(401);
-      expect(getJsonResponse(res).message).toBe('Unauthorized');
+      expect(getJsonResponse(res).message).toBe("Unauthorized");
     });
   });
 
-  describe('GET requests', () => {
+  describe("GET requests", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should return post by ID with comment and like counts', async () => {
+    it("should return post by ID with comment and like counts", async () => {
       const mockPost = {
-        id: 'post-1',
-        title: 'Test Post',
-        slug: 'test-post',
-        content: 'Test content',
-        status: 'published',
+        id: "post-1",
+        title: "Test Post",
+        slug: "test-post",
+        content: "Test content",
+        status: "published",
         _count: {
           comments: 5,
           likes: 10,
@@ -87,13 +87,13 @@ describe('/api/admin/posts/[id]', () => {
       };
       prisma.post.findUnique.mockResolvedValue(mockPost);
 
-      const req = createMockRequest({ method: 'GET', query: { id: 'post-1' } });
+      const req = createMockRequest({ method: "GET", query: { id: "post-1" } });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(prisma.post.findUnique).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
+        where: { id: "post-1" },
         include: {
           _count: {
             select: {
@@ -106,22 +106,22 @@ describe('/api/admin/posts/[id]', () => {
       expect(getJsonResponse(res)).toEqual(mockPost);
     });
 
-    it('should return 404 when post not found', async () => {
+    it("should return 404 when post not found", async () => {
       prisma.post.findUnique.mockResolvedValue(null);
 
-      const req = createMockRequest({ method: 'GET', query: { id: 'non-existent' } });
+      const req = createMockRequest({ method: "GET", query: { id: "non-existent" } });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(getStatusCode(res)).toBe(404);
-      expect(getJsonResponse(res).message).toBe('Post not found');
+      expect(getJsonResponse(res).message).toBe("Post not found");
     });
 
-    it('should handle database errors', async () => {
-      prisma.post.findUnique.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors", async () => {
+      prisma.post.findUnique.mockRejectedValue(new Error("Database error"));
 
-      const req = createMockRequest({ method: 'GET', query: { id: 'post-1' } });
+      const req = createMockRequest({ method: "GET", query: { id: "post-1" } });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
@@ -130,115 +130,115 @@ describe('/api/admin/posts/[id]', () => {
     });
   });
 
-  describe('PUT requests', () => {
+  describe("PUT requests", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
       // Reset findUnique so prior describe's mockRejectedValue doesn't leak
       // (clearAllMocks clears call history but not the resolved/rejected value).
       prisma.post.findUnique.mockReset();
-      prisma.post.findUnique.mockResolvedValue({ status: 'Published' });
+      prisma.post.findUnique.mockResolvedValue({ status: "Published" });
     });
 
-    it('should update post with provided data', async () => {
+    it("should update post with provided data", async () => {
       const updatedPost = {
-        id: 'post-1',
-        title: 'Updated Title',
-        content: 'Updated content',
+        id: "post-1",
+        title: "Updated Title",
+        content: "Updated content",
         readingTime: 5,
       };
       prisma.post.update.mockResolvedValue(updatedPost);
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { title: 'Updated Title', content: 'Updated content' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { title: "Updated Title", content: "Updated content" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(prisma.post.update).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
+        where: { id: "post-1" },
         data: expect.objectContaining({
-          title: 'Updated Title',
-          content: 'Updated content',
+          title: "Updated Title",
+          content: "Updated content",
           readingTime: 5,
         }),
       });
       expect(getJsonResponse(res)).toEqual(updatedPost);
     });
 
-    it('should calculate reading time when content is updated', async () => {
-      const { calculateReadingTime } = require('../../../lib/utils/readingTime.js');
+    it("should calculate reading time when content is updated", async () => {
+      const { calculateReadingTime } = require("../../../lib/utils/readingTime.js");
       calculateReadingTime.mockReturnValue(8);
 
-      prisma.post.update.mockResolvedValue({ id: 'post-1', readingTime: 8 });
+      prisma.post.update.mockResolvedValue({ id: "post-1", readingTime: 8 });
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { content: 'New long content here...' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { content: "New long content here..." },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
-      expect(calculateReadingTime).toHaveBeenCalledWith('New long content here...');
+      expect(calculateReadingTime).toHaveBeenCalledWith("New long content here...");
       expect(prisma.post.update).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
+        where: { id: "post-1" },
         data: expect.objectContaining({
           readingTime: 8,
         }),
       });
     });
 
-    it('should convert datePublished to Date object', async () => {
-      prisma.post.update.mockResolvedValue({ id: 'post-1' });
+    it("should convert datePublished to Date object", async () => {
+      prisma.post.update.mockResolvedValue({ id: "post-1" });
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { datePublished: '2024-01-15T10:00:00Z' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { datePublished: "2024-01-15T10:00:00Z" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(prisma.post.update).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
+        where: { id: "post-1" },
         data: expect.objectContaining({
-          datePublished: new Date('2024-01-15T10:00:00Z'),
+          datePublished: new Date("2024-01-15T10:00:00Z"),
         }),
       });
     });
 
-    it('should convert topic to lowercase', async () => {
-      prisma.post.update.mockResolvedValue({ id: 'post-1' });
+    it("should convert topic to lowercase", async () => {
+      prisma.post.update.mockResolvedValue({ id: "post-1" });
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { topic: 'TECHNOLOGY' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { topic: "TECHNOLOGY" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(prisma.post.update).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
+        where: { id: "post-1" },
         data: expect.objectContaining({
-          topic: 'technology',
+          topic: "technology",
         }),
       });
     });
 
-    it('should handle database errors', async () => {
-      prisma.post.update.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors", async () => {
+      prisma.post.update.mockRejectedValue(new Error("Database error"));
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { title: 'Test' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { title: "Test" },
       });
       const res = createMockResponse();
 
@@ -247,63 +247,63 @@ describe('/api/admin/posts/[id]', () => {
       expect(getStatusCode(res)).toBe(500);
     });
 
-    it('should emit content/post.updated for non-transition updates', async () => {
-      prisma.post.findUnique.mockResolvedValue({ status: 'Published' });
+    it("should emit content/post.updated for non-transition updates", async () => {
+      prisma.post.findUnique.mockResolvedValue({ status: "Published" });
       prisma.post.update.mockResolvedValue({
-        id: 'post-1',
-        status: 'Published',
+        id: "post-1",
+        status: "Published",
       });
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { title: 'New title' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { title: "New title" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(inngest.send).toHaveBeenCalledWith({
-        name: 'content/post.updated',
-        data: { postId: 'post-1' },
+        name: "content/post.updated",
+        data: { postId: "post-1" },
       });
     });
 
-    it('should emit content/post.published when status flips Draft → Published', async () => {
-      prisma.post.findUnique.mockResolvedValue({ status: 'Draft' });
+    it("should emit content/post.published when status flips Draft → Published", async () => {
+      prisma.post.findUnique.mockResolvedValue({ status: "Draft" });
       prisma.post.update.mockResolvedValue({
-        id: 'post-2',
-        status: 'Published',
+        id: "post-2",
+        status: "Published",
       });
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-2' },
-        body: { status: 'Published' },
+        method: "PUT",
+        query: { id: "post-2" },
+        body: { status: "Published" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(inngest.send).toHaveBeenCalledWith({
-        name: 'content/post.published',
-        data: { postId: 'post-2' },
+        name: "content/post.published",
+        data: { postId: "post-2" },
       });
     });
 
-    it('should still return 200 when inngest.send fails on PUT', async () => {
-      prisma.post.findUnique.mockResolvedValue({ status: 'Published' });
+    it("should still return 200 when inngest.send fails on PUT", async () => {
+      prisma.post.findUnique.mockResolvedValue({ status: "Published" });
       prisma.post.update.mockResolvedValue({
-        id: 'post-1',
-        status: 'Published',
+        id: "post-1",
+        status: "Published",
       });
-      inngest.send.mockRejectedValueOnce(new Error('inngest down'));
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      inngest.send.mockRejectedValueOnce(new Error("inngest down"));
+      jest.spyOn(console, "warn").mockImplementation(() => {});
 
       const req = createMockRequest({
-        method: 'PUT',
-        query: { id: 'post-1' },
-        body: { title: 'New title' },
+        method: "PUT",
+        query: { id: "post-1" },
+        body: { title: "New title" },
       });
       const res = createMockResponse();
 
@@ -314,53 +314,53 @@ describe('/api/admin/posts/[id]', () => {
     });
   });
 
-  describe('DELETE requests', () => {
+  describe("DELETE requests", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should delete post and return 204', async () => {
-      prisma.post.delete.mockResolvedValue({ id: 'post-1' });
+    it("should delete post and return 204", async () => {
+      prisma.post.delete.mockResolvedValue({ id: "post-1" });
 
       const req = createMockRequest({
-        method: 'DELETE',
-        query: { id: 'post-1' },
+        method: "DELETE",
+        query: { id: "post-1" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(prisma.post.delete).toHaveBeenCalledWith({
-        where: { id: 'post-1' },
+        where: { id: "post-1" },
       });
       expect(getStatusCode(res)).toBe(204);
     });
 
-    it('should emit content/post.deleted with the post id', async () => {
-      prisma.post.delete.mockResolvedValue({ id: 'post-1' });
+    it("should emit content/post.deleted with the post id", async () => {
+      prisma.post.delete.mockResolvedValue({ id: "post-1" });
 
       const req = createMockRequest({
-        method: 'DELETE',
-        query: { id: 'post-99' },
+        method: "DELETE",
+        query: { id: "post-99" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(inngest.send).toHaveBeenCalledWith({
-        name: 'content/post.deleted',
-        data: { postId: 'post-99' },
+        name: "content/post.deleted",
+        data: { postId: "post-99" },
       });
     });
 
-    it('should still return 204 when inngest.send fails', async () => {
-      prisma.post.delete.mockResolvedValue({ id: 'post-1' });
-      inngest.send.mockRejectedValueOnce(new Error('inngest down'));
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+    it("should still return 204 when inngest.send fails", async () => {
+      prisma.post.delete.mockResolvedValue({ id: "post-1" });
+      inngest.send.mockRejectedValueOnce(new Error("inngest down"));
+      jest.spyOn(console, "warn").mockImplementation(() => {});
 
       const req = createMockRequest({
-        method: 'DELETE',
-        query: { id: 'post-1' },
+        method: "DELETE",
+        query: { id: "post-1" },
       });
       const res = createMockResponse();
 
@@ -370,14 +370,14 @@ describe('/api/admin/posts/[id]', () => {
       console.warn.mockRestore();
     });
 
-    it('should handle not found error', async () => {
-      const notFoundError = new Error('Record not found');
-      notFoundError.code = 'P2025';
+    it("should handle not found error", async () => {
+      const notFoundError = new Error("Record not found");
+      notFoundError.code = "P2025";
       prisma.post.delete.mockRejectedValue(notFoundError);
 
       const req = createMockRequest({
-        method: 'DELETE',
-        query: { id: 'non-existent' },
+        method: "DELETE",
+        query: { id: "non-existent" },
       });
       const res = createMockResponse();
 
@@ -386,12 +386,12 @@ describe('/api/admin/posts/[id]', () => {
       expect(getStatusCode(res)).toBe(404);
     });
 
-    it('should handle database errors', async () => {
-      prisma.post.delete.mockRejectedValue(new Error('Database error'));
+    it("should handle database errors", async () => {
+      prisma.post.delete.mockRejectedValue(new Error("Database error"));
 
       const req = createMockRequest({
-        method: 'DELETE',
-        query: { id: 'post-1' },
+        method: "DELETE",
+        query: { id: "post-1" },
       });
       const res = createMockResponse();
 
@@ -401,28 +401,28 @@ describe('/api/admin/posts/[id]', () => {
     });
   });
 
-  describe('HTTP method restrictions', () => {
+  describe("HTTP method restrictions", () => {
     beforeEach(() => {
-      getToken.mockResolvedValue({ id: 'admin-1', email: 'admin@test.com' });
+      getToken.mockResolvedValue({ id: "admin-1", email: "admin@test.com" });
     });
 
-    it('should return 405 for POST requests', async () => {
+    it("should return 405 for POST requests", async () => {
       const req = createMockRequest({
-        method: 'POST',
-        query: { id: 'post-1' },
+        method: "POST",
+        query: { id: "post-1" },
       });
       const res = createMockResponse();
 
       await postsIdHandler(req, res);
 
       expect(getStatusCode(res)).toBe(405);
-      expect(getJsonResponse(res).message).toBe('Method Not Allowed');
+      expect(getJsonResponse(res).message).toBe("Method Not Allowed");
     });
 
-    it('should return 405 for PATCH requests', async () => {
+    it("should return 405 for PATCH requests", async () => {
       const req = createMockRequest({
-        method: 'PATCH',
-        query: { id: 'post-1' },
+        method: "PATCH",
+        query: { id: "post-1" },
       });
       const res = createMockResponse();
 
@@ -432,4 +432,3 @@ describe('/api/admin/posts/[id]', () => {
     });
   });
 });
-

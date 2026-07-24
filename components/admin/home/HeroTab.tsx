@@ -9,12 +9,7 @@ interface HeroTabProps {
   onSave: () => void;
 }
 
-export default function HeroTab({
-  homeContent,
-  setHomeContent,
-  saving,
-  onSave,
-}: HeroTabProps) {
+export default function HeroTab({ homeContent, setHomeContent, saving, onSave }: HeroTabProps) {
   const cardClass = adminStyles.card;
 
   const addTypingString = () => {
@@ -48,9 +43,7 @@ export default function HeroTab({
   const updateTechBadge = (index: number, field: keyof TechBadge, value: string) => {
     setHomeContent((prev) => ({
       ...prev,
-      techBadges: prev.techBadges.map((b, i) =>
-        i === index ? { ...b, [field]: value } : b,
-      ),
+      techBadges: prev.techBadges.map((b, i) => (i === index ? { ...b, [field]: value } : b)),
     }));
   };
 
@@ -131,7 +124,10 @@ export default function HeroTab({
             onChange={(e) =>
               setHomeContent({
                 ...homeContent,
-                primaryCta: { ...homeContent.primaryCta, text: (e.target as HTMLInputElement).value },
+                primaryCta: {
+                  ...homeContent.primaryCta,
+                  text: (e.target as HTMLInputElement).value,
+                },
               })
             }
             placeholder="Start a Project"
@@ -142,7 +138,10 @@ export default function HeroTab({
             onChange={(e) =>
               setHomeContent({
                 ...homeContent,
-                primaryCta: { ...homeContent.primaryCta, href: (e.target as HTMLInputElement).value },
+                primaryCta: {
+                  ...homeContent.primaryCta,
+                  href: (e.target as HTMLInputElement).value,
+                },
               })
             }
             placeholder="/contact"
@@ -179,9 +178,7 @@ export default function HeroTab({
       </div>
 
       <div className={cardClass}>
-        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-          Tech Badges
-        </h3>
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Tech Badges</h3>
 
         <div className="space-y-3">
           {homeContent.techBadges.map((badge, index) => (
@@ -230,11 +227,7 @@ export default function HeroTab({
         </div>
       </div>
 
-      <button
-        onClick={onSave}
-        disabled={saving}
-        className={adminStyles.buttonPrimary}
-      >
+      <button onClick={onSave} disabled={saving} className={adminStyles.buttonPrimary}>
         {saving ? "Saving..." : "Save Hero Content"}
       </button>
     </div>

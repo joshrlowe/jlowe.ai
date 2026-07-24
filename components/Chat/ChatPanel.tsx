@@ -115,9 +115,7 @@ export default function ChatPanel({ onClose }: ChatPanelProps) {
         const next = [...prev];
         next[next.length - 1] = {
           role: "assistant",
-          content:
-            (err as Error).message ||
-            "Sorry, something went wrong. Please try again.",
+          content: (err as Error).message || "Sorry, something went wrong. Please try again.",
           errored: true,
         };
         return next;
@@ -148,12 +146,8 @@ export default function ChatPanel({ onClose }: ChatPanelProps) {
       <header className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-darker)]">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-sm font-medium text-[var(--color-text-primary)]">
-            Vulture
-          </span>
-          <span className="text-xs text-[var(--color-text-muted)]">
-            Josh&apos;s assistant
-          </span>
+          <span className="text-sm font-medium text-[var(--color-text-primary)]">Vulture</span>
+          <span className="text-xs text-[var(--color-text-muted)]">Josh&apos;s assistant</span>
         </div>
         <button
           type="button"
@@ -161,7 +155,13 @@ export default function ChatPanel({ onClose }: ChatPanelProps) {
           aria-label="Close chat"
           className="p-1 rounded text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-card)] transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -197,8 +197,18 @@ export default function ChatPanel({ onClose }: ChatPanelProps) {
           aria-label="Send"
           className="px-3 py-2 rounded-lg bg-[var(--color-primary)] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--color-primary-dark)] transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            />
           </svg>
         </button>
       </form>

@@ -118,13 +118,7 @@ describe("MarkdownContent", () => {
     });
 
     it("should combine variant styles with custom className", () => {
-      render(
-        <MarkdownContent
-          content="Combined"
-          variant="compact"
-          className="extra-class"
-        />
-      );
+      render(<MarkdownContent content="Combined" variant="compact" className="extra-class" />);
       const container = screen.getByTestId("react-markdown").parentElement;
       expect(container.className).toContain("prose-sm");
       expect(container.className).toContain("extra-class");
@@ -161,18 +155,13 @@ describe("MarkdownContent", () => {
 
   describe("snapshots", () => {
     it("should match snapshot for default variant", () => {
-      const { container } = render(
-        <MarkdownContent content="**Bold** and *italic* text" />
-      );
+      const { container } = render(<MarkdownContent content="**Bold** and *italic* text" />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
     it("should match snapshot for compact variant", () => {
-      const { container } = render(
-        <MarkdownContent content="Compact content" variant="compact" />
-      );
+      const { container } = render(<MarkdownContent content="Compact content" variant="compact" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 });
-

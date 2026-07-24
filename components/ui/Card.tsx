@@ -69,7 +69,7 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
     as: Component = "div",
     ...props
   },
-  ref,
+  ref
 ) {
   const cardRef = useRef<HTMLElement | null>(null);
   const combinedRef = (ref ?? cardRef) as React.Ref<HTMLElement>;
@@ -82,7 +82,7 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
       const y = (e.clientY - rect.top) / rect.height - 0.5;
       e.currentTarget.style.transform = `perspective(1000px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateZ(10px)`;
     },
-    [tilt],
+    [tilt]
   );
 
   const handleMouseLeave = useCallback(
@@ -90,7 +90,7 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
       if (!tilt) return;
       e.currentTarget.style.transform = "";
     },
-    [tilt],
+    [tilt]
   );
 
   const baseStyles = `

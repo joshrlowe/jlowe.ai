@@ -14,12 +14,16 @@ const Prisma = {
 
 class PrismaClient {
   constructor() {}
-  $connect() { return Promise.resolve(); }
-  $disconnect() { return Promise.resolve(); }
+  $connect() {
+    return Promise.resolve();
+  }
+  $disconnect() {
+    return Promise.resolve();
+  }
   $on() {}
   $use() {}
   $transaction(fn) {
-    if (typeof fn === 'function') return Promise.resolve(fn(this));
+    if (typeof fn === "function") return Promise.resolve(fn(this));
     return Promise.all(fn);
   }
 }

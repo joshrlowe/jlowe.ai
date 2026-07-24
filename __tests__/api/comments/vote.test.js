@@ -166,7 +166,7 @@ describe("POST /api/comments/[id]/vote", () => {
 
       expect(getStatusCode(res)).toBe(200);
       expect(prisma.$transaction).toHaveBeenCalled();
-      
+
       const response = getJsonResponse(res);
       expect(response.likes).toBe(1);
       expect(response.dislikes).toBe(0);
@@ -192,7 +192,7 @@ describe("POST /api/comments/[id]/vote", () => {
       await voteHandler(req, res);
 
       expect(getStatusCode(res)).toBe(200);
-      
+
       const response = getJsonResponse(res);
       expect(response.dislikes).toBe(1);
       expect(response.userVote).toBe("dislike");
@@ -220,7 +220,7 @@ describe("POST /api/comments/[id]/vote", () => {
 
       expect(getStatusCode(res)).toBe(200);
       expect(prisma.$transaction).toHaveBeenCalled();
-      
+
       const response = getJsonResponse(res);
       expect(response.likes).toBe(0);
       expect(response.userVote).toBeNull();
@@ -247,7 +247,7 @@ describe("POST /api/comments/[id]/vote", () => {
       await voteHandler(req, res);
 
       expect(getStatusCode(res)).toBe(200);
-      
+
       const response = getJsonResponse(res);
       expect(response.likes).toBe(0);
       expect(response.dislikes).toBe(1);
@@ -273,7 +273,7 @@ describe("POST /api/comments/[id]/vote", () => {
       await voteHandler(req, res);
 
       expect(getStatusCode(res)).toBe(200);
-      
+
       const response = getJsonResponse(res);
       expect(response.likes).toBe(1);
       expect(response.dislikes).toBe(0);
@@ -344,4 +344,3 @@ describe("POST /api/comments/[id]/vote", () => {
     });
   });
 });
-

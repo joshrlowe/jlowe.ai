@@ -32,9 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, _token: JWT) {
       const { pageKey, content } = req.body;
 
       if (!pageKey || !content) {
-        return res
-          .status(400)
-          .json({ message: "pageKey and content are required" });
+        return res.status(400).json({ message: "pageKey and content are required" });
       }
 
       const pageContent = await prisma.pageContent.upsert({

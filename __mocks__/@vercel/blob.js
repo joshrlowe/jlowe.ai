@@ -12,4 +12,3 @@ export const put = jest.fn().mockImplementation((filename, _buffer, _options) =>
 });
 
 export default { put };
-

@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * RecentActivity.jsx
  *
@@ -15,8 +13,7 @@
 
 import { ReactNode, useEffect, useRef } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 import type { Project, Post } from "@/lib/types";
 
@@ -93,6 +90,8 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
   const config = activityConfig[activity.type] || activityConfig.update;
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!itemRef.current) return;
 
     if (getPrefersReducedMotion()) {
@@ -115,7 +114,7 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
           duration: 0.5,
           ease: "power2.out",
           delay: index * 0.08,
-        },
+        }
       );
     } else {
       // Use ScrollTrigger for below-viewport elements
@@ -132,7 +131,7 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
               duration: 0.6,
               ease: "power2.out",
               delay: index * 0.1,
-            },
+            }
           );
         },
         once: true,
@@ -202,19 +201,13 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
             {activity.title}
           </Link>
         ) : (
-          <p
-            className="text-base font-medium mb-1"
-            style={{ color: "var(--color-text-primary)" }}
-          >
+          <p className="text-base font-medium mb-1" style={{ color: "var(--color-text-primary)" }}>
             {activity.title}
           </p>
         )}
 
         {activity.description && (
-          <p
-            className="text-sm line-clamp-2"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
+          <p className="text-sm line-clamp-2" style={{ color: "var(--color-text-secondary)" }}>
             {activity.description}
           </p>
         )}
@@ -258,14 +251,13 @@ interface RecentActivityProps {
   articles?: Post[];
 }
 
-export default function RecentActivity({
-  projects = [],
-  articles = [],
-}: RecentActivityProps) {
+export default function RecentActivity({ projects = [], articles = [] }: RecentActivityProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || !titleRef.current) return;
 
     if (getPrefersReducedMotion()) {
@@ -282,7 +274,7 @@ export default function RecentActivity({
       gsap.fromTo(
         title,
         { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
       );
     } else {
       // Use ScrollTrigger for below-viewport elements
@@ -293,7 +285,7 @@ export default function RecentActivity({
           gsap.fromTo(
             title,
             { opacity: 0, y: 30 },
-            { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
+            { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }
           );
         },
         once: true,
@@ -324,9 +316,7 @@ export default function RecentActivity({
       tags: (a.tags as string[] | null) || [],
     })),
   ]
-    .sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    )
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
 
   if (activities.length === 0) return null;
@@ -396,4 +386,3 @@ export default function RecentActivity({
     </section>
   );
 }
-

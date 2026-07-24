@@ -83,7 +83,7 @@ function renderSessionHtml(s: ChatSessionFixture): string {
   const traceLinks = s.langfuseTraceIds
     .map(
       (id) =>
-        `<a href="${langfuseUrlFor(id)}" style="color:#4CC9F0;text-decoration:underline;">${escapeHtml(id.slice(0, 8))}</a>`,
+        `<a href="${langfuseUrlFor(id)}" style="color:#4CC9F0;text-decoration:underline;">${escapeHtml(id.slice(0, 8))}</a>`
     )
     .join(", ");
   const headerBits = [
@@ -119,9 +119,7 @@ function renderSessionText(s: ChatSessionFixture): string {
   return `${headerBits.join(" | ")}\n${traces}\n${turns}`;
 }
 
-export function renderQualifiedLeadsDigest(
-  sessions: ChatSessionFixture[],
-): RenderedDigest {
+export function renderQualifiedLeadsDigest(sessions: ChatSessionFixture[]): RenderedDigest {
   const date = formatDate(new Date());
   const subject = `Qualified leads — ${date} (${sessions.length} session${sessions.length === 1 ? "" : "s"})`;
 

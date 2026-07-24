@@ -5,10 +5,7 @@ import { scoreTrace } from "@/lib/observability/langfuse";
 const MAX_TRACE_ID = 100;
 const MAX_COMMENT = 1000;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-): Promise<void> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
@@ -31,11 +28,7 @@ export default async function handler(
   }
 
   const { traceId, score, comment } = body;
-  if (
-    typeof traceId !== "string" ||
-    traceId.length === 0 ||
-    traceId.length > MAX_TRACE_ID
-  ) {
+  if (typeof traceId !== "string" || traceId.length === 0 || traceId.length > MAX_TRACE_ID) {
     res.status(400).json({ error: "Invalid traceId" });
     return;
   }

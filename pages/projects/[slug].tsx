@@ -1,11 +1,13 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
+
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
 import { transformProjectToApiFormat } from "../../lib/utils/projectTransformer";
 import SEO from "@/components/SEO";
+import JsonLd from "@/components/JsonLd";
 import ProjectDetail from "@/components/Project/ProjectDetail";
+import { projectSchema } from "@/lib/seo/schema";
 import type { ProjectLike } from "@/components/Project/types";
 import Link from "next/link";
 
@@ -22,9 +24,7 @@ const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-[var(--color-text-secondary)]">
-            Loading project...
-          </p>
+          <p className="mt-4 text-[var(--color-text-secondary)]">Loading project...</p>
         </div>
       </div>
     );
@@ -82,6 +82,21 @@ const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
             : undefined
         }
       />
+      <JsonLd
+        data={projectSchema({
+          title: project.title,
+          description: project.shortDescription || project.description || "",
+          slug: project.slug || project.id || "",
+          image:
+            Array.isArray(project.images) && project.images[0]
+              ? typeof project.images[0] === "string"
+                ? project.images[0]
+                : undefined
+              : undefined,
+          dateCreated: project.startDate ?? undefined,
+        })}
+        id="project"
+      />
       <ProjectDetail project={project} />
     </>
   );
@@ -107,9 +122,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 };
 
-export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({
-  params,
-}) => {
+export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({ params }) => {
   try {
     const slug = params?.slug as string | undefined;
 
@@ -137,9 +150,7 @@ export const getStaticProps: GetStaticProps<ProjectDetailPageProps> = async ({
 
     return {
       props: {
-        project: JSON.parse(
-          JSON.stringify(transformedProject),
-        ) as ProjectLike,
+        project: JSON.parse(JSON.stringify(transformedProject)) as ProjectLike,
       },
       revalidate: 60,
     };

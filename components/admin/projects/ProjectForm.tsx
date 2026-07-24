@@ -1,4 +1,11 @@
-import { useState, useRef, type ChangeEvent, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import {
+  useState,
+  useRef,
+  type ChangeEvent,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from "react";
 import { FormField, TagInput, MediaUpload, adminStyles, PROJECT_STATUSES } from "../shared";
 import TeamMemberManager from "../TeamMemberManager";
 import ImageUploader from "../ImageUploader";
@@ -156,7 +163,9 @@ export default function ProjectForm({
         <FormField
           label="Title"
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: (e.target as HTMLInputElement).value })}
+          onChange={(e) =>
+            setFormData({ ...formData, title: (e.target as HTMLInputElement).value })
+          }
           required
         />
         <FormField
@@ -186,19 +195,25 @@ export default function ProjectForm({
         options={[...PROJECT_STATUSES]}
       />
 
-      <div className={`grid gap-4 ${formData.status === "InProgress" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
+      <div
+        className={`grid gap-4 ${formData.status === "InProgress" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}
+      >
         <FormField
           label="Start Date"
           type="date"
           value={formData.startDate}
-          onChange={(e) => setFormData({ ...formData, startDate: (e.target as HTMLInputElement).value })}
+          onChange={(e) =>
+            setFormData({ ...formData, startDate: (e.target as HTMLInputElement).value })
+          }
         />
         {formData.status !== "InProgress" && (
           <FormField
             label="Release Date"
             type="date"
             value={formData.releaseDate}
-            onChange={(e) => setFormData({ ...formData, releaseDate: (e.target as HTMLInputElement).value })}
+            onChange={(e) =>
+              setFormData({ ...formData, releaseDate: (e.target as HTMLInputElement).value })
+            }
           />
         )}
       </div>
@@ -206,14 +221,18 @@ export default function ProjectForm({
       <FormField
         label="Short Description"
         value={formData.shortDescription}
-        onChange={(e) => setFormData({ ...formData, shortDescription: (e.target as HTMLTextAreaElement).value })}
+        onChange={(e) =>
+          setFormData({ ...formData, shortDescription: (e.target as HTMLTextAreaElement).value })
+        }
         rows={2}
       />
 
       <FormField
         label="Description"
         value={formData.longDescription}
-        onChange={(e) => setFormData({ ...formData, longDescription: (e.target as HTMLTextAreaElement).value })}
+        onChange={(e) =>
+          setFormData({ ...formData, longDescription: (e.target as HTMLTextAreaElement).value })
+        }
         rows={4}
       />
 
@@ -279,7 +298,10 @@ export default function ProjectForm({
           Associated Papers (PDFs)
         </label>
         {(formData.papers || []).map((paper, index) => (
-          <div key={index} className="flex gap-2 items-start p-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)]">
+          <div
+            key={index}
+            className="flex gap-2 items-start p-3 rounded-lg bg-[var(--color-bg-darker)] border border-[var(--color-border)]"
+          >
             <div className="flex-1 space-y-2">
               <input
                 type="text"
@@ -326,7 +348,12 @@ export default function ProjectForm({
               title="Remove paper"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -371,27 +398,16 @@ export default function ProjectForm({
           onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
           className="rounded"
         />
-        <label
-          htmlFor="featured"
-          className="text-sm text-[var(--color-text-primary)]"
-        >
+        <label htmlFor="featured" className="text-sm text-[var(--color-text-primary)]">
           Featured Project
         </label>
       </div>
 
       <div className="flex justify-end gap-4 pt-4 border-t border-[var(--color-border)]">
-        <button
-          type="button"
-          onClick={onCancel}
-          className={adminStyles.buttonSecondary}
-        >
+        <button type="button" onClick={onCancel} className={adminStyles.buttonSecondary}>
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className={adminStyles.buttonPrimary}
-        >
+        <button type="submit" disabled={saving} className={adminStyles.buttonPrimary}>
           {saving ? "Saving..." : isEditing ? "Update" : "Create"}
         </button>
       </div>

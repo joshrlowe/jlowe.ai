@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
+
 /**
  * FeaturedProjects.jsx
  *
@@ -13,8 +13,7 @@
  */
 
 import { MouseEvent, useEffect, useRef, useCallback } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger, registerGsapPlugins } from "@/lib/animations/gsap";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Badge, Button } from "@/components/ui";
@@ -30,15 +29,15 @@ interface FeaturedProjectsProps {
   projects?: Project[];
 }
 
-export default function FeaturedProjects({
-  projects = [],
-}: FeaturedProjectsProps) {
+export default function FeaturedProjects({ projects = [] }: FeaturedProjectsProps) {
   const router = useRouter();
   const sectionRef = useRef<HTMLElement | null>(null);
   const cardsRef = useRef<(HTMLElement | null)[]>([]);
   const titleRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    registerGsapPlugins();
+
     if (!sectionRef.current || projects.length === 0) return;
 
     if (getPrefersReducedMotion()) {
@@ -67,7 +66,7 @@ export default function FeaturedProjects({
         gsap.fromTo(
           titleRef.current,
           { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }
         );
       } else {
         // Use ScrollTrigger for below-viewport elements
@@ -78,7 +77,7 @@ export default function FeaturedProjects({
             gsap.fromTo(
               titleRef.current,
               { opacity: 0, y: 40 },
-              { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" },
+              { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }
             );
           },
           once: true,
@@ -102,7 +101,7 @@ export default function FeaturedProjects({
             duration: 0.6,
             ease: "power2.out",
             delay: index * 0.12,
-          },
+          }
         );
       } else {
         // Use ScrollTrigger for below-viewport elements
@@ -120,7 +119,7 @@ export default function FeaturedProjects({
                 duration: 0.8,
                 ease: "power2.out",
                 delay: index * 0.15,
-              },
+              }
             );
           },
           once: true,
@@ -135,15 +134,12 @@ export default function FeaturedProjects({
   }, [projects]);
 
   // 3D tilt effect
-  const handleMouseMove = useCallback(
-    (e: MouseEvent<HTMLElement>, card: HTMLElement) => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `perspective(1000px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateZ(8px)`;
-    },
-    [],
-  );
+  const handleMouseMove = useCallback((e: MouseEvent<HTMLElement>, card: HTMLElement) => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    card.style.transform = `perspective(1000px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateZ(8px)`;
+  }, []);
 
   const handleMouseLeave = useCallback((card: HTMLElement) => {
     card.style.transform = "";
@@ -153,9 +149,7 @@ export default function FeaturedProjects({
 
   // Show featured projects first, fall back to most recent projects
   const featuredProjects = projects.filter((p) => p.featured).slice(0, 4);
-  const displayProjects = featuredProjects.length > 0 
-    ? featuredProjects 
-    : projects.slice(0, 4);
+  const displayProjects = featuredProjects.length > 0 ? featuredProjects : projects.slice(0, 4);
 
   return (
     <section
@@ -177,8 +171,7 @@ export default function FeaturedProjects({
             className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 tracking-tight"
             style={{
               fontFamily: "var(--font-family-heading)",
-              background:
-                "linear-gradient(135deg, #FAFAFA 0%, #E85D04 60%, #9D0208 100%)",
+              background: "linear-gradient(135deg, #FAFAFA 0%, #E85D04 60%, #9D0208 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -195,8 +188,8 @@ export default function FeaturedProjects({
               maxWidth: "80%",
             }}
           >
-            A selection of AI and engineering projects I've built for clients
-            and personal exploration.
+            A selection of AI and engineering projects I've built for clients and personal
+            exploration.
           </p>
         </div>
 
@@ -204,19 +197,17 @@ export default function FeaturedProjects({
           {displayProjects.map((project, index) => {
             const images = parseJsonField<ProjectImage>(
               project.images as ProjectImage[] | null | undefined,
-              [],
+              []
             ) as ProjectImage[];
             const techStack = parseJsonField<ProjectTech>(
               project.techStack as ProjectTech[] | null | undefined,
-              [],
+              []
             ) as ProjectTech[];
-            let thumbnail: ProjectImage | null =
-              images.length > 0 ? images[0] : null;
+            let thumbnail: ProjectImage | null = images.length > 0 ? images[0] : null;
             if (thumbnail && typeof thumbnail === "object") {
               thumbnail = thumbnail.url || thumbnail.src || thumbnail;
             }
-            const thumbnailUrl =
-              typeof thumbnail === "string" ? thumbnail : null;
+            const thumbnailUrl = typeof thumbnail === "string" ? thumbnail : null;
             const projectUrl = `/projects#${project.slug || project.id}`;
 
             const accent = FEATURED_ACCENT_COLORS[index % FEATURED_ACCENT_COLORS.length];
@@ -253,8 +244,7 @@ export default function FeaturedProjects({
                         sizes="(max-width: 768px) 100vw, 50vw"
                         loading="lazy"
                         unoptimized={
-                          thumbnailUrl.startsWith("data:") ||
-                          thumbnailUrl.startsWith("blob:")
+                          thumbnailUrl.startsWith("data:") || thumbnailUrl.startsWith("blob:")
                         }
                       />
                       {/* Gradient overlay */}
@@ -270,8 +260,7 @@ export default function FeaturedProjects({
                     <div
                       className="absolute inset-0 flex items-center justify-center"
                       style={{
-                        background:
-                          "linear-gradient(135deg, #0c0c0c 0%, #181818 100%)",
+                        background: "linear-gradient(135deg, #0c0c0c 0%, #181818 100%)",
                       }}
                     >
                       <span
@@ -292,11 +281,7 @@ export default function FeaturedProjects({
                       variant="primary"
                       size="sm"
                       icon={
-                        <svg
-                          className="w-3 h-3"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                       }
@@ -343,9 +328,7 @@ export default function FeaturedProjects({
                             border: "1px solid rgba(232, 93, 4, 0.15)",
                           }}
                         >
-                          {typeof tech === "string"
-                            ? tech
-                            : tech.name || String(tech)}
+                          {typeof tech === "string" ? tech : tech.name || String(tech)}
                         </span>
                       ))}
                       {techStack.length > 4 && (
@@ -400,12 +383,7 @@ export default function FeaturedProjects({
             variant="secondary"
             size="lg"
             icon={
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

@@ -15,10 +15,7 @@ import {
   buildOrderBy,
   formatPaginatedResponse,
 } from "../../../lib/utils/apiHelpers";
-import {
-  buildPostWhereClause,
-  buildPostQuery,
-} from "../../../lib/utils/queryBuilders";
+import { buildPostWhereClause, buildPostQuery } from "../../../lib/utils/queryBuilders";
 import { validateRequiredFields } from "../../../lib/utils/validators";
 import slugify from "slugify";
 
@@ -107,11 +104,7 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
     } = req.body;
 
     // Validate required fields
-    const validation = validateRequiredFields(req.body, [
-      "title",
-      "description",
-      "topic",
-    ]);
+    const validation = validateRequiredFields(req.body, ["title", "description", "topic"]);
 
     if (!validation.isValid) {
       return res.status(400).json({ message: validation.message });
@@ -140,9 +133,7 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
     // Calculate reading time if content exists
     let readingTime = null;
     if (content) {
-      const { calculateReadingTime } = await import(
-        "../../../lib/utils/readingTime"
-      );
+      const { calculateReadingTime } = await import("../../../lib/utils/readingTime");
       readingTime = calculateReadingTime(content);
     }
 

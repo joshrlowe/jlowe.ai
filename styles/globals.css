@@ -69,10 +69,8 @@
   --color-info: #4cc9f0;
 
   /* ===== TYPOGRAPHY - PREMIUM STACK ===== */
-  --font-family-base: var(--font-body), "Plus Jakarta Sans", system-ui,
-    -apple-system, sans-serif;
-  --font-family-heading: var(--font-heading), "Space Grotesk", system-ui,
-    sans-serif;
+  --font-family-base: var(--font-body), "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-family-heading: var(--font-heading), "Space Grotesk", system-ui, sans-serif;
   --font-family-mono: var(--font-mono), "JetBrains Mono", "Fira Code", monospace;
 
   /* ===== SPACING (custom, prefixed to avoid Tailwind 4 conflicts) ===== */
@@ -125,26 +123,24 @@
 
   /* ===== LIQUID HEAT TOKENS (additive — Phase 3 redesign, comp-scoped) ===== */
   /* Heat-temperature palette: saturation drops as the page cools. */
-  --color-heat-peak: #ff7300;          /* Hero, peak fusion */
-  --color-heat-bright: #ff1744;        /* Hero, bleeding center */
-  --color-heat-mid: #c42010;           /* Mid-page transition */
-  --color-cooling-end: #1a0306;        /* Oxblood, footer / case-study bg */
-  --color-inflection: #f72585;         /* Fuchsia at moments of stress */
-  --color-stillness: #faa307;          /* Gold, moments of pause */
-  --color-ember-decay: #6a040f;        /* Where glows fade out */
-  --color-drop-cap: #9d0208;           /* Crimson drop caps + accent rules */
+  --color-heat-peak: #ff7300; /* Hero, peak fusion */
+  --color-heat-bright: #ff1744; /* Hero, bleeding center */
+  --color-heat-mid: #c42010; /* Mid-page transition */
+  --color-cooling-end: #1a0306; /* Oxblood, footer / case-study bg */
+  --color-inflection: #f72585; /* Fuchsia at moments of stress */
+  --color-stillness: #faa307; /* Gold, moments of pause */
+  --color-ember-decay: #6a040f; /* Where glows fade out */
+  --color-drop-cap: #9d0208; /* Crimson drop caps + accent rules */
 
   /* Liquid Heat type stack — italic display only, condensed numerals,
      neutral grotesk body. */
-  --font-family-display-italic: var(--font-old-standard), "Old Standard TT",
-    "Cormorant Garamond", Georgia, serif;
-  --font-family-condensed: var(--font-bebas), "Bebas Neue", "Oswald",
-    "Arial Narrow", sans-serif;
-  --font-family-body-neutral: var(--font-manrope), "Manrope", system-ui,
-    -apple-system, sans-serif;
+  --font-family-display-italic:
+    var(--font-old-standard), "Old Standard TT", "Cormorant Garamond", Georgia, serif;
+  --font-family-condensed: var(--font-bebas), "Bebas Neue", "Oswald", "Arial Narrow", sans-serif;
+  --font-family-body-neutral: var(--font-manrope), "Manrope", system-ui, -apple-system, sans-serif;
 
   /* Liquid Heat type scale */
-  --text-folio: clamp(12rem, 28vw, 24rem);   /* Project numeral */
+  --text-folio: clamp(12rem, 28vw, 24rem); /* Project numeral */
   --text-display-xl: clamp(4rem, 12vw, 9.5rem); /* Hero headline */
   --text-pullquote: clamp(2.25rem, 6.5vw, 4.75rem); /* Pull quote */
 }
@@ -170,16 +166,9 @@ body {
   color: var(--color-text-primary);
   background: var(--color-bg-space);
   /* Subtle ember glow from edges */
-  background-image: radial-gradient(
-      ellipse at 0% 0%,
-      rgba(232, 93, 4, 0.06) 0%,
-      transparent 40%
-    ),
-    radial-gradient(
-      ellipse at 100% 100%,
-      rgba(157, 2, 8, 0.04) 0%,
-      transparent 40%
-    );
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(232, 93, 4, 0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 100% 100%, rgba(157, 2, 8, 0.04) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -341,11 +330,7 @@ body {
 }
 
 .gradient-text-ember {
-  background: linear-gradient(
-    135deg,
-    var(--color-accent) 0%,
-    var(--color-primary) 100%
-  );
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -382,11 +367,7 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-dark) 100%
-  );
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: var(--color-text-primary);
   box-shadow: var(--shadow-glow-primary);
 }
@@ -394,11 +375,7 @@ body {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-fire);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-light) 0%,
-    var(--color-primary) 100%
-  );
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
 }
 
 .btn-secondary {
@@ -414,11 +391,7 @@ body {
 }
 
 .btn-cool {
-  background: linear-gradient(
-    135deg,
-    var(--color-cool) 0%,
-    var(--color-cool-dark) 100%
-  );
+  background: linear-gradient(135deg, var(--color-cool) 0%, var(--color-cool-dark) 100%);
   color: var(--color-bg-dark);
   box-shadow: var(--shadow-glow-cool);
 }
@@ -631,6 +604,22 @@ body {
   animation: gradient-shift 3s ease infinite;
 }
 
+/* ===== WORD CAROUSEL ===== */
+@keyframes word-carousel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.4em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.word-carousel-item {
+  animation: word-carousel-in 500ms ease-out;
+}
+
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -663,8 +652,8 @@ body {
 }
 
 .card-3d:hover {
-  transform: perspective(1000px) rotateX(var(--rotateX, 0deg))
-    rotateY(var(--rotateY, 0deg)) translateZ(10px);
+  transform: perspective(1000px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))
+    translateZ(10px);
 }
 
 /* ===== STARS OVERLAY ===== */
@@ -770,7 +759,8 @@ h6 {
   }
   100% {
     color: var(--color-heat-peak);
-    text-shadow: 0 0 32px rgba(255, 115, 0, 0.45),
+    text-shadow:
+      0 0 32px rgba(255, 115, 0, 0.45),
       0 0 80px rgba(255, 23, 68, 0.18);
     transform: translateY(0);
     opacity: 1;
@@ -803,7 +793,8 @@ h6 {
   }
   100% {
     color: var(--color-inflection);
-    text-shadow: 0 0 30px rgba(247, 37, 133, 0.55),
+    text-shadow:
+      0 0 30px rgba(247, 37, 133, 0.55),
       0 0 90px rgba(247, 37, 133, 0.22);
     transform: translateY(0);
     opacity: 1;
@@ -817,11 +808,13 @@ h6 {
 @keyframes liquid-heat-ingot {
   0%,
   100% {
-    text-shadow: 0 0 18px rgba(255, 115, 0, 0.28),
+    text-shadow:
+      0 0 18px rgba(255, 115, 0, 0.28),
       0 0 38px rgba(255, 23, 68, 0.12);
   }
   50% {
-    text-shadow: 0 0 32px rgba(255, 115, 0, 0.55),
+    text-shadow:
+      0 0 32px rgba(255, 115, 0, 0.55),
       0 0 78px rgba(255, 23, 68, 0.28);
   }
 }
@@ -850,7 +843,9 @@ h6 {
   border: 1px solid var(--color-heat-bright);
   border-radius: 0; /* sharp; pills are killed */
   cursor: pointer;
-  transition: color 350ms ease, border-color 350ms ease;
+  transition:
+    color 350ms ease,
+    border-color 350ms ease;
   text-decoration: none;
 }
 .ember-fill-cta::before {
@@ -858,11 +853,7 @@ h6 {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    90deg,
-    var(--color-heat-bright) 0%,
-    var(--color-heat-peak) 100%
-  );
+  background: linear-gradient(90deg, var(--color-heat-bright) 0%, var(--color-heat-peak) 100%);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform 380ms cubic-bezier(0.2, 0.6, 0.2, 1);

@@ -48,11 +48,7 @@ export default function TagInput({
           placeholder={placeholder}
           className={`flex-1 ${adminStyles.inputSmall}`}
         />
-        <button
-          type="button"
-          onClick={handleAdd}
-          className={adminStyles.buttonOutline}
-        >
+        <button type="button" onClick={handleAdd} className={adminStyles.buttonOutline}>
           Add
         </button>
       </div>

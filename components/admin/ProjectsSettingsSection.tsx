@@ -100,7 +100,7 @@ export default function ProjectsSettingsSection({ onError }: ProjectsSettingsSec
       filtered = filtered.filter(
         (p) =>
           p.title?.toLowerCase().includes(query) ||
-          p.shortDescription?.toLowerCase().includes(query),
+          p.shortDescription?.toLowerCase().includes(query)
       );
     }
 
@@ -206,10 +206,7 @@ export default function ProjectsSettingsSection({ onError }: ProjectsSettingsSec
         throw new Error(error.message || "Failed to save");
       }
 
-      showToast(
-        editingProject ? "Project updated!" : "Project created!",
-        "success",
-      );
+      showToast(editingProject ? "Project updated!" : "Project created!", "success");
       setShowModal(false);
       fetchProjects();
     } catch (error) {

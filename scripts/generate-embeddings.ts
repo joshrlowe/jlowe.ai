@@ -30,25 +30,25 @@ async function main() {
       case "insert":
         added += result.chunkCount;
         console.log(
-          `[insert] ${source.sourceType}/${source.sourceTitle} → ${result.chunkCount} chunks`,
+          `[insert] ${source.sourceType}/${source.sourceTitle} → ${result.chunkCount} chunks`
         );
         break;
       case "update":
         updated += result.chunkCount;
         console.log(
-          `[update] ${source.sourceType}/${source.sourceTitle} → ${result.chunkCount} chunks`,
+          `[update] ${source.sourceType}/${source.sourceTitle} → ${result.chunkCount} chunks`
         );
         break;
       case "skip":
         unchanged += result.chunkCount;
         console.log(
-          `[unchanged] ${source.sourceType}/${source.sourceTitle} → ${result.chunkCount} chunks`,
+          `[unchanged] ${source.sourceType}/${source.sourceTitle} → ${result.chunkCount} chunks`
         );
         break;
       case "empty":
         empty++;
         console.log(
-          `[skip] ${source.sourceType}/${source.sourceTitle} → no chunks (empty/short content)`,
+          `[skip] ${source.sourceType}/${source.sourceTitle} → no chunks (empty/short content)`
         );
         break;
     }

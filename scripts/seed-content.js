@@ -163,12 +163,7 @@ async function main() {
           },
         ],
         leadershipExperience: [],
-        hobbies: [
-          "Open Source Development",
-          "Tech Blogging",
-          "Hiking",
-          "Photography",
-        ],
+        hobbies: ["Open Source Development", "Tech Blogging", "Hiking", "Photography"],
       },
     });
     console.log("✅ About data created");

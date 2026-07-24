@@ -48,8 +48,7 @@ interface FetchResult {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const auth = await requireAuth(context);
   if ("redirect" in auth || "notFound" in auth) return auth;
-  const tabRaw =
-    typeof context.query.tab === "string" ? context.query.tab : "held";
+  const tabRaw = typeof context.query.tab === "string" ? context.query.tab : "held";
   const initialTab: Tab = TABS.includes(tabRaw as Tab) ? (tabRaw as Tab) : "held";
   return { props: { ...("props" in auth ? auth.props : {}), initialTab } };
 }
@@ -66,9 +65,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
         : "var(--color-success)"; // green
   return (
     <div className="flex items-center gap-2 text-xs">
-      <span className="w-16 text-[var(--color-text-muted)] uppercase tracking-wider">
-        {label}
-      </span>
+      <span className="w-16 text-[var(--color-text-muted)] uppercase tracking-wider">{label}</span>
       <div className="flex-1 h-1.5 rounded-full bg-[var(--color-bg-darker)] overflow-hidden">
         <div
           className="h-full rounded-full transition-all"
@@ -106,9 +103,7 @@ function CommentCard({ comment, onChange }: CommentRowProps) {
     <article className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 p-6 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)]">
       <div>
         <div className="flex flex-wrap items-baseline gap-2 mb-2 text-xs text-[var(--color-text-muted)]">
-          <span className="font-medium text-[var(--color-text-primary)]">
-            {comment.authorName}
-          </span>
+          <span className="font-medium text-[var(--color-text-primary)]">{comment.authorName}</span>
           {comment.authorEmail && <span>· {comment.authorEmail}</span>}
           <span>·</span>
           <span>{new Date(comment.createdAt).toLocaleString()}</span>
@@ -130,14 +125,11 @@ function CommentCard({ comment, onChange }: CommentRowProps) {
           </p>
         )}
         {scores?.decisionReason && (
-          <p className="mt-2 text-xs text-[var(--color-accent)]">
-            Reason: {scores.decisionReason}
-          </p>
+          <p className="mt-2 text-xs text-[var(--color-accent)]">Reason: {scores.decisionReason}</p>
         )}
         {!scores && comment.moderationModel === "error" && (
           <p className="mt-2 text-xs text-[var(--color-secondary-light)]">
-            Held — moderation service unavailable when this comment was
-            submitted (fail-open).
+            Held — moderation service unavailable when this comment was submitted (fail-open).
           </p>
         )}
       </div>
@@ -259,23 +251,20 @@ export default function AdminCommentsPage({ initialTab }: PageProps) {
     window.history.replaceState(null, "", url.toString());
   };
 
-  const handleAction = useCallback(
-    async (id: string, nextStatus: Tab) => {
-      // PATCH first; on success, drop the row from the current view
-      // because it has just left this tab.
-      const res = await fetch(`/api/admin/comments/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moderationStatus: nextStatus }),
-      });
-      if (!res.ok) {
-        setError(`Failed to update comment: HTTP ${res.status}`);
-        return;
-      }
-      setItems((prev) => prev.filter((c) => c.id !== id));
-    },
-    [],
-  );
+  const handleAction = useCallback(async (id: string, nextStatus: Tab) => {
+    // PATCH first; on success, drop the row from the current view
+    // because it has just left this tab.
+    const res = await fetch(`/api/admin/comments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ moderationStatus: nextStatus }),
+    });
+    if (!res.ok) {
+      setError(`Failed to update comment: HTTP ${res.status}`);
+      return;
+    }
+    setItems((prev) => prev.filter((c) => c.id !== id));
+  }, []);
 
   return (
     <AdminLayout title="Comments">
@@ -296,18 +285,12 @@ export default function AdminCommentsPage({ initialTab }: PageProps) {
         ))}
       </div>
 
-      {error && (
-        <p className="mb-6 text-sm text-[var(--color-secondary-light)]">{error}</p>
-      )}
+      {error && <p className="mb-6 text-sm text-[var(--color-secondary-light)]">{error}</p>}
 
-      {loading && items.length === 0 && (
-        <p className="text-[var(--color-text-muted)]">Loading…</p>
-      )}
+      {loading && items.length === 0 && <p className="text-[var(--color-text-muted)]">Loading…</p>}
 
       {!loading && items.length === 0 && (
-        <p className="text-[var(--color-text-muted)]">
-          No {tab} comments.
-        </p>
+        <p className="text-[var(--color-text-muted)]">No {tab} comments.</p>
       )}
 
       <div className="space-y-4">

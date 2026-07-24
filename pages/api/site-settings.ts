@@ -1,6 +1,6 @@
 /**
  * Public Site Settings API
- * 
+ *
  * GET-only endpoint for fetching site settings without authentication.
  * Used by components like Footer that need settings on every page.
  */

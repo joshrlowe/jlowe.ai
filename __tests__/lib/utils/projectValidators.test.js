@@ -60,10 +60,7 @@ describe("projectValidators utilities", () => {
 
   describe("validateTeamMembers", () => {
     it("should return isValid true when all members are valid", () => {
-      const team = [
-        { name: "John Doe", email: "john@example.com" },
-        { name: "Jane Smith" },
-      ];
+      const team = [{ name: "John Doe", email: "john@example.com" }, { name: "Jane Smith" }];
       const result = validateTeamMembers(team);
 
       expect(result.isValid).toBe(true);

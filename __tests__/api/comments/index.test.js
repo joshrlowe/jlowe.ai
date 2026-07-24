@@ -91,13 +91,13 @@ describe("/api/comments", () => {
   });
 
   describe("GET", () => {
-    it("filters on moderationStatus=approved when approved=true", async () => {
+    it("filters on moderationStatus=approved by default", async () => {
       prisma.comment.findMany.mockResolvedValue([]);
       prisma.commentVote.findMany.mockResolvedValue([]);
 
       const req = createMockRequest({
         method: "GET",
-        query: { postId: "post1", approved: "true" },
+        query: { postId: "post1" },
       });
       const res = createMockResponse();
       await commentsHandler(req, res);
@@ -108,12 +108,12 @@ describe("/api/comments", () => {
             postId: "post1",
             moderationStatus: "approved",
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(200);
     });
 
-    it("does NOT apply the moderation filter when approved=false", async () => {
+    it("ignores approved=false and still filters on moderationStatus=approved", async () => {
       prisma.comment.findMany.mockResolvedValue([]);
       prisma.commentVote.findMany.mockResolvedValue([]);
 
@@ -125,7 +125,68 @@ describe("/api/comments", () => {
       await commentsHandler(req, res);
 
       const callArg = prisma.comment.findMany.mock.calls[0][0];
-      expect(callArg.where.moderationStatus).toBeUndefined();
+      expect(callArg.where.moderationStatus).toBe("approved");
+    });
+
+    it("uses explicit select that excludes PII and moderation metadata", async () => {
+      prisma.comment.findMany.mockResolvedValue([]);
+      prisma.commentVote.findMany.mockResolvedValue([]);
+
+      const req = createMockRequest({ method: "GET", query: { postId: "post1" } });
+      const res = createMockResponse();
+      await commentsHandler(req, res);
+
+      const callArg = prisma.comment.findMany.mock.calls[0][0];
+      // The call must use `select`, not `include` — defense in depth so
+      // any future schema field is opt-in for public exposure.
+      expect(callArg.select).toBeDefined();
+      expect(callArg.include).toBeUndefined();
+      // None of these may be on the select.
+      const forbiddenFields = [
+        "authorEmail",
+        "approved",
+        "moderationStatus",
+        "moderationScores",
+        "moderationModel",
+        "moderatedAt",
+        "ipAddress",
+        "updatedAt",
+      ];
+      for (const field of forbiddenFields) {
+        expect(callArg.select[field]).toBeUndefined();
+      }
+    });
+
+    it("never returns authorEmail or moderation metadata in the response", async () => {
+      prisma.comment.findMany.mockResolvedValue([
+        {
+          id: "a",
+          postId: "post1",
+          authorName: "X",
+          content: "y",
+          likes: 0,
+          dislikes: 0,
+          parentId: null,
+          createdAt: new Date("2026-05-08T12:00:00Z"),
+          replies: [],
+        },
+      ]);
+      prisma.commentVote.findMany.mockResolvedValue([]);
+
+      const req = createMockRequest({ method: "GET", query: { postId: "post1" } });
+      const res = createMockResponse();
+      await commentsHandler(req, res);
+
+      const body = getJsonResponse(res);
+      expect(Array.isArray(body)).toBe(true); // bare array, not { comments: [] }
+      for (const c of body) {
+        expect(c).not.toHaveProperty("authorEmail");
+        expect(c).not.toHaveProperty("approved");
+        expect(c).not.toHaveProperty("moderationStatus");
+        expect(c).not.toHaveProperty("moderationScores");
+        expect(c).not.toHaveProperty("moderationModel");
+        expect(c).not.toHaveProperty("moderatedAt");
+      }
     });
   });
 
@@ -165,14 +226,12 @@ describe("/api/comments", () => {
             approved: true,
             moderationModel: expect.stringContaining("claude-haiku"),
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
       // Response shape: { id, createdAt } only — no leak of moderation state.
       const body = getJsonResponse(res);
-      expect(body).toEqual(
-        expect.objectContaining({ id: expect.any(String) }),
-      );
+      expect(body).toEqual(expect.objectContaining({ id: expect.any(String) }));
       expect(body.moderationStatus).toBeUndefined();
       expect(body.moderationScores).toBeUndefined();
     });
@@ -190,7 +249,7 @@ describe("/api/comments", () => {
             moderationStatus: "held",
             approved: false,
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
     });
@@ -208,15 +267,13 @@ describe("/api/comments", () => {
             moderationStatus: "rejected",
             approved: false,
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
     });
 
     it("fails open to 'held' when scoreComment throws ModerationError", async () => {
-      scoreComment.mockRejectedValue(
-        new ModerationError("timeout", "exceeded 5000ms"),
-      );
+      scoreComment.mockRejectedValue(new ModerationError("timeout", "exceeded 5000ms"));
 
       const req = createMockRequest({ method: "POST", body: baseBody });
       const res = createMockResponse();
@@ -229,7 +286,7 @@ describe("/api/comments", () => {
             approved: false,
             moderationModel: "error",
           }),
-        }),
+        })
       );
       expect(getStatusCode(res)).toBe(201);
     });

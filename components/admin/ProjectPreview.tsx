@@ -28,20 +28,13 @@ export default function ProjectPreview({ project, show, onHide }: ProjectPreview
       <div className="fixed inset-0 bg-black/70" onClick={onHide} />
       <div className="relative z-10 w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 sm:p-8 mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-[var(--color-primary)]">
-            Preview
-          </h2>
+          <h2 className="text-xl font-bold text-[var(--color-primary)]">Preview</h2>
           <button
             onClick={onHide}
             className="w-10 h-10 flex items-center justify-center rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-darker)] transition-colors"
             aria-label="Close preview"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -71,9 +64,7 @@ export default function ProjectPreview({ project, show, onHide }: ProjectPreview
           </div>
 
           {project.shortDescription && (
-            <p className="text-[var(--color-text-secondary)]">
-              {project.shortDescription}
-            </p>
+            <p className="text-[var(--color-text-secondary)]">{project.shortDescription}</p>
           )}
 
           {techStack.length > 0 && (
@@ -96,9 +87,7 @@ export default function ProjectPreview({ project, show, onHide }: ProjectPreview
 
           {tags.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Tags
-              </h3>
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag, i) => (
                   <span

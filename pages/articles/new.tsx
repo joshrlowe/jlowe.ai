@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * New Article Page
  *
@@ -85,30 +83,23 @@ export default function NewArticlePage() {
   }, [status, router]);
 
   const handleInputChange = useCallback(
-    (
-      e: ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >,
-    ) => {
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData((prev) => ({ ...prev, [name]: value }));
     },
-    [],
+    []
   );
 
-  const handleSlugChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setAutoSlug(false);
-      setSlug(
-        slugify(e.target.value, {
-          lower: true,
-          strict: true,
-          trim: true,
-        }),
-      );
-    },
-    [],
-  );
+  const handleSlugChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setAutoSlug(false);
+    setSlug(
+      slugify(e.target.value, {
+        lower: true,
+        strict: true,
+        trim: true,
+      })
+    );
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -205,10 +196,7 @@ export default function NewArticlePage() {
           <p className="text-[var(--color-text-secondary)] mb-4">
             Please log in to create articles.
           </p>
-          <Link
-            href="/admin/login"
-            className="text-[var(--color-primary)] hover:underline"
-          >
+          <Link href="/admin/login" className="text-[var(--color-primary)] hover:underline">
             Go to Login
           </Link>
         </div>
@@ -219,15 +207,11 @@ export default function NewArticlePage() {
   const inputClasses =
     "w-full px-4 py-3 rounded-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent disabled:opacity-50 transition-all";
 
-  const labelClasses =
-    "block text-sm font-medium text-[var(--color-text-primary)] mb-2";
+  const labelClasses = "block text-sm font-medium text-[var(--color-text-primary)] mb-2";
 
   return (
     <>
-      <SEO
-        title="Create New Article - Josh Lowe"
-        description="Create a new article"
-      />
+      <SEO title="Create New Article - Josh Lowe" description="Create a new article" />
 
       <div className="min-h-screen bg-[var(--color-bg-dark)] pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -393,8 +377,7 @@ export default function NewArticlePage() {
                   disabled={loading}
                 />
                 <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-                  Supports Markdown formatting: headings, bold, italic, code
-                  blocks, links, etc.
+                  Supports Markdown formatting: headings, bold, italic, code blocks, links, etc.
                 </p>
               </div>
             </div>
@@ -505,4 +488,3 @@ export default function NewArticlePage() {
     </>
   );
 }
-

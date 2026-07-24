@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
+
 /**
  * Projects Page
  *
@@ -12,7 +12,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import prisma from "../lib/prisma";
 import { transformProjectsToApiFormat } from "../lib/utils/projectTransformer";
 import {
@@ -32,9 +32,7 @@ interface ProjectsPageProps {
   projects: ProjectLike[];
 }
 
-export default function ProjectsPage({
-  projects: initialProjects,
-}: ProjectsPageProps) {
+export default function ProjectsPage({ projects: initialProjects }: ProjectsPageProps) {
   const router = useRouter();
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [projects] = useState<ProjectLike[]>(initialProjects || []);
@@ -43,9 +41,7 @@ export default function ProjectsPage({
   const [tagFilter, setTagFilter] = useState("all");
   const [sortBy, setSortBy] = useState("startDate");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [displayCount, setDisplayCount] = useState(
-    INITIAL_PROJECT_DISPLAY_COUNT,
-  );
+  const [displayCount, setDisplayCount] = useState(INITIAL_PROJECT_DISPLAY_COUNT);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadMoreRef = useRef(null);
 
@@ -58,7 +54,7 @@ export default function ProjectsPage({
     gsap.fromTo(
       headerRef.current,
       { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT },
+      { opacity: 1, y: 0, duration: ANIMATION.DURATION_SLOW, ease: ANIMATION.EASE_DEFAULT }
     );
   }, []);
 
@@ -119,8 +115,7 @@ export default function ProjectsPage({
         if (
           Array.isArray(p.tags) &&
           p.tags.some(
-            (tag: unknown) =>
-              typeof tag === "string" && tag.toLowerCase().includes(query),
+            (tag: unknown) => typeof tag === "string" && tag.toLowerCase().includes(query)
           )
         )
           return true;
@@ -138,8 +133,7 @@ export default function ProjectsPage({
         if (
           Array.isArray(techStack) &&
           techStack.some((tech: any) => {
-            const techName =
-              typeof tech === "string" ? tech : tech?.name || "";
+            const techName = typeof tech === "string" ? tech : tech?.name || "";
             return techName.toLowerCase().includes(query);
           })
         )
@@ -212,16 +206,13 @@ export default function ProjectsPage({
           setIsLoadingMore(true);
           setTimeout(() => {
             setDisplayCount((prev) =>
-              Math.min(
-                prev + PROJECTS_PER_PAGE,
-                filteredAndSortedProjects.length,
-              ),
+              Math.min(prev + PROJECTS_PER_PAGE, filteredAndSortedProjects.length)
             );
             setIsLoadingMore(false);
           }, DEBOUNCE_DELAY_MS);
         }
       },
-      { threshold: 0.1, rootMargin: "100px" },
+      { threshold: 0.1, rootMargin: "100px" }
     );
 
     observer.observe(currentRef);
@@ -238,8 +229,7 @@ export default function ProjectsPage({
     router.push("/projects", undefined, { shallow: true });
   };
 
-  const hasActiveFilters =
-    Boolean(searchQuery) || statusFilter !== "all" || tagFilter !== "all";
+  const hasActiveFilters = Boolean(searchQuery) || statusFilter !== "all" || tagFilter !== "all";
 
   return (
     <>
@@ -255,12 +245,9 @@ export default function ProjectsPage({
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 font-[family-name:var(--font-oswald)]">
               <span className="gradient-text">Projects</span>
             </h1>
-            <p
-              className="text-lg text-[var(--color-text-secondary)]"
-              style={{ maxWidth: "80%" }}
-            >
-              A collection of AI systems, web applications, and engineering
-              solutions I've built for clients and personal exploration.
+            <p className="text-lg text-[var(--color-text-secondary)]" style={{ maxWidth: "80%" }}>
+              A collection of AI systems, web applications, and engineering solutions I've built for
+              clients and personal exploration.
             </p>
           </div>
 
@@ -321,28 +308,18 @@ export default function ProjectsPage({
 
           {/* Projects Grid */}
           {filteredAndSortedProjects.length === 0 ? (
-            <ProjectsEmptyState
-              hasFilters={hasActiveFilters}
-              onClearFilters={handleClearFilters}
-            />
+            <ProjectsEmptyState hasFilters={hasActiveFilters} onClearFilters={handleClearFilters} />
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayedProjects.map((project, index) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    index={index}
-                  />
+                  <ProjectCard key={project.id} project={project} index={index} />
                 ))}
               </div>
 
               {/* Load More Trigger */}
               {hasMore && (
-                <div
-                  ref={loadMoreRef}
-                  className="h-24 flex justify-center items-center mt-8"
-                >
+                <div ref={loadMoreRef} className="h-24 flex justify-center items-center mt-8">
                   {isLoadingMore && (
                     <div className="flex items-center gap-3 text-[var(--color-text-muted)]">
                       <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />

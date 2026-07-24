@@ -5,7 +5,10 @@
  */
 
 import { renderHook, act } from "@testing-library/react";
-import { usePrefersReducedMotion, getPrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import {
+  usePrefersReducedMotion,
+  getPrefersReducedMotion,
+} from "@/lib/hooks/usePrefersReducedMotion";
 
 describe("usePrefersReducedMotion", () => {
   let originalMatchMedia;
@@ -148,7 +151,7 @@ describe("getPrefersReducedMotion", () => {
 
   it("should return false when window is undefined (SSR)", () => {
     const originalWindow = global.window;
-    
+
     // Temporarily make window undefined
     delete global.window;
 
@@ -160,4 +163,3 @@ describe("getPrefersReducedMotion", () => {
     global.window = originalWindow;
   });
 });
-

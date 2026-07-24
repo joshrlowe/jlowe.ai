@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Admin Projects Page
  *
@@ -36,10 +34,7 @@ export default function AdminProjectsPage() {
       {error && (
         <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-between">
           <span>{error}</span>
-          <button
-            onClick={() => setError("")}
-            className="text-red-400 hover:text-red-300"
-          >
+          <button onClick={() => setError("")} className="text-red-400 hover:text-red-300">
             ✕
           </button>
         </div>
@@ -51,4 +46,3 @@ export default function AdminProjectsPage() {
     </AdminLayout>
   );
 }
-

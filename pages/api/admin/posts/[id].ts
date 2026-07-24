@@ -57,9 +57,7 @@ const handlePutRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // Calculate reading time if content is being updated
     if (updateData.content !== undefined) {
-      const { calculateReadingTime } = await import(
-        "../../../../lib/utils/readingTime"
-      );
+      const { calculateReadingTime } = await import("../../../../lib/utils/readingTime");
       updateData.readingTime = calculateReadingTime(updateData.content);
     }
 
@@ -84,19 +82,13 @@ const handlePutRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     try {
-      const becamePublished =
-        post.status === "Published" && priorPost?.status !== "Published";
+      const becamePublished = post.status === "Published" && priorPost?.status !== "Published";
       await inngest.send({
-        name: becamePublished
-          ? "content/post.published"
-          : "content/post.updated",
+        name: becamePublished ? "content/post.published" : "content/post.updated",
         data: { postId: post.id },
       });
     } catch (emitErr) {
-      console.warn(
-        "[posts/[id]] failed to emit post event:",
-        (emitErr as Error).message,
-      );
+      console.warn("[posts/[id]] failed to emit post event:", (emitErr as Error).message);
     }
 
     res.json(post);
@@ -119,10 +111,7 @@ const handleDeleteRequest = async (req: NextApiRequest, res: NextApiResponse) =>
         data: { postId: id },
       });
     } catch (emitErr) {
-      console.warn(
-        "[posts/[id]] failed to emit post.deleted event:",
-        (emitErr as Error).message,
-      );
+      console.warn("[posts/[id]] failed to emit post.deleted event:", (emitErr as Error).message);
     }
 
     res.status(204).end();

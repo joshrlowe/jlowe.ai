@@ -43,7 +43,7 @@ export function useScrollDepth({
         onMilestone(milestone);
       }
     },
-    [onMilestone],
+    [onMilestone]
   );
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export function useScrollDepth({
         root: null,
         rootMargin: "0px",
         threshold: 0,
-      },
+      }
     );
 
     observerRef.current = observer;

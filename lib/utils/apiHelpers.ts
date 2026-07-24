@@ -28,7 +28,7 @@ export function parsePagination(query: QueryParams): PaginationParams {
 export function parseSort(
   query: QueryParams,
   defaultSortBy = "createdAt",
-  defaultSortOrder = "desc",
+  defaultSortOrder = "desc"
 ): SortParams {
   const sortBy = (query.sortBy as string) || defaultSortBy;
   const sortOrder = (query.sortOrder as string) || defaultSortOrder;
@@ -41,7 +41,7 @@ export function parseSort(
 export function buildOrderBy(
   sortBy: string,
   sortOrder: string,
-  fieldMap: Record<string, string> = {},
+  fieldMap: Record<string, string> = {}
 ): Record<string, string> {
   const orderBy: Record<string, string> = {};
   const field = fieldMap[sortBy] || sortBy;
@@ -54,7 +54,7 @@ export function buildOrderBy(
  */
 export function buildSearchFilter(
   search: string | undefined,
-  fields: string[] = ["title", "description"],
+  fields: string[] = ["title", "description"]
 ): Record<string, unknown> {
   if (!search) return {};
 
@@ -68,9 +68,7 @@ export function buildSearchFilter(
 /**
  * Remove undefined values from object
  */
-export function removeUndefined<T extends Record<string, unknown>>(
-  obj: T,
-): Partial<T> {
+export function removeUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach((key) => {
     if (cleaned[key] === undefined) {
@@ -91,7 +89,7 @@ export function formatPaginatedResponse<T>(
   total: number,
   limit: number | undefined,
   offset: number,
-  dataKey: string | null = null,
+  dataKey: string | null = null
 ): Record<string, unknown> {
   let key = dataKey;
   if (!key) {

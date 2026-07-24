@@ -1,614 +1,620 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
 /**
  * Error Handling Tests
- * 
+ *
  * Tests for graceful error handling including 404 pages,
  * error boundaries, and API failures.
  */
 
-test.describe('Error Handling - 404 Page', () => {
-    test('should display 404 page for non-existent routes', async ({ page }) => {
-        const response = await page.goto('/this-page-does-not-exist-12345');
+test.describe("Error Handling - 404 Page", () => {
+  test("should display 404 page for non-existent routes", async ({ page }) => {
+    const response = await page.goto("/this-page-does-not-exist-12345");
 
-        // Should return 404 status
-        expect(response?.status()).toBe(404);
+    // Should return 404 status
+    expect(response?.status()).toBe(404);
 
-        // Should display 404 message
-        await expect(page.locator('text=/404|not found|page not found/i')).toBeVisible();
-    });
+    // Should display 404 message
+    await expect(page.locator("text=/404|not found|page not found/i")).toBeVisible();
+  });
 
-    test('should have link back to home from 404 page', async ({ page }) => {
-        await page.goto('/non-existent-page');
-        await page.waitForLoadState('networkidle');
+  test("should have link back to home from 404 page", async ({ page }) => {
+    await page.goto("/non-existent-page");
+    await page.waitForLoadState("networkidle");
 
-        // Look for home link (use .first() as there may be multiple)
-        const homeLink = page.getByRole('link', { name: /home|go back|back to home/i }).first();
-        await expect(homeLink).toBeVisible();
+    // Look for home link (use .first() as there may be multiple)
+    const homeLink = page.getByRole("link", { name: /home|go back|back to home/i }).first();
+    await expect(homeLink).toBeVisible();
 
-        // Click link
-        await homeLink.click();
-        await page.waitForTimeout(1000);
+    // Click link
+    await homeLink.click();
+    await page.waitForTimeout(1000);
 
-        // Should navigate to home
-        await expect(page).toHaveURL('/');
-    });
+    // Should navigate to home
+    await expect(page).toHaveURL("/");
+  });
 
-    test('should maintain header and footer on 404 page', async ({ page }) => {
-        await page.goto('/non-existent-route');
-        await page.waitForLoadState('networkidle');
+  test("should maintain header and footer on 404 page", async ({ page }) => {
+    await page.goto("/non-existent-route");
+    await page.waitForLoadState("networkidle");
 
-        // Header should be visible
-        await expect(page.locator('header').first()).toBeVisible();
+    // Header should be visible
+    await expect(page.locator("header").first()).toBeVisible();
 
-        // Footer should be visible
-        const footer = page.locator('footer').first();
-        const footerCount = await footer.count();
-        expect(footerCount).toBeGreaterThan(0);
-    });
+    // Footer should be visible
+    const footer = page.locator("footer").first();
+    const footerCount = await footer.count();
+    expect(footerCount).toBeGreaterThan(0);
+  });
 
-    test('should have appropriate page title on 404 page', async ({ page }) => {
-        await page.goto('/non-existent-page');
+  test("should have appropriate page title on 404 page", async ({ page }) => {
+    await page.goto("/non-existent-page");
 
-        const title = await page.title();
-        expect(title.toLowerCase()).toContain('404');
-    });
+    const title = await page.title();
+    expect(title.toLowerCase()).toContain("404");
+  });
 
-    test('should handle multiple invalid routes', async ({ page }) => {
-        // Note: Avoid protected routes like /admin/* which redirect and cause ERR_ABORTED
-        const invalidRoutes = [
-            '/invalid-route-1',
-            '/some/nested/route/that/doesnt/exist',
-            '/random-page-xyz',
-        ];
+  test("should handle multiple invalid routes", async ({ page }) => {
+    // Note: Avoid protected routes like /admin/* which redirect and cause ERR_ABORTED
+    const invalidRoutes = [
+      "/invalid-route-1",
+      "/some/nested/route/that/doesnt/exist",
+      "/random-page-xyz",
+    ];
 
-        for (const route of invalidRoutes) {
-            // Navigate with explicit wait to avoid interruptions
-            let response;
-            try {
-                response = await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 10000 });
-            } catch (error) {
-                // Navigation may fail due to redirects, continue checking page state
-                console.log(`Navigation to ${route} failed: ${error.message}`);
-            }
-            await page.waitForTimeout(500); // Allow page to settle
-            
-            // Status may be 200 (soft 404) or 404, or undefined if navigation failed
-            const status = response?.status();
-            if (status !== undefined) {
-                expect(status === 404 || status === 200).toBeTruthy();
-            }
+    for (const route of invalidRoutes) {
+      // Navigate with explicit wait to avoid interruptions
+      let response;
+      try {
+        response = await page.goto(route, { waitUntil: "domcontentloaded", timeout: 10000 });
+      } catch (error) {
+        // Navigation may fail due to redirects, continue checking page state
+        const message = error instanceof Error ? error.message : String(error);
+        console.log(`Navigation to ${route} failed: ${message}`);
+      }
+      await page.waitForTimeout(500); // Allow page to settle
 
-            // Page should show 404 content or be handled gracefully
-            const has404Content = await page.locator('text=/404|not found/i').isVisible().catch(() => false);
-            const hasContent = await page.locator('body').isVisible();
-            expect(has404Content || hasContent).toBeTruthy();
-        }
-    });
+      // Status may be 200 (soft 404) or 404, or undefined if navigation failed
+      const status = response?.status();
+      if (status !== undefined) {
+        expect(status === 404 || status === 200).toBeTruthy();
+      }
+
+      // Page should show 404 content or be handled gracefully
+      const has404Content = await page
+        .locator("text=/404|not found/i")
+        .isVisible()
+        .catch(() => false);
+      const hasContent = await page.locator("body").isVisible();
+      expect(has404Content || hasContent).toBeTruthy();
+    }
+  });
 });
 
-test.describe('Error Handling - API Failures', () => {
-    test('should handle failed contact form submission gracefully', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+test.describe("Error Handling - API Failures", () => {
+  test("should handle failed contact form submission gracefully", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        // Check if form exists with expected selectors
-        const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], #name').first();
-        const hasForm = await nameInput.count() > 0;
-        
-        if (!hasForm) {
-            // Skip test if form structure doesn't match expected selectors
-            console.log('Contact form not found with expected selectors, skipping test');
-            return;
-        }
+    // Check if form exists with expected selectors
+    const nameInput = page
+      .locator('input[name="name"], input[placeholder*="name" i], #name')
+      .first();
+    const hasForm = (await nameInput.count()) > 0;
 
-        // Mock API to return error
-        await page.route('**/api/contact', (route) => {
-            route.fulfill({
-                status: 500,
-                contentType: 'application/json',
-                body: JSON.stringify({ error: 'Internal Server Error' }),
-            });
-        });
+    if (!hasForm) {
+      // Skip test if form structure doesn't match expected selectors
+      console.log("Contact form not found with expected selectors, skipping test");
+      return;
+    }
 
-        // Fill form using flexible selectors
-        const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
-        const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
-        
-        await nameInput.fill('Test User');
-        await emailInput.fill('test@example.com');
-        await messageInput.fill('This is a test message');
-
-        // Submit
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        await submitButton.click();
-
-        // Should show error message or handle gracefully
-        await page.waitForTimeout(1000);
-        // Just verify page didn't crash
-        const pageTitle = await page.title();
-        expect(pageTitle).toBeTruthy();
+    // Mock API to return error
+    await page.route("**/api/contact", (route) => {
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Internal Server Error" }),
+      });
     });
 
-    test('should handle network timeout gracefully', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+    // Fill form using flexible selectors
+    const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
+    const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
 
-        // Check if form exists
-        const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], #name').first();
-        if (await nameInput.count() === 0) {
-            console.log('Contact form not found, skipping test');
-            return;
-        }
+    await nameInput.fill("Test User");
+    await emailInput.fill("test@example.com");
+    await messageInput.fill("This is a test message");
 
-        // Mock API to timeout
-        await page.route('**/api/contact', async (route) => {
-            await new Promise(() => { }); // Never resolve
-        });
+    // Submit
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    await submitButton.click();
 
-        // Fill form using flexible selectors
-        const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
-        const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
-        
-        await nameInput.fill('Test User');
-        await emailInput.fill('test@example.com');
-        await messageInput.fill('This is a test message');
+    // Should show error message or handle gracefully
+    await page.waitForTimeout(1000);
+    // Just verify page didn't crash
+    const pageTitle = await page.title();
+    expect(pageTitle).toBeTruthy();
+  });
 
-        // Submit
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        if (await submitButton.count() > 0) {
-            await submitButton.click().catch(() => {});
-        }
+  test("should handle network timeout gracefully", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        // Just verify page is still functional
-        const pageTitle = await page.title();
-        expect(pageTitle).toBeTruthy();
+    // Check if form exists
+    const nameInput = page
+      .locator('input[name="name"], input[placeholder*="name" i], #name')
+      .first();
+    if ((await nameInput.count()) === 0) {
+      console.log("Contact form not found, skipping test");
+      return;
+    }
+
+    // Mock API to timeout
+    await page.route("**/api/contact", async (route) => {
+      await new Promise(() => {}); // Never resolve
     });
 
-    test('should handle malformed API responses', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+    // Fill form using flexible selectors
+    const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
+    const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
 
-        // Check if form exists
-        const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], #name').first();
-        if (await nameInput.count() === 0) {
-            console.log('Contact form not found, skipping test');
-            return;
-        }
+    await nameInput.fill("Test User");
+    await emailInput.fill("test@example.com");
+    await messageInput.fill("This is a test message");
 
-        // Mock API to return invalid JSON
-        await page.route('**/api/contact', (route) => {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: 'This is not valid JSON',
-            });
-        });
+    // Submit
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    if ((await submitButton.count()) > 0) {
+      await submitButton.click().catch(() => {});
+    }
 
-        // Fill form using flexible selectors
-        const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
-        const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
-        
-        await nameInput.fill('Test User');
-        await emailInput.fill('test@example.com');
-        await messageInput.fill('This is a test message');
+    // Just verify page is still functional
+    const pageTitle = await page.title();
+    expect(pageTitle).toBeTruthy();
+  });
 
-        // Submit
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        if (await submitButton.count() > 0) {
-            await submitButton.click().catch(() => {});
-        }
+  test("should handle malformed API responses", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        // Just verify page is still functional
-        await page.waitForTimeout(1000);
-        const pageTitle = await page.title();
-        expect(pageTitle).toBeTruthy();
+    // Check if form exists
+    const nameInput = page
+      .locator('input[name="name"], input[placeholder*="name" i], #name')
+      .first();
+    if ((await nameInput.count()) === 0) {
+      console.log("Contact form not found, skipping test");
+      return;
+    }
+
+    // Mock API to return invalid JSON
+    await page.route("**/api/contact", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: "This is not valid JSON",
+      });
     });
+
+    // Fill form using flexible selectors
+    const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
+    const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
+
+    await nameInput.fill("Test User");
+    await emailInput.fill("test@example.com");
+    await messageInput.fill("This is a test message");
+
+    // Submit
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    if ((await submitButton.count()) > 0) {
+      await submitButton.click().catch(() => {});
+    }
+
+    // Just verify page is still functional
+    await page.waitForTimeout(1000);
+    const pageTitle = await page.title();
+    expect(pageTitle).toBeTruthy();
+  });
 });
 
-test.describe('Error Handling - Console Errors', () => {
-    test('should not have console errors on valid pages', async ({ page }) => {
-        const errors: string[] = [];
-        const warnings: string[] = [];
+test.describe("Error Handling - Console Errors", () => {
+  test("should not have console errors on valid pages", async ({ page }) => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
 
-        page.on('console', msg => {
-            if (msg.type() === 'error') {
-                errors.push(msg.text());
-            } else if (msg.type() === 'warning') {
-                warnings.push(msg.text());
-            }
-        });
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        errors.push(msg.text());
+      } else if (msg.type() === "warning") {
+        warnings.push(msg.text());
+      }
+    });
 
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-        // Filter out known/expected errors in CI/test environment
-        const criticalErrors = errors.filter(error => {
-            const ignoredPatterns = [
-                'MSW',
-                'Service Worker',
-                'Fetch API polyfill',
-                // GitHub API calls may fail in CI (no external network or rate limits)
-                'Direct API fetch failed',
-                'GitHubContributionGraph',
-                'react-github-calendar',
-                'ChunkLoadError',
-                // NextAuth session errors in test environment
-                '[next-auth]',
-                'CLIENT_FETCH_ERROR',
-                'operation was aborted',
-                // API calls that may fail when database is empty or network issues
-                '400 (Bad Request)',
-                '400',
-                'Failed to load resource',
-                'Load failed',
-                'TypeError: Load failed',
-                // WebGL/Three.js errors in Firefox CI (no GPU support)
-                'THREE.WebGLRenderer',
-                'WebGL context could not be created',
-                'WebGL creation failed',
-                'AllowWebgl2',
-                'Error creating WebGL context',
-                // React error boundary catches (graceful degradation)
-                'Error caught by boundary',
-                'recreate this component tree',
-            ];
-            return !ignoredPatterns.some(pattern => error.includes(pattern));
-        });
+    // Filter out known/expected errors in CI/test environment
+    const criticalErrors = errors.filter((error) => {
+      const ignoredPatterns = [
+        "MSW",
+        "Service Worker",
+        "Fetch API polyfill",
+        // GitHub API calls may fail in CI (no external network or rate limits)
+        "Direct API fetch failed",
+        "GitHubContributionGraph",
+        "react-github-calendar",
+        "ChunkLoadError",
+        // NextAuth session errors in test environment
+        "[next-auth]",
+        "CLIENT_FETCH_ERROR",
+        "operation was aborted",
+        // API calls that may fail when database is empty or network issues
+        "400 (Bad Request)",
+        "400",
+        "Failed to load resource",
+        "Load failed",
+        "TypeError: Load failed",
+        // WebGL/Three.js errors in Firefox CI (no GPU support)
+        "THREE.WebGLRenderer",
+        "WebGL context could not be created",
+        "WebGL creation failed",
+        "AllowWebgl2",
+        "Error creating WebGL context",
+        // React error boundary catches (graceful degradation)
+        "Error caught by boundary",
+        "recreate this component tree",
+      ];
+      return !ignoredPatterns.some((pattern) => error.includes(pattern));
+    });
 
-        // Should have no critical errors
-        expect(criticalErrors).toEqual([]);
+    // Should have no critical errors
+    expect(criticalErrors).toEqual([]);
 
-        // Log warnings for review (not failing test)
-        if (warnings.length > 0) {
-            console.log('Warnings detected:', warnings);
+    // Log warnings for review (not failing test)
+    if (warnings.length > 0) {
+      console.log("Warnings detected:", warnings);
+    }
+  });
+
+  test("should not have React hydration errors", async ({ page }) => {
+    const errors: string[] = [];
+
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        const text = msg.text();
+        if (text.includes("hydration") || text.includes("Hydration")) {
+          errors.push(text);
         }
+      }
     });
 
-    test('should not have React hydration errors', async ({ page }) => {
-        const errors: string[] = [];
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-        page.on('console', msg => {
-            if (msg.type() === 'error') {
-                const text = msg.text();
-                if (text.includes('hydration') || text.includes('Hydration')) {
-                    errors.push(text);
-                }
-            }
-        });
+    expect(errors).toEqual([]);
+  });
 
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+  test("should not have unhandled promise rejections", async ({ page }) => {
+    const errors: string[] = [];
 
-        expect(errors).toEqual([]);
+    page.on("pageerror", (error) => {
+      errors.push(error.message);
     });
 
-    test('should not have unhandled promise rejections', async ({ page }) => {
-        const errors: string[] = [];
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-        page.on('pageerror', error => {
-            errors.push(error.message);
-        });
+    // Navigate to other pages using consistent page.goto()
+    await page.goto("/about");
+    await page.waitForLoadState("networkidle");
 
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+    await page.goto("/projects");
+    await page.waitForLoadState("networkidle");
 
-        // Navigate to other pages using consistent page.goto()
-        await page.goto('/about');
-        await page.waitForLoadState('networkidle');
-
-        await page.goto('/projects');
-        await page.waitForLoadState('networkidle');
-
-        // Filter out expected errors (WebGL, ChunkLoadError, etc.)
-        const criticalErrors = errors.filter(e => 
-            !e.includes('WebGL') && 
-            !e.includes('ChunkLoadError') &&
-            !e.includes('fetch')
-        );
-        expect(criticalErrors).toEqual([]);
-    });
+    // Filter out expected errors (WebGL, ChunkLoadError, etc.)
+    const criticalErrors = errors.filter(
+      (e) => !e.includes("WebGL") && !e.includes("ChunkLoadError") && !e.includes("fetch")
+    );
+    expect(criticalErrors).toEqual([]);
+  });
 });
 
-test.describe('Error Handling - Missing Resources', () => {
-    test('should handle missing images gracefully', async ({ page }) => {
-        const errors: string[] = [];
+test.describe("Error Handling - Missing Resources", () => {
+  test("should handle missing images gracefully", async ({ page }) => {
+    const errors: string[] = [];
 
-        page.on('response', response => {
-            if (response.url().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) && response.status() === 404) {
-                errors.push(response.url());
-            }
-        });
-
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-
-        // Should not have missing images
-        expect(errors).toEqual([]);
+    page.on("response", (response) => {
+      if (response.url().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) && response.status() === 404) {
+        errors.push(response.url());
+      }
     });
 
-    test('should handle missing fonts gracefully', async ({ page }) => {
-        const errors: string[] = [];
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-        page.on('response', response => {
-            if (response.url().match(/\.(woff|woff2|ttf|otf)$/i) && response.status() === 404) {
-                errors.push(response.url());
-            }
-        });
+    // Should not have missing images
+    expect(errors).toEqual([]);
+  });
 
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+  test("should handle missing fonts gracefully", async ({ page }) => {
+    const errors: string[] = [];
 
-        // Should not have missing fonts
-        expect(errors).toEqual([]);
+    page.on("response", (response) => {
+      if (response.url().match(/\.(woff|woff2|ttf|otf)$/i) && response.status() === 404) {
+        errors.push(response.url());
+      }
     });
+
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    // Should not have missing fonts
+    expect(errors).toEqual([]);
+  });
 });
 
-test.describe('Error Handling - JavaScript Errors', () => {
-    test('should handle undefined properties gracefully', async ({ page, browserName }) => {
-        // Skip Firefox in CI due to WebGL issues causing DOM detachment
-        test.skip(process.env.CI === 'true' && browserName === 'firefox', 'Firefox WebGL issues in CI');
-        
-        const errors: string[] = [];
+test.describe("Error Handling - JavaScript Errors", () => {
+  test("should handle undefined properties gracefully", async ({ page, browserName }) => {
+    // Skip Firefox in CI due to WebGL issues causing DOM detachment
+    test.skip(process.env.CI === "true" && browserName === "firefox", "Firefox WebGL issues in CI");
 
-        page.on('pageerror', error => {
-            if (error.message.includes('undefined')) {
-                errors.push(error.message);
-            }
-        });
+    const errors: string[] = [];
 
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-
-        // Use goto for reliable navigation instead of click
-        await page.goto('/about');
-        await page.waitForLoadState('networkidle');
-
-        expect(errors).toEqual([]);
+    page.on("pageerror", (error) => {
+      if (error.message.includes("undefined")) {
+        errors.push(error.message);
+      }
     });
 
-    test('should handle null references gracefully', async ({ page }) => {
-        const errors: string[] = [];
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-        page.on('pageerror', error => {
-            if (error.message.includes('null') || error.message.includes('Cannot read')) {
-                errors.push(error.message);
-            }
-        });
+    // Use goto for reliable navigation instead of click
+    await page.goto("/about");
+    await page.waitForLoadState("networkidle");
 
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+    expect(errors).toEqual([]);
+  });
 
-        expect(errors).toEqual([]);
+  test("should handle null references gracefully", async ({ page }) => {
+    const errors: string[] = [];
+
+    page.on("pageerror", (error) => {
+      if (error.message.includes("null") || error.message.includes("Cannot read")) {
+        errors.push(error.message);
+      }
     });
+
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    expect(errors).toEqual([]);
+  });
 });
 
-test.describe('Error Handling - Form Validation', () => {
-    test('should show validation errors for empty form', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+test.describe("Error Handling - Form Validation", () => {
+  test("should show validation errors for empty form", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        // Check if submit button exists
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        if (await submitButton.count() === 0) {
-            console.log('Submit button not found, skipping test');
-            return;
-        }
+    // Check if submit button exists
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    if ((await submitButton.count()) === 0) {
+      console.log("Submit button not found, skipping test");
+      return;
+    }
 
-        // Submit empty form
-        await submitButton.click();
+    // Submit empty form
+    await submitButton.click();
 
-        // Page should still be functional (validation may or may not show)
-        await page.waitForTimeout(500);
-        const pageTitle = await page.title();
-        expect(pageTitle).toBeTruthy();
-    });
+    // Page should still be functional (validation may or may not show)
+    await page.waitForTimeout(500);
+    const pageTitle = await page.title();
+    expect(pageTitle).toBeTruthy();
+  });
 
-    test('should show validation error for invalid email', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+  test("should show validation error for invalid email", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        // Check if form exists
-        const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], #name').first();
-        if (await nameInput.count() === 0) {
-            console.log('Contact form not found, skipping test');
-            return;
-        }
+    // Check if form exists
+    const nameInput = page
+      .locator('input[name="name"], input[placeholder*="name" i], #name')
+      .first();
+    if ((await nameInput.count()) === 0) {
+      console.log("Contact form not found, skipping test");
+      return;
+    }
 
-        // Fill form with invalid email using flexible selectors
-        const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
-        const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
-        
-        await nameInput.fill('Test User');
-        await emailInput.fill('invalid-email');
-        await messageInput.fill('Test message');
+    // Fill form with invalid email using flexible selectors
+    const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
+    const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
 
-        // Submit
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        await submitButton.click();
+    await nameInput.fill("Test User");
+    await emailInput.fill("invalid-email");
+    await messageInput.fill("Test message");
 
-        // Page should still be functional
-        await page.waitForTimeout(500);
-        const pageTitle = await page.title();
-        expect(pageTitle).toBeTruthy();
-    });
+    // Submit
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    await submitButton.click();
 
-    test('should prevent XSS in form inputs', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+    // Page should still be functional
+    await page.waitForTimeout(500);
+    const pageTitle = await page.title();
+    expect(pageTitle).toBeTruthy();
+  });
 
-        // Check if form exists
-        const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], #name').first();
-        if (await nameInput.count() === 0) {
-            console.log('Contact form not found, skipping test');
-            return;
-        }
+  test("should prevent XSS in form inputs", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        const xssPayload = '<script>alert("XSS")</script>';
-        const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
+    // Check if form exists
+    const nameInput = page
+      .locator('input[name="name"], input[placeholder*="name" i], #name')
+      .first();
+    if ((await nameInput.count()) === 0) {
+      console.log("Contact form not found, skipping test");
+      return;
+    }
 
-        // Try to inject XSS
-        await nameInput.fill(xssPayload);
-        await emailInput.fill('test@example.com');
-        const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
-        await messageInput.fill(xssPayload);
+    const xssPayload = '<script>alert("XSS")</script>';
+    const emailInput = page.locator('input[name="email"], input[type="email"], #email').first();
 
-        // Get value back
-        const nameValue = await nameInput.inputValue();
-        const messageValue = await messageInput.inputValue();
+    // Try to inject XSS
+    await nameInput.fill(xssPayload);
+    await emailInput.fill("test@example.com");
+    const messageInput = page.locator('textarea[name="message"], textarea, #message').first();
+    await messageInput.fill(xssPayload);
 
-        // Values should be escaped or sanitized (not executed)
-        expect(nameValue).toBeTruthy();
-        expect(messageValue).toBeTruthy();
-    });
+    // Get value back
+    const nameValue = await nameInput.inputValue();
+    const messageValue = await messageInput.inputValue();
+
+    // Values should be escaped or sanitized (not executed)
+    expect(nameValue).toBeTruthy();
+    expect(messageValue).toBeTruthy();
+  });
 });
 
-test.describe('Error Handling - Accessibility in Error States', () => {
-    test('should announce errors to screen readers', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
+test.describe("Error Handling - Accessibility in Error States", () => {
+  test("should announce errors to screen readers", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
 
-        // Check if submit button exists
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        if (await submitButton.count() === 0) {
-            console.log('Submit button not found, skipping test');
-            return;
-        }
+    // Check if submit button exists
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    if ((await submitButton.count()) === 0) {
+      console.log("Submit button not found, skipping test");
+      return;
+    }
 
-        // Submit empty form
-        await submitButton.click();
+    // Submit empty form
+    await submitButton.click();
 
-        // Page should still be functional
-        await page.waitForTimeout(500);
-        const pageTitle = await page.title();
-        expect(pageTitle).toBeTruthy();
+    // Page should still be functional
+    await page.waitForTimeout(500);
+    const pageTitle = await page.title();
+    expect(pageTitle).toBeTruthy();
+  });
+
+  test("should focus first error field on validation failure", async ({ page }) => {
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
+
+    // Check if submit button exists
+    const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
+    if ((await submitButton.count()) === 0) {
+      console.log("Submit button not found, skipping test");
+      return;
+    }
+
+    // Submit empty form
+    await submitButton.click();
+
+    await page.waitForTimeout(500);
+
+    // First invalid field should be focused (or first field)
+    const focusedElement = await page.evaluate(() => {
+      const el = document.activeElement;
+      return {
+        tag: el?.tagName,
+        type: el?.getAttribute("type"),
+        name: el?.getAttribute("name"),
+      };
     });
 
-    test('should focus first error field on validation failure', async ({ page }) => {
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
-
-        // Check if submit button exists
-        const submitButton = page.locator('button[type="submit"], input[type="submit"]').first();
-        if (await submitButton.count() === 0) {
-            console.log('Submit button not found, skipping test');
-            return;
-        }
-
-        // Submit empty form
-        await submitButton.click();
-
-        await page.waitForTimeout(500);
-
-        // First invalid field should be focused (or first field)
-        const focusedElement = await page.evaluate(() => {
-            const el = document.activeElement;
-            return {
-                tag: el?.tagName,
-                type: el?.getAttribute('type'),
-                name: el?.getAttribute('name'),
-            };
-        });
-
-        // Should focus an input element
-        expect(['INPUT', 'TEXTAREA', 'SELECT']).toContain(focusedElement.tag);
-    });
+    // Should focus an input element
+    expect(["INPUT", "TEXTAREA", "SELECT"]).toContain(focusedElement.tag);
+  });
 });
 
-test.describe('Error Handling - Offline Support', () => {
-    test('should handle offline state gracefully', async ({ page, context }) => {
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+test.describe("Error Handling - Offline Support", () => {
+  test("should handle offline state gracefully", async ({ page, context }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-        // Go offline
-        await context.setOffline(true);
+    // Go offline
+    await context.setOffline(true);
 
-        // Try to navigate
-        await page.click('a[href="/about"]').catch(() => {
-            // Navigation may fail, which is expected
-        });
-
-        await page.waitForTimeout(2000);
-
-        // Page should still be responsive (not crashed)
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
+    // Try to navigate
+    await page.click('a[href="/about"]').catch(() => {
+      // Navigation may fail, which is expected
     });
+
+    await page.waitForTimeout(2000);
+
+    // Page should still be responsive (not crashed)
+    const body = page.locator("body");
+    await expect(body).toBeVisible();
+  });
 });
 
-test.describe('Error Handling - Browser Compatibility', () => {
-    test('should not throw errors in browser console', async ({ page }) => {
-        const errors: string[] = [];
+test.describe("Error Handling - Browser Compatibility", () => {
+  test("should not throw errors in browser console", async ({ page }) => {
+    const errors: string[] = [];
 
-        page.on('pageerror', error => {
-            errors.push(error.message);
-        });
-
-        // Use page.goto() for all navigation to avoid interruption
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
-
-        await page.goto('/about');
-        await page.waitForLoadState('networkidle');
-
-        await page.goto('/projects');
-        await page.waitForLoadState('networkidle');
-
-        await page.goto('/contact');
-        await page.waitForLoadState('networkidle');
-
-        // Filter out expected errors (WebGL, ChunkLoadError, etc.)
-        const criticalErrors = errors.filter(e => 
-            !e.includes('WebGL') && 
-            !e.includes('ChunkLoadError') &&
-            !e.includes('fetch')
-        );
-        expect(criticalErrors).toEqual([]);
+    page.on("pageerror", (error) => {
+      errors.push(error.message);
     });
+
+    // Use page.goto() for all navigation to avoid interruption
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    await page.goto("/about");
+    await page.waitForLoadState("networkidle");
+
+    await page.goto("/projects");
+    await page.waitForLoadState("networkidle");
+
+    await page.goto("/contact");
+    await page.waitForLoadState("networkidle");
+
+    // Filter out expected errors (WebGL, ChunkLoadError, etc.)
+    const criticalErrors = errors.filter(
+      (e) => !e.includes("WebGL") && !e.includes("ChunkLoadError") && !e.includes("fetch")
+    );
+    expect(criticalErrors).toEqual([]);
+  });
 });
 
-test.describe('Error Handling - Graceful Degradation', () => {
-    test('should work without JavaScript (basic content)', async ({ browser }) => {
-        // Create a new context with JavaScript disabled
-        const context = await browser.newContext({ javaScriptEnabled: false });
-        const page = await context.newPage();
+test.describe("Error Handling - Graceful Degradation", () => {
+  test("should work without JavaScript (basic content)", async ({ browser }) => {
+    // Create a new context with JavaScript disabled
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
 
-        try {
-            await page.goto('/');
+    try {
+      await page.goto("/");
 
-            // Basic content should still be visible (may show noscript content)
-            const hasContent = await page.locator('body').isVisible();
-            expect(hasContent).toBeTruthy();
+      // Basic content should still be visible (may show noscript content)
+      const hasContent = await page.locator("body").isVisible();
+      expect(hasContent).toBeTruthy();
 
-            // Links should still be present (or noscript message)
-            const links = await page.locator('a').count();
-            expect(links).toBeGreaterThanOrEqual(0);
-        } finally {
-            await context.close();
-        }
+      // Links should still be present (or noscript message)
+      const links = await page.locator("a").count();
+      expect(links).toBeGreaterThanOrEqual(0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("should handle CSS loading failure", async ({ page }) => {
+    // Block CSS files
+    await page.route("**/*.css", (route) => route.abort());
+
+    const errors: string[] = [];
+    page.on("pageerror", (error) => {
+      errors.push(error.message);
     });
 
-    test('should handle CSS loading failure', async ({ page }) => {
-        // Block CSS files
-        await page.route('**/*.css', route => route.abort());
+    await page.goto("/");
+    await page.waitForTimeout(2000);
 
-        const errors: string[] = [];
-        page.on('pageerror', error => {
-            errors.push(error.message);
-        });
+    // Filter out expected errors (WebGL in Firefox CI)
+    const criticalErrors = errors.filter((e) => !e.includes("WebGL") && !e.includes("context"));
+    expect(criticalErrors).toEqual([]);
 
-        await page.goto('/');
-        await page.waitForTimeout(2000);
-
-        // Filter out expected errors (WebGL in Firefox CI)
-        const criticalErrors = errors.filter(e => 
-            !e.includes('WebGL') && 
-            !e.includes('context')
-        );
-        expect(criticalErrors).toEqual([]);
-
-        // Content should still be present
-        await expect(page.locator('body')).toBeVisible();
-    });
+    // Content should still be present
+    await expect(page.locator("body")).toBeVisible();
+  });
 });
-

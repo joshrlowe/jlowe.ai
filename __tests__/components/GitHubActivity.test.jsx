@@ -67,7 +67,7 @@ describe("GitHubActivity", () => {
   it("shows loading state while fetching", () => {
     global.fetch.mockImplementation(() => new Promise(() => {}));
     render(<GitHubActivity githubUrl="https://github.com/testuser" />);
-    
+
     // Should show loading skeleton with animate-pulse
     expect(document.querySelector(".animate-pulse")).toBeInTheDocument();
     expect(screen.getByText("GitHub Activity")).toBeInTheDocument();
@@ -120,7 +120,7 @@ describe("GitHubActivity", () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/users/myusername/repos?sort=updated&per_page=6",
+        "https://api.github.com/users/myusername/repos?sort=updated&per_page=6"
       );
     });
   });
@@ -130,9 +130,7 @@ describe("GitHubActivity", () => {
       ok: false,
     });
 
-    const { container } = render(
-      <GitHubActivity githubUrl="https://github.com/testuser" />,
-    );
+    const { container } = render(<GitHubActivity githubUrl="https://github.com/testuser" />);
 
     await waitFor(() => {
       expect(container.querySelector("section")).toBeNull();
@@ -145,9 +143,7 @@ describe("GitHubActivity", () => {
       json: () => Promise.resolve([]),
     });
 
-    const { container } = render(
-      <GitHubActivity githubUrl="https://github.com/testuser" />,
-    );
+    const { container } = render(<GitHubActivity githubUrl="https://github.com/testuser" />);
 
     await waitFor(() => {
       expect(container.querySelector('[aria-label="GitHub activity"]')).toBeNull();
@@ -272,9 +268,7 @@ describe("GitHubActivity", () => {
   it("handles network error", async () => {
     global.fetch.mockRejectedValue(new Error("Network error"));
 
-    const { container } = render(
-      <GitHubActivity githubUrl="https://github.com/testuser" />,
-    );
+    const { container } = render(<GitHubActivity githubUrl="https://github.com/testuser" />);
 
     await waitFor(() => {
       expect(container.querySelector('[aria-label="GitHub activity"]')).toBeNull();
@@ -289,4 +283,3 @@ describe("GitHubActivity", () => {
     });
   });
 });
-

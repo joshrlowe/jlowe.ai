@@ -1,6 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 /**
  * Footer.jsx
  *
@@ -15,7 +14,7 @@
 
 import { useEffect, useState, ReactNode } from "react";
 import Link from "next/link";
-import type { Contact, SiteSettings } from "@/lib/types";
+import { useFooterData } from "@/lib/hooks/useFooterData";
 
 const STATIC_SOCIAL_ITEMS = [
   { key: "email", label: "Email", icon: "email" },
@@ -27,12 +26,7 @@ const STATIC_SOCIAL_ITEMS = [
 
 const socialIcons: Record<string, ReactNode> = {
   email: (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -57,7 +51,6 @@ const socialIcons: Record<string, ReactNode> = {
     </svg>
   ),
   handshake: (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src="/images/handshake-logo.png"
       alt="Handshake"
@@ -66,67 +59,26 @@ const socialIcons: Record<string, ReactNode> = {
   ),
 };
 
-const DEFAULT_FOOTER_TEXT = "Building intelligent systems and production-grade AI applications that solve real-world problems.";
+const DEFAULT_FOOTER_TEXT =
+  "Building intelligent systems and production-grade AI applications that solve real-world problems.";
 const DEFAULT_FOOTER_TITLE = "AI Engineer & Consultant";
 
 export default function Footer() {
-  const [contactData, setContactData] = useState<Contact | null>(null);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const { contact: contactData, settings: siteSettings } = useFooterData();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
     setMounted(true);
-
-    const fetchData = async () => {
-      try {
-        // Add cache-busting to ensure fresh data
-        const cacheBuster = `?_t=${Date.now()}`;
-
-        // Fetch contact data and site settings in parallel (using public endpoint)
-        const [contactResponse, settingsResponse] = await Promise.all([
-          fetch(`/api/contact${cacheBuster}`),
-          fetch(`/api/site-settings${cacheBuster}`),
-        ]);
-
-        if (contactResponse.ok && isMounted) {
-          const data = (await contactResponse.json()) as Contact;
-          setContactData(data);
-        }
-
-        if (settingsResponse.ok && isMounted) {
-          const data = (await settingsResponse.json()) as SiteSettings;
-          setSiteSettings(data);
-        }
-      } catch (_error) {
-        // Silently fail - data is optional
-      }
-    };
-
-    fetchData();
-
-    // Re-fetch when window regains focus (e.g., after editing in admin)
-    const handleFocus = () => fetchData();
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      isMounted = false;
-      window.removeEventListener("focus", handleFocus);
-    };
   }, []);
 
   const getHref = (key: string): string => {
     if (!mounted || !contactData) return "#";
 
-    const socialLinks =
-      (contactData.socialMediaLinks as Record<string, string | undefined>) ||
-      {};
+    const socialLinks = (contactData.socialMediaLinks as Record<string, string | undefined>) || {};
 
     switch (key) {
       case "email":
-        return contactData.emailAddress
-          ? `mailto:${contactData.emailAddress}`
-          : "#";
+        return contactData.emailAddress ? `mailto:${contactData.emailAddress}` : "#";
       case "linkedIn":
         return socialLinks.linkedIn || "#";
       case "github":
@@ -156,7 +108,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-5">
               <div className="w-11 h-11 rounded-xl overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {}
                 <img
                   src="/images/logo.png"
                   alt="JL Logo"
@@ -210,13 +162,11 @@ export default function Footer() {
                     e.currentTarget.style.background = "rgba(232, 93, 4, 0.15)";
                     e.currentTarget.style.borderColor = "#E85D04";
                     e.currentTarget.style.color = "#E85D04";
-                    e.currentTarget.style.boxShadow =
-                      "0 0 20px rgba(232, 93, 4, 0.3)";
+                    e.currentTarget.style.boxShadow = "0 0 20px rgba(232, 93, 4, 0.3)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "rgba(232, 93, 4, 0.08)";
-                    e.currentTarget.style.borderColor =
-                      "rgba(232, 93, 4, 0.15)";
+                    e.currentTarget.style.borderColor = "rgba(232, 93, 4, 0.15)";
                     e.currentTarget.style.color = "var(--color-text-secondary)";
                     e.currentTarget.style.boxShadow = "none";
                   }}
@@ -255,12 +205,9 @@ export default function Footer() {
                       color: "var(--color-text-secondary)",
                       fontFamily: "var(--font-family-base)",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#E85D04")
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#E85D04")}
                     onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-text-secondary)")
+                      (e.currentTarget.style.color = "var(--color-text-secondary)")
                     }
                   >
                     {link.label}
@@ -269,7 +216,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
         </div>
 
         {/* Bottom bar */}

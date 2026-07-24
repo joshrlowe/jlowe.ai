@@ -15,7 +15,7 @@ interface ActivityLogEntry {
 }
 
 function toJsonField(
-  value: Prisma.InputJsonValue | string | null | undefined,
+  value: Prisma.InputJsonValue | string | null | undefined
 ): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
   if (!value) return Prisma.JsonNull;
   if (typeof value === "object") return value;

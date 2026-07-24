@@ -26,14 +26,18 @@ const articleChunk = {
   score: 0.39,
 };
 
-const intentMock = jest.fn(async () => "researching");
+const intentMock = jest.fn<Promise<string>, unknown[]>(async () => "researching");
 jest.mock("@/lib/chat/intent", () => ({
   classifyIntent: (...args: unknown[]) => intentMock(...args),
   highestPriorityIntent: jest.requireActual("@/lib/chat/intent").highestPriorityIntent,
 }));
 
 jest.mock("@/lib/chat/tools", () => ({
-  bookMeetingTool: { name: "book_meeting", description: "x", input_schema: { type: "object", properties: {} } },
+  bookMeetingTool: {
+    name: "book_meeting",
+    description: "x",
+    input_schema: { type: "object", properties: {} },
+  },
   getCalcomBookingUrl: jest.fn(() => "https://cal.com/joshlowe/30min?notes=Bot"),
 }));
 
@@ -56,7 +60,10 @@ jest.mock("@/lib/bedrock/client", () => {
   return { streamChatResponse: mock, __streamMock: mock };
 });
 
-import { __streamMock as streamMock } from "@/lib/bedrock/client";
+const { __streamMock: streamMock } = jest.requireMock<{
+  streamChatResponse: jest.Mock;
+  __streamMock: jest.Mock;
+}>("@/lib/bedrock/client");
 
 jest.mock("@/lib/utils/rateLimit", () => ({
   checkRateLimit: jest.fn(async () => true),
@@ -82,12 +89,14 @@ interface MockRes {
   socket?: { remoteAddress?: string };
 }
 
-function createReq(opts: {
-  method?: string;
-  body?: unknown;
-  headers?: Record<string, string>;
-  cookies?: Record<string, string>;
-} = {}): unknown {
+function createReq(
+  opts: {
+    method?: string;
+    body?: unknown;
+    headers?: Record<string, string>;
+    cookies?: Record<string, string>;
+  } = {}
+): unknown {
   return {
     method: opts.method ?? "POST",
     body: opts.body ?? { messages: [{ role: "user", content: "hi" }] },
@@ -177,6 +186,39 @@ describe("/api/chat", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await handler(req as any, res as any);
     expect(res.statusCode).toBe(400);
+  });
+
+  it("returns 400 when more than 20 messages are sent", async () => {
+    const messages = Array.from({ length: 21 }, () => ({ role: "user", content: "x" }));
+    const req = createReq({ body: { messages } });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("returns 400 when a message exceeds 4000 characters", async () => {
+    const req = createReq({ body: { messages: [{ role: "user", content: "a".repeat(4001) }] } });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("does not emit a reflected Access-Control-Allow-Origin header", async () => {
+    const req = createReq({ headers: { origin: "https://evil.example" } });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("returns 405 for an OPTIONS preflight (no CORS handling)", async () => {
+    const req = createReq({ method: "OPTIONS" });
+    const res = createRes();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await handler(req as any, res as any);
+    expect(res.statusCode).toBe(405);
   });
 
   it("does NOT expose tools on a researching message", async () => {

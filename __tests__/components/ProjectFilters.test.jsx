@@ -26,9 +26,7 @@ describe("ProjectFilters", () => {
 
   it("renders search input", () => {
     render(<ProjectFilters {...defaultProps} />);
-    expect(
-      screen.getByPlaceholderText("Search projects..."),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search projects...")).toBeInTheDocument();
   });
 
   it("renders status filter dropdown", () => {
@@ -52,9 +50,7 @@ describe("ProjectFilters", () => {
     render(<ProjectFilters {...defaultProps} />);
     const statusSelect = screen.getByLabelText("Filter by status");
     fireEvent.change(statusSelect, { target: { value: "Completed" } });
-    expect(defaultProps.onStatusFilterChange).toHaveBeenCalledWith(
-      "Completed",
-    );
+    expect(defaultProps.onStatusFilterChange).toHaveBeenCalledWith("Completed");
   });
 
   it("calls onTagFilterChange when selecting tag", () => {
@@ -119,7 +115,7 @@ describe("ProjectFilters", () => {
         searchQuery="project"
         statusFilter="Completed"
         tagFilter="React"
-      />,
+      />
     );
     expect(screen.getByText('Search: "project"')).toBeInTheDocument();
     expect(screen.getByText("Status: Completed")).toBeInTheDocument();
@@ -141,15 +137,8 @@ describe("ProjectFilters", () => {
   });
 
   it("renders with empty arrays for tags and statuses", () => {
-    render(
-      <ProjectFilters
-        {...defaultProps}
-        availableTags={[]}
-        availableStatuses={[]}
-      />,
-    );
+    render(<ProjectFilters {...defaultProps} availableTags={[]} availableStatuses={[]} />);
     expect(screen.getByLabelText("Filter by status")).toBeInTheDocument();
     expect(screen.getByLabelText("Filter by tag")).toBeInTheDocument();
   });
 });
-

@@ -42,7 +42,7 @@ export function createApiHandler(handlers: HandlerMap): ApiHandler {
  */
 export function createGetLatestHandler<T>(
   findLatestFn: () => Promise<T | null>,
-  notFoundMessage = "Data not found",
+  notFoundMessage = "Data not found"
 ): ApiHandler {
   return async (_req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -65,7 +65,7 @@ export function createGetLatestHandler<T>(
 export function createUpsertHandler<T>(
   deleteAllFn: () => Promise<unknown>,
   createFn: (body: Record<string, unknown>) => Promise<T>,
-  validateFn?: (body: Record<string, unknown>) => ValidationResult,
+  validateFn?: (body: Record<string, unknown>) => ValidationResult
 ): ApiHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -73,9 +73,7 @@ export function createUpsertHandler<T>(
       if (validateFn) {
         const validation = validateFn(req.body);
         if (!validation.isValid) {
-          return res
-            .status(400)
-            .json({ message: validation.message || "Validation failed" });
+          return res.status(400).json({ message: validation.message || "Validation failed" });
         }
       }
 

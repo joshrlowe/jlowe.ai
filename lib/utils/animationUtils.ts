@@ -67,7 +67,7 @@ export function createScrollTriggerConfig({
  * Safe GSAP animation helper that checks for window/GSAP availability
  */
 export function safeAnimation<T extends (...args: unknown[]) => unknown>(
-  animationFn: T,
+  animationFn: T
 ): (...args: Parameters<T>) => ReturnType<T> | undefined {
   return (...args: Parameters<T>): ReturnType<T> | undefined => {
     if (typeof window === "undefined" || typeof gsap === "undefined") {

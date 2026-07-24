@@ -21,8 +21,7 @@ const HARD_MAX_TOKENS = 800;
 const OVERLAP_TOKENS = 50;
 const CHARS_PER_TOKEN = 4;
 
-const estimateTokens = (text: string) =>
-  Math.max(1, Math.ceil(text.length / CHARS_PER_TOKEN));
+const estimateTokens = (text: string) => Math.max(1, Math.ceil(text.length / CHARS_PER_TOKEN));
 
 function takeTail(text: string, tokenBudget: number): string {
   const charBudget = tokenBudget * CHARS_PER_TOKEN;
@@ -49,11 +48,7 @@ interface BufferState {
   path: string[];
 }
 
-function flush(
-  state: BufferState,
-  out: Chunk[],
-  carryOverlap: boolean,
-): void {
+function flush(state: BufferState, out: Chunk[], carryOverlap: boolean): void {
   if (state.tokens < MIN_TOKENS || state.parts.length === 0) {
     state.parts = [];
     state.tokens = 0;
@@ -118,10 +113,7 @@ export function chunkMarkdown(md: string): Chunk[] {
       const sentences = splitSentences(raw);
       for (const s of sentences) {
         const st = estimateTokens(s);
-        if (
-          state.tokens >= MIN_TOKENS &&
-          state.tokens + st > TARGET_TOKENS_MAX
-        ) {
+        if (state.tokens >= MIN_TOKENS && state.tokens + st > TARGET_TOKENS_MAX) {
           flush(state, out, true);
         }
         state.parts.push(s);

@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
@@ -8,13 +6,13 @@ import type { AppProps } from "next/app";
 import type { Session } from "next-auth";
 import { Analytics } from "@vercel/analytics/react";
 import { ToastContainer } from "react-toastify";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import JsonLd from "@/components/JsonLd";
 import ToastProvider from "@/components/admin/ToastProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ChatWidget } from "@/components/Chat";
+import { personSchema, websiteSchema } from "@/lib/seo/schema";
 import {
   spaceGrotesk,
   plusJakartaSans,
@@ -25,11 +23,6 @@ import {
 } from "@/lib/fonts";
 
 import ScrollProgress from "@/components/ui/ScrollProgress";
-
-// Register GSAP plugins once at app level
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 import "react-toastify/dist/ReactToastify.css";
 import "@/styles/globals.css";
@@ -131,6 +124,7 @@ export default function App({
         <ToastProvider>
           <Head>
             <title>Admin - Josh Lowe</title>
+            <meta name="robots" content="noindex,nofollow" />
           </Head>
           <div className={`${fontVariables} min-h-screen w-full`}>
             <Component {...pageProps} />
@@ -153,11 +147,10 @@ export default function App({
             <link rel="manifest" href="/manifest.json" />
             <meta name="theme-color" content="#bb1313" />
             <meta name="mobile-web-app-capable" content="yes" />
-            <meta
-              name="apple-mobile-web-app-status-bar-style"
-              content="black-translucent"
-            />
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           </Head>
+          <JsonLd data={websiteSchema} id="website" />
+          <JsonLd data={personSchema} id="person" />
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--color-primary)] focus:text-white focus:rounded"
@@ -174,11 +167,7 @@ export default function App({
             }}
           />
           <div className="flex-1 flex flex-col w-full">
-            <main
-              id="main-content"
-              className="flex-1 w-full bg-[var(--color-bg-dark)]"
-              role="main"
-            >
+            <main id="main-content" className="flex-1 w-full bg-[var(--color-bg-dark)]" role="main">
               <Component {...pageProps} />
             </main>
             <Footer />

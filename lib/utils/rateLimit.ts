@@ -14,12 +14,9 @@ interface RateLimitConfig {
 export async function checkRateLimit(
   req: NextApiRequest,
   res: NextApiResponse,
-  config: RateLimitConfig,
+  config: RateLimitConfig
 ): Promise<boolean> {
-  if (
-    !process.env.UPSTASH_REDIS_REST_URL ||
-    !process.env.UPSTASH_REDIS_REST_TOKEN
-  ) {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return true;
   }
   try {
@@ -31,18 +28,13 @@ export async function checkRateLimit(
     });
     const ratelimit = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(
-        config.maxRequests,
-        `${config.windowSeconds} s`,
-      ),
+      limiter: Ratelimit.slidingWindow(config.maxRequests, `${config.windowSeconds} s`),
       prefix: config.keyPrefix ?? "ratelimit",
     });
     const ip = getClientIp(req);
     const { success } = await ratelimit.limit(ip);
     if (!success) {
-      res
-        .status(429)
-        .json({ error: "Too many requests. Please try again later." });
+      res.status(429).json({ error: "Too many requests. Please try again later." });
       return false;
     }
     return true;

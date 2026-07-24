@@ -42,9 +42,7 @@ interface HandlerContext {
  * Handler logic exported separately so unit tests can call it with a fake
  * step object — the wrapped `regenerateEmbeddings` is not directly callable.
  */
-export async function regenerateEmbeddingsHandler(
-  ctx: HandlerContext,
-): Promise<StepResult> {
+export async function regenerateEmbeddingsHandler(ctx: HandlerContext): Promise<StepResult> {
   const { event, step } = ctx;
   const trace = await startTrace({
     name: "regenerate-embeddings",
@@ -60,18 +58,17 @@ export async function regenerateEmbeddingsHandler(
         const { postId } = event.data as Events["content/post.deleted"]["data"];
         const span = trace.span("delete-article-chunks", { postId });
         const result = await step.run("delete-article-chunks", () =>
-          deleteSourceChunks("article", postId),
+          deleteSourceChunks("article", postId)
         );
         span.end(result);
         return { kind: "deleted", deleted: result.deleted };
       }
 
       case "content/project.deleted": {
-        const { projectId } =
-          event.data as Events["content/project.deleted"]["data"];
+        const { projectId } = event.data as Events["content/project.deleted"]["data"];
         const span = trace.span("delete-project-chunks", { projectId });
         const result = await step.run("delete-project-chunks", () =>
-          deleteSourceChunks("project", projectId),
+          deleteSourceChunks("project", projectId)
         );
         span.end(result);
         return { kind: "deleted", deleted: result.deleted };
@@ -79,14 +76,12 @@ export async function regenerateEmbeddingsHandler(
 
       case "content/post.published":
       case "content/post.updated": {
-        const { postId } =
-          event.data as Events["content/post.updated"]["data"];
+        const { postId } = event.data as Events["content/post.updated"]["data"];
         return await handleScopedSource(trace, step, "article", postId);
       }
 
       case "content/project.upserted": {
-        const { projectId } =
-          event.data as Events["content/project.upserted"]["data"];
+        const { projectId } = event.data as Events["content/project.upserted"]["data"];
         return await handleScopedSource(trace, step, "project", projectId);
       }
 
@@ -148,7 +143,7 @@ export const regenerateEmbeddings = inngest.createFunction(
     regenerateEmbeddingsHandler({
       event: { name: ctx.event.name, data: ctx.event.data },
       step: ctx.step,
-    }),
+    })
 );
 
 function isSingletonType(t: string): t is "about" | "welcome" | "contact" {
@@ -159,19 +154,15 @@ async function handleScopedSource(
   trace: TraceHandle,
   step: Step,
   sourceType: "article" | "project",
-  sourceId: string,
+  sourceId: string
 ): Promise<StepResult> {
   const loadSpan = trace.span("load-source", { sourceType, sourceId });
-  const source = await step.run("load-source", () =>
-    loadOneSource(sourceType, sourceId),
-  );
+  const source = await step.run("load-source", () => loadOneSource(sourceType, sourceId));
   loadSpan.end({ found: !!source });
 
   if (!source) {
     const span = trace.span("delete-stale", { sourceType, sourceId });
-    const result = await step.run("delete-stale", () =>
-      deleteSourceChunks(sourceType, sourceId),
-    );
+    const result = await step.run("delete-stale", () => deleteSourceChunks(sourceType, sourceId));
     span.end(result);
     return { kind: "deleted", deleted: result.deleted };
   }
@@ -189,12 +180,10 @@ async function handleScopedSource(
 async function handleSingletonSource(
   trace: TraceHandle,
   step: Step,
-  sourceType: "about" | "welcome" | "contact",
+  sourceType: "about" | "welcome" | "contact"
 ): Promise<StepResult> {
   const sweepSpan = trace.span("sweep-singleton", { sourceType });
-  const sweep = await step.run("sweep-singleton", () =>
-    sweepSingletonChunks(sourceType),
-  );
+  const sweep = await step.run("sweep-singleton", () => sweepSingletonChunks(sourceType));
   sweepSpan.end(sweep);
 
   const loadSpan = trace.span("load-source", { sourceType });
@@ -214,10 +203,7 @@ async function handleSingletonSource(
   return { kind: "upserted", ...result };
 }
 
-async function fanOutFullReindex(
-  trace: TraceHandle,
-  step: Step,
-): Promise<StepResult> {
+async function fanOutFullReindex(trace: TraceHandle, step: Step): Promise<StepResult> {
   const span = trace.span("enumerate-sources");
   const sources = await step.run("enumerate-sources", async () => {
     const [posts, projects] = await Promise.all([

@@ -2,10 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { JWT } from "next-auth/jwt";
 import prisma from "../../../lib/prisma";
 import { createApiHandler } from "../../../lib/utils/apiRouteHandler";
-import {
-  withAuth,
-  getUserIdFromToken,
-} from "../../../lib/utils/authMiddleware";
+import { withAuth, getUserIdFromToken } from "../../../lib/utils/authMiddleware";
 import { handleApiError } from "../../../lib/utils/apiErrorHandler";
 import { mapProjectStatus } from "../../../lib/utils/projectStatusMapper";
 import { logActivity } from "../../../lib/utils/activityLogger";
@@ -35,19 +32,13 @@ const handleGetRequest = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 // Refactored: Extract Method - POST handler extracted
-const handlePostRequest = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-  ...args: unknown[]
-) => {
+const handlePostRequest = async (req: NextApiRequest, res: NextApiResponse, ...args: unknown[]) => {
   const token = args[0] as JWT;
   try {
     // Refactored: Extract Method - Validation extracted
     const validation = validateAdminProjectData(req.body);
     if (!validation.isValid) {
-      return res
-        .status(400)
-        .json({ message: validation.message || "Title and slug are required" });
+      return res.status(400).json({ message: validation.message || "Title and slug are required" });
     }
 
     const {
@@ -127,18 +118,13 @@ const handlePostRequest = async (
         data: { projectId: project.id },
       });
     } catch (emitErr) {
-      console.warn(
-        "[projects] failed to emit project.upserted event:",
-        (emitErr as Error).message,
-      );
+      console.warn("[projects] failed to emit project.upserted event:", (emitErr as Error).message);
     }
 
     res.status(201).json(createdProject);
   } catch (error) {
     if ((error as { code?: string }).code === "P2002") {
-      return res
-        .status(400)
-        .json({ message: "A project with this slug already exists" });
+      return res.status(400).json({ message: "A project with this slug already exists" });
     }
     handleApiError(error as Error, res);
   }
@@ -149,5 +135,5 @@ export default withAuth(
   createApiHandler({
     GET: handleGetRequest,
     POST: handlePostRequest,
-  }),
+  })
 );

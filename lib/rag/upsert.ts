@@ -37,11 +37,7 @@ export interface UpsertResult {
   embedCalls: number;
 }
 
-const SINGLETON_TYPES = new Set<KnowledgeSourceType>([
-  "about",
-  "welcome",
-  "contact",
-]);
+const SINGLETON_TYPES = new Set<KnowledgeSourceType>(["about", "welcome", "contact"]);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -63,7 +59,7 @@ async function embedWithRetry(text: string): Promise<number[]> {
       if (attempt === MAX_RETRIES - 1) throw err;
       const delay = 1000 * 2 ** attempt;
       console.warn(
-        `[upsert] embed retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms: ${(err as Error).message}`,
+        `[upsert] embed retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms: ${(err as Error).message}`
       );
       await sleep(delay);
     }
@@ -78,7 +74,7 @@ async function embedWithRetry(text: string): Promise<number[]> {
  */
 export async function loadOneSource(
   sourceType: KnowledgeSourceType,
-  sourceId?: string,
+  sourceId?: string
 ): Promise<KnowledgeSource | null> {
   switch (sourceType) {
     case "article": {
@@ -119,7 +115,7 @@ export async function loadOneSource(
  */
 export async function deleteSourceChunks(
   sourceType: KnowledgeSourceType,
-  sourceId: string,
+  sourceId: string
 ): Promise<{ deleted: number }> {
   const result = await prisma.knowledgeChunk.deleteMany({
     where: { sourceType, sourceId },
@@ -135,7 +131,7 @@ export async function deleteSourceChunks(
  * superseded ids would linger and pollute vector search.
  */
 export async function sweepSingletonChunks(
-  sourceType: "about" | "welcome" | "contact",
+  sourceType: "about" | "welcome" | "contact"
 ): Promise<{ deleted: number }> {
   const result = await prisma.knowledgeChunk.deleteMany({
     where: { sourceType },
@@ -147,18 +143,14 @@ export async function sweepSingletonChunks(
  * Chunk + embed + atomic-replace a single source's chunks. Idempotent:
  * if the source's chunk hashes already match what's in the DB, skip.
  */
-export async function upsertSourceChunks(
-  source: KnowledgeSource,
-): Promise<UpsertResult> {
+export async function upsertSourceChunks(source: KnowledgeSource): Promise<UpsertResult> {
   const chunks = chunkMarkdown(source.markdown);
 
   if (chunks.length === 0) {
     // Source has no embeddable content. Clear any stale chunks so search
     // doesn't return them.
     if (SINGLETON_TYPES.has(source.sourceType)) {
-      await sweepSingletonChunks(
-        source.sourceType as "about" | "welcome" | "contact",
-      );
+      await sweepSingletonChunks(source.sourceType as "about" | "welcome" | "contact");
     } else {
       await deleteSourceChunks(source.sourceType, source.sourceId);
     }
@@ -222,7 +214,7 @@ export async function upsertSourceChunks(
              ${expectedHashes[i]}, ${chunk.tokenCount}, ${i},
              ${vectorLiteral(embeddings[i])}::vector,
              NOW(), NOW())
-        `,
+        `
       );
     }
   });

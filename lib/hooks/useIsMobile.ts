@@ -8,7 +8,7 @@ export function useIsMobile(): boolean {
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_QUERY);
     // SSR-safe hydration: render `false` on server, update on mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setIsMobile(mediaQuery.matches);
 
     const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches);

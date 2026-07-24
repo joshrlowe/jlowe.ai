@@ -26,8 +26,20 @@ function formatDate(dateStr?: string): string | null {
   if (/^\d{4}-\d{2}/.test(dateStr)) {
     try {
       const [year, month] = dateStr.split("-").map(Number);
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
       return `${monthNames[month - 1]} ${year}`;
     } catch {
       return dateStr;
@@ -43,7 +55,9 @@ function getDateRange(edu: EducationEntry): string | null {
 
   const startDate = formatDate(edu.startDate);
   const endDate = edu.isOngoing
-    ? edu.expectedGradDate ? `Expected ${formatDate(edu.expectedGradDate)}` : "Present"
+    ? edu.expectedGradDate
+      ? `Expected ${formatDate(edu.expectedGradDate)}`
+      : "Present"
     : formatDate(edu.endDate);
 
   const startYear = startDate || edu.startYear;
@@ -89,11 +103,7 @@ export default function Education({ education = [] }: EducationProps) {
             const isOngoing = edu.isOngoing || false;
 
             return (
-              <div
-                key={index}
-                className="relative pl-8"
-                data-testid={`education-entry-${index}`}
-              >
+              <div key={index} className="relative pl-8" data-testid={`education-entry-${index}`}>
                 <div className="absolute left-0 top-1.5 flex items-center justify-center">
                   {isOngoing ? (
                     <div className="relative">
@@ -134,19 +144,13 @@ export default function Education({ education = [] }: EducationProps) {
                 </div>
 
                 {edu.gpa && (
-                  <div
-                    className="text-sm mt-2"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
+                  <div className="text-sm mt-2" style={{ color: "var(--color-text-secondary)" }}>
                     GPA: {edu.gpa}
                   </div>
                 )}
 
                 {edu.honors && (
-                  <div
-                    className="text-sm mt-2"
-                    style={{ color: "var(--color-primary)" }}
-                  >
+                  <div className="text-sm mt-2" style={{ color: "var(--color-primary)" }}>
                     {edu.honors}
                   </div>
                 )}

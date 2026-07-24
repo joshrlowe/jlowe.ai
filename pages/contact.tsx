@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element, @next/next/no-html-link-for-pages, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 /**
  * Contact Page
  *
@@ -11,8 +11,7 @@
  */
 
 import { ReactNode, useEffect, useState, useRef } from "react";
-import { gsap } from "gsap";
-import TextTransition, { presets } from "react-text-transition";
+import { gsap } from "@/lib/animations/gsap";
 import SEO from "@/components/SEO";
 import { trackExternalLink } from "@/lib/analytics";
 import { getPrefersReducedMotion } from "@/lib/hooks";
@@ -31,7 +30,6 @@ interface SocialItem {
 
 const DEFAULT_HERO_WORDS = ["Amazing", "Innovative", "Momentous"];
 
-// Word carousel using react-text-transition for smooth spring-based animations
 interface WordCarouselProps {
   words?: string[];
 }
@@ -47,20 +45,21 @@ function WordCarousel({ words = DEFAULT_HERO_WORDS }: WordCarouselProps) {
     return () => clearInterval(interval);
   }, [words.length]);
 
-  // Apply gradient to the inner text element so it works with TextTransition's wrapper
-  const wordStyle = {
-    background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-    display: "inline-block",
-  };
-
   return (
-    <span className="inline-block">
-      <TextTransition springConfig={presets.gentle} direction="down">
-        <span style={wordStyle}>{words[index]}</span>
-      </TextTransition>
+    <span className="inline-block" data-testid="word-carousel">
+      <span
+        key={index}
+        className="word-carousel-item"
+        style={{
+          background: "linear-gradient(135deg, #E85D04 0%, #FFBA08 50%, #FAA307 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          display: "inline-block",
+        }}
+      >
+        {words[index]}
+      </span>
     </span>
   );
 }
@@ -89,8 +88,7 @@ export default function ContactPage() {
   }, []);
 
   // Get hero words from contact data or use defaults
-  const heroWords =
-    (contactData?.heroWords as string[] | null) || DEFAULT_HERO_WORDS;
+  const heroWords = (contactData?.heroWords as string[] | null) || DEFAULT_HERO_WORDS;
 
   useEffect(() => {
     if (!mounted) return;
@@ -103,30 +101,21 @@ export default function ContactPage() {
       tl.fromTo(
         contentRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, delay: 0.3 },
+        { opacity: 1, y: 0, duration: 0.8, delay: 0.3 }
       );
     }
   }, [mounted]);
 
-  const socialLinks =
-    (contactData?.socialMediaLinks as Record<string, string | undefined>) ||
-    {};
+  const socialLinks = (contactData?.socialMediaLinks as Record<string, string | undefined>) || {};
 
   const socialItems: SocialItem[] = [
     {
       key: "email",
-      href: contactData?.emailAddress
-        ? `mailto:${contactData.emailAddress}`
-        : "#",
+      href: contactData?.emailAddress ? `mailto:${contactData.emailAddress}` : "#",
       label: "Email",
       description: "Send me an email",
       icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -155,12 +144,14 @@ export default function ContactPage() {
       label: "Handshake",
       description: "Connect with me on Handshake",
       icon: (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src="/images/handshake-logo.png"
           alt="Handshake"
           className="w-6 h-6 object-contain"
-          style={{ filter: "brightness(0) saturate(100%) invert(89%) sepia(47%) saturate(641%) hue-rotate(22deg) brightness(102%) contrast(101%)" }}
+          style={{
+            filter:
+              "brightness(0) saturate(100%) invert(89%) sepia(47%) saturate(641%) hue-rotate(22deg) brightness(102%) contrast(101%)",
+          }}
         />
       ),
       color: "handshake",
@@ -233,14 +224,12 @@ export default function ContactPage() {
       <>
         <SEO
           title="Contact - Josh Lowe"
-          description="Get in touch with Josh Lowe for AI consulting and engineering projects."
+          description="Get in touch with Josh Lowe for AI consulting, machine learning projects, and full-stack development."
         />
         <div className="section flex items-center justify-center min-h-[60vh]">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-            <span className="text-[var(--color-text-muted)]">
-              Loading contact info...
-            </span>
+            <span className="text-[var(--color-text-muted)]">Loading contact info...</span>
           </div>
         </div>
       </>
@@ -273,10 +262,7 @@ export default function ContactPage() {
           </div>
 
           {/* Content */}
-          <div
-            ref={contentRef}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-          >
+          <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Contact Card */}
             <div className="glass-card p-8">
               <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-6 font-[family-name:var(--font-oswald)]">
@@ -289,9 +275,7 @@ export default function ContactPage() {
                   <label className="text-sm text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">
                     Name
                   </label>
-                  <p className="text-lg text-[var(--color-text-primary)]">
-                    Josh Lowe
-                  </p>
+                  <p className="text-lg text-[var(--color-text-primary)]">Josh Lowe</p>
                 </div>
 
                 {/* Email */}
@@ -323,7 +307,6 @@ export default function ContactPage() {
                     </a>
                   </div>
                 )}
-
               </div>
             </div>
 
@@ -342,14 +325,8 @@ export default function ContactPage() {
                     <a
                       key={item.key}
                       href={item.href}
-                      target={
-                        item.href.startsWith("mailto:") ? undefined : "_blank"
-                      }
-                      rel={
-                        item.href.startsWith("mailto:")
-                          ? undefined
-                          : "noopener noreferrer"
-                      }
+                      target={item.href.startsWith("mailto:") ? undefined : "_blank"}
+                      rel={item.href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
                       onClick={(e) => {
                         if (isDisabled) {
                           e.preventDefault();
@@ -375,12 +352,8 @@ export default function ContactPage() {
                         {item.icon}
                       </div>
                       <div>
-                        <p className="font-medium text-[var(--color-text-primary)]">
-                          {item.label}
-                        </p>
-                        <p className="text-sm text-[var(--color-text-muted)]">
-                          {item.description}
-                        </p>
+                        <p className="font-medium text-[var(--color-text-primary)]">{item.label}</p>
+                        <p className="text-sm text-[var(--color-text-muted)]">{item.description}</p>
                       </div>
                       <svg
                         className="w-5 h-5 ml-auto text-[var(--color-text-muted)]"
@@ -399,7 +372,6 @@ export default function ContactPage() {
                   );
                 })}
               </div>
-
             </div>
           </div>
         </div>

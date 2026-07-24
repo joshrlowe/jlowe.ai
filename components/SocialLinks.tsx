@@ -1,9 +1,7 @@
-/* eslint-disable react/no-unescaped-entities, react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization, react-hooks/immutability, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element, no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/animations/gsap";
 import type { Contact } from "@/lib/types";
 import styles from "@/styles/SocialLinks.module.css";
 
@@ -19,17 +17,13 @@ interface SocialLinksProps {
   vertical?: boolean;
 }
 
-export default function SocialLinks({
-  contactData,
-  vertical = false,
-}: SocialLinksProps) {
+export default function SocialLinks({ contactData, vertical = false }: SocialLinksProps) {
   const containerRef = useRef<HTMLElement | null>(null);
 
   // Extract links directly from contactData prop to avoid state-based hydration issues
   // Memoize to prevent useEffect dependency from changing on every render
   const socialLinks = useMemo<SocialMediaLinks>(() => {
-    return contactData?.socialMediaLinks &&
-      typeof contactData.socialMediaLinks === "object"
+    return contactData?.socialMediaLinks && typeof contactData.socialMediaLinks === "object"
       ? (contactData.socialMediaLinks as SocialMediaLinks)
       : {};
   }, [contactData]);
@@ -37,9 +31,7 @@ export default function SocialLinks({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const links = containerRef.current.querySelectorAll(
-      `.${styles.socialLink}`,
-    );
+    const links = containerRef.current.querySelectorAll(`.${styles.socialLink}`);
 
     links.forEach((link, index) => {
       gsap.fromTo(
@@ -53,7 +45,7 @@ export default function SocialLinks({
           duration: 0.5,
           delay: index * 0.1,
           ease: "back.out(1.7)",
-        },
+        }
       );
     });
   }, [socialLinks, vertical]);
@@ -64,16 +56,10 @@ export default function SocialLinks({
     return null;
   }
 
-  const containerClass = vertical
-    ? styles.socialLinksVertical
-    : styles.socialLinks;
+  const containerClass = vertical ? styles.socialLinksVertical : styles.socialLinks;
 
   return (
-    <nav
-      ref={containerRef}
-      className={containerClass}
-      aria-label="Social media links"
-    >
+    <nav ref={containerRef} className={containerClass} aria-label="Social media links">
       {socialLinks.github && (
         <Link
           href={socialLinks.github}
@@ -82,13 +68,7 @@ export default function SocialLinks({
           className={styles.socialLink}
           aria-label="Visit GitHub profile"
         >
-          <Image
-            src="/images/github-logo.png"
-            alt="GitHub"
-            width={24}
-            height={24}
-            unoptimized
-          />
+          <Image src="/images/github-logo.png" alt="GitHub" width={24} height={24} unoptimized />
         </Link>
       )}
       {socialLinks.linkedIn && (
@@ -116,13 +96,7 @@ export default function SocialLinks({
           className={styles.socialLink}
           aria-label="Visit X (Twitter) profile"
         >
-          <Image
-            src="/images/x-logo.png"
-            alt="X (Twitter)"
-            width={24}
-            height={24}
-            unoptimized
-          />
+          <Image src="/images/x-logo.png" alt="X (Twitter)" width={24} height={24} unoptimized />
         </Link>
       )}
       {contactData.emailAddress && (
@@ -131,13 +105,7 @@ export default function SocialLinks({
           className={styles.socialLink}
           aria-label="Send email"
         >
-          <Image
-            src="/images/email-logo.png"
-            alt="Email"
-            width={24}
-            height={24}
-            unoptimized
-          />
+          <Image src="/images/email-logo.png" alt="Email" width={24} height={24} unoptimized />
         </Link>
       )}
     </nav>

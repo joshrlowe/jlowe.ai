@@ -84,10 +84,7 @@ export default function GlobalSettingsSection({ onError }: GlobalSettingsSection
   const addNavLink = () => {
     setSettings({
       ...settings,
-      navLinks: [
-        ...settings.navLinks,
-        { label: "", href: "", order: settings.navLinks.length },
-      ],
+      navLinks: [...settings.navLinks, { label: "", href: "", order: settings.navLinks.length }],
     });
   };
 

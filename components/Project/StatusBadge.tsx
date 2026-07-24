@@ -79,10 +79,7 @@ export default function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
         color: config.text,
       }}
     >
-      <span
-        className="w-1.5 h-1.5 rounded-full"
-        style={{ background: config.text }}
-      />
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: config.text }} />
       {config.label}
     </span>
   );

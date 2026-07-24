@@ -9,18 +9,14 @@ import { inngest } from "../../../../lib/jobs/client";
 
 async function emitProjectEvents(
   name: "content/project.upserted" | "content/project.deleted",
-  projectIds: string[],
+  projectIds: string[]
 ): Promise<void> {
   const results = await Promise.allSettled(
-    projectIds.map((projectId) =>
-      inngest.send({ name, data: { projectId } }),
-    ),
+    projectIds.map((projectId) => inngest.send({ name, data: { projectId } }))
   );
   const failed = results.filter((r) => r.status === "rejected");
   if (failed.length > 0) {
-    console.warn(
-      `[projects/bulk] ${failed.length}/${projectIds.length} ${name} emit(s) failed`,
-    );
+    console.warn(`[projects/bulk] ${failed.length}/${projectIds.length} ${name} emit(s) failed`);
   }
 }
 
@@ -93,9 +89,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, token: JWT) {
 
       case "updateFeatured":
         if (data?.featured === undefined) {
-          return res
-            .status(400)
-            .json({ message: "Featured value is required" });
+          return res.status(400).json({ message: "Featured value is required" });
         }
         await prisma.project.updateMany({
           where: { id: { in: projectIds } },

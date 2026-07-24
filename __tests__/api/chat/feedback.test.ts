@@ -122,9 +122,11 @@ describe("/api/chat/feedback", () => {
     await reHandler(req as any, res as any);
 
     expect(res.statusCode).toBe(204);
-    const calls = (reMock as unknown as {
-      __getCalls(): { kind: string; body?: unknown }[];
-    }).__getCalls();
+    const calls = (
+      reMock as unknown as {
+        __getCalls(): { kind: string; body?: unknown }[];
+      }
+    ).__getCalls();
     const score = calls.find((c) => c.kind === "score");
     expect(score).toBeDefined();
     expect(score?.body).toEqual({

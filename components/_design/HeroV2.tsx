@@ -35,10 +35,7 @@ const SHIP_RANGE: [number, number] = [23, 26];
 
 export default function HeroV2({ attribution }: HeroV2Props) {
   return (
-    <section
-      className="relative w-full min-h-screen overflow-hidden bg-black"
-      aria-label="Hero"
-    >
+    <section className="relative w-full min-h-screen overflow-hidden bg-black" aria-label="Hero">
       {/* Full-bleed fluid heat field. Lives behind everything; pointer
           events still pass through to the headline + CTAs. */}
       <div className="absolute inset-0 z-0 pointer-events-auto">
@@ -85,10 +82,9 @@ export default function HeroV2({ attribution }: HeroV2Props) {
             className="font-body-neutral mt-10 sm:mt-14 max-w-[42rem] text-lg sm:text-xl leading-relaxed"
             style={{ color: "rgba(250, 250, 250, 0.78)" }}
           >
-            <span style={{ color: "var(--color-stillness)" }}>RAG</span> that
-            ships into production. <span style={{ color: "var(--color-stillness)" }}>Evals</span>
-            {" "}that catch regressions before users do. Currently benchmarking
-            seven frontier LLMs on automated program repair.
+            <span style={{ color: "var(--color-stillness)" }}>RAG</span> that ships into production.{" "}
+            <span style={{ color: "var(--color-stillness)" }}>Evals</span> that catch regressions
+            before users do. Currently benchmarking seven frontier LLMs on automated program repair.
           </p>
 
           {/* Hairline rule then CTAs. CTAs deliberately use different
@@ -117,10 +113,7 @@ export default function HeroV2({ attribution }: HeroV2Props) {
               </span>
             </Link>
 
-            <Link
-              href="/contact"
-              className="ember-fill-cta font-body-neutral"
-            >
+            <Link href="/contact" className="ember-fill-cta font-body-neutral">
               Talk to me
             </Link>
           </div>

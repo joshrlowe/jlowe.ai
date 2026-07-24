@@ -29,12 +29,8 @@ export default function Hobbies({ hobbies = [] }: HobbiesProps) {
               key={index}
               className="p-4 rounded-lg text-center transition-colors duration-300"
               style={{
-                background: hobbyColor
-                  ? `${hobbyColor}15`
-                  : "var(--color-bg-darker)",
-                border: hobbyColor
-                  ? `1px solid ${hobbyColor}30`
-                  : "1px solid transparent",
+                background: hobbyColor ? `${hobbyColor}15` : "var(--color-bg-darker)",
+                border: hobbyColor ? `1px solid ${hobbyColor}30` : "1px solid transparent",
               }}
             >
               {hobbyObj.icon && <div className="text-3xl mb-2">{hobbyObj.icon}</div>}

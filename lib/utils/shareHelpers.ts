@@ -12,11 +12,7 @@ export interface ShareUrls {
 /**
  * Generate social share URLs
  */
-export function generateShareUrls(
-  url: string,
-  title: string,
-  description: string,
-): ShareUrls {
+export function generateShareUrls(url: string, title: string, description: string): ShareUrls {
   const encodedUrl = encodeURIComponent(url || "");
   const encodedTitle = encodeURIComponent(title || "");
   const encodedDescription = encodeURIComponent(description || "");
@@ -34,12 +30,10 @@ export function generateShareUrls(
  */
 export async function copyToClipboard(
   url: string,
-  fallbackUrl = "",
+  fallbackUrl = ""
 ): Promise<{ success: boolean; error?: unknown }> {
   try {
-    const urlToCopy =
-      url ||
-      (typeof window !== "undefined" ? window.location.href : fallbackUrl);
+    const urlToCopy = url || (typeof window !== "undefined" ? window.location.href : fallbackUrl);
     await navigator.clipboard.writeText(urlToCopy);
     return { success: true };
   } catch (error) {
