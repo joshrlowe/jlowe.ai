@@ -216,6 +216,15 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Enable pgvector extension
+        # `prisma db push` reads schema.prisma and ignores the migrations dir,
+        # so the hand-written `CREATE EXTENSION vector` in the knowledge-chunks
+        # migration never runs. The pgvector image ships the extension but does
+        # not enable it — create it here so the vector(1024) column pushes.
+        run: echo 'CREATE EXTENSION IF NOT EXISTS vector;' | npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
       - name: Setup database schema
         run: npx prisma db push --skip-generate
         env:
