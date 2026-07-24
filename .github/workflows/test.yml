@@ -185,7 +185,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        # pgvector image: the schema declares a vector(1024) column, so plain
+        # postgres:15 fails `prisma db push` with `type "vector" does not exist`.
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -219,70 +221,14 @@ jobs:
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
-      - name: Run unit tests with coverage
-        run: npm run test:coverage
+      - name: Run unit & integration tests
+        # Coverage instrumentation (babel-plugin-istanbul) is broken under the
+        # pinned jest 29 + minimatch override; ADR 0002 defers the fix and says
+        # CI should run the plain suite. Restore --coverage with the jest 30 bump.
+        run: npm test
         env:
           NODE_ENV: test
           DATABASE_URL: ${{ env.DATABASE_URL }}
-
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage/lcov.info
-          flags: unittests
-          name: unit-test-coverage
-          fail_ci_if_error: false
-        continue-on-error: true
-
-      - name: Upload coverage report as artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 30
-
-      - name: Check coverage thresholds
-        run: |
-          echo "Checking coverage thresholds..."
-          npm run test:coverage -- --coverageThreshold='{"global":{"statements":70,"branches":60,"functions":70,"lines":70}}'
-        continue-on-error: true
-
-      - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        continue-on-error: true
-        with:
-          script: |
-            const fs = require('fs');
-            const coveragePath = './coverage/coverage-summary.json';
-
-            if (!fs.existsSync(coveragePath)) {
-              console.log('Coverage summary not found');
-              return;
-            }
-
-            const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
-            const total = coverage.total;
-
-            const comment = `## 📊 Coverage Report
-
-            | Metric | Coverage |
-            |--------|----------|
-            | Statements | ${total.statements.pct}% |
-            | Branches | ${total.branches.pct}% |
-            | Functions | ${total.functions.pct}% |
-            | Lines | ${total.lines.pct}% |
-
-            [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            `;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
 
   # ===========================================================================
   # STAGE 3: LIGHTHOUSE CI (runs after build for performance auditing)
