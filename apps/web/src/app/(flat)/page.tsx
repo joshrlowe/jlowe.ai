@@ -8,9 +8,13 @@ import { TypingTagline } from "@/components/typing-tagline";
 import { Button } from "@/components/ui/button";
 import { PROJECTS } from "@/data/projects";
 import { TYPING_PHRASES } from "@/data/site";
+import { getContributions } from "@/lib/github/contributions";
 
-export default function HomePage() {
+export default async function HomePage() {
   const featured = PROJECTS.filter((project) => project.featured);
+  // Fetched at build time under `output: "export"`; falls back to the seeded
+  // grid when GITHUB_TOKEN is absent (see lib/github/contributions).
+  const contributions = await getContributions();
 
   return (
     <>
@@ -50,7 +54,7 @@ export default function HomePage() {
         description="A visual representation of my coding journey."
         className="pb-20"
       >
-        <ContributionsPlaceholder />
+        <ContributionsPlaceholder data={contributions} />
       </Section>
     </>
   );
