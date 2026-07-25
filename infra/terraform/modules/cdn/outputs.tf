@@ -18,3 +18,8 @@ output "distribution_domain_name" {
   description = "dxxxx.cloudfront.net — smoke-test target before DNS delegation"
   value       = aws_cloudfront_distribution.site.domain_name
 }
+
+output "logs_bucket_name" {
+  description = "S3 bucket holding CloudFront standard (v2) access logs"
+  value       = aws_s3_bucket.logs.bucket
+}
