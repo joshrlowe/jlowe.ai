@@ -19,3 +19,23 @@ output "chat_function_name" {
   description = "Chat Lambda name (gha-deploy-chat targets this)"
   value       = module.chat.function_name
 }
+
+output "budget_id" {
+  description = "Monthly cost budget id (null when budgets are disabled)."
+  value       = var.enable_budgets ? module.budgets[0].budget_id : null
+}
+
+output "budget_sns_topic_arn" {
+  description = "Budget-alerts SNS topic ARN (null when budgets are disabled)."
+  value       = var.enable_budgets ? module.budgets[0].sns_topic_arn : null
+}
+
+output "alarm_names" {
+  description = "CloudWatch alarm names (null when alarms are disabled)."
+  value       = var.enable_alarms ? module.alarms[0].alarm_names : null
+}
+
+output "ops_sns_topic_arn" {
+  description = "Ops-alerts SNS topic ARN (null when alarms are disabled or no ops emails set)."
+  value       = var.enable_alarms ? module.alarms[0].ops_sns_topic_arn : null
+}
