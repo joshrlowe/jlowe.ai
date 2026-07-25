@@ -20,12 +20,23 @@ async function collect(gen: AsyncGenerator<string>): Promise<string[]> {
   return out;
 }
 
+/** Hex-encoded SHA-256 of a UTF-8 string — mirrors the client's payload hash. */
+async function sha256Hex(input: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(input),
+  );
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
 describe("streamChat", () => {
-  it("POSTs to /api/chat with JSON body and the abort signal", async () => {
+  it("POSTs to /api/chat with JSON body, payload-hash header, and the abort signal", async () => {
     const fetchMock = vi.fn().mockResolvedValue(streamingResponse(["hi"]));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -43,6 +54,12 @@ describe("streamChat", () => {
     expect(url).toBe("/api/chat");
     expect(options.method).toBe("POST");
     expect(options.headers["content-type"]).toBe("application/json");
+    // OAC-for-Lambda contract: the viewer must send the body's payload hash so
+    // CloudFront can fold it into the SigV4 signature it forwards to the
+    // Function URL. The header must be the SHA-256 of the exact bytes sent.
+    expect(options.headers["x-amz-content-sha256"]).toBe(
+      await sha256Hex(options.body),
+    );
     expect(JSON.parse(options.body)).toEqual(req);
     expect(options.signal).toBe(controller.signal);
   });
