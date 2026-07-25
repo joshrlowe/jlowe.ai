@@ -378,6 +378,21 @@ resource "aws_lambda_permission" "chat_invoke_url" {
   function_url_auth_type = "AWS_IAM"
 }
 
+# Oct-2025 "dual auth": invoking an AuthType=AWS_IAM Function URL now requires
+# the caller to hold BOTH lambda:InvokeFunctionUrl AND lambda:InvokeFunction.
+# Granting only the former lets the OAC SigV4 signature validate and then fails
+# authorization with AccessDeniedException ("Forbidden. For troubleshooting
+# Function URL authorization ..."). AWS's canonical CloudFront-OAC policy scopes
+# this second statement by SourceArn (this distribution) only.
+# https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html
+resource "aws_lambda_permission" "chat_invoke_function" {
+  statement_id  = "AllowCloudFrontInvokeChatFunction"
+  action        = "lambda:InvokeFunction"
+  function_name = var.chat_function_name
+  principal     = "cloudfront.amazonaws.com"
+  source_arn    = aws_cloudfront_distribution.site.arn
+}
+
 # --- Access logging ---------------------------------------------------------
 # CloudFront *standard logging v2* (the CloudWatch log-delivery pipeline), not
 # the legacy `logging_config` block. v2 delivers to an S3 bucket that keeps
