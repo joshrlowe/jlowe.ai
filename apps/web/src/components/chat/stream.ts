@@ -20,6 +20,23 @@ export interface ChatRequest {
 }
 
 /**
+ * Hex-encoded SHA-256 of a UTF-8 string via the Web Crypto API. The `/api/chat`
+ * origin is a Lambda Function URL behind CloudFront Origin Access Control (OAC);
+ * AWS's OAC-for-Lambda contract requires the viewer to send the POST body's
+ * payload hash in `x-amz-content-sha256` so CloudFront can include it in the
+ * SigV4 signature it sends to the Function URL (Lambda rejects unsigned
+ * payloads). Verified: with this header, POST /api/chat returns 200 through the
+ * dev CloudFront distribution.
+ */
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
  * POST the conversation and stream back the assistant's reply as raw text
  * deltas. Throws on a non-OK response or a missing body; the caller (the
  * store's `send`) is responsible for surfacing that as an error state. The
@@ -29,10 +46,15 @@ export async function* streamChat(
   req: ChatRequest,
   signal: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
+  const body = JSON.stringify(req);
+  const payloadHash = await sha256Hex(body);
   const res = await fetch("/api/chat", {
     method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(req),
+    headers: {
+      "content-type": "application/json",
+      "x-amz-content-sha256": payloadHash,
+    },
+    body,
     signal,
   });
 
