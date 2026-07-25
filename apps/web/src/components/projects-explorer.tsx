@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { ProjectCard } from "@/components/project-card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ALL_TAGS, type Project } from "@/data/projects";
+import { type Project } from "@/data/projects";
 import { cn } from "@/lib/utils";
 
 export function ProjectsExplorer({
@@ -15,6 +15,13 @@ export function ProjectsExplorer({
 }) {
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  // Tags come from whatever projects were passed (corpus stack, or placeholder
+  // tags) so the filter row always matches the visible set.
+  const allTags = useMemo(
+    () => [...new Set(projects.flatMap((project) => project.tags))],
+    [projects],
+  );
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -40,7 +47,7 @@ export function ProjectsExplorer({
           className="sm:max-w-sm"
         />
         <div className="flex flex-wrap gap-1.5">
-          {ALL_TAGS.map((tag) => (
+          {allTags.map((tag) => (
             <button
               key={tag}
               type="button"

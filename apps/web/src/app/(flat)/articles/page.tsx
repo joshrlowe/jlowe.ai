@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ARTICLES } from "@/data/articles";
+import { entriesByKind, summarize } from "@/lib/corpus";
 
 export const metadata: Metadata = {
   title: "Articles",
@@ -25,6 +26,40 @@ function formatDate(iso: string): string {
 }
 
 export default function ArticlesPage() {
+  // Corpus is the single source of truth. When it grows `kind: article` entries,
+  // list them here. Until the owner authors any, fall back to the placeholder
+  // previews so the page is never empty.
+  //
+  // NOTE (plumbing gap): a live /articles/[slug] detail route can't ship yet —
+  // `output: "export"` rejects a dynamic route whose generateStaticParams is
+  // empty, and the corpus has zero articles. Once the first article lands,
+  // copy apps/web/src/app/(flat)/projects/[slug]/page.tsx (swap kind → "article"
+  // and CreativeWork → BlogPosting) and link these cards to it.
+  const corpusArticles = entriesByKind("article");
+
+  if (corpusArticles.length > 0) {
+    return (
+      <div className="py-14 pb-20">
+        <h1 className="text-3xl font-semibold tracking-tight">Articles</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Articles, tutorials, and insights on AI engineering and web
+          technology.
+        </p>
+
+        <div className="mt-8 space-y-4">
+          {corpusArticles.map((article) => (
+            <Card key={article.slug}>
+              <CardHeader>
+                <CardTitle className="text-base">{article.title}</CardTitle>
+                <CardDescription>{summarize(article)}</CardDescription>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-14 pb-20">
       <h1 className="text-3xl font-semibold tracking-tight">Articles</h1>
