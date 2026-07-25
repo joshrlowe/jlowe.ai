@@ -30,6 +30,37 @@ module "chat" {
   lambda_zip_path  = "${path.module}/../../../services/chat/dist/handler.zip"
 }
 
+# Cost guardrails (Stage 2.4) — optional per env, gated by enable_* flags so a
+# plan is a no-op until an owner flips them on (and supplies emails) at apply.
+module "budgets" {
+  count  = var.enable_budgets ? 1 : 0
+  source = "../modules/budgets"
+
+  environment       = var.environment
+  monthly_limit_usd = var.budget_monthly_limit_usd
+  alert_emails      = var.budget_alert_emails
+}
+
+module "alarms" {
+  count  = var.enable_alarms ? 1 : 0
+  source = "../modules/alarms"
+
+  environment                = var.environment
+  lambda_function_name       = module.chat.function_name
+  cloudfront_distribution_id = module.cdn.distribution_id
+
+  ops_alert_emails = var.ops_alert_emails
+  # Reuse the budgets topic when budgets are on, so cost + ops alerts share a
+  # channel; the ternary keeps module.budgets[0] out of scope when it's absent.
+  extra_alarm_action_arns = var.enable_budgets ? [module.budgets[0].sns_topic_arn] : []
+
+  lambda_error_threshold                 = var.lambda_error_threshold
+  lambda_throttle_threshold              = var.lambda_throttle_threshold
+  cloudfront_5xx_rate_threshold          = var.cloudfront_5xx_rate_threshold
+  lambda_duration_p99_threshold_ms       = var.lambda_duration_p99_threshold_ms
+  lambda_concurrent_executions_threshold = var.lambda_concurrent_executions_threshold
+}
+
 # Skeleton modules — wired here when implemented in their phases:
 # module "waf" {
 #   source      = "../modules/waf"
@@ -37,9 +68,5 @@ module "chat" {
 # }
 # module "knowledge_base" {
 #   source      = "../modules/knowledge_base"
-#   environment = var.environment
-# }
-# module "budgets" {
-#   source      = "../modules/budgets"
 #   environment = var.environment
 # }
