@@ -29,11 +29,11 @@ jobs:
     environment:
       name: ${{ github.event_name == 'push' && 'prod' || inputs.environment }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -48,7 +48,7 @@ jobs:
           pnpm --filter @velocity/chat build
           cd services/chat/dist && zip -q handler.zip handler.mjs handler.mjs.map
 
-      - uses: aws-actions/configure-aws-credentials@v6
+      - uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: ${{ vars.GHA_DEPLOY_CHAT_ROLE_ARN }}
           aws-region: us-east-1
