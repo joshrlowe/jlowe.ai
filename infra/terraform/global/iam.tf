@@ -107,13 +107,16 @@ resource "aws_iam_role" "deploy_chat" {
 data "aws_iam_policy_document" "deploy_chat" {
   # Function names are per-env (envs stack: jlowe-ai-chat-dev|prod), so wildcard
   # on the naming convention enforced by modules/chat. UpdateFunctionCode only —
-  # no UpdateFunctionConfiguration (Terraform owns config).
+  # no UpdateFunctionConfiguration (Terraform owns config). The Get* reads are
+  # what `aws lambda wait function-updated` polls after the code push
+  # (GetFunctionConfiguration), plus GetFunction for pre/post-deploy checks.
   statement {
     sid    = "UpdateChatFunctionCode"
     effect = "Allow"
     actions = [
       "lambda:UpdateFunctionCode",
       "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
     ]
     resources = ["arn:aws:lambda:us-east-1:${var.aws_account_id}:function:jlowe-ai-chat-*"]
   }
