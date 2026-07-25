@@ -251,6 +251,9 @@ resource "aws_cloudfront_distribution" "site" {
   price_class         = var.price_class
   aliases             = var.dns_delegated ? [var.domain_name] : []
 
+  # Optional edge WAF (modules/waf). CloudFront takes the Web ACL *ARN* here.
+  web_acl_id = var.waf_web_acl_arn
+
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
     origin_id                = "s3-${local.bucket_name}"

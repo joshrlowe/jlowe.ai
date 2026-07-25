@@ -39,3 +39,8 @@ output "ops_sns_topic_arn" {
   description = "Ops-alerts SNS topic ARN (null when alarms are disabled or no ops emails set)."
   value       = var.enable_alarms ? module.alarms[0].ops_sns_topic_arn : null
 }
+
+output "waf_web_acl_arn" {
+  description = "ARN of the edge WAF Web ACL associated with the distribution"
+  value       = module.waf.web_acl_arn
+}

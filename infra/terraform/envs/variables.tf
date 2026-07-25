@@ -93,3 +93,9 @@ variable "lambda_concurrent_executions_threshold" {
   type        = number
   default     = 50
 }
+
+variable "chat_rate_limit" {
+  description = "Per-IP WAF rate limit for /api/chat* over 5 minutes (see modules/waf)"
+  type        = number
+  default     = 1000
+}

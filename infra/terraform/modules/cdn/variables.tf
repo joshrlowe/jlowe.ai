@@ -59,3 +59,13 @@ variable "mask_origin_403_as_404" {
   type        = bool
   default     = true
 }
+
+variable "waf_web_acl_arn" {
+  description = <<-EOT
+    ARN of a CLOUDFRONT-scope WAFv2 Web ACL (from modules/waf) to associate with
+    this distribution. Optional/toggleable: null leaves the distribution without
+    a WAF. Must be a us-east-1 CLOUDFRONT-scope ACL.
+  EOT
+  type        = string
+  default     = null
+}
