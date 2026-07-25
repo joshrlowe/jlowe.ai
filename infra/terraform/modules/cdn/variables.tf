@@ -45,3 +45,17 @@ variable "chat_function_name" {
   description = "Chat Lambda function name (for the CloudFront invoke permission)."
   type        = string
 }
+
+variable "mask_origin_403_as_404" {
+  description = <<-EOT
+    When true (default, prod-safe), a distribution-wide custom error response
+    remaps origin 403s to the friendly /404.html page — good for missing S3 keys
+    on an OAC'd private bucket, but it also hides the chat Lambda origin's real
+    403s (the /api/chat OAC failure looks like an S3 404). Set false on an
+    environment you are actively debugging (dev) so the true origin status
+    reaches the viewer and the access logs; the tradeoff is that a genuinely
+    missing S3 key then surfaces a raw 403 instead of /404.html.
+  EOT
+  type        = bool
+  default     = true
+}

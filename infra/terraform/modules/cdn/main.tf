@@ -1,6 +1,9 @@
 locals {
   bucket_name = "jlowe-ai-site-${var.environment}"
+  logs_bucket = "jlowe-ai-cdn-logs-${var.environment}"
 }
+
+data "aws_caller_identity" "current" {}
 
 # --- Private origin bucket --------------------------------------------------
 resource "aws_s3_bucket" "site" {
@@ -320,18 +323,33 @@ resource "aws_cloudfront_distribution" "site" {
   }
 
   # An OAC'd private bucket returns 403 for missing keys (CloudFront has no
-  # s3:ListBucket), so map both to the exported 404 page.
-  custom_error_response {
-    error_code            = 403
-    response_code         = 404
-    response_page_path    = "/404.html"
-    error_caching_min_ttl = 60
+  # s3:ListBucket), so we normally map that to the exported 404 page.
+  #
+  # BUT this remap is distribution-wide, so it also swallows the chat Lambda
+  # origin's 403s (OAC/Function-URL signing failures) and serves /404.html from
+  # S3 — which is exactly why `POST /api/chat` looks like an S3 404. Gating the
+  # 403 remap on `mask_origin_403_as_404` lets an environment (dev) turn it OFF
+  # so the *true* origin status reaches the viewer and the access logs
+  # (sc-status = 403), while prod keeps the friendly S3 404 page. See the module
+  # README / PR for the tradeoff: with it off, a genuinely missing S3 key also
+  # surfaces a raw 403 instead of /404.html — acceptable on the noindex'd dev
+  # host, not on prod.
+  dynamic "custom_error_response" {
+    for_each = var.mask_origin_403_as_404 ? [1] : []
+    content {
+      error_code         = 403
+      response_code      = 404
+      response_page_path = "/404.html"
+      # No error caching: a cached 403 would keep masking the live status while
+      # the maintainer is actively debugging the OAC handshake.
+      error_caching_min_ttl = 0
+    }
   }
   custom_error_response {
     error_code            = 404
     response_code         = 404
     response_page_path    = "/404.html"
-    error_caching_min_ttl = 60
+    error_caching_min_ttl = 0
   }
 
   restrictions {
@@ -358,6 +376,137 @@ resource "aws_lambda_permission" "chat_invoke_url" {
   principal              = "cloudfront.amazonaws.com"
   source_arn             = aws_cloudfront_distribution.site.arn
   function_url_auth_type = "AWS_IAM"
+}
+
+# --- Access logging ---------------------------------------------------------
+# CloudFront *standard logging v2* (the CloudWatch log-delivery pipeline), not
+# the legacy `logging_config` block. v2 delivers to an S3 bucket that keeps
+# `BucketOwnerEnforced` (ACLs disabled) — consistent with the site bucket's
+# security posture — whereas legacy logging requires re-enabling bucket ACLs.
+# These logs record the real per-request `sc-status` + `x-edge-result-type`, so
+# a `/api/chat` 403 is visible even while the 403→404 remap is still masking it
+# for the S3 site paths.
+resource "aws_s3_bucket" "logs" {
+  bucket = local.logs_bucket
+}
+
+resource "aws_s3_bucket_public_access_block" "logs" {
+  bucket                  = aws_s3_bucket.logs.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  rule {
+    id     = "expire-logs"
+    status = "Enabled"
+    filter {}
+    expiration {
+      days = 90 # access logs are a debugging aid, not an archive
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+# Let the CloudWatch Logs delivery service write vended CloudFront logs here.
+# Scoped to this account's delivery sources; no ACL header is required because
+# the bucket is BucketOwnerEnforced.
+data "aws_iam_policy_document" "logs" {
+  statement {
+    sid       = "AWSLogDeliveryWrite"
+    effect    = "Allow"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.logs.arn}/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:delivery-source:*"]
+    }
+  }
+  statement {
+    sid       = "AWSLogDeliveryAclCheck"
+    effect    = "Allow"
+    actions   = ["s3:GetBucketAcl"]
+    resources = [aws_s3_bucket.logs.arn]
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:delivery-source:*"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  policy = data.aws_iam_policy_document.logs.json
+}
+
+# Standard logging v2 wiring: source (the distribution's ACCESS_LOGS) →
+# destination (the log bucket) → delivery (binds them, sets the S3 layout).
+resource "aws_cloudwatch_log_delivery_source" "cf_access" {
+  name         = "jlowe-ai-${var.environment}-cf-access-logs"
+  log_type     = "ACCESS_LOGS"
+  resource_arn = aws_cloudfront_distribution.site.arn
+}
+
+resource "aws_cloudwatch_log_delivery_destination" "cf_access_s3" {
+  name          = "jlowe-ai-${var.environment}-cf-access-logs-s3"
+  output_format = "json"
+
+  delivery_destination_configuration {
+    destination_resource_arn = aws_s3_bucket.logs.arn
+  }
+}
+
+resource "aws_cloudwatch_log_delivery" "cf_access" {
+  delivery_source_name     = aws_cloudwatch_log_delivery_source.cf_access.name
+  delivery_destination_arn = aws_cloudwatch_log_delivery_destination.cf_access_s3.arn
+
+  s3_delivery_configuration {
+    suffix_path                 = "cloudfront/{DistributionId}/{yyyy}/{MM}/{dd}/{HH}"
+    enable_hive_compatible_path = false
+  }
+
+  depends_on = [aws_s3_bucket_policy.logs]
 }
 
 # --- Alias records (gated on delegation) ------------------------------------

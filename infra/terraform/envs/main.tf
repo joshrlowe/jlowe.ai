@@ -13,6 +13,9 @@ module "cdn" {
   dns_delegated  = var.dns_delegated
   robots_noindex = var.robots_noindex
 
+  # dev sets this false to un-mask the chat origin's real 403 while debugging.
+  mask_origin_403_as_404 = var.mask_origin_403_as_404
+
   # /api/chat* origin + the CloudFront→FunctionURL invoke permission live here
   # (cdn depends on chat one-way; chat no longer references cdn → no cycle).
   chat_function_url_host = module.chat.function_url_host

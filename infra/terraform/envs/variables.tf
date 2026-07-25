@@ -25,3 +25,9 @@ variable "bedrock_model_id" {
   type        = string
   default     = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 }
+
+variable "mask_origin_403_as_404" {
+  description = "See modules/cdn — keep true on prod; false on dev to un-mask the /api/chat 403"
+  type        = bool
+  default     = true
+}
