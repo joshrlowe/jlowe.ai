@@ -18,11 +18,11 @@ step 4.3.
 
 ## Current wiring (verified against the code on `v2`)
 
-| Record | Owner (stack · resource) | Value | TTL |
-| --- | --- | --- | --- |
-| `jlowe.ai` **A** | `global` · `aws_route53_record.apex_vercel` (`global/dns.tf`) | `76.76.21.21` (Vercel) | 300 |
-| `www.jlowe.ai` **CNAME** | `global` · `aws_route53_record.www_vercel` (`global/dns.tf`) | `cname.vercel-dns.com` | 300 |
-| `dev.jlowe.ai` **A/AAAA** | `envs` (dev) · `module.cdn.aws_route53_record.alias` | CloudFront alias | alias |
+| Record                    | Owner (stack · resource)                                      | Value                  | TTL   |
+| ------------------------- | ------------------------------------------------------------- | ---------------------- | ----- |
+| `jlowe.ai` **A**          | `global` · `aws_route53_record.apex_vercel` (`global/dns.tf`) | `76.76.21.21` (Vercel) | 300   |
+| `www.jlowe.ai` **CNAME**  | `global` · `aws_route53_record.www_vercel` (`global/dns.tf`)  | `cname.vercel-dns.com` | 300   |
+| `dev.jlowe.ai` **A/AAAA** | `envs` (dev) · `module.cdn.aws_route53_record.alias`          | CloudFront alias       | alias |
 
 The prod env stack (`envs/`, workspace `prod`, state key `envs/prod/terraform.tfstate`)
 is **written but never applied**. When applied with `dns_delegated = true`, its
@@ -54,26 +54,26 @@ The `prod` and `terraform-prod` environments exist but their variables are empty
 (Phase 0 only populated `dev` / `terraform-dev`). Mirror the dev setup:
 
 - [ ] `prod` and `terraform-prod` environments have the **required reviewer**
-  gate configured (same as `terraform-dev`).
+      gate configured (same as `terraform-dev`).
 - [ ] Repo-level vars present from bootstrap: `AWS_ACCOUNT_ID`,
-  `GHA_TERRAFORM_ROLE_ARN`, `GHA_TERRAFORM_PLAN_ROLE_ARN`,
-  `GHA_DEPLOY_WEB_ROLE_ARN`, and **`GHA_DEPLOY_CHAT_ROLE_ARN`**
-  (bootstrap README step 4 omits the chat role — `deploy-chat.yml` reads
-  `vars.GHA_DEPLOY_CHAT_ROLE_ARN`; the ARN is `terraform -chdir=infra/terraform/global output deploy_chat_role_arn`).
+      `GHA_TERRAFORM_ROLE_ARN`, `GHA_TERRAFORM_PLAN_ROLE_ARN`,
+      `GHA_DEPLOY_WEB_ROLE_ARN`, and **`GHA_DEPLOY_CHAT_ROLE_ARN`**
+      (bootstrap README step 4 omits the chat role — `deploy-chat.yml` reads
+      `vars.GHA_DEPLOY_CHAT_ROLE_ARN`; the ARN is `terraform -chdir=infra/terraform/global output deploy_chat_role_arn`).
 - [ ] `INFRA_BOOTSTRAPPED == 'true'`, `CUTOVER_ENABLED == 'false'` (still false).
 - [ ] `prod`-scoped env vars will be set **after** the first apply (step 4.2):
-  `SITE_BUCKET=jlowe-ai-site-prod`, `CLOUDFRONT_DISTRIBUTION_ID=<id>`,
-  `SITE_URL=https://jlowe.ai`. (`deploy-web`/`deploy-chat` on a push resolve the
-  environment to `prod` and read these.)
+      `SITE_BUCKET=jlowe-ai-site-prod`, `CLOUDFRONT_DISTRIBUTION_ID=<id>`,
+      `SITE_URL=https://jlowe.ai`. (`deploy-web`/`deploy-chat` on a push resolve the
+      environment to `prod` and read these.)
 
 ### Terraform / infra review
 
 - [ ] `envs/prod.tfvars` reviewed: `environment=prod`, `domain_name=jlowe.ai`,
-  `dns_delegated=false` (correct for the **first** apply), `robots_noindex=false`
-  (prod is indexable), and `mask_origin_403_as_404` unset → default `true`
-  (prod serves the friendly `/404.html` on origin 403).
+      `dns_delegated=false` (correct for the **first** apply), `robots_noindex=false`
+      (prod is indexable), and `mask_origin_403_as_404` unset → default `true`
+      (prod serves the friendly `/404.html` on origin 403).
 - [ ] A `plan` for `envs/prod` has been run and read end-to-end
-  (`gh workflow run terraform.yml --ref v2 -f stack=envs -f environment=prod -f action=plan`).
+      (`gh workflow run terraform.yml --ref v2 -f stack=envs -f environment=prod -f action=plan`).
 
   > There is no `backend.prod.hcl` line in the `terraform.yml` **plan** matrix
   > (it only includes `global` and `envs-dev`). Confirm the dispatch plan path
@@ -84,12 +84,12 @@ The `prod` and `terraform-prod` environments exist but their variables are empty
 ### Dev fully verified (the dress rehearsal)
 
 - [ ] `dev.jlowe.ai` acceptance from the bootstrap runbook passes: HTTP/2 200,
-  all six security headers present, `x-robots-tag: noindex, nofollow`, `/about`
-  rewrites, `/nope` → 404 via `/404.html`.
+      all six security headers present, `x-robots-tag: noindex, nofollow`, `/about`
+      rewrites, `/nope` → 404 via `/404.html`.
 - [ ] **Chat works on dev end-to-end**: `POST https://dev.jlowe.ai/api/chat`
-  streams tokens (SSE), no 403. (Dev runs with `mask_origin_403_as_404=false`,
-  so any OAC/Function-URL signing failure surfaces as a real 403 in the viewer
-  and access logs rather than a masked S3 404.)
+      streams tokens (SSE), no 403. (Dev runs with `mask_origin_403_as_404=false`,
+      so any OAC/Function-URL signing failure surfaces as a real 403 in the viewer
+      and access logs rather than a masked S3 404.)
 
 ### Guardrails — BLOCKER, see open questions
 
@@ -161,8 +161,8 @@ the later prod apply recreates it — a multi-minute outage. Rejected.
 
 **Why the naive prod apply also fails.** `aws_route53_record.alias` has **no
 `allow_overwrite`**, so `alias["A"]` issues a Route53 `CREATE` for a name/type
-that already exists → the API returns *"Tried to create resource record set
-[name='jlowe.ai.', type='A'] but it already exists"* and the apply errors out.
+that already exists → the API returns _"Tried to create resource record set
+[name='jlowe.ai.', type='A'] but it already exists"_ and the apply errors out.
 
 **The zero-downtime path** relies on a Route53 `UPSERT` (atomic replace of the
 record set's value in one change — resolvers only ever see old-then-new, never
@@ -335,7 +335,7 @@ alias answer's cache (~60s) plus the new 300s TTL.
    (→ Vercel); this only re-establishes Terraform management.
 
 **Pre-cutover prep that speeds rollback:** the CloudFront alias A/AAAA answer with
-a short TTL already, but the *old* Vercel A carries TTL 300. Consider lowering the
+a short TTL already, but the _old_ Vercel A carries TTL 300. Consider lowering the
 apex A TTL to 60 for the 24h before cutover so both directions propagate in ~1
 min.
 
@@ -347,7 +347,7 @@ min.
 
 `modules/cdn` ships `strict_transport_security` with `max-age=63072000` (2y),
 `include_subdomains=true`, `preload=false` (see the comment in
-`modules/cdn/main.tf`: *"flip + submit to hstspreload.org at prod cutover"*).
+`modules/cdn/main.tf`: _"flip + submit to hstspreload.org at prod cutover"_).
 After a **burn-in of at least the max-age you're comfortable committing to** (days
 of stable HTTPS on apex **and** any subdomain, since `includeSubDomains` is on):
 
@@ -360,25 +360,25 @@ of stable HTTPS on apex **and** any subdomain, since `includeSubDomains` is on):
 ### Verification checklist
 
 - [ ] Headers on `https://jlowe.ai/`: `content-security-policy`,
-  `strict-transport-security`, `x-content-type-options: nosniff`,
-  `x-frame-options: DENY`, `referrer-policy`, `permissions-policy`.
+      `strict-transport-security`, `x-content-type-options: nosniff`,
+      `x-frame-options: DENY`, `referrer-policy`, `permissions-policy`.
 - [ ] **No** `x-robots-tag` on prod (indexable); dev still `noindex, nofollow`.
 - [ ] SEO: `https://jlowe.ai/robots.txt` and `/sitemap.xml` resolve and reference
-  the apex (not the CloudFront domain, not dev); request indexing in Search
-  Console; confirm canonical host (apex vs `www` per the decision above).
+      the apex (not the CloudFront domain, not dev); request indexing in Search
+      Console; confirm canonical host (apex vs `www` per the decision above).
 - [ ] Chat: `POST https://jlowe.ai/api/chat` streams; no 403; `prod` Lambda logs
-  clean.
+      clean.
 - [ ] `www.jlowe.ai` behaves per the documented decision (301 → apex, or the
-  accepted-risk split).
+      accepted-risk split).
 - [ ] `/nope` → `/404.html`; `/about` (and other extensionless routes) rewrite
-  via the CloudFront Function.
+      via the CloudFront Function.
 
 ### Monitoring
 
 - [ ] CloudFront access logs (standard logging v2 → `jlowe-ai-cdn-logs-prod`)
-  landing; spot-check `sc-status` / `x-edge-result-type`.
+      landing; spot-check `sc-status` / `x-edge-result-type`.
 - [ ] Chat Lambda CloudWatch alarms (errors/throttles/duration) — **blocked on
-  the guardrails work above**.
+      the guardrails work above**.
 - [ ] Budget + billing alarm firing test — **blocked on `modules/budgets`**.
 - [ ] WAF metrics — **blocked on `modules/waf`**.
 
