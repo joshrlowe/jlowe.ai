@@ -50,8 +50,11 @@
 
 /*
  * Velocity is dark-only in Phase 0: :root and .dark share the ember palette
- * (heritage orange #E85D04 on warm near-black) so there is no light flash
- * before hydration. A light mode later only needs a real :root block.
+ * (heritage orange, deepened to #C2410C on warm near-black) so there is no
+ * light flash before hydration. A light mode later only needs a real :root
+ * block. The accent was darkened from #E85D04 → #C2410C so white
+ * (--primary-foreground) text on the primary button clears WCAG AA: the
+ * original was ~3.35:1 (below the 4.5:1 normal-text bar); #C2410C is ~4.96:1.
  */
 :root,
 .dark {
@@ -61,7 +64,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0.006 50);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #e85d04;
+  --primary: #c2410c;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0.008 50);
   --secondary-foreground: oklch(0.985 0 0);
@@ -72,8 +75,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: #e85d04;
-  --chart-1: #e85d04;
+  --ring: #c2410c;
+  --chart-1: #c2410c;
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
@@ -81,12 +84,12 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.205 0.006 50);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #e85d04;
+  --sidebar-primary: #c2410c;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0.008 50);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #e85d04;
+  --sidebar-ring: #c2410c;
 }
 
 @layer base {
@@ -98,5 +101,23 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/*
+ * Global reduced-motion floor. Neutralizes CSS-level animation/transition for
+ * visitors who ask their OS to reduce motion. This is intentionally CSS-only:
+ * the JS-driven 3D world has its own reduced-motion handling and is untouched
+ * here. Kept outside @layer base so it always wins over utility-layer
+ * animation/transition classes.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

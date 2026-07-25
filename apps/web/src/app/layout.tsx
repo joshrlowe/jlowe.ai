@@ -58,6 +58,12 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-full flex-col">
+        <a
+          href="#main"
+          className="sr-only rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Skip to content
+        </a>
         <JsonLd data={personSchema()} id="ld-person" />
         <JsonLd data={websiteSchema()} id="ld-website" />
         {children}

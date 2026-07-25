@@ -7,7 +7,9 @@ export default function FlatLayout({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4">{children}</main>
+      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4">
+        {children}
+      </main>
       <SiteFooter />
     </>
   );

@@ -10,5 +10,9 @@ export const metadata: Metadata = {
 export default function WorldLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <div className="flex min-h-dvh flex-col">{children}</div>;
+  return (
+    <div id="main" className="flex min-h-dvh flex-col">
+      {children}
+    </div>
+  );
 }
