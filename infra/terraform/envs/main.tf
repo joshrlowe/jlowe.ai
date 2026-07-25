@@ -4,6 +4,18 @@ data "aws_route53_zone" "primary" {
   name = "jlowe.ai"
 }
 
+module "waf" {
+  source = "../modules/waf"
+
+  environment = var.environment
+  rate_limit  = var.chat_rate_limit
+
+  # dev observes managed-rule hits in COUNT mode (no false-positive risk while
+  # the site is under active development); prod blocks. The /api/chat rate limit
+  # always blocks regardless — it's a cost guardrail.
+  managed_rules_count_only = var.environment == "dev"
+}
+
 module "cdn" {
   source = "../modules/cdn"
 
@@ -20,6 +32,9 @@ module "cdn" {
   # (cdn depends on chat one-way; chat no longer references cdn → no cycle).
   chat_function_url_host = module.chat.function_url_host
   chat_function_name     = module.chat.function_name
+
+  # Edge WAF association (CLOUDFRONT-scope Web ACL ARN).
+  waf_web_acl_arn = module.waf.web_acl_arn
 }
 
 module "chat" {
@@ -62,10 +77,6 @@ module "alarms" {
 }
 
 # Skeleton modules — wired here when implemented in their phases:
-# module "waf" {
-#   source      = "../modules/waf"
-#   environment = var.environment
-# }
 # module "knowledge_base" {
 #   source      = "../modules/knowledge_base"
 #   environment = var.environment
