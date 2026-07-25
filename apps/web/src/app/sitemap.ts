@@ -6,14 +6,11 @@ export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl().origin;
-  const routes = [
-    "/",
-    "/about/",
-    "/projects/",
-    "/articles/",
-    "/contact/",
-    "/world/",
-  ];
+  // /world is intentionally excluded: the (world) layout marks it
+  // `robots: { index: false }` until the 3D experience ships, and listing a
+  // noindexed URL in the sitemap sends search engines a contradictory signal.
+  // Re-add it here when the noindex is lifted.
+  const routes = ["/", "/about/", "/projects/", "/articles/", "/contact/"];
   return routes.map((route) => ({
     url: `${base}${route}`,
     changeFrequency: route === "/" ? "weekly" : "monthly",
