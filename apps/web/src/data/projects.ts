@@ -7,6 +7,8 @@ export interface Project {
   summary: string;
   tags: readonly string[];
   featured: boolean;
+  /** Internal detail route, when the project has a corpus-backed page. */
+  href?: string;
   links?: {
     github?: string;
     live?: string;

@@ -1,4 +1,6 @@
 import { ExternalLink } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,7 +25,18 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <Card className="h-full transition-colors hover:border-primary/50">
       <CardHeader>
-        <CardTitle className="text-base">{project.title}</CardTitle>
+        <CardTitle className="text-base">
+          {project.href ? (
+            <Link
+              href={project.href as Route}
+              className="transition-colors hover:text-primary focus-visible:text-primary"
+            >
+              {project.title}
+            </Link>
+          ) : (
+            project.title
+          )}
+        </CardTitle>
         <CardDescription>{project.summary}</CardDescription>
       </CardHeader>
       <CardContent className="mt-auto flex flex-wrap items-center gap-2">
