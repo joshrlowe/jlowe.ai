@@ -54,3 +54,13 @@ export const TYPING_PHRASES: readonly string[] = [
   "scalable data platforms",
   "next-gen applications",
 ] as const;
+
+// Which corpus projects the home page features, in display order. This is a
+// curation choice (not content) — each slug must resolve to a `kind: project`
+// corpus entry, and the home page silently skips any that don't. Reorder or
+// swap slugs freely; add new projects by authoring them in corpus/projects/.
+export const FEATURED_PROJECT_SLUGS: readonly string[] = [
+  "velocity",
+  "digital-twin",
+  "bidops",
+] as const;
