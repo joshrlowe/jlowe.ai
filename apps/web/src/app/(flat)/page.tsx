@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ActivityStrip } from "@/components/activity-strip";
 import { ContributionsPlaceholder } from "@/components/contributions-placeholder";
+import { HyperspaceEntrance } from "@/components/hyperspace/hyperspace-entrance";
 import { ProjectCard } from "@/components/project-card";
 import { Section } from "@/components/section";
 import { TypingTagline } from "@/components/typing-tagline";
@@ -33,6 +34,11 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Signature "drop out of hyperspace" entrance — a client-only overlay
+          that plays once per session on landing, then reveals this SSG page.
+          Renders nothing server-side, so the content below is the real page. */}
+      <HyperspaceEntrance />
+
       <section className="py-20 md:py-28">
         <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
           I build <TypingTagline phrases={TYPING_PHRASES} />

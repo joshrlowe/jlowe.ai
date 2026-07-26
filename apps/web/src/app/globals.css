@@ -105,6 +105,32 @@
 }
 
 /*
+ * Hyperspace entrance reveal. When the "drop out of hyperspace" overlay
+ * (components/hyperspace) clears, the page content settles in with a subtle
+ * scale — the overlay is a <body> portal that fades via its own opacity
+ * transition; this only drives the content behind it. The class is added to
+ * <html> for the length of the reveal, then removed. overflow-x is clamped so
+ * the momentary 1.02 scale can never surface a horizontal scrollbar. The
+ * reduced-motion floor below neutralizes the keyframes for motion-averse
+ * visitors (who never trigger the warp in the first place).
+ */
+html.hs-reveal {
+  overflow-x: hidden;
+}
+html.hs-reveal #main {
+  transform-origin: 50% 0;
+  animation: hs-content-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes hs-content-in {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/*
  * Global reduced-motion floor. Neutralizes CSS-level animation/transition for
  * visitors who ask their OS to reduce motion. This is intentionally CSS-only:
  * the JS-driven 3D world has its own reduced-motion handling and is untouched
