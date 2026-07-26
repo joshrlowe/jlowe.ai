@@ -7,6 +7,7 @@ coverage/
 corpus/
 apps/web/src/data/corpus.generated.ts
 apps/web/public/draco/
+apps/web/public/basis/
 services/chat/src/system-prompt.ts
 infra/terraform/**/.terraform/
 .claude/

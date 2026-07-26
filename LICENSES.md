@@ -75,8 +75,11 @@ no-copyrighted-IP rule.
 ## PBR textures
 
 CC0 (public domain) material sets from **ambientCG** (ambientcg.com). CC0
-requires no attribution; credited here as good practice. Each set ships only the
-albedo (Color), OpenGL normal (NormalGL), and roughness maps at 1K-JPG.
+requires no attribution; credited here as good practice. Each set ships the
+albedo (Color), OpenGL normal (NormalGL), and roughness maps. The circuit sets
+are compressed to KTX2 (Basis Universal) by the asset pipeline and loaded at
+runtime from the content-hashed `apps/web/public/assets/` (the 1K-JPG sources
+are retained under `public/textures/`).
 
 - **`apps/web/public/textures/road/asphalt_*.jpg`** — ambientCG **"Asphalt002"**.
   Tiled along the track ribbon's UVs (`scenes/circuit/track.tsx`) for the road
@@ -84,6 +87,19 @@ albedo (Color), OpenGL normal (NormalGL), and roughness maps at 1K-JPG.
 - **`apps/web/public/textures/ground/rock_*.jpg`** — ambientCG **"Rock035"**
   (dark volcanic rock). Tiles the coastal land plane and the cliff instances
   (`scenes/circuit/scenery.tsx`).
+
+## Runtime texture / geometry decoders
+
+The compressed-asset loaders self-host their decoder binaries under `public/`
+(no external CDN, so no runtime 404s and nothing for a strict CSP to block):
+
+- **`apps/web/public/basis/basis_transcoder.{js,wasm}`** — the Basis Universal
+  transcoder that decodes the KTX2 PBR maps to a GPU-supported format at load.
+  Vendored verbatim from three.js (`three/examples/jsm/libs/basis`, r184); Basis
+  Universal is **Apache-2.0** (Binomial LLC / The Khronos Group).
+- **`apps/web/public/draco/draco_*.{js,wasm}`** — the Draco geometry decoder for
+  the compressed GLBs, likewise vendored from three.js. Draco is **Apache-2.0**
+  (Google).
 
 ## HDRI / environment maps
 
