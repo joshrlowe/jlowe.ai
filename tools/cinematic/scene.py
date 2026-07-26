@@ -369,6 +369,7 @@ def build_set(cfg: dict) -> dict:
 
     _build_grandstand(cfg, counts, count)
     _build_landmark(cfg, counts, count)
+    _build_corner_fill(cfg, counts, count)
 
     # --- moon + world sky ------------------------------------------------------
     # Real moonlight is ~0.003–0.01 W/m²; anything near 1 W/m² reads as
@@ -469,6 +470,34 @@ def _build_landmark(cfg: dict, counts: dict, count) -> None:
     m_dome = materials.simple("landmark-glass", "#0d1420", roughness=0.15, metallic=0.4)
     dome.data.materials.append(m_dome)
     count(dome)
+
+
+def _build_corner_fill(cfg: dict, counts: dict, count) -> None:
+    """A single gentle, wide soft-spot high on the OUTSIDE of the far U-turn,
+    raking down across the apex. Lifts the battle pair out of silhouette where
+    the return-flood pools thin at the corner — needed once the landmark
+    emission was dialled down (at full strength it doubled as the corner's
+    fill). Sits over the apex, aimed away from the harbour straight (x≈0), so
+    it can't over-light the main straight the note protects."""
+    look = cfg["video"].get("look", {})
+    cf = look.get("cornerFill")
+    if not cf:
+        return
+    px, py, pz = cf["pos"]
+    ax, ay, az = cf["aim"]
+    light = bpy.data.lights.new("corner-fill", type="SPOT")
+    light.energy = cf["energy"]
+    light.color = tuple(cf.get("color", (0.92, 0.96, 1.0)))
+    light.spot_size = cf.get("spotSize", 1.5)
+    light.spot_blend = cf.get("spotBlend", 0.7)
+    light.shadow_soft_size = cf.get("softSize", 1.2)
+    lo = bpy.data.objects.new("corner-fill", light)
+    lo.location = B(px, py, pz)
+    target = mathutils.Vector(B(ax, ay, az))
+    pos = mathutils.Vector(lo.location)
+    lo.rotation_euler = (target - pos).to_track_quat("-Z", "Y").to_euler()
+    _link(lo)
+    counts["objects"] += 1
 
 
 def _build_world_sky(cfg: dict) -> None:

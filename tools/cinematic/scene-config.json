@@ -217,7 +217,7 @@
       "floodColor": [0.92, 0.96, 1.0],
       "floodEnergyScale": 14,
       "floodSpacing": 8,
-      "returnFloodUs": [0.34, 0.4, 0.46, 0.52],
+      "returnFloodUs": [0.34, 0.37, 0.4, 0.43, 0.46, 0.52],
       "returnSkyline": {
         "xMin": 50,
         "xMax": 60,
@@ -258,7 +258,16 @@
         "radius": 10,
         "height": 15,
         "color": [0.45, 0.6, 1.0],
-        "strength": 6
+        "strength": 2.0
+      },
+      "cornerFill": {
+        "_note": "gentle high soft-spot on the outside of the far U-turn, raking across the apex — lifts the pack out of silhouette where the return-flood pools thin, decoupled from the (now-dimmer) landmark emission. Aimed away from the harbour straight (x approx 0) so it never over-lights it.",
+        "pos": [34, 16, 70],
+        "aim": [24, 0, 65],
+        "energy": 9000,
+        "spotSize": 1.5,
+        "spotBlend": 0.7,
+        "color": [0.92, 0.96, 1.0]
       }
     },
     "duel": {
