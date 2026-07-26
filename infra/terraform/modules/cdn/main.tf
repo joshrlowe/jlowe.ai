@@ -534,6 +534,17 @@ resource "aws_route53_record" "alias" {
   name     = var.domain_name
   type     = each.key
 
+  # Cross-stack apex handoff at cutover. The apex A record set is owned by the
+  # `global` stack today (aws_route53_record.apex_vercel -> Vercel 76.76.21.21).
+  # At prod cutover this alias takes over the same name/type, so the record set
+  # already exists in Route53 and a plain CREATE would fail
+  # ("...but it already exists"). allow_overwrite makes the apply UPSERT the
+  # existing record atomically (no resolver ever sees the apex missing) instead.
+  # Harmless for dev and for the new apex AAAA (nothing pre-exists to overwrite).
+  # Applied at the for_each level so both A and AAAA get it. See
+  # docs/runbooks/cutover.md, Stage 4.2b.
+  allow_overwrite = true
+
   alias {
     name                   = aws_cloudfront_distribution.site.domain_name
     zone_id                = aws_cloudfront_distribution.site.hosted_zone_id

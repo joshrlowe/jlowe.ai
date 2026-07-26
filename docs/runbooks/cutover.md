@@ -10,11 +10,15 @@ window where the apex is unresolvable**, and with a tested one-move rollback.
 > flipped at the registrar, `dev.jlowe.ai` serves from CloudFront (noindex), and
 > the `global` stack owns the zone + the Vercel replica records + the CI roles.
 
-This runbook is **the doc**, not the switch. It changes no Terraform behavior.
-Two prerequisite **code** changes it depends on are called out inline and
-collected under [Open questions](#open-questions) — they are **not** part of the
-docs PR that introduces this file and must land + be reviewed separately before
-step 4.3.
+This runbook is **the doc**, not the switch. The `cutover.md` file itself changes
+no Terraform behavior. The prerequisite **code** changes it depends on are called
+out inline and tracked under [Open questions](#open-questions). Two conservative
+ones have now landed on `chore/cutover-prep` — `allow_overwrite` on the apex alias
+(open question #1) and the `envs-prod` CI plan row (open question #5) — both
+**inert until a prod apply**, so they change nothing live now. The genuinely
+stateful/dangerous steps (removing `apex_vercel` from the `global` config plus the
+`state rm`, and the `www` change) remain **deferred** and must land + be reviewed
+separately before step 4.2b/4.3.
 
 ## Current wiring (verified against the code on `v2`)
 
@@ -33,7 +37,9 @@ is **written but never applied**. When applied with `dns_delegated = true`, its
 - `aws_cloudfront_distribution.site.aliases = [var.domain_name]` = `["jlowe.ai"]`
   (**apex only**);
 - `aws_route53_record.alias` for each of `["A","AAAA"]`, `name = jlowe.ai`,
-  pointing at the CloudFront distribution — **no `allow_overwrite`**.
+  pointing at the CloudFront distribution, now carrying **`allow_overwrite = true`**
+  (set at the `for_each` level on `chore/cutover-prep`) so `alias["A"]` can UPSERT
+  over the existing Vercel apex A instead of erroring on CREATE — see step 4.2b.
 
 **The collision:** `jlowe.ai` / type `A` is a single Route53 record set. The
 `global` stack already owns it (→ Vercel); the prod stack's `alias["A"]` wants to
@@ -75,11 +81,12 @@ The `prod` and `terraform-prod` environments exist but their variables are empty
 - [ ] A `plan` for `envs/prod` has been run and read end-to-end
       (`gh workflow run terraform.yml --ref v2 -f stack=envs -f environment=prod -f action=plan`).
 
-  > There is no `backend.prod.hcl` line in the `terraform.yml` **plan** matrix
-  > (it only includes `global` and `envs-dev`). Confirm the dispatch plan path
-  > actually initializes the prod backend, or plan prod locally
+  > The `terraform.yml` **plan** matrix now includes an `envs-prod` row
+  > (`-backend-config=backend.prod.hcl -var-file=prod.tfvars`, added on
+  > `chore/cutover-prep`; `backend.prod.hcl` already exists under
+  > `infra/terraform/envs/`), so infra PRs surface a prod plan. You can also plan
+  > prod locally
   > (`terraform -chdir=infra/terraform/envs init -reconfigure -backend-config=backend.prod.hcl && terraform … plan -var-file=prod.tfvars`).
-  > See [Open questions](#open-questions).
 
 ### Dev fully verified (the dress rehearsal)
 
@@ -166,15 +173,18 @@ that already exists → the API returns _"Tried to create resource record set
 
 **The zero-downtime path** relies on a Route53 `UPSERT` (atomic replace of the
 record set's value in one change — resolvers only ever see old-then-new, never
-nothing). Prerequisites (must be merged + reviewed before this step — **not** in
-the docs PR):
+nothing). Prerequisites (must be merged + reviewed before this step):
 
-1. Add `allow_overwrite = true` to `aws_route53_record.alias` in
-   `modules/cdn/main.tf` so `alias["A"]` **UPSERTs** over the existing Vercel A
-   record instead of failing on `CREATE`.
-2. Delete `aws_route53_record.apex_vercel` from `global/dns.tf` (leave
-   `www_vercel` for now — see the www decision below). **Do not apply `global`
-   yet.**
+1. **Done on `chore/cutover-prep`.** `allow_overwrite = true` is now set on
+   `aws_route53_record.alias` in `modules/cdn/main.tf` (at the `for_each` level, so
+   both `A` and `AAAA` get it) so `alias["A"]` **UPSERTs** over the existing Vercel
+   A record instead of failing on `CREATE`. Inert until this prod apply with
+   `dns_delegated = true`.
+2. **Still required — deliberately NOT on `chore/cutover-prep`.** Delete
+   `aws_route53_record.apex_vercel` from `global/dns.tf` (leave `www_vercel` for
+   now — see the www decision below). This is deferred on purpose: removing it from
+   config arms a live-apex **DELETE** on the next `global` apply, so it must be
+   paired with the `state rm` in step 2 below. **Do not apply `global` yet.**
 
 Then execute, in this order:
 
@@ -208,10 +218,22 @@ Then execute, in this order:
    ```
 
    > `state rm` is state surgery, not `plan`/`apply` — the `terraform.yml`
-   > workflow has no path for it. Run it locally with the terraform role (a
+   > workflow has no path for it (plan/apply only). This is therefore a
+   > **documented MANUAL step**: run it locally with the terraform role (a
    > documented one-time exception, like the Phase-0 first `global` apply), or
    > add a `state rm` capability to the workflow. See
    > [Open questions](#open-questions).
+   >
+   > **`www_vercel` is _not_ a `state rm` case.** Only `apex_vercel` is a
+   > same-record cross-stack handoff (the one `jlowe.ai` A record set changes
+   > owner from `global` → `prod`) that must be forgotten from `global` state so
+   > the two stacks stop fighting over it. `www_vercel` is either left untouched
+   > (www stays on Vercel — the split-brain default) or, if www moves to a
+   > redirect, genuinely **deleted** from `global` via config-removal + a normal
+   > `global` apply (a CNAME→A **type change**, not an in-place takeover). Only
+   > `state rm` `www_vercel` if you are handing the *same* `www` record type to
+   > `prod`, which the recommended redirect design does not do. See the www
+   > decision below.
 
 3. **Verify propagation** (apex A alias answers with a short TTL; resolvers cached
    the old `76.76.21.21` for up to its 300s TTL):
@@ -388,12 +410,13 @@ of stable HTTPS on apex **and** any subdomain, since `includeSubDomains` is on):
 
 Flagged rather than guessed. Resolve before executing the affected step.
 
-1. **`allow_overwrite` is missing on `aws_route53_record.alias`** (`modules/cdn/main.tf`).
-   As-coded the prod apply with `dns_delegated=true` fails on `CREATE` of the
-   already-existing `jlowe.ai` A. Step 4.2b's zero-downtime path **requires**
-   adding `allow_overwrite = true` (a reviewed code change, not this doc). Adding
-   it also affects the dev alias record, which is harmless (dev's `dev.jlowe.ai`
-   records are already prod-owned singletons).
+1. **RESOLVED on `chore/cutover-prep`.** `allow_overwrite = true` is now set on
+   `aws_route53_record.alias` (`modules/cdn/main.tf`), so the prod apply with
+   `dns_delegated=true` UPSERTs the already-existing `jlowe.ai` A instead of
+   failing on `CREATE` — enabling step 4.2b's zero-downtime path. It also affects
+   the dev alias record, which is harmless (dev's `dev.jlowe.ai` records are
+   already prod-owned singletons). The change is inert until a prod apply with
+   `dns_delegated = true`.
 2. **Cross-stack apex handoff needs `terraform state rm` on `global`**, which the
    `terraform.yml` workflow does not support (plan/apply only). Decide: run it
    locally as a documented one-time exception (like the Phase-0 first `global`
@@ -407,10 +430,12 @@ Flagged rather than guessed. Resolve before executing the affected step.
 4. **`www` handling.** As-coded `www` stays on Vercel (no SAN, no alias, CNAME
    untouched). Recommendation is a 301 `www → apex`; pick and record the choice,
    noting the CNAME→A **type change** can't be a clean UPSERT.
-5. **Prod plan path in CI.** `terraform.yml`'s `plan` matrix includes only
-   `global` and `envs-dev` — there's no `envs-prod` plan job, so PR plans never
-   exercise prod. Confirm prod is planned (locally, or add a matrix row) before
-   the first prod apply so it isn't the first time the prod config is evaluated.
+5. **RESOLVED on `chore/cutover-prep`.** `terraform.yml`'s `plan` matrix now has an
+   `envs-prod` row (`-backend-config=backend.prod.hcl -var-file=prod.tfvars`)
+   alongside `global` and `envs-dev`, so infra PRs now exercise a prod plan.
+   `backend.prod.hcl` already exists under `infra/terraform/envs/`. Note the plan
+   job as a whole still only runs once repo var `INFRA_BOOTSTRAPPED == 'true'`, so
+   the prod plan first appears on infra PRs after bootstrap.
 6. **`GHA_DEPLOY_CHAT_ROLE_ARN`** is consumed by `deploy-chat.yml` but not set by
    the Phase-0 bootstrap README's `gh variable set` block. Confirm it's set
    (repo-level) before dispatching a prod chat deploy; the ARN is the `global`
