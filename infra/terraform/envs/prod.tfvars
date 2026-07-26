@@ -4,7 +4,7 @@
 # apply. The apex stays on Vercel until the cutover phase.
 environment    = "prod"
 domain_name    = "jlowe.ai"
-dns_delegated  = false
+dns_delegated  = true
 robots_noindex = false
 
 # --- Cost guardrails (Stage 2.4) — ENABLED for cutover ----------------------
