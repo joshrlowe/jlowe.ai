@@ -35,7 +35,7 @@ locals {
 
 resource "aws_wafv2_web_acl" "this" {
   name        = local.name_prefix
-  description = "Edge WAF for the ${var.environment} CloudFront distribution (managed rules + per-IP rate limit on /api/chat)."
+  description = "Edge WAF for the ${var.environment} CloudFront distribution - managed rules + per-IP rate limit on /api/chat"
   scope       = "CLOUDFRONT"
 
   default_action {
