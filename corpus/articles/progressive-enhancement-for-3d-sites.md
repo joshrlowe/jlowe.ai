@@ -17,7 +17,10 @@ kind: article
 #             Web Vitals of the flat shell, the actual gz first-load figure —
 #             left out here rather than invented; budgets.json records only the
 #             enforced ceilings (flat <= 225 KB gz), not measured results.
-visibility: public
+# HIDDEN 2026-07: draft awaiting Josh's voice-edit — kept out of the public
+# build until then. Flip back to `public` (one line) to publish; that restores
+# the /articles listing card, the /articles/[slug] page, and the sitemap entry.
+visibility: private
 ---
 
 Most 3D websites treat the fancy version as the product and the fallback as an
