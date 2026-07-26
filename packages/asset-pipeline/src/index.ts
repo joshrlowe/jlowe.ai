@@ -6,6 +6,14 @@
 export const PIPELINE_VERSION = "1.0.0";
 
 export { optimizeGlb, type OptimizeResult } from "./optimize.js";
+export {
+  isTextureFile,
+  optimizeTexture,
+  textureColorSpace,
+  type TextureColorSpace,
+  type TextureEncoding,
+  type TextureResult,
+} from "./texture.js";
 export { contentHash, hashedName, type AssetManifest } from "./hash.js";
 export { processHdr, type HdrResult } from "./hdr.js";
 export { isKtxAvailable } from "./ktx.js";
