@@ -16,15 +16,28 @@ import {
 import { SITE_NAME, siteUrl } from "@/lib/site-config";
 
 // Static export: pre-render one page per corpus article slug; anything else 404s.
-// Mirrors the projects/[slug] route (PR #121). Safe to ship because the corpus
-// has >= 1 public article — an empty generateStaticParams fails `output: export`.
+// Mirrors the projects/[slug] route (PR #121).
 export const dynamic = "force-static";
 export const dynamicParams = false;
 
 type Params = Promise<{ slug: string }>;
 
+// When every article is `visibility: private`, the corpus has zero public
+// articles — the pre-#127 state, when this detail route was deferred rather than
+// shipped. `output: export` rejects a dynamic route whose generateStaticParams
+// is empty ("missing generateStaticParams()"), so instead of an empty set we
+// prerender a single sentinel slug that no corpus entry matches. The page's
+// existing `notFound()` guard 404s it, so no real article page is emitted and
+// the sitemap/index list nothing. Un-hiding an article — flip its frontmatter
+// back to `visibility: public` and run `pnpm corpus` — makes this return the
+// real slug(s) again and the sentinel drops out. One line restores the surface.
+const NO_PUBLIC_ARTICLES_SENTINEL = "__no-public-articles__";
+
 export function generateStaticParams() {
-  return entriesByKind("article").map((entry) => ({ slug: entry.slug }));
+  const params = entriesByKind("article").map((entry) => ({
+    slug: entry.slug,
+  }));
+  return params.length > 0 ? params : [{ slug: NO_PUBLIC_ARTICLES_SENTINEL }];
 }
 
 export async function generateMetadata({

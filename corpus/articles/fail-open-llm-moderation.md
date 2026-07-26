@@ -15,7 +15,10 @@ kind: article
 # TODO(josh): once there are a few hundred real submissions, consider adding the
 #             true hold / false-positive rate (the README's tuning query) rather
 #             than leaving the outcome unquantified — do not estimate it here.
-visibility: public
+# HIDDEN 2026-07: draft awaiting Josh's voice-edit — kept out of the public
+# build until then. Flip back to `public` (one line) to publish; that restores
+# the /articles listing card, the /articles/[slug] page, and the sitemap entry.
+visibility: private
 ---
 
 Production AI earns trust through its failure modes, not its happy path. The

@@ -18,11 +18,11 @@ export const RECENT_ACTIVITY: readonly ActivityItem[] = [
     kind: "update",
     title: "Hardened the v1 chat funnel and moderation pipeline",
   },
-  {
-    date: "2026-05-01",
-    kind: "article",
-    title: "Progressive enhancement for 3D sites",
-  },
+  // NOTE: the "Progressive enhancement for 3D sites" article is a draft hidden
+  // from the public build (corpus frontmatter `visibility: private`), so it is
+  // deliberately omitted here — this strip renders into the indexed homepage and
+  // must not surface a hidden draft. Re-add an entry when the article is
+  // un-hidden (flip its frontmatter back to `visibility: public`).
   {
     date: "2026-03-10",
     kind: "article",
