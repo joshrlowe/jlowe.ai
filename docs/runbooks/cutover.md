@@ -231,7 +231,7 @@ Then execute, in this order:
    > (www stays on Vercel — the split-brain default) or, if www moves to a
    > redirect, genuinely **deleted** from `global` via config-removal + a normal
    > `global` apply (a CNAME→A **type change**, not an in-place takeover). Only
-   > `state rm` `www_vercel` if you are handing the *same* `www` record type to
+   > `state rm` `www_vercel` if you are handing the _same_ `www` record type to
    > `prod`, which the recommended redirect design does not do. See the www
    > decision below.
 
