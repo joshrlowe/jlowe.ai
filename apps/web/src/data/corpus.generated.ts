@@ -46,6 +46,36 @@ export const CORPUS: Record<string, CorpusEntry> = {
     ],
     "body": "Leading engineering on AI-assisted bidding workflows — the retrieval, the\nlanguage-model pipelines, and the platform that has to stay up around them. The\ninteresting work is making LLM features behave in production: grounded, tested,\nand honest about their failure modes."
   },
+  "digital-twin": {
+    "slug": "digital-twin",
+    "title": "AI digital twin",
+    "kind": "project",
+    "role": "AI Engineer",
+    "stack": [
+      "Claude on Bedrock",
+      "AWS Lambda",
+      "TypeScript",
+      "Zod"
+    ],
+    "outcomes": [
+      "Grounded only in a reviewed corpus — the twin declines to invent facts about Josh",
+      "Fail-open by design — any error still ends the stream cleanly, so the chat never hangs",
+      "Schema-validated, turn-capped requests bound both the prompt and the Bedrock bill"
+    ],
+    "body": "The site answers questions about Josh in his own words — a digital twin that\nspeaks _about_ him, never _as_ him. It streams responses from Claude on AWS\nBedrock through a Lambda response stream, grounded in a fixed persona plus the\nsame public corpus that powers the rest of the site, so the twin and the\nportfolio can never drift apart.\n\nThe guardrails are the design. The twin answers only from the corpus, declines\nto invent employers, dates, or metrics, and points hiring questions to the\ncontact page. Requests are schema-validated and turn-capped to bound both the\nprompt and the Bedrock bill, and every failure path ends the stream with a\nfriendly line instead of hanging. When a visitor has explored beacons in the 3D\nworld, what they saw is passed along as a grounding hint."
+  },
+  "fail-open-llm-moderation": {
+    "slug": "fail-open-llm-moderation",
+    "title": "Fail-open LLM moderation",
+    "kind": "article",
+    "body": "Production AI earns trust through its failure modes, not its happy path. When a\nmoderation model times out or a dependency is down, the safe default is to hold\ncontent for review — never to auto-reject a legitimate contribution because the\ninfrastructure blinked.\n\nIt's the same fail-open principle the site's own digital-twin chat runs on:\nevery error ends the response cleanly instead of hanging, rate limits fail open\nwhen the limiter is unavailable, and observability never propagates its own\nerrors. This piece is about where fail-open is the right default — and where it\nisn't."
+  },
+  "progressive-enhancement-for-3d-sites": {
+    "slug": "progressive-enhancement-for-3d-sites",
+    "title": "Progressive enhancement for 3D sites",
+    "kind": "article",
+    "body": "This site renders three ways from a single codebase: a WebGPU path for the full\n3D experience, a WebGL2 fallback for machines that can't do WebGPU, and a 2D\nshell — the page you're reading now — that search engines and screen readers\nunderstand completely. Capability detection picks the tier, and one renderer\ndrives both GPU backends.\n\nProgressive enhancement isn't an afterthought here, it's the contract: no\nfeature ships if it breaks a lower tier, and the 2D surface stays the canonical,\naccessible source of truth. This piece walks through how the tiers are detected\nand why the accessible surface has to come first."
+  },
   "rag": {
     "slug": "rag",
     "title": "RAG that cites its sources",
@@ -103,4 +133,4 @@ export const CORPUS: Record<string, CorpusEntry> = {
   }
 };
 
-export const CORPUS_SLUGS = ["about","bidops","rag","reliability","velocity"] as const;
+export const CORPUS_SLUGS = ["about","bidops","digital-twin","fail-open-llm-moderation","progressive-enhancement-for-3d-sites","rag","reliability","velocity"] as const;

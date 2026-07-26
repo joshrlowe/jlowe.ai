@@ -6,12 +6,27 @@ import { ProjectCard } from "@/components/project-card";
 import { Section } from "@/components/section";
 import { TypingTagline } from "@/components/typing-tagline";
 import { Button } from "@/components/ui/button";
-import { PROJECTS } from "@/data/projects";
-import { TYPING_PHRASES } from "@/data/site";
+import { type Project } from "@/data/projects";
+import { FEATURED_PROJECT_SLUGS, TYPING_PHRASES } from "@/data/site";
+import { type CorpusEntry, entryBySlug, summarize } from "@/lib/corpus";
 import { getContributions } from "@/lib/github/contributions";
 
 export default async function HomePage() {
-  const featured = PROJECTS.filter((project) => project.featured);
+  // Corpus is the single source of truth. Feature the curated project slugs
+  // (data/site.ts), mapped into the card shape and linked to their detail
+  // routes; silently skip any slug without a corpus project.
+  const featured: Project[] = FEATURED_PROJECT_SLUGS.map((slug) =>
+    entryBySlug("project", slug),
+  )
+    .filter((entry): entry is CorpusEntry => entry !== undefined)
+    .map((entry) => ({
+      slug: entry.slug,
+      title: entry.title,
+      summary: summarize(entry),
+      tags: entry.stack ?? [],
+      featured: true,
+      href: `/projects/${entry.slug}/`,
+    }));
   // Fetched at build time under `output: "export"`; falls back to the seeded
   // grid when GITHUB_TOKEN is absent (see lib/github/contributions).
   const contributions = await getContributions();

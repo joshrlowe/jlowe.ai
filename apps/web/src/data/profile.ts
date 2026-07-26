@@ -1,5 +1,16 @@
 // Placeholder profile content mirroring the v1 /about structure.
-// Authoritative copy moves to corpus/ in a later phase.
+//
+// The About page still reads THIS file (not the corpus) because the corpus
+// frontmatter schema has no fields for structured experience, skill groups, or
+// education — those would need a schema change before they could move to
+// corpus/. Kept here deliberately until then.
+//
+// TODO(josh): confirm every real-world specific below before this is treated as
+//   authoritative — the employer/degree are corroborated by corpus/faq/about.md,
+//   but these are NOT verifiable from the repo and may be placeholders:
+//   - EXPERIENCE[].period: the employment date ranges ("2024 — present", etc.)
+//   - EDUCATION[].period: currently "—" (no dates)
+//   - EXPERIENCE[].summary: wording of each role's summary.
 
 export interface SkillCategory {
   category: string;

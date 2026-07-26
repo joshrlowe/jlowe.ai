@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,15 +27,10 @@ function formatDate(iso: string): string {
 }
 
 export default function ArticlesPage() {
-  // Corpus is the single source of truth. When it grows `kind: article` entries,
-  // list them here. Until the owner authors any, fall back to the placeholder
-  // previews so the page is never empty.
-  //
-  // NOTE (plumbing gap): a live /articles/[slug] detail route can't ship yet —
-  // `output: "export"` rejects a dynamic route whose generateStaticParams is
-  // empty, and the corpus has zero articles. Once the first article lands,
-  // copy apps/web/src/app/(flat)/projects/[slug]/page.tsx (swap kind → "article"
-  // and CreativeWork → BlogPosting) and link these cards to it.
+  // Corpus is the single source of truth. Its `kind: article` entries drive the
+  // list and each links to its detail route at /articles/[slug] (which mirrors
+  // the projects/[slug] route from PR #121). The placeholder previews below are
+  // only a fallback for the empty-corpus case, so the page is never blank.
   const corpusArticles = entriesByKind("article");
 
   if (corpusArticles.length > 0) {
@@ -50,7 +46,14 @@ export default function ArticlesPage() {
           {corpusArticles.map((article) => (
             <Card key={article.slug}>
               <CardHeader>
-                <CardTitle className="text-base">{article.title}</CardTitle>
+                <CardTitle className="text-base">
+                  <Link
+                    href={`/articles/${article.slug}/` as Route}
+                    className="transition-colors hover:text-primary focus-visible:text-primary"
+                  >
+                    {article.title}
+                  </Link>
+                </CardTitle>
                 <CardDescription>{summarize(article)}</CardDescription>
               </CardHeader>
             </Card>
