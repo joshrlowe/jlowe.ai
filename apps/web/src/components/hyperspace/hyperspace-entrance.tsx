@@ -6,8 +6,9 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 /*
- * "Hyperspace exit" entrance — round 4: full-frame travel, then a true
- * deceleration into perceivable stars (the Rogue One arrival grammar).
+ * "Hyperspace exit" entrance — round 5: a LONGER travel through a cyclone
+ * tunnel, then a true deceleration into perceivable stars (the Rogue One
+ * arrival grammar).
  *
  * Two stacked canvases share one RAF timeline:
  *
@@ -17,6 +18,11 @@ import { cn } from "@/lib/utils";
  *    brightness profile, big fbm sheets that sweep across the corners,
  *    corner-to-corner god-rays, a whisper of vignette — with the white-hot
  *    core as a focal point INSIDE the medium, not a spotlight in darkness.
+ *    Round 5 makes the swirl a true VORTEX: differential rotation
+ *    (omega(r) = ω0 + ω1/(r+ε) — the eye spins faster than the rim), spiral
+ *    advection (filaments wind around the axis into spiral arms), god-rays
+ *    sheared by the same field so the spokes curve, and a gentle whole-frame
+ *    roll — all without re-concentrating the light at the core.
  *  - A 2D canvas (no GL required) renders the star phases restored from
  *    rounds 1–2: the exponential streak-decel field (streak length ∝ speed ×
  *    radial distance via true perspective projection; v = V0·2^(−k·t) with a
@@ -55,7 +61,7 @@ const SESSION_KEY = "hs-entrance:played";
 
 // ---- Timeline (ms) ----
 const BURST_MS = 300; // cold-open streak garnish decays over this window
-const TUNNEL_MS = 1400; // 1. full-frame travel inside the cloud tunnel
+const TUNNEL_MS = 2600; // 1. full-frame travel inside the cloud tunnel
 const DECEL_MS = 1000; // 2. wash + streak field decelerating to a snap
 const SETTLE_MS = 500; // 3. calm starfield — stars perceivable, held beat
 const EXIT_MS = 1300; // 4. destination approach: page scale S0 → 1
@@ -64,7 +70,7 @@ const ARRIVE_MS = 400; // overlay (stars) fades off over the landed page
 const WATCHDOG_MS =
   TUNNEL_MS + DECEL_MS + SETTLE_MS + EXIT_MS + ARRIVE_MS + 900;
 
-/** The full phase timeline, exported for tests/docs. Total = 4.6s. */
+/** The full phase timeline, exported for tests/docs. Total = 5.8s. */
 export const HS_TIMELINE = {
   burstMs: BURST_MS,
   tunnelMs: TUNNEL_MS,
@@ -234,6 +240,18 @@ float hs_fbm(vec2 p, float px) {
   return v * 1.142857;
 }
 
+// ---- Cyclone feel knobs (round 5) ----
+// The rotation field omega(r) = OMEGA0 + OMEGA1/(r + EPS) rises toward the
+// axis (rad/s), so inner light visibly laps the outer — the cyclone-eye
+// signature. K_SPIRAL winds filaments around the axis (turns per depth
+// unit); ROLL slowly rotates the whole frame. INV_TAU converts rad -> turns.
+const float HS_OMEGA0 = 0.15;    // rad/s — base swirl of the whole medium
+const float HS_OMEGA1 = 0.35;    // rad/s at r+EPS=1 — differential boost
+const float HS_EPS = 0.25;       // softening: axis omega tops at OMEGA0+OMEGA1/EPS
+const float HS_K_SPIRAL = 0.22;  // turns per depth unit — spiral-arm winding
+const float HS_ROLL = 0.06;      // rad/s — gentle whole-frame roll
+const float HS_INV_TAU = 0.1591549;
+
 void main() {
   float minDim = min(u_resolution.x, u_resolution.y);
   vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution) / (0.5 * minDim);
@@ -244,21 +262,34 @@ void main() {
   // scrolls features outward = flying forward. The divergence is deliberately
   // SOFT (1.5/(r+0.30), was 1.1/(r+0.12)) so the depth range isn't hoarded by
   // the core — mid and outer radii keep a live radial gradient and stream.
-  // Churn = slow global rotation plus a depth-dependent twist (swirl shear).
   float depth = 1.5 / (r + 0.30);
   float flow = depth + u_time * 3.4 * u_speed;
-  float spin = turn + 0.04 * u_time + 0.05 * depth;
+
+  // Cyclone rotation field (all offsets in turns — any angular offset keeps
+  // the wrapping lattice seamless):
+  //  - differential rotation: omega(r)*t — angular velocity rises toward the
+  //    axis, so the eye spins visibly faster than the rim;
+  //  - global roll: HS_ROLL*t — the whole tunnel slowly rotates;
+  //  - spiral advection: HS_K_SPIRAL*depth — as features stream outward,
+  //    depth(r) unwinds their angle, so cloud filaments WIND around the axis
+  //    into spiral arms instead of streaming straight ahead.
+  float omega = HS_OMEGA0 + HS_OMEGA1 / (r + HS_EPS);
+  float swirl = (omega + HS_ROLL) * u_time * HS_INV_TAU;
+  float spin = turn + swirl + HS_K_SPIRAL * depth;
 
   // Volumetric cloud body — 4 angular repeats (was 6) on a slower radial
   // lattice: the structures are big luminous sheets that sweep across the
-  // corners. Squaring deepens the dark navy pockets between the folds —
-  // local features of the medium, not an edge falloff.
+  // corners, advected along the spiral streamlines. Squaring deepens the
+  // dark navy pockets between the folds — local features of the medium, not
+  // an edge falloff.
   float clouds = hs_fbm(vec2(spin * 4.0, flow * 0.8), 4.0);
   clouds *= clouds;
 
-  // God-rays: sparse angular spokes, elongated radially, drifting slowly —
-  // they run corner-to-corner (no mid-radius attenuation anywhere below).
-  float rays = hs_fbm(vec2((turn + 0.02 * u_time) * 12.0, flow * 0.3), 12.0);
+  // God-rays: sparse angular spokes, elongated radially, sheared by the SAME
+  // rotation field as the clouds — the spokes bend into spiral arms rather
+  // than straight radial lines, and still run corner-to-corner (no
+  // mid-radius attenuation anywhere below).
+  float rays = hs_fbm(vec2(spin * 12.0, flow * 0.3), 12.0);
   rays = pow(smoothstep(0.38, 0.92, rays), 1.5);
 
   // White-hot core (brightness-ramp bloom) — a focal point INSIDE the

@@ -247,12 +247,14 @@ describe("HyperspaceEntrance", () => {
 });
 
 describe("timeline (tunnel → decel → stars → arrival)", () => {
-  it("keeps the burst a garnish, holds a real star beat, and lands the total in 4.2–4.8s", () => {
+  it("keeps the burst a garnish, holds a real star beat, and lands the total in 5.4–6.2s", () => {
     // The cold-open streak burst is a garnish inside the tunnel phase.
     expect(HS_TIMELINE.burstMs).toBeLessThanOrEqual(400);
     expect(HS_TIMELINE.burstMs).toBeLessThan(HS_TIMELINE.tunnelMs);
-    // A real beat of full-frame cloud-tunnel travel before deceleration.
-    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(1200);
+    // Round 5: a properly LONG beat of full-frame cloud-tunnel travel —
+    // "we should be going through hyperspace for a bit longer".
+    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(2400);
+    expect(HS_TIMELINE.tunnelMs).toBeLessThanOrEqual(3000);
     // The decel is long enough to read: wash in, streaks through, snap.
     expect(HS_TIMELINE.decelMs).toBeGreaterThanOrEqual(800);
     expect(HS_TIMELINE.decelMs).toBeLessThanOrEqual(1200);
@@ -267,8 +269,20 @@ describe("timeline (tunnel → decel → stars → arrival)", () => {
         HS_TIMELINE.exitMs +
         HS_TIMELINE.arriveMs,
     );
-    expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(4200);
-    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(4800);
+    expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(5400);
+    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(6200);
+  });
+
+  it("round-5 phase boundaries: tunnel to 2600, decel to 3600, stars to 4100, approach to 5400, fade to 5800", () => {
+    const decelStart = HS_TIMELINE.tunnelMs;
+    const settleStart = decelStart + HS_TIMELINE.decelMs;
+    const exitStart = settleStart + HS_TIMELINE.settleMs;
+    const landAt = exitStart + HS_TIMELINE.exitMs;
+    expect(decelStart).toBe(2600);
+    expect(settleStart).toBe(3600);
+    expect(exitStart).toBe(4100);
+    expect(landAt).toBe(5400);
+    expect(HS_TIMELINE.totalMs).toBe(5800);
   });
 
   it("choreographs the decel: wash fully in before the tunnel starts fading, tunnel gone before the snap", () => {
@@ -413,5 +427,20 @@ describe("tunnel shader (dependency-free raw WebGL)", () => {
     expect(HS_FRAG).toContain("precision");
     expect(HS_FRAG).toContain("gl_FragColor");
     expect(HS_VERT).toContain("attribute vec2 a_pos");
+  });
+
+  it("round 5: the swirl is a true cyclone — differential rotation, spiral advection, curved rays, global roll", () => {
+    // Differential rotation: omega(r) = OMEGA0 + OMEGA1/(r + EPS) — angular
+    // velocity must rise toward the axis (1/r), not be a flat turntable rate.
+    expect(HS_FRAG).toContain("HS_OMEGA1 / (r + HS_EPS)");
+    // Spiral advection: the sampling angle is coupled to depth, so filaments
+    // wind around the axis into spiral arms.
+    expect(HS_FRAG).toContain("HS_K_SPIRAL * depth");
+    // Gentle whole-frame roll rides on top of the differential field.
+    expect(HS_FRAG).toContain("HS_ROLL");
+    // The god-rays are sheared by the SAME rotation field as the clouds (both
+    // sample `spin`), so the spokes curve into spiral arms too.
+    expect(HS_FRAG).toContain("hs_fbm(vec2(spin * 4.0");
+    expect(HS_FRAG).toContain("hs_fbm(vec2(spin * 12.0");
   });
 });
