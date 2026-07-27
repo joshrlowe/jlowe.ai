@@ -105,29 +105,20 @@
 }
 
 /*
- * Hyperspace entrance reveal. When the "drop out of hyperspace" overlay
- * (components/hyperspace) clears, the page content settles in with a subtle
- * scale — the overlay is a <body> portal that fades via its own opacity
- * transition; this only drives the content behind it. The class is added to
- * <html> for the length of the reveal, then removed. overflow-x is clamped so
- * the momentary 1.02 scale can never surface a horizontal scrollbar. The
- * reduced-motion floor below neutralizes the keyframes for motion-averse
- * visitors (who never trigger the warp in the first place).
+ * Hyperspace exit (components/hyperspace). While the entrance plays, the page
+ * itself is the destination: #main is lifted above the tunnel canvas (z-200;
+ * the skip control sits at z-220) and given an opaque background so it reads
+ * as a solid dark silhouette card while the shader's light rakes around it.
+ * The JS overlay drives the scale/opacity transform inline; everything here
+ * is layout-inert (relative + no offsets), so CLS stays 0. pointer-events is
+ * off so the still-arriving page can't swallow clicks meant for Skip. The
+ * class is removed at arrival — the end state is pristine DOM.
  */
-html.hs-reveal {
-  overflow-x: hidden;
-}
-html.hs-reveal #main {
-  transform-origin: 50% 0;
-  animation: hs-content-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes hs-content-in {
-  from {
-    transform: scale(1.02);
-  }
-  to {
-    transform: scale(1);
-  }
+html.hs-exit #main {
+  position: relative;
+  z-index: 210;
+  background: var(--background);
+  pointer-events: none;
 }
 
 /*

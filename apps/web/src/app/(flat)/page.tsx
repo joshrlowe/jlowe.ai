@@ -34,9 +34,11 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Signature "drop out of hyperspace" entrance — a client-only overlay
-          that plays once per session on landing, then reveals this SSG page.
-          Renders nothing server-side, so the content below is the real page. */}
+      {/* Signature "hyperspace exit" entrance — a client-only WebGL cloud-
+          tunnel overlay that plays once per session on landing; this SSG page
+          itself then emerges as the destination and rushes up to fill the
+          frame. Renders nothing server-side: the content below is the real,
+          untransformed page at first paint. */}
       <HyperspaceEntrance />
 
       <section className="py-20 md:py-28">

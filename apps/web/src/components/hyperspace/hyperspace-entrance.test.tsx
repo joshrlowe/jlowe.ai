@@ -2,19 +2,21 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  exitAlphaAt,
+  exitScaleAt,
+  HS_FRAG,
   HS_TIMELINE,
+  HS_VERT,
   HyperspaceEntrance,
-  logoAlphaAt,
-  logoScaleAt,
 } from "./hyperspace-entrance";
 
-function mockMedia({ reduce = false, coarse = false } = {}) {
+const SESSION_KEY = "hs-entrance:played";
+
+function mockMedia({ reduce = false } = {}) {
   vi.spyOn(window, "matchMedia").mockImplementation(
     (query: string) =>
       ({
-        matches:
-          (reduce && query.includes("prefers-reduced-motion")) ||
-          (coarse && query.includes("coarse")),
+        matches: reduce && query.includes("prefers-reduced-motion"),
         media: query,
         onchange: null,
         addListener: () => undefined,
@@ -26,161 +28,250 @@ function mockMedia({ reduce = false, coarse = false } = {}) {
   );
 }
 
-const SESSION_KEY = "hs-entrance:played";
+/**
+ * Minimal WebGL1 stand-in: every init call succeeds, so the component takes
+ * the "plays" path instead of the WebGL-unavailable fallback. jsdom has no
+ * real GL, and the render loop is suspended by the rAF stub anyway.
+ */
+function fakeWebGL(): RenderingContext {
+  return {
+    VERTEX_SHADER: 1,
+    FRAGMENT_SHADER: 2,
+    COMPILE_STATUS: 3,
+    LINK_STATUS: 4,
+    ARRAY_BUFFER: 5,
+    STATIC_DRAW: 6,
+    FLOAT: 7,
+    TRIANGLES: 8,
+    createShader: () => ({}),
+    shaderSource: () => undefined,
+    compileShader: () => undefined,
+    getShaderParameter: () => true,
+    deleteShader: () => undefined,
+    createProgram: () => ({}),
+    attachShader: () => undefined,
+    linkProgram: () => undefined,
+    getProgramParameter: () => true,
+    useProgram: () => undefined,
+    deleteProgram: () => undefined,
+    createBuffer: () => ({}),
+    bindBuffer: () => undefined,
+    bufferData: () => undefined,
+    deleteBuffer: () => undefined,
+    getAttribLocation: () => 0,
+    enableVertexAttribArray: () => undefined,
+    vertexAttribPointer: () => undefined,
+    getUniformLocation: () => ({}),
+    uniform1f: () => undefined,
+    uniform2f: () => undefined,
+    uniform4f: () => undefined,
+    viewport: () => undefined,
+    drawArrays: () => undefined,
+    getExtension: () => null,
+  } as unknown as RenderingContext;
+}
 
-const syncRaf = (cb: FrameRequestCallback) => {
-  cb(0);
-  return 1;
-};
+/**
+ * The component defers its mount by one rAF (so real content sets FCP/LCP),
+ * then drives the shader loop from rAF. Fire only the FIRST request
+ * synchronously (the mount) and suspend the rest — tests never need frames,
+ * and a synchronous loop would recurse forever.
+ */
+function stubRafMountOnly() {
+  let fired = false;
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+    if (!fired) {
+      fired = true;
+      cb(0);
+    }
+    return 1;
+  });
+  vi.stubGlobal("cancelAnimationFrame", () => undefined);
+}
 
 describe("HyperspaceEntrance", () => {
+  let main: HTMLElement;
+
   beforeEach(() => {
     window.sessionStorage.clear();
-    // The component mounts the overlay on the next animation frame; run it
-    // synchronously so the portal is present right after render.
-    vi.stubGlobal("requestAnimationFrame", syncRaf);
-    vi.stubGlobal("cancelAnimationFrame", () => {});
-    // jsdom has no 2D canvas; make the null-context path explicit and quiet.
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    stubRafMountOnly();
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
+      fakeWebGL(),
+    );
+    main = document.createElement("main");
+    main.id = "main";
+    document.body.appendChild(main);
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-    document.documentElement.classList.remove("hs-reveal");
+    document.documentElement.classList.remove("hs-exit");
     document.getElementById("main")?.remove();
   });
 
-  it("reveals immediately for prefers-reduced-motion — no overlay, marks played", () => {
+  it("reveals immediately for prefers-reduced-motion — no overlay, no transform, marks played", () => {
     mockMedia({ reduce: true });
     render(<HyperspaceEntrance />);
     expect(
       screen.queryByRole("button", { name: /skip intro/i }),
     ).not.toBeInTheDocument();
     expect(window.sessionStorage.getItem(SESSION_KEY)).toBe("1");
+    expect(main.style.transform).toBe("");
   });
 
-  it("skips the warp on repeat visits within a session", () => {
+  it("skips the sequence on repeat visits within a session", () => {
     window.sessionStorage.setItem(SESSION_KEY, "1");
-    mockMedia({ reduce: false });
+    mockMedia();
     render(<HyperspaceEntrance />);
     expect(
       screen.queryByRole("button", { name: /skip intro/i }),
     ).not.toBeInTheDocument();
+    expect(main.style.transform).toBe("");
   });
 
-  it("plays on a fresh visit and renders a focusable skip control", () => {
-    mockMedia({ reduce: false });
+  it("plays on a fresh visit: focusable skip, page staged as the tiny destination card", () => {
+    mockMedia();
     render(<HyperspaceEntrance />);
     const skip = screen.getByRole("button", { name: /skip intro/i });
-    expect(skip).toBeInTheDocument();
     // Auto-focused so keyboard/AT users can dismiss immediately.
     expect(skip).toHaveFocus();
-    // Warp still in progress: not yet marked played.
+    // Still in flight: not yet marked played.
     expect(window.sessionStorage.getItem(SESSION_KEY)).toBeNull();
+    // The destination staging: #main lifted above the canvas (hs-exit) and
+    // pre-scaled to the emergence size, invisible until the exit phase.
+    expect(document.documentElement.classList.contains("hs-exit")).toBe(true);
+    expect(main.style.transform).toBe(`scale(${exitScaleAt(0)})`);
+    expect(main.style.opacity).toBe("0");
   });
 
-  it("skip completes the whole sequence (wordmark included) at any point", () => {
-    mockMedia({ reduce: false });
+  it("skip instantly completes: played, page restored pristine, focus handed to #main", () => {
+    mockMedia();
     render(<HyperspaceEntrance />);
-    const skip = screen.getByRole("button", { name: /skip intro/i });
-    fireEvent.click(skip);
+    fireEvent.click(screen.getByRole("button", { name: /skip intro/i }));
     expect(window.sessionStorage.getItem(SESSION_KEY)).toBe("1");
-    // The reveal (site settle) is in flight the moment skip is pressed.
-    expect(document.documentElement.classList.contains("hs-reveal")).toBe(true);
+    // End state is a pristine DOM: no residual transform/opacity/clip.
+    expect(main.style.transform).toBe("");
+    expect(main.style.opacity).toBe("");
+    expect(main.style.clipPath).toBe("");
+    expect(main).toHaveFocus();
   });
 
-  it("watchdog completes and fully tears down even without a canvas context", () => {
+  it("watchdog forces completion + full teardown even if the render loop stalls", () => {
     vi.useFakeTimers();
-    // Fake timers clobber the rAF stub from beforeEach; restore a synchronous
-    // one so the overlay mounts immediately and only setTimeout is virtual.
-    vi.stubGlobal("requestAnimationFrame", syncRaf);
-    const main = document.createElement("main");
-    main.id = "main";
-    document.body.appendChild(main);
-
-    mockMedia({ reduce: false });
+    // Fake timers clobber the rAF stub; restore it so the overlay mounts and
+    // only setTimeout is virtual.
+    stubRafMountOnly();
+    mockMedia();
     render(<HyperspaceEntrance />);
     expect(
       screen.getByRole("button", { name: /skip intro/i }),
     ).toBeInTheDocument();
 
-    // Past watchdog (total + slack) + the reveal window.
     act(() => {
       vi.advanceTimersByTime(HS_TIMELINE.totalMs + 2000);
     });
 
     expect(window.sessionStorage.getItem(SESSION_KEY)).toBe("1");
-    // Overlay unmounted, reveal class cleared, focus handed to #main.
     expect(
       screen.queryByRole("button", { name: /skip intro/i }),
     ).not.toBeInTheDocument();
-    expect(document.documentElement.classList.contains("hs-reveal")).toBe(
-      false,
-    );
+    expect(document.documentElement.classList.contains("hs-exit")).toBe(false);
+    expect(main.style.transform).toBe("");
     expect(main).toHaveFocus();
   });
-});
 
-describe("timeline (phases 1–6)", () => {
-  it("keeps round 1's warp phases and lands the total in the 4.3–4.7s window", () => {
-    // Phases 1–3 must not regress — these are round 1's exact values.
-    expect(HS_TIMELINE.peakHoldMs).toBe(700);
-    expect(HS_TIMELINE.decelMs).toBe(850);
-    expect(HS_TIMELINE.flashAttackMs).toBe(120);
-    // The wordmark recede is the 2.0–2.2s arrival beat; the flash release and
-    // starfield settle play out underneath its opening.
-    expect(HS_TIMELINE.logoMs).toBeGreaterThanOrEqual(2000);
-    expect(HS_TIMELINE.logoMs).toBeLessThanOrEqual(2200);
-    expect(HS_TIMELINE.flashReleaseMs).toBeLessThan(HS_TIMELINE.logoMs);
-    expect(HS_TIMELINE.totalMs).toBe(
-      HS_TIMELINE.peakHoldMs +
-        HS_TIMELINE.decelMs +
-        HS_TIMELINE.flashAttackMs +
-        HS_TIMELINE.logoMs +
-        HS_TIMELINE.revealMs,
-    );
-    expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(4300);
-    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(4700);
+  it("WebGL unavailable → instant site: no overlay lingers, page untouched, marks played", () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    mockMedia();
+    render(<HyperspaceEntrance />);
+    expect(
+      screen.queryByRole("button", { name: /skip intro/i }),
+    ).not.toBeInTheDocument();
+    expect(window.sessionStorage.getItem(SESSION_KEY)).toBe("1");
+    expect(main.style.transform).toBe("");
+    expect(document.documentElement.classList.contains("hs-exit")).toBe(false);
   });
 });
 
-describe("wordmark recede (phase 5)", () => {
-  it("starts at scale 1 and shrinks monotonically over the recede", () => {
-    expect(logoScaleAt(0)).toBeCloseTo(1, 10);
-    let prev = logoScaleAt(0);
-    for (let t = 100; t <= HS_TIMELINE.logoMs; t += 100) {
-      const s = logoScaleAt(t);
-      expect(s).toBeLessThan(prev);
+describe("timeline (tunnel → exit → arrival)", () => {
+  it("keeps the burst a garnish inside the tunnel and lands the total in 2.8–3.2s", () => {
+    // The streak burst is a cold-open garnish, not the main visual.
+    expect(HS_TIMELINE.burstMs).toBeLessThanOrEqual(400);
+    expect(HS_TIMELINE.burstMs).toBeLessThan(HS_TIMELINE.tunnelMs);
+    // A real beat of pure cloud-tunnel travel before the exit begins.
+    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(1000);
+    expect(HS_TIMELINE.exitMs).toBeGreaterThanOrEqual(1200);
+    expect(HS_TIMELINE.totalMs).toBe(
+      HS_TIMELINE.tunnelMs + HS_TIMELINE.exitMs + HS_TIMELINE.arriveMs,
+    );
+    expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(2800);
+    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(3200);
+  });
+});
+
+describe("destination approach curve (the page rushes toward camera)", () => {
+  it("emerges tiny, grows monotonically, and reaches exactly 1 at the end", () => {
+    expect(exitScaleAt(0)).toBeCloseTo(0.03, 10);
+    expect(exitScaleAt(HS_TIMELINE.exitMs)).toBeCloseTo(1, 10);
+    let prev = exitScaleAt(0);
+    for (let t = 50; t <= HS_TIMELINE.exitMs; t += 50) {
+      const s = exitScaleAt(t);
+      expect(s).toBeGreaterThan(prev);
       prev = s;
     }
-    // It ends small — a fraction of its starting size before the fade hides it.
-    expect(logoScaleAt(HS_TIMELINE.logoMs)).toBeLessThan(0.12);
+    // Clamped outside the exit window on both sides.
+    expect(exitScaleAt(-100)).toBeCloseTo(0.03, 10);
+    expect(exitScaleAt(HS_TIMELINE.exitMs + 500)).toBe(1);
   });
 
-  it("is a true hyperbolic z-recede (1/scale affine in t), not a tween", () => {
-    // scale = FOCAL / (Z0 + VZ·t) ⇒ 1/scale is affine in t. Equal time steps
-    // give equal 1/scale steps — a linear or ease-out scale tween fails this.
-    const inv = (t: number) => 1 / logoScaleAt(t);
-    const d1 = inv(500) - inv(0);
-    const d2 = inv(1000) - inv(500);
-    const d3 = inv(1500) - inv(1000);
+  it("is true hyperbolic GROWTH (1/scale affine in t) that accelerates — not an ease-out", () => {
+    // scale = S0 / (1 − (1−S0)·t/T) ⇒ 1/scale is affine in t: equal time
+    // steps shed equal 1/scale steps. A linear or ease-out tween fails this.
+    const inv = (t: number) => 1 / exitScaleAt(t);
+    const d1 = inv(0) - inv(350);
+    const d2 = inv(350) - inv(700);
+    const d3 = inv(700) - inv(1050);
     expect(d1).toBeCloseTo(d2, 8);
     expect(d2).toBeCloseTo(d3, 8);
-    // Front-loaded shrink: the first half sheds far more apparent size than
-    // the second — the "flying away fast, then slowing" signature.
-    const T = HS_TIMELINE.logoMs;
-    const early = logoScaleAt(0) - logoScaleAt(T / 2);
-    const late = logoScaleAt(T / 2) - logoScaleAt(T);
-    expect(early).toBeGreaterThan(late * 5);
+    // Rushing, not easing: the second half grows vastly more than the first,
+    // and growth keeps accelerating right into the arrival frame — the exact
+    // opposite of round 2's front-loaded recede.
+    const T = HS_TIMELINE.exitMs;
+    const early = exitScaleAt(T / 2) - exitScaleAt(0);
+    const late = exitScaleAt(T) - exitScaleAt(T / 2);
+    expect(late).toBeGreaterThan(early * 5);
+    const dMid = exitScaleAt(T / 2 + 50) - exitScaleAt(T / 2);
+    const dEnd = exitScaleAt(T) - exitScaleAt(T - 50);
+    expect(dEnd).toBeGreaterThan(dMid * 3);
   });
 
-  it("holds full opacity for 70% of the recede, then fades to 0", () => {
-    expect(logoAlphaAt(0)).toBe(1);
-    expect(logoAlphaAt(0.7)).toBe(1);
-    expect(logoAlphaAt(0.85)).toBeCloseTo(0.5, 5);
-    expect(logoAlphaAt(1)).toBe(0);
-    expect(logoAlphaAt(1.2)).toBe(0); // clamped past the end
+  it("fades the emerging card in over the opening of the exit, then holds solid", () => {
+    expect(exitAlphaAt(0)).toBe(0);
+    expect(exitAlphaAt(70)).toBeCloseTo(0.5, 5);
+    expect(exitAlphaAt(140)).toBe(1);
+    expect(exitAlphaAt(HS_TIMELINE.exitMs)).toBe(1);
+  });
+});
+
+describe("tunnel shader (dependency-free raw WebGL)", () => {
+  it("declares the driving uniforms and stays WebGL1-compatible GLSL", () => {
+    for (const u of [
+      "u_time",
+      "u_resolution",
+      "u_speed",
+      "u_exitProgress",
+      "u_rect",
+      "u_burst",
+    ]) {
+      expect(HS_FRAG).toContain(u);
+    }
+    // ES 1.00 dialect: no version directive, explicit precision, and the
+    // classic attribute/gl_FragColor forms (WebGL1 everywhere).
+    expect(HS_FRAG).not.toContain("#version");
+    expect(HS_FRAG).toContain("precision");
+    expect(HS_FRAG).toContain("gl_FragColor");
+    expect(HS_VERT).toContain("attribute vec2 a_pos");
   });
 });
