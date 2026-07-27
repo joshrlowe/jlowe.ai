@@ -16,7 +16,9 @@ export function TransitNotice() {
         <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-primary">
           New sector charting
         </p>
-        <p className="mt-2 font-mono text-sm">This sector is being resurveyed.</p>
+        <p className="mt-2 font-mono text-sm">
+          This sector is being resurveyed.
+        </p>
         <Link
           href="/"
           className="pointer-events-auto mt-3 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
