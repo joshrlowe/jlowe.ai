@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ActivityStrip } from "@/components/activity-strip";
 import { ContributionsPlaceholder } from "@/components/contributions-placeholder";
+import { HyperspaceEntrance } from "@/components/hyperspace/hyperspace-entrance";
 import { ProjectCard } from "@/components/project-card";
 import { Section } from "@/components/section";
 import { TypingTagline } from "@/components/typing-tagline";
@@ -33,6 +34,13 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Signature "hyperspace exit" entrance — a client-only WebGL cloud-
+          tunnel overlay that plays once per session on landing; this SSG page
+          itself then emerges as the destination and rushes up to fill the
+          frame. Renders nothing server-side: the content below is the real,
+          untransformed page at first paint. */}
+      <HyperspaceEntrance />
+
       <section className="py-20 md:py-28">
         <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
           I build <TypingTagline phrases={TYPING_PHRASES} />

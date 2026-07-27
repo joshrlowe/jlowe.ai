@@ -10,7 +10,10 @@
         "http://localhost/contact/"
       ],
       "numberOfRuns": 3,
-      "settings": { "preset": "desktop" }
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--force-prefers-reduced-motion"
+      }
     },
     "assert": {
       "assertions": {
