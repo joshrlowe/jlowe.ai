@@ -16,11 +16,9 @@ import {
 } from "./core/scene-manager";
 import { PerfProbe } from "./debug/perf-probe";
 import { InputBridge } from "./input-bridge";
-import { CircuitScene } from "./scenes/circuit";
 import { FixtureScene } from "./scenes/fixture";
-import { HeroScene } from "./scenes/hero";
-import { ProvingGroundScene } from "./scenes/proving-ground";
-import { CHAPTERS } from "./state/chapters";
+import { TransitScene } from "./scenes/transit";
+import { CHAPTERS, FALLBACK_SCENE_KEY } from "./state/chapters";
 
 type WebGPURendererParams = ConstructorParameters<
   typeof THREE.WebGPURenderer
@@ -49,10 +47,10 @@ function withInitTimeout<T>(init: Promise<T>): Promise<T> {
 
 // Scenes own their own camera (CameraRig). Every chapter scene's renderer lives
 // here keyed by its sceneKey; the chapter scene set is sourced from CHAPTERS so
-// registering a chapter wires its scene automatically.
-const CHAPTER_SCENE_RENDERERS: SceneRegistry = {
-  circuit: () => <CircuitScene />,
-};
+// registering a chapter wires its scene automatically. Empty while the world is
+// between chapters — Chapter 1's circuit retired to the jlowe-world repo, and
+// Chapter 2 ("Escape Velocity") registers its scene here when it lands.
+const CHAPTER_SCENE_RENDERERS: SceneRegistry = {};
 const chapterScenes: SceneRegistry = {};
 for (const c of CHAPTERS) {
   const render = CHAPTER_SCENE_RENDERERS[c.sceneKey];
@@ -62,16 +60,16 @@ for (const c of CHAPTERS) {
   chapterScenes[c.sceneKey] = render;
 }
 
-// Chapter scenes from CHAPTERS, plus fixture/proving-ground/hero as extra
-// non-chapter scenes reachable only via ?scene=.
+// Chapter scenes from CHAPTERS, plus the in-transit hold and the fixture dev
+// harness (the latter reachable only via ?scene=fixture).
 const SCENES: SceneRegistry = {
   ...chapterScenes,
+  [FALLBACK_SCENE_KEY]: () => <TransitScene />,
   fixture: () => <FixtureScene />,
-  "proving-ground": () => <ProvingGroundScene />,
-  hero: () => <HeroScene />,
 };
-// The first chapter's scene is the default (currently "circuit").
-const DEFAULT_SCENE = CHAPTERS[0]?.sceneKey ?? "circuit";
+// The first chapter's scene is the default; with no chapter registered the
+// world holds in transit.
+const DEFAULT_SCENE = CHAPTERS[0]?.sceneKey ?? FALLBACK_SCENE_KEY;
 
 /**
  * The R3F canvas, dynamically imported so three never enters a flat-route
@@ -108,14 +106,13 @@ export function WorldCanvas({
       // so this presents the live scene as a single named image. a11y attrs
       // only — no change to the 3D rendering.
       role="img"
-      aria-label="Interactive 3D world: a drivable coastal circuit through Josh Lowe's work. The same content is available on the standard site."
+      aria-label="Interactive 3D world for Josh Lowe's portfolio. The same content is available on the standard site."
       className="h-full w-full"
       dpr={[1, quality.maxDpr]}
       // Soft (PCFSoft) sun shadows. R3F owns shadowMap.enabled/type via this
       // prop (it overrides anything the gl factory sets), so enable it here.
-      // Global enable is safe: only the hero scene opts in (its meshes
-      // castShadow, its ground receiveShadow), so circuit / proving-ground
-      // render identically.
+      // Global enable is safe: shadows only render where a scene's meshes opt
+      // in (castShadow/receiveShadow), so opt-out scenes render identically.
       shadows="soft"
       camera={{ position: [6, 4, 8], fov: 50 }}
       gl={async (props) => {
@@ -146,7 +143,7 @@ export function WorldCanvas({
         <SceneManager scenes={SCENES} active={active} />
         {/* Single TSL chain (ACES → bloom → vignette); drives the render loop.
             The resolved scene key scopes the ultra MRT branch to opted-in
-            scenes so circuit / proving-ground stay floor-only under ultra. */}
+            scenes so non-cinematic scenes stay floor-only under ultra. */}
         <PostFX activeScene={active} />
         {debug ? <PerfProbe /> : null}
       </QualityProvider>

@@ -5,7 +5,7 @@ import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { useControls } from "leva";
 
 import { CameraRig } from "../core/camera-rig";
-import { GoldenHourEnvironment } from "./circuit/environment";
+import { GoldenHourEnvironment } from "../core/environment";
 
 /**
  * Fixture scene proving the whole pipeline: a pure-light golden rig (WebGPU-

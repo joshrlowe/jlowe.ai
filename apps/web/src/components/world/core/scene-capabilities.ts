@@ -5,13 +5,16 @@
  * The post-FX chain (`core/post-fx.tsx`) is a single, scene-agnostic
  * `RenderPipeline`, so gating an effect on `isUltra && backend.isWebGPUBackend`
  * alone is NOT enough: it would silently alter every scene under
- * `?quality=ultra` on WebGPU. The ultra MRT + GTAO + wet-road SSR branch is the
- * hero PoC's look only, so it must additionally be scoped to the scenes that
- * declare support here. Existing scenes (circuit, proving-ground, fixture) are
- * deliberately absent, so they render the bloom+vignette floor on every tier.
+ * `?quality=ultra` on WebGPU. The ultra MRT + cinematic branch must therefore
+ * additionally be scoped to scenes that declare support here.
+ *
+ * The set is empty today: the hero night vignette (the only opted-in scene)
+ * retired with the driving world to the jlowe-world repo. The Anchorage space
+ * world's cinematic scenes opt back in by name; until then every scene renders
+ * the bloom+vignette floor on every tier.
  */
 
-const ULTRA_POSTFX_SCENES: ReadonlySet<string> = new Set(["hero"]);
+const ULTRA_POSTFX_SCENES: ReadonlySet<string> = new Set<string>();
 
 /**
  * Whether the given scene key opts into the ultra-only heavy post-FX branch.

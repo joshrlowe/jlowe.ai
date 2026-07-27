@@ -1,37 +1,34 @@
 import { describe, expect, it } from "vitest";
 
-import { BEACONS } from "./beacons";
 import {
   CHAPTERS,
   chapterById,
   chapterForSceneKey,
-  type ChapterMeta,
+  FALLBACK_SCENE_KEY,
 } from "./chapters";
 
 describe("chapter registry", () => {
-  it("registers Chapter 1 'Ignition' unchanged", () => {
-    // Regression guard: Chapter 1's displayed identity + content must not drift.
-    const ignition = chapterById("ignition");
-    expect(ignition).toMatchObject<Partial<ChapterMeta>>({
-      id: "ignition",
-      sceneKey: "circuit",
-      title: "Ignition",
-      index: 1,
-      next: undefined,
-    });
-    expect(ignition?.beacons).toBe(BEACONS);
-    expect(ignition?.beacons).toHaveLength(5);
+  it("is empty while the world is between chapters", () => {
+    // Chapter 1 ("Ignition") retired with the driving world (jlowe-world repo);
+    // Chapter 2 ("Escape Velocity") has not registered yet.
+    expect(CHAPTERS).toHaveLength(0);
+    expect(chapterById("ignition")).toBeUndefined();
   });
 
-  it("looks chapters up by id", () => {
-    expect(chapterById("ignition")?.id).toBe("ignition");
+  it("names the transit hold as the no-chapter fallback scene", () => {
+    // world-canvas + the store both mount this key when CHAPTERS is empty; it
+    // must stay a registered non-chapter scene.
+    expect(FALLBACK_SCENE_KEY).toBe("transit");
+    expect(chapterForSceneKey(FALLBACK_SCENE_KEY)).toBeUndefined();
+  });
+
+  it("looks chapters up by id (unknown ids → undefined)", () => {
     expect(chapterById("nope")).toBeUndefined();
   });
 
-  it("maps a scene key back to its chapter (non-chapter scenes return undefined)", () => {
-    expect(chapterForSceneKey("circuit")?.id).toBe("ignition");
+  it("maps non-chapter scene keys to undefined", () => {
     expect(chapterForSceneKey("fixture")).toBeUndefined();
-    expect(chapterForSceneKey("proving-ground")).toBeUndefined();
+    expect(chapterForSceneKey("circuit")).toBeUndefined();
   });
 
   it("has unique ids and scene keys", () => {

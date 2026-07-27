@@ -10,7 +10,8 @@ import type { Node } from "three/webgpu";
  * byte-for-byte. This node ships zero bytes and stays fully tunable in code.
  *
  * Applied at the very END of the ultra post-FX chain in `core/post-fx.tsx`
- * (after bloom), gated to `isUltra && isWebGPUBackend && hero`. The caller
+ * (after bloom), gated to the ultra WebGPU branch plus a per-scene opt-in
+ * (`core/scene-capabilities.ts`). The caller
  * blends the graded result back over the input by a `colorGrade` strength so
  * the look is dialable (0 = ungraded; the ultra preset ships 1).
  *

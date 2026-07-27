@@ -10,8 +10,8 @@ const HDRI_URL = "/hdri/venice_sunset_1k.hdr";
 /**
  * Real golden-hour HDRI for image-based lighting + a sky background. Loaded
  * through R3F's loading manager (so the pre-flight bar shows real progress) and
- * assigned to `scene.environment` (node-PMREM IBL — gives the car/sea real
- * reflections) and `scene.background` (equirect skybox). WebGPU tier only; the
+ * assigned to `scene.environment` (node-PMREM IBL — real reflections on scene
+ * materials) and `scene.background` (equirect skybox). WebGPU tier only; the
  * WebGL2/mobile tiers keep the zero-byte procedural sky.
  *
  * Attached declaratively via `<primitive>` (no scene mutation), cloned per slot

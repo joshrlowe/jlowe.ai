@@ -46,16 +46,16 @@ describe("SceneManager", () => {
 
 describe("resolveSceneKey", () => {
   const scenes: SceneRegistry = {
-    circuit: () => null,
-    hero: () => null,
+    transit: () => null,
+    fixture: () => null,
   };
 
   it("returns a registered key unchanged", () => {
-    expect(resolveSceneKey("hero", scenes, "circuit")).toBe("hero");
+    expect(resolveSceneKey("fixture", scenes, "transit")).toBe("fixture");
   });
 
   it("falls back to the default for an unregistered key", () => {
-    expect(resolveSceneKey("__nope__", scenes, "circuit")).toBe("circuit");
+    expect(resolveSceneKey("__nope__", scenes, "transit")).toBe("transit");
   });
 
   it.each([
@@ -65,6 +65,6 @@ describe("resolveSceneKey", () => {
     "hasOwnProperty",
     "valueOf",
   ])("falls back to the default for inherited prototype key %s", (key) => {
-    expect(resolveSceneKey(key, scenes, "circuit")).toBe("circuit");
+    expect(resolveSceneKey(key, scenes, "transit")).toBe("transit");
   });
 });

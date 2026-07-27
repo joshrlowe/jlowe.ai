@@ -3,12 +3,10 @@ import { describe, expect, it } from "vitest";
 import { sceneSupportsUltraPostFX } from "./scene-capabilities";
 
 describe("sceneSupportsUltraPostFX", () => {
-  it("opts the hero scene into the ultra post-FX branch", () => {
-    expect(sceneSupportsUltraPostFX("hero")).toBe(true);
-  });
-
-  it("keeps the existing scenes on the floor (no ultra post-FX)", () => {
-    for (const scene of ["circuit", "proving-ground", "fixture"]) {
+  it("keeps every current scene on the floor (no scene opts in today)", () => {
+    // The hero vignette — the only opted-in scene — retired with the driving
+    // world; transit/fixture never opt in.
+    for (const scene of ["transit", "fixture", "hero", "circuit"]) {
       expect(sceneSupportsUltraPostFX(scene)).toBe(false);
     }
   });

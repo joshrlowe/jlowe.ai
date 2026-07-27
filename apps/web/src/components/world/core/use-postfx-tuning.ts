@@ -4,7 +4,7 @@ import { useControls } from "leva";
 
 /**
  * The dialable post-FX constants, with the shipped look as defaults — the same
- * constants-plus-leva idiom as `useHeroTuning` / `useVehicleTuning`. These were
+ * constants-plus-leva idiom as `useEnvironmentTuning`. These were
  * previously compile-time constants in `post-fx.tsx`, which is exactly why the
  * heavy stack could never be tuned into shape ("these want a real GPU to
  * dial"): every guess was a PR round-trip. Dragging a dial rebuilds the whole
@@ -12,8 +12,8 @@ import { useControls } from "leva";
  * affordance, never hit in production.
  */
 export interface PostFxTuning {
-  /** DoF focus distance (world units). The fixed hero camera sits ~7–8.5 m
-   * from the battle pair's lane, so focus defaults just past the challenger. */
+  /** DoF focus distance (world units). Defaults tuned on the retired hero
+   * vignette (camera ~7–8.5 m from its subject); re-dial per scene. */
   dofFocusDistance: number;
   dofFocalLength: number;
   dofBokehScale: number;

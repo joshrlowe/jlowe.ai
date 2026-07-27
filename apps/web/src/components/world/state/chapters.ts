@@ -1,10 +1,14 @@
 // The chapter registry — the single source of truth for what chapters exist,
 // which scene each drives, and how they chain. The chapter store, router, HUD,
-// and world-canvas all read this instead of hard-coding "ignition"/"circuit".
-// Today only Chapter 1 ("Ignition", the coastal circuit) is registered; a
-// second chapter plugs in by appending an entry and wiring `next`.
+// and world-canvas all read this instead of hard-coding chapter ids.
+//
+// Chapter 1 ("Ignition", the drivable coastal circuit) retired with the
+// driving world — it lives on standalone in the jlowe-world repo — so the
+// registry is empty while Chapter 2 ("Escape Velocity", the Anchorage space
+// world) is built. A chapter plugs in by appending an entry and wiring `next`;
+// with no chapter registered, the world holds on the in-transit scene.
 
-import { type BeaconDef, BEACONS } from "./beacons";
+import { type BeaconDef } from "./beacons";
 
 export interface ChapterMeta {
   /** Stable id — the persistence key and the `chapter:complete` payload. */
@@ -21,16 +25,14 @@ export interface ChapterMeta {
   next?: string;
 }
 
-export const CHAPTERS: readonly ChapterMeta[] = [
-  {
-    id: "ignition",
-    sceneKey: "circuit",
-    title: "Ignition",
-    index: 1,
-    beacons: BEACONS,
-    next: undefined,
-  },
-];
+/**
+ * The scene the world mounts when no chapter is registered (also the
+ * unknown-`?scene=` fallback): the in-transit hold — a starfield with the
+ * next-chapter notice.
+ */
+export const FALLBACK_SCENE_KEY = "transit";
+
+export const CHAPTERS: readonly ChapterMeta[] = [];
 
 /** Look up a chapter by id (undefined when no chapter owns that id). */
 export function chapterById(id: string): ChapterMeta | undefined {
