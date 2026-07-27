@@ -10,31 +10,54 @@ import { cn } from "@/lib/utils";
  * plays once per session when you land on the home page, then cross-fades to
  * reveal the (always-present, SSG) site behind it.
  *
+ * The sequence (≈4.3s): cold-open at peak warp → exponential decel with a
+ * snap → white drop-out flash. The flash doubles as a hard cut-in: as it
+ * releases, the stars settle into a calm, near-static deep-space field and a
+ * huge outlined "JOSH / LOWE" wordmark recedes into it — a true perspective
+ * pull-back (z grows linearly, scale = FOCAL/z, so it shrinks fast then
+ * slows — the opening-crawl arrival grammar) — fading out as it gets small.
+ * Then the overlay cross-fades away while the site settles in.
+ *
  * Progressive enhancement is sacred: this renders nothing on the server and on
  * the first client render, so no-JS visitors and the SSG HTML are untouched.
  * The overlay is mounted from an effect (i.e. AFTER the first paint, so the
  * real content sets FCP/LCP) and portalled onto <body> so the reveal can subtly
  * scale #main behind it. prefers-reduced-motion and repeat visits skip straight
- * to the site.
+ * to the site. The wordmark is strokeText in a generic heavy system sans —
+ * no webfont, no third-party typeface or IP.
  *
  * The numeric tunables below set the *feel* and want a quick in-browser pass —
  * canvas output can't be seen from CI. The structure and the realism model
  * (radial vanishing point, streak length ∝ speed × radial distance, exponential
  * decel with a snap, additive bloom, chromatic split at peak only, flash-driven
- * reveal) are fixed.
+ * cut, hyperbolic logo recede) are fixed.
  */
 
 const SESSION_KEY = "hs-entrance:played";
 
-// ---- Timeline (ms). Total ≈ HOLD + DECEL + FLASH_ATTACK + REVEAL ≈ 2.2s. ----
-const PEAK_HOLD_MS = 700; // 1–2. cold-open AT peak warp, then hold
-const DECEL_MS = 850; // 3. exponential deceleration → snap to ~0
-const FLASH_ATTACK_MS = 120; // 4. white→blue bloom attack at the stop
-const REVEAL_MS = 520; // 5. overlay cross-fade + content settle (flash release)
+// ---- Timeline (ms). Phases 1–3 are round 1's warp, unchanged. ----
+const PEAK_HOLD_MS = 700; // 1. cold-open AT peak warp, then hold
+const DECEL_MS = 850; // 2. exponential deceleration → snap to ~0
+const FLASH_ATTACK_MS = 120; // 3. white→blue bloom attack at the stop
+const FLASH_RELEASE_MS = 600; // 4. flash decays over the settled starfield
+const LOGO_MS = 2150; // 5. wordmark recede (starts at the flash peak)
+const REVEAL_MS = 520; // 6. overlay cross-fade + content settle
 // Safety net: if the canvas/RAF never reaches the reveal, force it.
-const WATCHDOG_MS = PEAK_HOLD_MS + DECEL_MS + FLASH_ATTACK_MS + REVEAL_MS + 900;
+const WATCHDOG_MS =
+  PEAK_HOLD_MS + DECEL_MS + FLASH_ATTACK_MS + LOGO_MS + REVEAL_MS + 900;
 
-// ---- Starfield ----
+/** The full phase timeline, exported for tests/docs. Total ≈ 4.34s. */
+export const HS_TIMELINE = {
+  peakHoldMs: PEAK_HOLD_MS,
+  decelMs: DECEL_MS,
+  flashAttackMs: FLASH_ATTACK_MS,
+  flashReleaseMs: FLASH_RELEASE_MS,
+  logoMs: LOGO_MS,
+  revealMs: REVEAL_MS,
+  totalMs: PEAK_HOLD_MS + DECEL_MS + FLASH_ATTACK_MS + LOGO_MS + REVEAL_MS,
+} as const;
+
+// ---- Starfield (warp phases) ----
 const STAR_MIN = 450;
 const STAR_MAX = 950;
 const Z_NEAR = 0.06; // recycle plane — stars past this fly off and respawn
@@ -46,9 +69,53 @@ const STRETCH = 0.032; // streak "exposure" (s): zPrev = z + v·STRETCH
 const MAX_STREAK_FRAC = 0.9; // clamp a single streak to this fraction of maxDim
 const ABERRATION_PX = 3.2; // chromatic split at peak, decays with speed → 0
 
+// ---- Settled starfield (phase 4 — "we have arrived") ----
+const SETTLE_DENSITY_PX2 = 4200; // one star per this many px², clamped below
+const SETTLE_STAR_MIN = 300;
+const SETTLE_STAR_MAX = 600;
+const SETTLE_FADE_IN_MS = 350; // points emerge from under the decaying flash
+const SETTLE_DRIFT_X = -0.7; // px/s — a whisper of drift; serenity is the point
+const SETTLE_DRIFT_Y = 0.4;
+
+// ---- Wordmark recede (phase 5) ----
+const LOGO_LINES = ["JOSH", "LOWE"] as const;
+const LOGO_WIDTH_FRAC = 0.8; // block width as a fraction of viewport width at z0
+const LOGO_Z0 = 1; // start depth
+const LOGO_VZ = 5.5; // z-units/s, linear — scale = FOCAL/z is hyperbolic
+const LOGO_FOCAL = 1; // scale(t) = LOGO_FOCAL / (LOGO_Z0 + LOGO_VZ·t)
+const LOGO_FADE_FROM = 0.7; // start fading out over the last 30% of the recede
+const LOGO_RGB = "255,217,74"; // #ffd94a — warm gold
+const LOGO_STROKE_PX = 2.8; // crisp outline width at z0, scales with z
+const LOGO_GLOW_WIDTH = 3.2; // glow pass width, × the crisp stroke
+const LOGO_GLOW_ALPHA = 0.3; // additive halo strength
+const LOGO_FILL_ALPHA = 0.07; // very faint interior fill (outline stays dominant)
+const LOGO_TRACK_EM = -0.045; // tight letter-spacing (em) — block-like
+const LOGO_LINE_GAP_EM = 0.09; // gap between the two cap-height blocks (em)
+const CAP_RATIO = 0.716; // ≈ Arial cap height, for optical block centering
+
 // ---- Palette ----
 const BG = "#02030a";
 const GLOW_RGB = "109,179,255"; // #6db3ff — blue tunnel glow
+
+/** Logo depth over time (ms since the flash peak): linear z, no easing. */
+export function logoDepthAt(tMs: number): number {
+  return LOGO_Z0 + LOGO_VZ * (tMs / 1000);
+}
+
+/**
+ * Logo scale over time: FOCAL/z. Hyperbolic — sheds most of its apparent size
+ * early, then slows — which is what sells "flying away from camera". This is
+ * deliberately NOT a linear or ease-out tween.
+ */
+export function logoScaleAt(tMs: number): number {
+  return LOGO_FOCAL / logoDepthAt(tMs);
+}
+
+/** Logo opacity vs recede progress p∈[0,1]: solid until 70%, then fade to 0. */
+export function logoAlphaAt(progress: number): number {
+  if (progress <= LOGO_FADE_FROM) return 1;
+  return Math.max(0, 1 - (progress - LOGO_FADE_FROM) / (1 - LOGO_FADE_FROM));
+}
 
 interface Star {
   x: number; // normalized field coords in [-1, 1]
@@ -64,6 +131,18 @@ function makeStar(): Star {
     z: Z_NEAR + Math.random() * (Z_FAR - Z_NEAR),
     b: 0.35 + Math.random() * 0.65,
   };
+}
+
+interface CalmStar {
+  x: number; // screen px
+  y: number;
+  r: number; // point radius (px)
+  a: number; // alpha — subtle per-star brightness variation
+}
+
+/** Positive modulo, for the settled field's slow drift wrap. */
+function wrap(v: number, max: number): number {
+  return ((v % max) + max) % max;
 }
 
 export function HyperspaceEntrance() {
@@ -152,7 +231,8 @@ export function HyperspaceEntrance() {
     let minDim = 0;
     let maxDim = 0;
 
-    // Skip = instantly complete: a full-strength flash, then the reveal.
+    // Skip = instantly complete the WHOLE sequence (wordmark included): a
+    // full-strength flash, then the reveal.
     skipHandlerRef.current = () => {
       if (revealed) return;
       if (ctx) {
@@ -180,6 +260,78 @@ export function HyperspaceEntrance() {
       };
     }
 
+    // ---- Arrival state (initialized under the flash peak — the hard cut) ----
+    let arrived = false;
+    let calm: CalmStar[] = [];
+    let logoS1 = 0; // start font px per line, width-fit at the cut/resize
+    let logoS2 = 0;
+
+    const setLogoFont = (px: number) => {
+      ctx.font = `900 ${px}px 'Arial Black','Helvetica Neue',system-ui,sans-serif`;
+      // Tight tracking, proportional to size. Supported in modern engines;
+      // elsewhere the assignment is a harmless no-op (measure + draw agree
+      // either way, so the width fit stays correct).
+      ctx.letterSpacing = `${(LOGO_TRACK_EM * px).toFixed(2)}px`;
+    };
+
+    // Respawn/redistribute to a pleasing, calm density — the warp field is
+    // center-clustered and would look sparse at rest. Swapped in at the flash
+    // peak, so the cut is invisible.
+    const seedCalmField = () => {
+      let n = Math.round((w * h) / SETTLE_DENSITY_PX2);
+      n = Math.max(SETTLE_STAR_MIN, Math.min(SETTLE_STAR_MAX, n));
+      calm = Array.from({ length: n }, () => {
+        const b = Math.random();
+        return {
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: 0.45 + 0.95 * b,
+          a: 0.28 + 0.72 * b,
+        };
+      });
+    };
+
+    // Width-fit each line independently (both lines justify to the same block
+    // width, like a real two-line wordmark) at a probe size, once per
+    // arrival/resize. Per frame we only rescale; crispness comes from setting
+    // the true font size every frame — never from scaling a cached bitmap.
+    const calibrateLogo = () => {
+      const probe = 100;
+      setLogoFont(probe);
+      const target = LOGO_WIDTH_FRAC * w;
+      const fit = (line: string) => {
+        const m = ctx.measureText(line).width;
+        const safe =
+          m > 0 && Number.isFinite(m) ? m : probe * line.length * 0.72;
+        return (probe * target) / safe;
+      };
+      logoS1 = fit(LOGO_LINES[0]);
+      logoS2 = fit(LOGO_LINES[1]);
+    };
+
+    const drawLogoLine = (
+      text: string,
+      px: number,
+      baselineY: number,
+      scale: number,
+      alpha: number,
+    ) => {
+      if (px < 4) return;
+      setLogoFont(px);
+      // Very faint interior fill so the glyphs have body over the stars.
+      ctx.fillStyle = `rgba(${LOGO_RGB},${LOGO_FILL_ALPHA * alpha})`;
+      ctx.fillText(text, cx, baselineY);
+      // Soft additive halo behind the crisp line.
+      ctx.strokeStyle = `rgba(${LOGO_RGB},${LOGO_GLOW_ALPHA * alpha})`;
+      ctx.lineWidth = Math.max(1.4, LOGO_STROKE_PX * scale * LOGO_GLOW_WIDTH);
+      ctx.strokeText(text, cx, baselineY);
+      // Crisp outline — the wordmark itself. Outline-only by design (the fill
+      // above is a tint, not a fill).
+      ctx.strokeStyle = `rgba(${LOGO_RGB},${0.95 * alpha})`;
+      ctx.lineWidth = Math.max(0.4, LOGO_STROKE_PX * scale);
+      ctx.strokeText(text, cx, baselineY);
+    };
+
     let dpr = 1;
     const resize = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -192,6 +344,12 @@ export function HyperspaceEntrance() {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (arrived) {
+        // Mid-arrival resize: re-scatter the field and re-fit the wordmark to
+        // the new viewport.
+        seedCalmField();
+        calibrateLogo();
+      }
     };
     resize();
     window.addEventListener("resize", resize);
@@ -206,12 +364,86 @@ export function HyperspaceEntrance() {
     const t0 = performance.now();
     let last = t0;
     const warpEnd = PEAK_HOLD_MS + DECEL_MS;
+    const flashPeakT = warpEnd + FLASH_ATTACK_MS;
+    const logoEndT = flashPeakT + LOGO_MS;
 
     const frame = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05); // clamp tab-out jumps
       last = now;
       const elapsed = now - t0;
 
+      // ---- Phases 4–5: settled starfield + receding wordmark. The flash
+      // peak is the hard cut-in; its release plays out over this scene. ----
+      if (elapsed >= flashPeakT) {
+        if (!arrived) {
+          arrived = true;
+          seedCalmField();
+          calibrateLogo();
+        }
+        const tA = elapsed - flashPeakT;
+
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = BG;
+        ctx.fillRect(0, 0, w, h);
+
+        // Calm deep-space field: fine white points, subtle per-star
+        // brightness, at most a whisper of drift — emerging from under the
+        // decaying flash. "We have arrived."
+        const settleA = Math.min(tA / SETTLE_FADE_IN_MS, 1);
+        const ox = (SETTLE_DRIFT_X * tA) / 1000;
+        const oy = (SETTLE_DRIFT_Y * tA) / 1000;
+        for (const s of calm) {
+          ctx.fillStyle = `rgba(238,242,255,${s.a * settleA})`;
+          ctx.beginPath();
+          ctx.arc(wrap(s.x + ox, w), wrap(s.y + oy, h), s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Wordmark: true perspective recede. z grows linearly, projected
+        // scale is FOCAL/z (hyperbolic — fast then slowing), opacity fades
+        // over the last 30%. Font size is set from z every frame so the
+        // outline stays crisp at every scale.
+        const p = Math.min(tA / LOGO_MS, 1);
+        const logoAlpha = logoAlphaAt(p);
+        if (logoAlpha > 0.004) {
+          const scale = logoScaleAt(tA);
+          const s1 = logoS1 * scale;
+          const s2 = logoS2 * scale;
+          const gapPx = LOGO_LINE_GAP_EM * ((s1 + s2) / 2);
+          const blockH = CAP_RATIO * (s1 + s2) + gapPx;
+          const y1 = cy - blockH / 2 + CAP_RATIO * s1; // line 1 baseline
+          const y2 = y1 + gapPx + CAP_RATIO * s2; // line 2 baseline
+          ctx.globalCompositeOperation = "lighter";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "alphabetic";
+          ctx.lineJoin = "round";
+          drawLogoLine(LOGO_LINES[0], s1, y1, scale, logoAlpha);
+          drawLogoLine(LOGO_LINES[1], s2, y2, scale, logoAlpha);
+        }
+
+        // Flash release: the attack's white veil (drawn at e=1 below at the
+        // exact peak frame) decays over the arrival, covering the field swap
+        // and the wordmark's cut-in.
+        if (tA < FLASH_RELEASE_MS) {
+          const e = Math.pow(1 - tA / FLASH_RELEASE_MS, 3);
+          const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxDim * 0.82);
+          fg.addColorStop(0, `rgba(255,255,255,${0.95 * e})`);
+          fg.addColorStop(0.35, `rgba(223,239,255,${0.6 * e})`);
+          fg.addColorStop(1, "rgba(223,239,255,0)");
+          ctx.globalCompositeOperation = "lighter";
+          ctx.fillStyle = fg;
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        if (elapsed >= logoEndT) {
+          beginReveal(); // hold this calm frame; CSS fades it to the site.
+          return;
+        }
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+
+      // ---- Phases 1–3 (round 1, unchanged): hold → decel → flash attack ----
       // Speed envelope: cold-open at peak, hold, then exponential decel to ~0.
       let speed: number;
       if (elapsed < PEAK_HOLD_MS) {
@@ -334,7 +566,8 @@ export function HyperspaceEntrance() {
         ctx.fill();
       }
 
-      // Drop-out flash at the stop drives the reveal (never a hard cut).
+      // Drop-out flash at the stop. Its peak is the hard cut into the arrival
+      // scene above (never a reveal mid-flash, never a hard cut without it).
       if (elapsed >= warpEnd) {
         const fi = Math.min((elapsed - warpEnd) / FLASH_ATTACK_MS, 1);
         const e = fi * fi;
@@ -346,11 +579,6 @@ export function HyperspaceEntrance() {
         ctx.globalCompositeOperation = "lighter";
         ctx.fillStyle = fg;
         ctx.fillRect(0, 0, w, h);
-
-        if (fi >= 1) {
-          beginReveal(); // hold this bright frame; CSS fades it to the site.
-          return;
-        }
       }
 
       raf = requestAnimationFrame(frame);
