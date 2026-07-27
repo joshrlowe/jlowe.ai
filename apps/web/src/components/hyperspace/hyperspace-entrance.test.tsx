@@ -2,12 +2,16 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  calmStarCount,
   exitAlphaAt,
   exitScaleAt,
   HS_FRAG,
   HS_TIMELINE,
   HS_VERT,
   HyperspaceEntrance,
+  streakSpeedAt,
+  tunnelFadeAt,
+  washAt,
 } from "./hyperspace-entrance";
 
 const SESSION_KEY = "hs-entrance:played";
@@ -30,8 +34,8 @@ function mockMedia({ reduce = false } = {}) {
 
 /**
  * Minimal WebGL1 stand-in: every init call succeeds, so the component takes
- * the "plays" path instead of the WebGL-unavailable fallback. jsdom has no
- * real GL, and the render loop is suspended by the rAF stub anyway.
+ * the tunnel path instead of the GL-unavailable fallback. jsdom has no real
+ * GL, and the render loop is suspended by the rAF stub anyway.
  */
 function fakeWebGL(): RenderingContext {
   return {
@@ -64,7 +68,6 @@ function fakeWebGL(): RenderingContext {
     getUniformLocation: () => ({}),
     uniform1f: () => undefined,
     uniform2f: () => undefined,
-    uniform4f: () => undefined,
     viewport: () => undefined,
     drawArrays: () => undefined,
     getExtension: () => null,
@@ -72,8 +75,40 @@ function fakeWebGL(): RenderingContext {
 }
 
 /**
+ * Minimal 2D stand-in: the star canvas is the sequence's backbone, so the
+ * component only proceeds when getContext("2d") returns something usable.
+ * jsdom has no real canvas; the frame loop is suspended by the rAF stub.
+ */
+function fake2D(): RenderingContext {
+  const gradient = { addColorStop: () => undefined };
+  return {
+    setTransform: () => undefined,
+    clearRect: () => undefined,
+    fillRect: () => undefined,
+    createRadialGradient: () => gradient,
+    beginPath: () => undefined,
+    arc: () => undefined,
+    fill: () => undefined,
+    moveTo: () => undefined,
+    lineTo: () => undefined,
+    stroke: () => undefined,
+  } as unknown as RenderingContext;
+}
+
+/** Route getContext by kind, with per-kind overrides for failure paths. */
+function mockContexts({ webgl = true, twoD = true } = {}) {
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(((
+    kind: string,
+  ) => {
+    if (kind === "webgl") return webgl ? fakeWebGL() : null;
+    if (kind === "2d") return twoD ? fake2D() : null;
+    return null;
+  }) as never);
+}
+
+/**
  * The component defers its mount by one rAF (so real content sets FCP/LCP),
- * then drives the shader loop from rAF. Fire only the FIRST request
+ * then drives both canvases from rAF. Fire only the FIRST request
  * synchronously (the mount) and suspend the rest — tests never need frames,
  * and a synchronous loop would recurse forever.
  */
@@ -95,9 +130,7 @@ describe("HyperspaceEntrance", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     stubRafMountOnly();
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
-      fakeWebGL(),
-    );
+    mockContexts();
     main = document.createElement("main");
     main.id = "main";
     document.body.appendChild(main);
@@ -139,7 +172,7 @@ describe("HyperspaceEntrance", () => {
     expect(skip).toHaveFocus();
     // Still in flight: not yet marked played.
     expect(window.sessionStorage.getItem(SESSION_KEY)).toBeNull();
-    // The destination staging: #main lifted above the canvas (hs-exit) and
+    // The destination staging: #main lifted above the canvases (hs-exit) and
     // pre-scaled to the emergence size, invisible until the exit phase.
     expect(document.documentElement.classList.contains("hs-exit")).toBe(true);
     expect(main.style.transform).toBe(`scale(${exitScaleAt(0)})`);
@@ -182,8 +215,26 @@ describe("HyperspaceEntrance", () => {
     expect(main).toHaveFocus();
   });
 
-  it("WebGL unavailable → instant site: no overlay lingers, page untouched, marks played", () => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+  it("WebGL unavailable but 2D alive → the star sequence still plays (tunnel skipped)", () => {
+    mockContexts({ webgl: false, twoD: true });
+    mockMedia();
+    render(<HyperspaceEntrance />);
+    // Not the instant-site fallback: the overlay is up and playing.
+    const skip = screen.getByRole("button", { name: /skip intro/i });
+    expect(skip).toHaveFocus();
+    expect(window.sessionStorage.getItem(SESSION_KEY)).toBeNull();
+    // The arrival still happens over the 2D starfield: page staged as usual.
+    expect(document.documentElement.classList.contains("hs-exit")).toBe(true);
+    expect(main.style.transform).toBe(`scale(${exitScaleAt(0)})`);
+    // And skip still completes the whole sequence pristinely.
+    fireEvent.click(skip);
+    expect(window.sessionStorage.getItem(SESSION_KEY)).toBe("1");
+    expect(main.style.transform).toBe("");
+    expect(main).toHaveFocus();
+  });
+
+  it("neither WebGL nor 2D available → instant site: no overlay lingers, page untouched", () => {
+    mockContexts({ webgl: false, twoD: false });
     mockMedia();
     render(<HyperspaceEntrance />);
     expect(
@@ -195,19 +246,105 @@ describe("HyperspaceEntrance", () => {
   });
 });
 
-describe("timeline (tunnel → exit → arrival)", () => {
-  it("keeps the burst a garnish inside the tunnel and lands the total in 2.8–3.2s", () => {
-    // The streak burst is a cold-open garnish, not the main visual.
+describe("timeline (tunnel → decel → stars → arrival)", () => {
+  it("keeps the burst a garnish, holds a real star beat, and lands the total in 4.2–4.8s", () => {
+    // The cold-open streak burst is a garnish inside the tunnel phase.
     expect(HS_TIMELINE.burstMs).toBeLessThanOrEqual(400);
     expect(HS_TIMELINE.burstMs).toBeLessThan(HS_TIMELINE.tunnelMs);
-    // A real beat of pure cloud-tunnel travel before the exit begins.
-    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(1000);
+    // A real beat of full-frame cloud-tunnel travel before deceleration.
+    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(1200);
+    // The decel is long enough to read: wash in, streaks through, snap.
+    expect(HS_TIMELINE.decelMs).toBeGreaterThanOrEqual(800);
+    expect(HS_TIMELINE.decelMs).toBeLessThanOrEqual(1200);
+    // The settled-stars beat is held — serenity, not a blink.
+    expect(HS_TIMELINE.settleMs).toBeGreaterThanOrEqual(400);
+    expect(HS_TIMELINE.settleMs).toBeLessThanOrEqual(600);
     expect(HS_TIMELINE.exitMs).toBeGreaterThanOrEqual(1200);
     expect(HS_TIMELINE.totalMs).toBe(
-      HS_TIMELINE.tunnelMs + HS_TIMELINE.exitMs + HS_TIMELINE.arriveMs,
+      HS_TIMELINE.tunnelMs +
+        HS_TIMELINE.decelMs +
+        HS_TIMELINE.settleMs +
+        HS_TIMELINE.exitMs +
+        HS_TIMELINE.arriveMs,
     );
-    expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(2800);
-    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(3200);
+    expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(4200);
+    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(4800);
+  });
+
+  it("choreographs the decel: wash fully in before the tunnel starts fading, tunnel gone before the snap", () => {
+    // Wash: 0 at the top of the decel, monotonically up to 1.
+    expect(washAt(-100)).toBe(0);
+    expect(washAt(0)).toBe(0);
+    expect(washAt(400)).toBe(1);
+    let prev = washAt(0);
+    for (let t = 40; t <= 400; t += 40) {
+      const v = washAt(t);
+      expect(v).toBeGreaterThanOrEqual(prev);
+      prev = v;
+    }
+    // The tunnel holds solid until the wash has bloomed, then fades out.
+    expect(tunnelFadeAt(0)).toBe(1);
+    expect(tunnelFadeAt(400)).toBe(1);
+    prev = tunnelFadeAt(400);
+    for (let t = 450; t <= 750; t += 50) {
+      const v = tunnelFadeAt(t);
+      expect(v).toBeLessThanOrEqual(prev);
+      prev = v;
+    }
+    // Fully out mid-phase — dark space owns the frame well before the snap.
+    expect(tunnelFadeAt(750)).toBe(0);
+    expect(tunnelFadeAt(HS_TIMELINE.decelMs)).toBe(0);
+  });
+});
+
+describe("streak deceleration (restored round-1 math)", () => {
+  it("opens at peak speed and decays with the exponential half-life signature", () => {
+    // Clamped to the entry speed before the decel begins.
+    expect(streakSpeedAt(-500)).toBe(streakSpeedAt(0));
+    expect(streakSpeedAt(0)).toBeGreaterThan(0);
+    // v = V0·2^(−k·t): 125ms is one half-life at k=8 — the ratio sits at ~1/2
+    // (the (1−p²) window shaves a hair off). A tween has no such signature.
+    const ratio = streakSpeedAt(150) / streakSpeedAt(25);
+    expect(ratio).toBeGreaterThan(0.44);
+    expect(ratio).toBeLessThan(0.53);
+    // Monotone deceleration throughout.
+    let prev = streakSpeedAt(0);
+    for (let t = 50; t <= HS_TIMELINE.decelMs; t += 50) {
+      const v = streakSpeedAt(t);
+      expect(v).toBeLessThanOrEqual(prev);
+      prev = v;
+    }
+  });
+
+  it("snaps to exactly 0 at the end of the decel — nothing drifts after the stop", () => {
+    expect(streakSpeedAt(HS_TIMELINE.decelMs)).toBe(0);
+    expect(streakSpeedAt(HS_TIMELINE.decelMs + 500)).toBe(0);
+    // The windowed decay has already crawled to ~nothing just before the snap.
+    expect(streakSpeedAt(HS_TIMELINE.decelMs - 1)).toBeLessThan(0.001);
+  });
+
+  it("front-loads the shed: the early drop dwarfs the late crawl", () => {
+    const early = streakSpeedAt(0) - streakSpeedAt(250);
+    const late = streakSpeedAt(500) - streakSpeedAt(750);
+    expect(early).toBeGreaterThan(late * 10);
+  });
+});
+
+describe("settled starfield (restored round-2 field)", () => {
+  it("scales the calm count with viewport area, clamped to the 300–600 band", () => {
+    expect(calmStarCount(1920, 1080)).toBe(494); // 1920·1080 / 4200
+    expect(calmStarCount(800, 600)).toBe(300); // small viewports clamp up
+    expect(calmStarCount(3840, 2160)).toBe(600); // huge viewports clamp down
+    for (const [w, h] of [
+      [320, 568],
+      [1280, 720],
+      [2560, 1440],
+      [5120, 2880],
+    ] as const) {
+      const n = calmStarCount(w, h);
+      expect(n).toBeGreaterThanOrEqual(300);
+      expect(n).toBeLessThanOrEqual(600);
+    }
   });
 });
 
@@ -230,9 +367,9 @@ describe("destination approach curve (the page rushes toward camera)", () => {
     // scale = S0 / (1 − (1−S0)·t/T) ⇒ 1/scale is affine in t: equal time
     // steps shed equal 1/scale steps. A linear or ease-out tween fails this.
     const inv = (t: number) => 1 / exitScaleAt(t);
-    const d1 = inv(0) - inv(350);
-    const d2 = inv(350) - inv(700);
-    const d3 = inv(700) - inv(1050);
+    const d1 = inv(0) - inv(325);
+    const d2 = inv(325) - inv(650);
+    const d3 = inv(650) - inv(975);
     expect(d1).toBeCloseTo(d2, 8);
     expect(d2).toBeCloseTo(d3, 8);
     // Rushing, not easing: the second half grows vastly more than the first,
@@ -261,12 +398,15 @@ describe("tunnel shader (dependency-free raw WebGL)", () => {
       "u_time",
       "u_resolution",
       "u_speed",
-      "u_exitProgress",
-      "u_rect",
+      "u_wash",
       "u_burst",
     ]) {
       expect(HS_FRAG).toContain(u);
     }
+    // The round-3 exit machinery is gone: the approach happens over the 2D
+    // starfield, so the shader no longer takes the page box or exit progress.
+    expect(HS_FRAG).not.toContain("u_rect");
+    expect(HS_FRAG).not.toContain("u_exitProgress");
     // ES 1.00 dialect: no version directive, explicit precision, and the
     // classic attribute/gl_FragColor forms (WebGL1 everywhere).
     expect(HS_FRAG).not.toContain("#version");

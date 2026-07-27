@@ -106,19 +106,25 @@
 
 /*
  * Hyperspace exit (components/hyperspace). While the entrance plays, the page
- * itself is the destination: #main is lifted above the tunnel canvas (z-200;
+ * itself is the destination: #main is lifted above the space canvases (z-200;
  * the skip control sits at z-220) and given an opaque background so it reads
- * as a solid dark silhouette card while the shader's light rakes around it.
- * The JS overlay drives the scale/opacity transform inline; everything here
- * is layout-inert (relative + no offsets), so CLS stays 0. pointer-events is
- * off so the still-arriving page can't swallow clicks meant for Skip. The
- * class is removed at arrival — the end state is pristine DOM.
+ * as a solid dark silhouette card approaching over the starfield. The
+ * box-shadow is the card's soft glow rim; it scales with the transform (glow
+ * grows with apparent size — physically right) and its edges sit off-viewport
+ * at scale 1, so removing the class at arrival is pixel-invisible. The JS
+ * overlay drives the scale/opacity transform inline; everything here is
+ * layout-inert (relative + no offsets, shadow is paint-only), so CLS stays 0.
+ * pointer-events is off so the still-arriving page can't swallow clicks meant
+ * for Skip. The class is removed at arrival — the end state is pristine DOM.
  */
 html.hs-exit #main {
   position: relative;
   z-index: 210;
   background: var(--background);
   pointer-events: none;
+  box-shadow:
+    0 0 28px 6px rgba(109, 179, 255, 0.45),
+    0 0 110px 34px rgba(46, 111, 216, 0.25);
 }
 
 /*
