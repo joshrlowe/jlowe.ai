@@ -2,16 +2,19 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  bloomAt,
+  burstLineCount,
+  burstSpawnXY,
   calmStarCount,
   exitAlphaAt,
   exitScaleAt,
+  HS_BURST,
   HS_FRAG,
   HS_TIMELINE,
   HS_VERT,
   HyperspaceEntrance,
   streakSpeedAt,
   tunnelFadeAt,
-  washAt,
 } from "./hyperspace-entrance";
 
 const SESSION_KEY = "hs-entrance:played";
@@ -80,12 +83,9 @@ function fakeWebGL(): RenderingContext {
  * jsdom has no real canvas; the frame loop is suspended by the rAF stub.
  */
 function fake2D(): RenderingContext {
-  const gradient = { addColorStop: () => undefined };
   return {
     setTransform: () => undefined,
     clearRect: () => undefined,
-    fillRect: () => undefined,
-    createRadialGradient: () => gradient,
     beginPath: () => undefined,
     arc: () => undefined,
     fill: () => undefined,
@@ -215,7 +215,7 @@ describe("HyperspaceEntrance", () => {
     expect(main).toHaveFocus();
   });
 
-  it("WebGL unavailable but 2D alive → the star sequence still plays (tunnel skipped)", () => {
+  it("WebGL unavailable but 2D alive → burst → stars → arrival still plays (tunnel+bloom skipped)", () => {
     mockContexts({ webgl: false, twoD: true });
     mockMedia();
     render(<HyperspaceEntrance />);
@@ -246,105 +246,180 @@ describe("HyperspaceEntrance", () => {
   });
 });
 
-describe("timeline (tunnel → decel → stars → arrival)", () => {
-  it("keeps the burst a garnish, holds a real star beat, and lands the total in 5.4–6.2s", () => {
-    // The cold-open streak burst is a garnish inside the tunnel phase.
-    expect(HS_TIMELINE.burstMs).toBeLessThanOrEqual(400);
-    expect(HS_TIMELINE.burstMs).toBeLessThan(HS_TIMELINE.tunnelMs);
-    // Round 5: a properly LONG beat of full-frame cloud-tunnel travel —
-    // "we should be going through hyperspace for a bit longer".
-    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(2400);
-    expect(HS_TIMELINE.tunnelMs).toBeLessThanOrEqual(3000);
-    // The decel is long enough to read: wash in, streaks through, snap.
-    expect(HS_TIMELINE.decelMs).toBeGreaterThanOrEqual(800);
-    expect(HS_TIMELINE.decelMs).toBeLessThanOrEqual(1200);
-    // The settled-stars beat is held — serenity, not a blink.
+describe("timeline (tunnel → bloom → burst → stars → arrival)", () => {
+  it("holds the film beats in their bands and lands the total in 5.4–6.5s", () => {
+    // The cold-open streak garnish stays a garnish inside the tunnel beat.
+    expect(HS_TIMELINE.garnishMs).toBeLessThanOrEqual(400);
+    expect(HS_TIMELINE.garnishMs).toBeLessThan(HS_TIMELINE.tunnelMs);
+    // A. Tunnel travel — billowing, no swirl (ref-0/ref-2).
+    expect(HS_TIMELINE.tunnelMs).toBeGreaterThanOrEqual(1600);
+    expect(HS_TIMELINE.tunnelMs).toBeLessThanOrEqual(2000);
+    // B. Core bloom — the orb floods the centre (ref-1).
+    expect(HS_TIMELINE.bloomMs).toBeGreaterThanOrEqual(500);
+    expect(HS_TIMELINE.bloomMs).toBeLessThanOrEqual(700);
+    // C. Starline burst — fine lines contracting on a dark centre (ref-4/3).
+    expect(HS_TIMELINE.burstMs).toBeGreaterThanOrEqual(700);
+    expect(HS_TIMELINE.burstMs).toBeLessThanOrEqual(900);
+    // D. The settled-stars beat is held — serenity, not a blink (ref-5).
     expect(HS_TIMELINE.settleMs).toBeGreaterThanOrEqual(400);
     expect(HS_TIMELINE.settleMs).toBeLessThanOrEqual(600);
     expect(HS_TIMELINE.exitMs).toBeGreaterThanOrEqual(1200);
     expect(HS_TIMELINE.totalMs).toBe(
       HS_TIMELINE.tunnelMs +
-        HS_TIMELINE.decelMs +
+        HS_TIMELINE.bloomMs +
+        HS_TIMELINE.burstMs +
         HS_TIMELINE.settleMs +
         HS_TIMELINE.exitMs +
         HS_TIMELINE.arriveMs,
     );
     expect(HS_TIMELINE.totalMs).toBeGreaterThanOrEqual(5400);
-    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(6200);
+    expect(HS_TIMELINE.totalMs).toBeLessThanOrEqual(6500);
   });
 
-  it("round-5 phase boundaries: tunnel to 2600, decel to 3600, stars to 4100, approach to 5400, fade to 5800", () => {
-    const decelStart = HS_TIMELINE.tunnelMs;
-    const settleStart = decelStart + HS_TIMELINE.decelMs;
+  it("round-6 phase boundaries: bloom at 2000, burst at 2600, stars at 3400, approach at 3900, land at 5200, fade to 5600", () => {
+    const bloomStart = HS_TIMELINE.tunnelMs;
+    const burstStart = bloomStart + HS_TIMELINE.bloomMs;
+    const settleStart = burstStart + HS_TIMELINE.burstMs;
     const exitStart = settleStart + HS_TIMELINE.settleMs;
     const landAt = exitStart + HS_TIMELINE.exitMs;
-    expect(decelStart).toBe(2600);
-    expect(settleStart).toBe(3600);
-    expect(exitStart).toBe(4100);
-    expect(landAt).toBe(5400);
-    expect(HS_TIMELINE.totalMs).toBe(5800);
+    expect(bloomStart).toBe(2000);
+    expect(burstStart).toBe(2600);
+    expect(settleStart).toBe(3400);
+    expect(exitStart).toBe(3900);
+    expect(landAt).toBe(5200);
+    expect(HS_TIMELINE.totalMs).toBe(5600);
   });
 
-  it("choreographs the decel: wash fully in before the tunnel starts fading, tunnel gone before the snap", () => {
-    // Wash: 0 at the top of the decel, monotonically up to 1.
-    expect(washAt(-100)).toBe(0);
-    expect(washAt(0)).toBe(0);
-    expect(washAt(400)).toBe(1);
-    let prev = washAt(0);
-    for (let t = 40; t <= 400; t += 40) {
-      const v = washAt(t);
+  it("bloom choreography: the orb swells monotonically to full, then HOLDS while the burst collapses the canvas", () => {
+    // 0 before and at the top of the bloom phase.
+    expect(bloomAt(-100)).toBe(0);
+    expect(bloomAt(0)).toBe(0);
+    // Smoothstep swell: monotone up, full before the phase ends.
+    let prev = bloomAt(0);
+    for (let t = 30; t <= 450; t += 30) {
+      const v = bloomAt(t);
       expect(v).toBeGreaterThanOrEqual(prev);
       prev = v;
     }
-    // The tunnel holds solid until the wash has bloomed, then fades out.
+    expect(bloomAt(450)).toBe(1);
+    expect(bloomAt(HS_TIMELINE.bloomMs)).toBe(1);
+    // Holds flooded while the GL canvas fades out during the burst opening.
+    expect(bloomAt(HS_TIMELINE.bloomMs + 500)).toBe(1);
+  });
+
+  it("collapse choreography: the flooded canvas holds through tunnel+bloom, then snaps out fast at the burst", () => {
+    // Solid 1 through the whole tunnel AND bloom (t <= 0 = before the burst).
+    expect(tunnelFadeAt(-HS_TIMELINE.bloomMs)).toBe(1);
+    expect(tunnelFadeAt(-1)).toBe(1);
     expect(tunnelFadeAt(0)).toBe(1);
-    expect(tunnelFadeAt(400)).toBe(1);
-    prev = tunnelFadeAt(400);
-    for (let t = 450; t <= 750; t += 50) {
+    // Fast monotone collapse over the burst opening (ref-4 → ref-3).
+    let prev = tunnelFadeAt(0);
+    for (let t = 40; t <= 240; t += 40) {
       const v = tunnelFadeAt(t);
       expect(v).toBeLessThanOrEqual(prev);
       prev = v;
     }
-    // Fully out mid-phase — dark space owns the frame well before the snap.
-    expect(tunnelFadeAt(750)).toBe(0);
-    expect(tunnelFadeAt(HS_TIMELINE.decelMs)).toBe(0);
+    expect(tunnelFadeAt(240)).toBe(0);
+    // Dark space owns the frame for the rest of the burst — the centre is
+    // dark long before the snap.
+    expect(tunnelFadeAt(HS_TIMELINE.burstMs)).toBe(0);
   });
 });
 
-describe("streak deceleration (restored round-1 math)", () => {
+describe("starline burst (ref-4/ref-3: thousands of fine lines, dark centre)", () => {
+  it("scales the line count with viewport area inside the 2000–3200 film band", () => {
+    expect(burstLineCount(1440, 900)).toBe(2492); // 1440·900 / 520
+    expect(burstLineCount(1280, 720)).toBe(2000); // small viewports clamp up
+    expect(burstLineCount(1920, 1080)).toBe(3200); // large viewports clamp down
+    expect(burstLineCount(3840, 2160)).toBe(3200);
+    for (const [w, h] of [
+      [320, 568],
+      [1280, 720],
+      [2560, 1440],
+      [5120, 2880],
+    ] as const) {
+      const n = burstLineCount(w, h);
+      expect(n).toBeGreaterThanOrEqual(HS_BURST.minLines);
+      expect(n).toBeLessThanOrEqual(HS_BURST.maxLines);
+    }
+  });
+
+  it("derates coarse pointers for per-frame work at equivalent visual density", () => {
+    expect(burstLineCount(390, 844, true)).toBe(
+      Math.round(HS_BURST.minLines * HS_BURST.coarseFactor),
+    );
+    expect(burstLineCount(1920, 1080, true)).toBe(
+      Math.round(HS_BURST.maxLines * HS_BURST.coarseFactor),
+    );
+  });
+
+  it("draws THIN crisp lines: ~1 device px, with layered lengths via exposure jitter", () => {
+    // The film lines are ~1px at device resolution — the draw path divides
+    // by DPR so this is exactly 1 device px at any DPR.
+    expect(HS_BURST.lineWidthDevicePx).toBe(1);
+    // Layered lengths: a real spread of exposure multipliers.
+    expect(HS_BURST.exposureMin).toBeLessThan(1);
+    expect(HS_BURST.exposureMax).toBeGreaterThan(1);
+    expect(HS_BURST.stretchS).toBeGreaterThan(0);
+  });
+
+  it("keeps the vanishing point DARK: spawns reject the central hole (ref-3's dead-black centre)", () => {
+    expect(HS_BURST.centerHoleFieldR).toBeGreaterThan(0);
+    const r2min = HS_BURST.centerHoleFieldR * HS_BURST.centerHoleFieldR;
+    // A rigged RNG that first proposes the exact centre: it must be rejected
+    // and re-rolled, never returned.
+    const rolls = [0.5, 0.5, 0.9, 0.5]; // (0,0) — inside the hole — then (0.8,0)
+    let i = 0;
+    const rigged = () => rolls[i++ % rolls.length] ?? 0.9;
+    const p = burstSpawnXY(rigged);
+    expect(p.x * p.x + p.y * p.y).toBeGreaterThanOrEqual(r2min);
+    expect(p.x).toBeCloseTo(0.8, 10);
+    // And the real RNG never lands inside the hole either.
+    for (let n = 0; n < 500; n++) {
+      const q = burstSpawnXY();
+      expect(q.x * q.x + q.y * q.y).toBeGreaterThanOrEqual(r2min);
+      expect(Math.abs(q.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(q.y)).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+describe("line contraction (exponential-decel snap)", () => {
   it("opens at peak speed and decays with the exponential half-life signature", () => {
-    // Clamped to the entry speed before the decel begins.
+    // Clamped to the entry speed before the burst begins.
     expect(streakSpeedAt(-500)).toBe(streakSpeedAt(0));
     expect(streakSpeedAt(0)).toBeGreaterThan(0);
-    // v = V0·2^(−k·t): 125ms is one half-life at k=8 — the ratio sits at ~1/2
-    // (the (1−p²) window shaves a hair off). A tween has no such signature.
-    const ratio = streakSpeedAt(150) / streakSpeedAt(25);
+    // v = V0·2^(−k·t): 182ms is one half-life at k=5.5 — the ratio sits at
+    // ~1/2 (the (1−p²) window shaves a hair off). A tween has no such
+    // signature.
+    const ratio = streakSpeedAt(207) / streakSpeedAt(25);
     expect(ratio).toBeGreaterThan(0.44);
-    expect(ratio).toBeLessThan(0.53);
-    // Monotone deceleration throughout.
+    expect(ratio).toBeLessThan(0.5);
+    // Monotone contraction throughout.
     let prev = streakSpeedAt(0);
-    for (let t = 50; t <= HS_TIMELINE.decelMs; t += 50) {
+    for (let t = 50; t <= HS_TIMELINE.burstMs; t += 50) {
       const v = streakSpeedAt(t);
       expect(v).toBeLessThanOrEqual(prev);
       prev = v;
     }
   });
 
-  it("snaps to exactly 0 at the end of the decel — nothing drifts after the stop", () => {
-    expect(streakSpeedAt(HS_TIMELINE.decelMs)).toBe(0);
-    expect(streakSpeedAt(HS_TIMELINE.decelMs + 500)).toBe(0);
-    // The windowed decay has already crawled to ~nothing just before the snap.
-    expect(streakSpeedAt(HS_TIMELINE.decelMs - 1)).toBeLessThan(0.001);
+  it("snaps to exactly 0 at the end of the burst — the lines become star points and nothing drifts", () => {
+    expect(streakSpeedAt(HS_TIMELINE.burstMs)).toBe(0);
+    expect(streakSpeedAt(HS_TIMELINE.burstMs + 500)).toBe(0);
+    // The windowed decay has already crawled to ~nothing just before the
+    // snap.
+    expect(streakSpeedAt(HS_TIMELINE.burstMs - 1)).toBeLessThan(0.01);
   });
 
-  it("front-loads the shed: the early drop dwarfs the late crawl", () => {
+  it("front-loads the shed: the early contraction dwarfs the late crawl", () => {
     const early = streakSpeedAt(0) - streakSpeedAt(250);
     const late = streakSpeedAt(500) - streakSpeedAt(750);
-    expect(early).toBeGreaterThan(late * 10);
+    expect(early).toBeGreaterThan(late * 6);
   });
 });
 
-describe("settled starfield (restored round-2 field)", () => {
+describe("settled starfield (ref-5: black, fine dim stars)", () => {
   it("scales the calm count with viewport area, clamped to the 300–600 band", () => {
     expect(calmStarCount(1920, 1080)).toBe(494); // 1920·1080 / 4200
     expect(calmStarCount(800, 600)).toBe(300); // small viewports clamp up
@@ -412,15 +487,13 @@ describe("tunnel shader (dependency-free raw WebGL)", () => {
       "u_time",
       "u_resolution",
       "u_speed",
-      "u_wash",
+      "u_bloom",
       "u_burst",
     ]) {
       expect(HS_FRAG).toContain(u);
     }
-    // The round-3 exit machinery is gone: the approach happens over the 2D
-    // starfield, so the shader no longer takes the page box or exit progress.
-    expect(HS_FRAG).not.toContain("u_rect");
-    expect(HS_FRAG).not.toContain("u_exitProgress");
+    // The round-5 wash uniform is gone — the exit is bloom + collapse now.
+    expect(HS_FRAG).not.toContain("u_wash");
     // ES 1.00 dialect: no version directive, explicit precision, and the
     // classic attribute/gl_FragColor forms (WebGL1 everywhere).
     expect(HS_FRAG).not.toContain("#version");
@@ -429,18 +502,35 @@ describe("tunnel shader (dependency-free raw WebGL)", () => {
     expect(HS_VERT).toContain("attribute vec2 a_pos");
   });
 
-  it("round 5: the swirl is a true cyclone — differential rotation, spiral advection, curved rays, global roll", () => {
-    // Differential rotation: omega(r) = OMEGA0 + OMEGA1/(r + EPS) — angular
-    // velocity must rise toward the axis (1/r), not be a flat turntable rate.
-    expect(HS_FRAG).toContain("HS_OMEGA1 / (r + HS_EPS)");
-    // Spiral advection: the sampling angle is coupled to depth, so filaments
-    // wind around the axis into spiral arms.
-    expect(HS_FRAG).toContain("HS_K_SPIRAL * depth");
-    // Gentle whole-frame roll rides on top of the differential field.
-    expect(HS_FRAG).toContain("HS_ROLL");
-    // The god-rays are sheared by the SAME rotation field as the clouds (both
-    // sample `spin`), so the spokes curve into spiral arms too.
-    expect(HS_FRAG).toContain("hs_fbm(vec2(spin * 4.0");
-    expect(HS_FRAG).toContain("hs_fbm(vec2(spin * 12.0");
+  it("round 6: the cyclone is DEAD — no differential rotation, no spiral advection, no roll", () => {
+    // The owner's note: "hyperspace is too swirly." Every rotation-language
+    // knob from round 5 must be gone from the shader.
+    for (const dead of [
+      "HS_OMEGA0",
+      "HS_OMEGA1",
+      "HS_K_SPIRAL",
+      "HS_ROLL",
+      "swirl",
+      "spin",
+    ]) {
+      expect(HS_FRAG).not.toContain(dead);
+    }
+  });
+
+  it("round 6: the motion language is turbulent radial billowing — boiling noise, radial elongation, bloom orb", () => {
+    // The noise takes a third BOIL axis so clouds churn in place instead of
+    // rotating (turbulence, not a cyclone).
+    expect(HS_FRAG).toContain("float hs_noise(vec2 p, float px, float w)");
+    expect(HS_FRAG).toContain("boil");
+    // Radial elongation: the wisp field samples many angular repeats against
+    // a very slow radial lattice — lumps smear into soft radial streaks.
+    expect(HS_FRAG).toContain("vec2(ang * 14.0, flow * 0.16)");
+    // The bloom uniform drives a growing core orb (ref-1's flooding centre).
+    expect(HS_FRAG).toContain("orbR");
+    // The film's saturated cobalt ramp: deep #0a1e6e, cobalt #2a63ff, pale
+    // #bcd9ff.
+    expect(HS_FRAG).toContain("vec3(0.039, 0.118, 0.431)");
+    expect(HS_FRAG).toContain("vec3(0.165, 0.388, 1.0)");
+    expect(HS_FRAG).toContain("vec3(0.737, 0.851, 1.0)");
   });
 });
