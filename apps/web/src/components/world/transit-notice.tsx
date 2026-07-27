@@ -17,7 +17,7 @@ export function TransitNotice() {
           New sector charting
         </p>
         <p className="mt-2 font-mono text-sm">
-          Chapter 2: Escape Velocity — inbound.
+          This sector is being resurveyed.
         </p>
         <Link
           href="/"
