@@ -60,18 +60,19 @@ interface HasTextureNode {
 const MOTION_BLUR_SAMPLES = 12;
 
 // Warm/teal grade strength carried by the reliable FLOOR on cinematic scenes
-// (hero). The ultra branch grades at full `quality.colorGrade`; the floor uses a
-// slightly gentler fixed amount so the DEFAULT arrival keeps the signature look
-// without depending on the heavy stack. Scene-scoped — circuit / proving-ground
-// stay ungraded.
+// (per the `scene-capabilities.ts` opt-in; originally tuned on the retired hero
+// vignette). The ultra branch grades at full `quality.colorGrade`; the floor
+// uses a slightly gentler fixed amount so the DEFAULT arrival keeps the
+// signature look without depending on the heavy stack. Scene-scoped —
+// non-cinematic scenes stay ungraded.
 const FLOOR_COLOR_GRADE = 0.8;
 
 // Additive film grain on cinematic scenes: a signed per-pixel dither (animated
-// by the shared `time` clock) that breaks up the 8-bit banding the hero's dark
-// night gradients otherwise show, and adds the shot-on-a-camera texture.
+// by the shared `time` clock) that breaks up the 8-bit banding dark night
+// gradients otherwise show, and adds the shot-on-a-camera texture.
 // ADDITIVE by design — three's FilmNode only brightens (base + base·noise), so
 // it vanishes exactly where banding lives, in the near-blacks. Same scene gate
-// as the grade; circuit / proving-ground stay pixel-identical. Amount is a
+// as the grade; non-cinematic scenes stay pixel-identical. Amount is a
 // `usePostFxTuning` dial.
 
 /** Signed grain node — `rand` hashes screen position + time into ±grain/2. */
@@ -142,9 +143,9 @@ function composeUltra(
     lit = color.mul(vec4(vec3(aoFactor.r), 1));
   }
 
-  // --- Screen-space reflections (wet road + car metal) --------------------
-  // The node discards non-metallic fragments internally, so only the glossy
-  // road zone + metallic body reflect; add it over the lit color.
+  // --- Screen-space reflections (glossy + metallic surfaces) ---------------
+  // The node discards non-metallic fragments internally, so only glossy /
+  // metallic surfaces reflect; add it over the lit color.
   let reflective: ColorNode = lit;
   if (quality.ssr && normalTex) {
     const reflections = ssr(
@@ -175,15 +176,15 @@ function composeUltra(
   }
 
   // --- Motion blur (velocity MRT) -----------------------------------------
-  // Smears along per-pixel screen motion — the pan streaks the background
-  // past the pack. `velocity` is a vec2 motion-vector texture.
+  // Smears along per-pixel screen motion — a pan streaks the background past
+  // fast-moving subjects. `velocity` is a vec2 motion-vector texture.
   let moving: ColorNode = resolved;
   if (quality.motionBlur && velocityTex) {
     moving = motionBlur(resolved, velocityTex.xy, int(MOTION_BLUR_SAMPLES));
   }
 
   // --- Depth of field ------------------------------------------------------
-  // Bokeh falloff focused on the battle pair's lane (`usePostFxTuning` dials).
+  // Bokeh falloff focused on the scene's subject (`usePostFxTuning` dials).
   // `dof` takes a viewZ node (negative view-space depth) from the depth
   // attachment.
   let focused: ColorNode = moving;
@@ -302,10 +303,10 @@ export function PostFX({ activeScene }: { activeScene: string }) {
       // Radial vignette from screen-space UV (no dedicated TSL node ships).
       const vignette = smoothstep(0.85, 0.35, uv().sub(0.5).length());
 
-      // Warm/teal cinematic grade — the hero arrival's signature look, now baked
-      // into the reliable floor (it used to live only in the ultra branch, so a
-      // capable visitor on the auto-floor default kept its grade). Scene-scoped
-      // via the same opt-in set, so circuit / proving-ground stay ungraded and
+      // Warm/teal cinematic grade — the signature arrival look, baked into the
+      // reliable floor (it used to live only in the ultra branch, so a capable
+      // visitor on the auto-floor default kept its grade). Scene-scoped via the
+      // same opt-in set, so non-cinematic scenes stay ungraded and
       // pixel-identical. Zero asset bytes (a TSL node, not a 3D-LUT).
       const lit = base.add(bloomPass);
       const cinematic = sceneSupportsUltraPostFX(activeScene);
@@ -313,7 +314,7 @@ export function PostFX({ activeScene }: { activeScene: string }) {
         ? vec4(mix(lit.rgb, gradeColor(lit.rgb), FLOOR_COLOR_GRADE), 1)
         : lit;
       // Film grain rides the same cinematic-scene gate as the grade — it
-      // dithers the hero's dark night gradients; other scenes stay untouched.
+      // dithers dark night gradients; other scenes stay untouched.
       const grained = cinematic
         ? vec4(graded.rgb.add(filmGrain(fx.filmGrain)), 1)
         : graded;
@@ -341,7 +342,7 @@ export function PostFX({ activeScene }: { activeScene: string }) {
     // auto-heuristic preset (AUTO_ULTRA) enables the verified-safe slice
     // (TRAA + DoF + grade) by DEFAULT, while the still-being-tuned heavy
     // passes (SSGI/SSR/motion-blur) exist only in the explicit `?quality=ultra`
-    // preset. The scene gate still keeps circuit / proving-ground floor-only.
+    // preset. The scene gate still keeps non-opted-in scenes floor-only.
     // If the graph throws while building (a node/typings drift on this
     // GPU/driver), fall to the floor rather than brick the frame loop —
     // reliability over fidelity.

@@ -11,7 +11,8 @@ outcomes:
 visibility: public
 ---
 
-The car you are driving is the portfolio. Built on React Three Fiber and the
+This site is the portfolio — a game-quality 3D world with an AI digital twin,
+rebuilt in public. Built on React Three Fiber and the
 three.js WebGPU renderer under a strict progressive-enhancement contract: every
 visitor gets a working experience, down to a 2D shell that search engines and
 screen readers fully understand.

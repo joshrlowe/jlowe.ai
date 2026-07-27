@@ -18,7 +18,12 @@ import { WorldAudio } from "./hud/world-audio";
 import { PreflightHud } from "./preflight-hud";
 import { ChapterRouter } from "./state/chapter-router";
 import { chapterStore, useChapter } from "./state/chapter-store";
-import { chapterById, chapterForSceneKey } from "./state/chapters";
+import {
+  chapterById,
+  chapterForSceneKey,
+  FALLBACK_SCENE_KEY,
+} from "./state/chapters";
+import { TransitNotice } from "./transit-notice";
 import { WorldCanvas } from "./world-canvas";
 
 /**
@@ -27,7 +32,8 @@ import { WorldCanvas } from "./world-canvas";
  * three/fiber/drei/rapier/leva/zustand never reach a flat route. Resolves the
  * active chapter (?chapter= → store → default) and scene (?scene= overrides the
  * store), and gates the chapter HUD to any registered chapter scene (the
- * fixture/proving-ground dev scenes are non-chapter, so they get no HUD).
+ * transit hold and the fixture dev scene are non-chapter, so they get no HUD;
+ * the transit hold shows the next-chapter notice instead).
  */
 export function WorldExperience({
   tier,
@@ -48,9 +54,9 @@ export function WorldExperience({
   const storeScene = useChapter((s) => s.activeScene);
   const activeScene = sceneParam ?? storeScene;
   const isChapterScene = chapterForSceneKey(activeScene) !== undefined;
-  // The hero vignette is a non-interactive cinematic; its driving touch pads
-  // would be dead controls, so they must not mount there.
-  const showTouchControls = activeScene !== "hero";
+  // Touch pads only mount on chapter scenes — over the non-interactive transit
+  // hold or the fixture harness they would be dead controls.
+  const showTouchControls = isChapterScene;
 
   // ?chapter=<id> selects the starting chapter (ignored if it names no chapter).
   useEffect(() => {
@@ -69,6 +75,9 @@ export function WorldExperience({
         activeScene={activeScene}
         onRendererError={onRendererError}
       />
+      {/* Before PreflightHud in the DOM (both z-auto), so the loader overlay
+          covers the hold card until it fades. */}
+      {activeScene === FALLBACK_SCENE_KEY ? <TransitNotice /> : null}
       <PreflightHud />
       {showTouchControls ? <TouchControls /> : null}
       <ChapterRouter />

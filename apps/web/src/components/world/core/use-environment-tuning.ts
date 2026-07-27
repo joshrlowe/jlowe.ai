@@ -2,7 +2,7 @@
 
 import { useControls } from "leva";
 
-import { useQuality } from "../../core/quality-provider";
+import { useQuality } from "./quality-provider";
 
 /**
  * Live golden-hour lighting tuning: the per-tier IBL intensity + the light

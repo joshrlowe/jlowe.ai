@@ -36,7 +36,7 @@ describe("resolveNextChapter (pure advance rule)", () => {
 });
 
 describe("nextChapterFor (live registry)", () => {
-  it("Chapter 1 is the final chapter today (no advance)", () => {
+  it("resolves nothing while the registry is empty (driving chapter retired)", () => {
     expect(nextChapterFor("ignition")).toBeUndefined();
   });
 
@@ -48,9 +48,9 @@ describe("nextChapterFor (live registry)", () => {
 describe("advanceOnComplete", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("does not switch chapters when the completed chapter has no `next`", () => {
+  it("does not switch chapters when the completed chapter resolves no `next`", () => {
     const setChapter = vi.spyOn(chapterStore.getState(), "setChapter");
-    advanceOnComplete("ignition"); // ignition.next === undefined
+    advanceOnComplete("ignition"); // not in the (empty) registry → no next
     expect(setChapter).not.toHaveBeenCalled();
   });
 

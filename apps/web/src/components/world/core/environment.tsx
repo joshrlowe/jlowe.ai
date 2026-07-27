@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 
-import { buildEnvTexture, GOLDEN_HOUR } from "../../core/env-texture";
-import { HdriSky } from "../../core/hdri-sky";
-import { useQuality } from "../../core/quality-provider";
+import { buildEnvTexture, GOLDEN_HOUR } from "./env-texture";
+import { HdriSky } from "./hdri-sky";
+import { useQuality } from "./quality-provider";
 import { useEnvironmentTuning } from "./use-environment-tuning";
 
 /** WebGL2/mobile fallback: the zero-byte procedural equirect sky. */
@@ -29,9 +29,8 @@ function ProceduralSky({ intensity }: { intensity: number }) {
  * lights only matter without HDRI IBL (which supplies them). Leva-tunable
  * (?debug=1).
  *
- * `sunCastShadow` (default off) makes the warm key sun a soft PCF shadow caster
- * with a frustum tuned to the hero vignette. It is opt-in so the circuit and
- * proving-ground (which pass no props) stay pixel-identical — enabling the
+ * `sunCastShadow` (default off) makes the warm key sun a soft PCF shadow caster.
+ * It is opt-in so scenes that pass no props stay pixel-identical — enabling the
  * renderer shadow map has no effect unless meshes also opt in, and the softness
  * knobs below only touch the caster that hangs under this same gate.
  */
@@ -64,17 +63,17 @@ export function GoldenHourEnvironment({
         shadow-normalBias={0.05}
         // Soft contact shadows: a wider PCF kernel + more taps turns the hard
         // map edge into a golden-hour penumbra. Inert unless `sunCastShadow` —
-        // the caster (and thus its shadow node) only exists on the hero path,
-        // so circuit / proving-ground render byte-identical.
+        // the caster (and thus its shadow node) only exists when a scene opts
+        // in, so no-prop scenes render byte-identical.
         shadow-radius={sunCastShadow ? 6 : 1}
         shadow-blurSamples={sunCastShadow ? 16 : 8}
       >
         {sunCastShadow ? (
-          // Ortho frustum sized to the hero road/car/props clustered near the
-          // origin; the warm sun sits ~55u out, so near/far hug that span for
-          // tight depth precision (kills grazing-angle acne). A higher mapSize
-          // (ultra raises it to 4096) carries the wide PCF kernel without the
-          // penumbra dissolving into blocky steps.
+          // Ortho frustum sized for content clustered near the origin; the warm
+          // sun sits ~55u out, so near/far hug that span for tight depth
+          // precision (kills grazing-angle acne). A higher mapSize (ultra
+          // raises it to 4096) carries the wide PCF kernel without the penumbra
+          // dissolving into blocky steps.
           <orthographicCamera
             attach="shadow-camera"
             args={[-22, 22, 22, -22, 28, 90]}

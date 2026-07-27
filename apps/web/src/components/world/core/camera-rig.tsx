@@ -5,10 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { type RefObject, useMemo, useRef } from "react";
 import * as THREE from "three/webgpu";
 
-import {
-  cinematicCameraPose,
-  type CinematicPathConfig,
-} from "../scenes/hero/camera-path";
+import { cinematicCameraPose, type CinematicPathConfig } from "./camera-path";
 
 export type CameraMode = "rails" | "free" | "chase" | "cinematic" | "hero-pass";
 
@@ -64,7 +61,7 @@ interface CameraRigProps {
  * Drives the active camera: `rails` follows a closed Catmull-Rom spline, `free`
  * hands control to OrbitControls, `chase` lerp-follows a target, `cinematic`
  * dolly-orbits a fixed point, and `hero-pass` holds a fixed low cinematic camera
- * that pans to track a moving target (the on-rails hero car) as it drives past.
+ * that pans to track a moving target as it sweeps past.
  */
 export function CameraRig({
   mode = "rails",
@@ -125,9 +122,9 @@ export function CameraRig({
       // light look-damping keeps the pan glued to it without whipping.
       const cfg = heroPass ?? HERO_PASS_DEFAULTS;
       const pos = target.current.getWorldPosition(scratch.current);
-      // Clamp the look target into the straight's window so the pan eases to the
-      // frame edge as the pack rips off down the road, rather than yawing around
-      // to chase them through the hidden return leg (car-rail.ts).
+      // Clamp the look target into a fixed window so the pan eases to the frame
+      // edge as the target sweeps out of shot, rather than yawing around to
+      // chase it through a hidden return leg.
       if (cfg.lookClamp) {
         const { x: cx, z: cz } = cfg.lookClamp;
         pos.x = Math.min(Math.max(pos.x, -cx), cx);

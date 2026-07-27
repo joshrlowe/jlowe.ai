@@ -12,7 +12,7 @@ import {
   chapterReducer,
   INITIAL_PHASE,
 } from "./chapter-fsm";
-import { chapterById } from "./chapters";
+import { chapterById, CHAPTERS, FALLBACK_SCENE_KEY } from "./chapters";
 
 export interface ChapterState {
   activeChapterId: string;
@@ -65,8 +65,10 @@ function collectedFor(
 export const chapterStore = createStore<ChapterState>()(
   persist(
     (set, get) => ({
-      activeChapterId: "ignition",
-      activeScene: "circuit",
+      // The first registered chapter is the default; with an empty registry the
+      // world holds on the in-transit scene under a neutral (no-chapter) id.
+      activeChapterId: CHAPTERS[0]?.id ?? "",
+      activeScene: CHAPTERS[0]?.sceneKey ?? FALLBACK_SCENE_KEY,
       phase: INITIAL_PHASE,
       collectedByChapter: {},
       collectedBeacons: [],

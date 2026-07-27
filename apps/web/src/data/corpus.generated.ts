@@ -117,7 +117,7 @@ export const CORPUS: Record<string, CorpusEntry> = {
       "Original physics-driven driving, with content placed in the world",
       "Infrastructure-as-code on AWS and CI-gated performance budgets"
     ],
-    "body": "The car you are driving is the portfolio. Built on React Three Fiber and the\nthree.js WebGPU renderer under a strict progressive-enhancement contract: every\nvisitor gets a working experience, down to a 2D shell that search engines and\nscreen readers fully understand."
+    "body": "This site is the portfolio — a game-quality 3D world with an AI digital twin,\nrebuilt in public. Built on React Three Fiber and the\nthree.js WebGPU renderer under a strict progressive-enhancement contract: every\nvisitor gets a working experience, down to a 2D shell that search engines and\nscreen readers fully understand."
   }
 };
 
