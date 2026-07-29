@@ -30,7 +30,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
         <Link href="/" className="font-semibold tracking-tight">
           {SITE_NAME}
-          <span className="text-primary">.</span>
+          <span className="text-cobalt">.</span>
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
@@ -48,7 +48,8 @@ export function SiteHeader() {
             >
               {item.label}
               {isActive(pathname, item.href) ? (
-                <span className="mx-auto mt-0.5 block h-1 w-1 rounded-full bg-primary" />
+                // Nav beacon: a cobalt star-point under the active route.
+                <span className="mx-auto mt-0.5 block h-1 w-1 rounded-full bg-cobalt shadow-[0_0_6px_1px_rgb(42_99_255/0.8)]" />
               ) : null}
             </Link>
           ))}

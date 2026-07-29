@@ -24,7 +24,8 @@ export function ActivityStrip() {
         const Icon = KIND_ICON[item.kind];
         return (
           <li key={`${item.date}-${item.title}`} className="relative">
-            <span className="absolute -left-[31px] flex h-2.5 w-2.5 items-center justify-center rounded-full bg-primary" />
+            {/* Beacon marker: cobalt point with a soft starlight halo. */}
+            <span className="absolute -left-[31px] flex h-2.5 w-2.5 items-center justify-center rounded-full bg-cobalt shadow-[0_0_8px_1px_rgb(42_99_255/0.7)]" />
             <div className="flex items-start gap-3">
               <Icon
                 aria-hidden
@@ -34,7 +35,7 @@ export function ActivityStrip() {
                 <p className="text-sm">{item.title}</p>
                 <time
                   dateTime={item.date}
-                  className="text-xs text-muted-foreground"
+                  className="font-mono text-xs text-muted-foreground"
                 >
                   {formatDate(item.date)}
                 </time>

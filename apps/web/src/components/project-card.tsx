@@ -22,14 +22,16 @@ function GitHubMark(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export function ProjectCard({ project }: { project: Project }) {
+  // Hover treatment: the ring line warms to cobalt and the card lifts on a
+  // soft glow — starlight-border + engine-light grammar, no heavy fill.
   return (
-    <Card className="h-full transition-colors hover:border-primary/50">
+    <Card className="h-full transition-shadow hover:shadow-glow-sm hover:ring-cobalt/50">
       <CardHeader>
         <CardTitle className="text-base">
           {project.href ? (
             <Link
               href={project.href as Route}
-              className="transition-colors hover:text-primary focus-visible:text-primary"
+              className="transition-colors hover:text-starlight focus-visible:text-starlight"
             >
               {project.title}
             </Link>
@@ -51,7 +53,7 @@ export function ProjectCard({ project }: { project: Project }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${project.title} on GitHub`}
-            className="ml-auto text-muted-foreground transition-colors hover:text-primary"
+            className="ml-auto text-muted-foreground transition-colors hover:text-starlight"
           >
             <GitHubMark className="size-4" />
           </a>
@@ -62,7 +64,7 @@ export function ProjectCard({ project }: { project: Project }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${project.title} live site`}
-            className="text-muted-foreground transition-colors hover:text-primary"
+            className="text-muted-foreground transition-colors hover:text-starlight"
           >
             <ExternalLink className="size-4" />
           </a>

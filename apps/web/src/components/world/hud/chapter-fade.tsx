@@ -47,7 +47,7 @@ export function ChapterFade() {
     >
       {phase === "complete" && chapter ? (
         <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-starlight">
             Chapter {chapter.index} complete
           </p>
           <h2 className="text-2xl font-semibold tracking-tight">
@@ -56,7 +56,7 @@ export function ChapterFade() {
           <button
             type="button"
             onClick={() => chapterStore.getState().dispatch("RESET")}
-            className="mt-2 text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+            className="mt-2 text-sm text-muted-foreground underline-offset-4 hover:text-starlight hover:underline"
           >
             Replay chapter
           </button>

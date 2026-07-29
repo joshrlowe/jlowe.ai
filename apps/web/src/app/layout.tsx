@@ -39,8 +39,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Brand red; matches the manifest theme_color and the v1 <meta theme-color>.
-  themeColor: "#bb1313",
+  // Deep space — the page background and the manifest theme_color, so the
+  // browser chrome sits in the same universe as the hyperspace entrance.
+  themeColor: "#02030a",
 };
 
 export default function RootLayout({

@@ -11,7 +11,7 @@ export function SiteFooter() {
         <div className="md:col-span-2">
           <p className="font-semibold">
             {SITE_NAME}
-            <span className="text-primary">.</span>
+            <span className="text-cobalt">.</span>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{SITE_TAGLINE}</p>
           <p className="mt-3 max-w-md text-sm text-muted-foreground">
@@ -27,7 +27,7 @@ export function SiteFooter() {
                   target={
                     social.href.startsWith("mailto:") ? undefined : "_blank"
                   }
-                  className="text-sm text-muted-foreground transition-colors hover:text-primary"
+                  className="text-sm text-muted-foreground transition-colors hover:text-starlight"
                 >
                   {social.label}
                 </a>
@@ -37,7 +37,9 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Footer">
-          <p className="text-sm font-medium">Navigation</p>
+          <p className="font-mono text-[10px] font-medium tracking-[0.35em] text-starlight uppercase">
+            Navigation
+          </p>
           <ul className="mt-3 space-y-2">
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>
@@ -53,7 +55,7 @@ export function SiteFooter() {
         </nav>
       </div>
       <Separator />
-      <p className="mx-auto w-full max-w-5xl px-4 py-6 text-xs text-muted-foreground">
+      <p className="mx-auto w-full max-w-5xl px-4 py-6 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
         © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
       </p>
     </footer>

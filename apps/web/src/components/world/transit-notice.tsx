@@ -13,7 +13,7 @@ export function TransitNotice() {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-16 flex justify-center px-6">
       <div className="max-w-sm rounded-lg border border-border/60 bg-background/70 px-6 py-4 text-center backdrop-blur">
-        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-primary">
+        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-starlight">
           New sector charting
         </p>
         <p className="mt-2 font-mono text-sm">
@@ -21,7 +21,7 @@ export function TransitNotice() {
         </p>
         <Link
           href="/"
-          className="pointer-events-auto mt-3 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+          className="pointer-events-auto mt-3 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-starlight hover:underline"
         >
           Back to the flat site →
         </Link>

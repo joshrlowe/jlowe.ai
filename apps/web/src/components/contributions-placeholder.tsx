@@ -5,12 +5,14 @@ import {
 } from "@/lib/github/contributions";
 import { cn } from "@/lib/utils";
 
+// Heat ramp runs the film palette: lifted-navy void → cobalt → a level-4
+// square that burns starlight-white, like the nearest stars in the field.
 const LEVEL_CLASS: Record<ContributionLevel, string> = {
   0: "bg-muted",
-  1: "bg-primary/25",
-  2: "bg-primary/50",
-  3: "bg-primary/75",
-  4: "bg-primary",
+  1: "bg-cobalt/30",
+  2: "bg-cobalt/55",
+  3: "bg-cobalt/80",
+  4: "bg-starlight",
 };
 
 interface ContributionsCalendarProps {
@@ -56,15 +58,19 @@ export function ContributionsPlaceholder({
         <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
           <div className="flex gap-1.5">
             <dt>Total (past year):</dt>
-            <dd className="font-medium text-foreground">{stats.total}</dd>
+            <dd className="font-mono font-medium text-foreground">
+              {stats.total}
+            </dd>
           </div>
           <div className="flex gap-1.5">
             <dt>Best day:</dt>
-            <dd className="font-medium text-foreground">{stats.bestDay}</dd>
+            <dd className="font-mono font-medium text-foreground">
+              {stats.bestDay}
+            </dd>
           </div>
           <div className="flex gap-1.5">
             <dt>Current streak:</dt>
-            <dd className="font-medium text-foreground">
+            <dd className="font-mono font-medium text-foreground">
               {stats.currentStreak} {stats.currentStreak === 1 ? "day" : "days"}
             </dd>
           </div>

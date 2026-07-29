@@ -81,12 +81,12 @@ export function PreflightHud() {
       )}
     >
       <div className="w-full max-w-sm px-6 font-mono">
-        <p className="text-xs uppercase tracking-[0.3em] text-primary">
+        <p className="text-xs uppercase tracking-[0.3em] text-starlight">
           Pre-flight systems check
         </p>
         <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full bg-primary transition-[width] duration-300"
+            className="h-full bg-cobalt transition-[width] duration-300"
             style={{ width: `${shown}%` }}
           />
         </div>
@@ -105,7 +105,7 @@ export function PreflightHud() {
 
       <Link
         href="/"
-        className="pointer-events-auto mt-10 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+        className="pointer-events-auto mt-10 text-xs text-muted-foreground underline-offset-4 hover:text-starlight hover:underline"
       >
         Skip to the 2D site →
       </Link>

@@ -58,7 +58,7 @@ export function ProjectsExplorer({
                 variant={activeTag === tag ? "default" : "outline"}
                 className={cn(
                   "cursor-pointer",
-                  activeTag !== tag && "hover:border-primary/60",
+                  activeTag !== tag && "hover:border-cobalt/60",
                 )}
               >
                 {tag}

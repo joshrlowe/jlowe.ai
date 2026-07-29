@@ -52,7 +52,7 @@ export default function ArticlesPage() {
               <CardTitle className="text-base">
                 <Link
                   href={`/articles/${article.slug}/` as Route}
-                  className="transition-colors hover:text-primary focus-visible:text-primary"
+                  className="transition-colors hover:text-starlight focus-visible:text-starlight"
                 >
                   {article.title}
                 </Link>

@@ -49,47 +49,84 @@
 }
 
 /*
- * Velocity is dark-only in Phase 0: :root and .dark share the ember palette
- * (heritage orange, deepened to #C2410C on warm near-black) so there is no
- * light flash before hydration. A light mode later only needs a real :root
- * block. The accent was darkened from #E85D04 → #C2410C so white
- * (--primary-foreground) text on the primary button clears WCAG AA: the
- * original was ~3.35:1 (below the 4.5:1 normal-text bar); #C2410C is ~4.96:1.
+ * Deep-space brand primitives, straight from the hyperspace entrance's film
+ * palette (components/hyperspace): cobalt #2a63ff and starlight #bcd9ff.
+ * Division of labor (WCAG-driven — see the :root block comment):
+ *   - `cobalt`    — LARGE display text (4.24:1 on the page bg — large-text
+ *                   bar only), non-text marks (nav dot, activity beacons),
+ *                   borders and glows. Never small body/label text.
+ *   - `starlight` — small accent text, HUD micro-labels, hover accents
+ *                   (14.2:1 on the page bg), fine 1px lines via alpha.
+ * The glow shadows are the "engine light" treatment for CTAs and cards.
+ */
+@theme {
+  --color-cobalt: #2a63ff;
+  --color-starlight: #bcd9ff;
+  --shadow-glow:
+    0 0 18px -4px rgb(42 99 255 / 0.55), 0 0 44px -10px rgb(42 99 255 / 0.35);
+  --shadow-glow-sm: 0 0 12px -3px rgb(42 99 255 / 0.5);
+}
+
+/*
+ * Deep-space theme — the flat site now lives in the same universe the
+ * hyperspace entrance exits into: true near-black space with a slight blue
+ * bias (#02030a, the entrance's own backdrop), surfaces as faintly lifted
+ * navy, borders as faint starlight lines, and the film's cobalt system as
+ * the accent family (replacing the v1 ember/orange system end to end).
+ *
+ * Velocity is still dark-only: :root and .dark share the palette so there is
+ * no light flash before hydration; a light mode later only needs a real
+ * :root block.
+ *
+ * WCAG arithmetic (relative-luminance math, sRGB compositing) — this block
+ * is the contract; keep it true if you retune:
+ *   - --primary is a DARKENED cobalt #1e46c8, not pure #2a63ff: white on
+ *     #2a63ff is 4.85:1 (borderline AA); white on #1e46c8 is 7.59:1, and
+ *     the /80 hover over the dark bg rises to 9.82:1.
+ *   - Pure cobalt #2a63ff is 4.24:1 on the bg — fine for LARGE text and
+ *     non-text marks (≥3:1), never for small text (see the brand @theme
+ *     block above; small accents use starlight #bcd9ff at 14.2:1).
+ *   - --foreground #e9f1ff: 18.1:1 on bg / 16.6:1 on card / 14.8:1 on muted.
+ *   - --muted-foreground #a2b6dd: 10.1:1 on bg / 9.2:1 on card / 8.2:1 on
+ *     muted — comfortably over the 4.5:1 normal-text bar everywhere.
+ *   - --ring #9cc4ff: 11.5:1 against the bg at full opacity and still
+ *     3.40:1 when composited at the 50% ring-halo opacity the ui
+ *     components use — the whole focus indicator clears the 3:1 bar.
  */
 :root,
 .dark {
-  --background: oklch(0.145 0.004 50);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0.006 50);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0.006 50);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #c2410c;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0.008 50);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0.008 50);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0.008 50);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: #02030a;
+  --foreground: #e9f1ff;
+  --card: #081124;
+  --card-foreground: #e9f1ff;
+  --popover: #070e1e;
+  --popover-foreground: #e9f1ff;
+  --primary: #1e46c8;
+  --primary-foreground: #ffffff;
+  --secondary: #111c3b;
+  --secondary-foreground: #e9f1ff;
+  --muted: #111c3b;
+  --muted-foreground: #a2b6dd;
+  --accent: #111c3b;
+  --accent-foreground: #e9f1ff;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #c2410c;
-  --chart-1: #c2410c;
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: rgb(188 217 255 / 14%);
+  --input: rgb(188 217 255 / 25%);
+  --ring: #9cc4ff;
+  --chart-1: #2a63ff;
+  --chart-2: #93b8ff;
+  --chart-3: #bcd9ff;
+  --chart-4: #1e46c8;
+  --chart-5: #0a1e6e;
   --radius: 0.625rem;
-  --sidebar: oklch(0.205 0.006 50);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #c2410c;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0.008 50);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #c2410c;
+  --sidebar: #081124;
+  --sidebar-foreground: #e9f1ff;
+  --sidebar-primary: #1e46c8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #111c3b;
+  --sidebar-accent-foreground: #e9f1ff;
+  --sidebar-border: rgb(188 217 255 / 14%);
+  --sidebar-ring: #9cc4ff;
 }
 
 @layer base {
@@ -101,6 +138,10 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Text selection glows cobalt; foreground on this composite stays ~13:1. */
+  ::selection {
+    background: rgb(42 99 255 / 35%);
   }
 }
 

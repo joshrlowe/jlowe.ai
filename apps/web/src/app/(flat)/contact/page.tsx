@@ -21,7 +21,10 @@ export default function ContactPage() {
   return (
     <div className="py-14 pb-20">
       <h1 className="text-3xl font-semibold tracking-tight">
-        Let&apos;s build something <span className="text-primary">amazing</span>
+        Let&apos;s build something{" "}
+        <span className="text-cobalt [text-shadow:0_0_24px_rgb(42_99_255/0.55)]">
+          amazing
+        </span>
       </h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Ready to bring AI to your business? I&apos;d love to hear about your
@@ -38,7 +41,7 @@ export default function ContactPage() {
             <p className="font-medium">{SITE_NAME}</p>
             <a
               href={`mailto:${EMAIL}`}
-              className="block text-primary underline-offset-4 hover:underline"
+              className="block text-starlight underline-offset-4 hover:underline"
             >
               {EMAIL}
             </a>
@@ -60,7 +63,7 @@ export default function ContactPage() {
                     target={
                       social.href.startsWith("mailto:") ? undefined : "_blank"
                     }
-                    className="group flex items-center justify-between rounded-md border border-border/60 px-3 py-2 text-sm transition-colors hover:border-primary/60"
+                    className="group flex items-center justify-between rounded-md border border-border/60 px-3 py-2 text-sm transition-[border-color,box-shadow] hover:border-cobalt/60 hover:shadow-glow-sm"
                   >
                     <span>
                       <span className="font-medium">{social.label}</span>
@@ -68,7 +71,7 @@ export default function ContactPage() {
                         {social.description}
                       </span>
                     </span>
-                    <ArrowUpRight className="size-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                    <ArrowUpRight className="size-4 text-muted-foreground transition-colors group-hover:text-starlight" />
                   </a>
                 </li>
               ))}

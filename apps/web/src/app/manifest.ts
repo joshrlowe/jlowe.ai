@@ -17,8 +17,10 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Personal site and AI consultancy of Josh Lowe.",
     start_url: "/",
     display: "standalone",
-    background_color: "#1a1a1a",
-    theme_color: "#bb1313",
+    // Deep-space palette (see globals.css): splash + chrome match the site
+    // background so install/launch surfaces read as the same universe.
+    background_color: "#02030a",
+    theme_color: "#02030a",
     orientation: "portrait-primary",
     categories: ["portfolio", "developer", "technology"],
     icons: [
