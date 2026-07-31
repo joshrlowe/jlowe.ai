@@ -10,3 +10,10 @@ allowBuilds:
   "@tailwindcss/oxide": true # tailwind v4 native binding
   sharp: false # unused — images.unoptimized under static export
   unrs-resolver: false # ships prebuilt platform bindings; postinstall is a fallback build
+
+# Security overrides for transitives whose dependents pin a vulnerable version.
+# Each is a patch/minor bump; drop an entry once the dependent's own range moves past it.
+overrides:
+  postcss: "^8.5.18" # GHSA-6g55-p6wh-862q / GHSA-r28c-9q8g-f849 / GHSA-qx2v-qp2m-jg93 — next pins 8.4.31 exactly
+  sharp: "^0.35.0" # GHSA-f88m-g3jw-g9cj (libvips CVEs) — next/ndarray-pixels allow only 0.34.x
+  tmp: "^0.2.6" # GHSA-ph9p-34f9-6g65 / GHSA-52f5-9888-hmc6 — @lhci/cli chain pins 0.0.x/0.1.x (dev-only)
