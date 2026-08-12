@@ -206,14 +206,25 @@ resource "aws_cloudfront_function" "url_rewrite" {
   name    = "jlowe-ai-${var.environment}-url-rewrite"
   runtime = "cloudfront-js-2.0"
   publish = true
-  code    = file("${path.module}/functions/url-rewrite.js")
+  # templatefile injects the env host + its www form so the function's folded
+  # www -> apex 301 targets dev.jlowe.ai vs jlowe.ai correctly instead of
+  # hardcoding a domain. The redirect branch stays dormant until www is an alias.
+  code = templatefile("${path.module}/functions/url-rewrite.js.tftpl", {
+    apex_host = var.domain_name
+    www_host  = "www.${var.domain_name}"
+  })
 }
 
 # --- ACM certificate (gated on delegation) ----------------------------------
 resource "aws_acm_certificate" "site" {
-  count             = var.dns_delegated ? 1 : 0
-  domain_name       = var.domain_name
-  validation_method = "DNS"
+  count       = var.dns_delegated ? 1 : 0
+  domain_name = var.domain_name
+  # www SAN so TLS for www.<domain> validates (it 301s to the apex — see the
+  # url-rewrite function + www_alias records). create_before_destroy means
+  # adding this SAN replaces the cert cleanly. Still gated on dns_delegated, so
+  # no cert (and no www surface) exists until the real-domain apply.
+  subject_alternative_names = ["www.${var.domain_name}"]
+  validation_method         = "DNS"
   lifecycle {
     create_before_destroy = true
   }
@@ -249,7 +260,11 @@ resource "aws_cloudfront_distribution" "site" {
   http_version        = "http2and3"
   is_ipv6_enabled     = true
   price_class         = var.price_class
-  aliases             = var.dns_delegated ? [var.domain_name] : []
+  # www.<domain> rides alongside the apex alias (301'd to the apex by the
+  # url-rewrite viewer-request function). Gated on dns_delegated exactly like the
+  # apex: on the default-cert (pre-cutover) apply this is empty — apex-only, no
+  # www — because the CloudFront default cert can't serve custom aliases.
+  aliases = var.dns_delegated ? [var.domain_name, "www.${var.domain_name}"] : []
 
   # Optional edge WAF (modules/waf). CloudFront takes the Web ACL *ARN* here.
   web_acl_id = var.waf_web_acl_arn
@@ -544,6 +559,32 @@ resource "aws_route53_record" "alias" {
   # Applied at the for_each level so both A and AAAA get it. See
   # docs/runbooks/cutover.md, Stage 4.2b.
   allow_overwrite = true
+
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# www.<domain> -> the SAME distribution as the apex, as A + AAAA aliases. The
+# url-rewrite viewer-request function 301s www to the apex; these records (plus
+# the cert www SAN and the www distribution alias) are what let www resolve here
+# in order to be redirected. Gated on dns_delegated like the apex alias, so
+# inert on the default-cert (pre-cutover) apply.
+#
+# NEW record set on our side -> NO allow_overwrite. The `global` stack owns a www
+# *CNAME* -> cname.vercel-dns.com today. CNAME -> A is a Route53 *type change*,
+# and UPSERT/allow_overwrite is keyed on name AND type, so it can't take that
+# CNAME over in place. At the switch `global` must DELETE its www CNAME (config
+# removal + a `global` apply) so this A/AAAA can be created -- a coordinated step
+# with a brief low-TTL www blip (the apex swap itself stays atomic). See
+# docs/runbooks/cutover.md, "The www decision".
+resource "aws_route53_record" "www_alias" {
+  for_each = var.dns_delegated ? toset(["A", "AAAA"]) : toset([])
+  zone_id  = var.zone_id
+  name     = "www.${var.domain_name}"
+  type     = each.key
 
   alias {
     name                   = aws_cloudfront_distribution.site.domain_name

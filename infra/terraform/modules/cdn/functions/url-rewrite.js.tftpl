@@ -1,0 +1,39 @@
+// CloudFront viewer-request function. Two responsibilities are FOLDED into this
+// one function because a cache behavior may associate only ONE viewer-request
+// function:
+//
+//   1. Canonical host: 301 www.<domain> -> https://<domain><uri>. `www` is only
+//      a distribution alias when dns_delegated=true, so this branch is dormant
+//      on the default-cert (pre-cutover) distribution -- nothing can send that
+//      Host until the switch adds the www alias + cert SAN.
+//   2. Pretty URLs: map directory / extensionless URIs to the index.html that
+//      Next's static export emits with trailingSlash:true. Associated on the
+//      default behavior only (asset paths always carry an extension).
+//
+// The apex host and its www form are injected by templatefile() from
+// modules/cdn/main.tf, so this stays env-correct (dev.jlowe.ai vs jlowe.ai) --
+// never hardcode the domain. cloudfront-js-2.0 is ES5-style: var + string
+// concatenation, no template literals (matching the original rewrite logic).
+function handler(event) {
+  var request = event.request;
+
+  // 1. www -> apex 301 (canonical host).
+  if (request.headers.host.value === "${www_host}") {
+    return {
+      statusCode: 301,
+      statusDescription: "Moved Permanently",
+      headers: {
+        location: { value: "https://${apex_host}" + request.uri }
+      }
+    };
+  }
+
+  // 2. Extensionless / directory URI -> static-export index.html.
+  var uri = request.uri;
+  if (uri.endsWith("/")) {
+    request.uri = uri + "index.html";
+  } else if (!uri.split("/").pop().includes(".")) {
+    request.uri = uri + "/index.html";
+  }
+  return request;
+}
