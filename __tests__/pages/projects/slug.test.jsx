@@ -28,8 +28,15 @@ jest.mock("next/link", () => {
 
 // Mock SEO component
 jest.mock("@/components/SEO", () => {
-  return function MockSEO({ title, description }) {
-    return <div data-testid="seo" data-title={title} data-description={description || ""} />;
+  return function MockSEO({ title, description, image }) {
+    return (
+      <div
+        data-testid="seo"
+        data-title={title}
+        data-description={description || ""}
+        data-image={image || ""}
+      />
+    );
   };
 });
 
@@ -98,6 +105,35 @@ describe("ProjectDetailPage", () => {
 
     const backLink = screen.getByRole("link", { name: "← Back to Projects" });
     expect(backLink).toHaveAttribute("href", "/projects");
+  });
+
+  it("should prefer metaTitle and metaDescription when present", () => {
+    const projectWithSeoColumns = {
+      ...mockProject,
+      metaTitle: "Custom Meta Title",
+      metaDescription: "Custom meta description.",
+    };
+    render(<ProjectDetailPage project={projectWithSeoColumns} />);
+
+    const seo = screen.getByTestId("seo");
+    expect(seo).toHaveAttribute("data-title", "Custom Meta Title");
+    expect(seo).toHaveAttribute("data-description", "Custom meta description.");
+  });
+
+  it("should prefer ogImage over the first project image", () => {
+    const projectWithOgImage = {
+      ...mockProject,
+      ogImage: "/images/og-custom.png",
+    };
+    render(<ProjectDetailPage project={projectWithOgImage} />);
+
+    expect(screen.getByTestId("seo")).toHaveAttribute("data-image", "/images/og-custom.png");
+  });
+
+  it("should fall back to the first project image when ogImage is missing", () => {
+    render(<ProjectDetailPage project={mockProject} />);
+
+    expect(screen.getByTestId("seo")).toHaveAttribute("data-image", "/images/test.jpg");
   });
 
   it("should use description as fallback when shortDescription is missing", () => {

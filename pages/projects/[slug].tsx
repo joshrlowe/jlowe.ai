@@ -69,30 +69,27 @@ const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
     );
   }
 
+  const firstImage =
+    Array.isArray(project.images) && typeof project.images[0] === "string"
+      ? project.images[0]
+      : undefined;
+
   return (
     <>
       <SEO
-        title={project.title}
-        description={project.shortDescription || project.description || ""}
-        image={
-          Array.isArray(project.images) && project.images[0]
-            ? typeof project.images[0] === "string"
-              ? project.images[0]
-              : undefined
-            : undefined
+        title={project.metaTitle || project.title}
+        description={
+          project.metaDescription || project.shortDescription || project.description || ""
         }
+        image={project.ogImage || firstImage}
       />
       <JsonLd
         data={projectSchema({
           title: project.title,
-          description: project.shortDescription || project.description || "",
+          description:
+            project.metaDescription || project.shortDescription || project.description || "",
           slug: project.slug || project.id || "",
-          image:
-            Array.isArray(project.images) && project.images[0]
-              ? typeof project.images[0] === "string"
-                ? project.images[0]
-                : undefined
-              : undefined,
+          image: project.ogImage || firstImage,
           dateCreated: project.startDate ?? undefined,
         })}
         id="project"

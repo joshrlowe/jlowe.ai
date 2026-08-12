@@ -208,7 +208,7 @@ export default function FeaturedProjects({ projects = [] }: FeaturedProjectsProp
               thumbnail = thumbnail.url || thumbnail.src || thumbnail;
             }
             const thumbnailUrl = typeof thumbnail === "string" ? thumbnail : null;
-            const projectUrl = `/projects#${project.slug || project.id}`;
+            const projectUrl = `/projects/${project.slug || project.id}`;
 
             const accent = FEATURED_ACCENT_COLORS[index % FEATURED_ACCENT_COLORS.length];
 
