@@ -1,10 +1,14 @@
 /**
  * Tests for SEO component
+ *
+ * next/router is mocked globally in jest.setup.js with asPath "/"; tests that
+ * need a different route queue a one-shot return value on that mock.
  */
 
 import React from "react";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { useRouter } from "next/router";
 import SEO from "@/components/SEO";
 
 describe("SEO", () => {
@@ -50,16 +54,42 @@ describe("SEO", () => {
     expect(ogDescription).toHaveAttribute("content", "OG Description");
   });
 
-  it("renders Open Graph image", () => {
+  it("makes relative Open Graph images absolute", () => {
     render(<SEO image="/images/test.png" />);
     const ogImage = document.querySelector('meta[property="og:image"]');
-    expect(ogImage).toHaveAttribute("content", "/images/test.png");
+    expect(ogImage).toHaveAttribute("content", "https://jlowe.ai/images/test.png");
+  });
+
+  it("passes absolute Open Graph images through untouched", () => {
+    render(<SEO image="https://cdn.example.com/card.png" />);
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    expect(ogImage).toHaveAttribute("content", "https://cdn.example.com/card.png");
   });
 
   it("renders default Open Graph image", () => {
     render(<SEO />);
     const ogImage = document.querySelector('meta[property="og:image"]');
-    expect(ogImage).toHaveAttribute("content", "/images/logo.png");
+    expect(ogImage).toHaveAttribute("content", "https://jlowe.ai/og-default.png");
+  });
+
+  it("renders og:image dimensions for the default image", () => {
+    render(<SEO />);
+    const ogImageWidth = document.querySelector('meta[property="og:image:width"]');
+    const ogImageHeight = document.querySelector('meta[property="og:image:height"]');
+    expect(ogImageWidth).toHaveAttribute("content", "1200");
+    expect(ogImageHeight).toHaveAttribute("content", "630");
+  });
+
+  it("omits og:image dimensions for custom images", () => {
+    render(<SEO image="/images/test.png" />);
+    expect(document.querySelector('meta[property="og:image:width"]')).toBeNull();
+    expect(document.querySelector('meta[property="og:image:height"]')).toBeNull();
+  });
+
+  it("renders og:image:alt from the page title", () => {
+    render(<SEO title="Alt Test" />);
+    const ogImageAlt = document.querySelector('meta[property="og:image:alt"]');
+    expect(ogImageAlt).toHaveAttribute("content", "Alt Test | Josh Lowe");
   });
 
   it("renders Open Graph URL", () => {
@@ -98,10 +128,10 @@ describe("SEO", () => {
     expect(twitterDescription).toHaveAttribute("content", "Twitter Description");
   });
 
-  it("renders Twitter image", () => {
+  it("renders absolute Twitter image", () => {
     render(<SEO image="/images/twitter.png" />);
     const twitterImage = document.querySelector('meta[name="twitter:image"]');
-    expect(twitterImage).toHaveAttribute("content", "/images/twitter.png");
+    expect(twitterImage).toHaveAttribute("content", "https://jlowe.ai/images/twitter.png");
   });
 
   it("renders robots meta", () => {
@@ -110,10 +140,39 @@ describe("SEO", () => {
     expect(robots).toHaveAttribute("content", "index, follow");
   });
 
-  it("renders canonical link", () => {
+  it("renders canonical link from explicit url prop", () => {
     render(<SEO url="https://jlowe.ai/page" />);
     const canonical = document.querySelector('link[rel="canonical"]');
     expect(canonical).toHaveAttribute("href", "https://jlowe.ai/page");
+  });
+
+  it("defaults the homepage canonical to the site URL", () => {
+    render(<SEO />);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    expect(canonical).toHaveAttribute("href", "https://jlowe.ai");
+  });
+
+  it("derives the canonical from the current route when url is omitted", () => {
+    useRouter.mockReturnValueOnce({ asPath: "/projects" });
+    render(<SEO title="Projects" />);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    expect(canonical).toHaveAttribute("href", "https://jlowe.ai/projects");
+    expect(ogUrl).toHaveAttribute("content", "https://jlowe.ai/projects");
+  });
+
+  it("strips query string and hash from the derived canonical", () => {
+    useRouter.mockReturnValueOnce({ asPath: "/projects?tag=ai#top" });
+    render(<SEO title="Projects" />);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    expect(canonical).toHaveAttribute("href", "https://jlowe.ai/projects");
+  });
+
+  it("prefers an explicit url prop over the current route", () => {
+    useRouter.mockReturnValueOnce({ asPath: "/projects" });
+    render(<SEO url="https://jlowe.ai/custom" />);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    expect(canonical).toHaveAttribute("href", "https://jlowe.ai/custom");
   });
 
   it("renders viewport meta", () => {

@@ -1,4 +1,6 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { SITE_URL } from "@/lib/seo/schema";
 
 interface SEOProps {
   title?: string;
@@ -8,14 +10,33 @@ interface SEOProps {
   type?: string;
 }
 
+/** Default social card in public/ — a real 1200×630 asset with known dimensions. */
+const DEFAULT_OG_IMAGE = "/og-default.png";
+
+/** Social scrapers require absolute og:image URLs; prefix site-relative paths. */
+const toAbsoluteUrl = (pathOrUrl: string): string =>
+  pathOrUrl.startsWith("/") ? `${SITE_URL}${pathOrUrl}` : pathOrUrl;
+
 export default function SEO({
   title = "Josh Lowe",
   description = "Full Stack Developer specializing in modern web technologies.",
-  image = "/images/logo.png",
-  url = "https://jlowe.ai",
+  image = DEFAULT_OG_IMAGE,
+  url,
   type = "website",
 }: SEOProps) {
+  const router = useRouter();
   const fullTitle = title.includes("Josh Lowe") ? title : `${title} | Josh Lowe`;
+
+  // Canonical defaults to the current route (query string and hash stripped) so
+  // pages that omit `url` don't all canonicalize to the homepage. An explicit
+  // `url` prop always wins.
+  const path = (router?.asPath ?? "/").split(/[?#]/)[0];
+  const canonicalUrl = url ?? (path === "/" ? SITE_URL : `${SITE_URL}${path}`);
+
+  const imageUrl = toAbsoluteUrl(image);
+  // Width/height are only known for the bundled default card; arbitrary page
+  // images skip them rather than claim dimensions we haven't measured.
+  const isDefaultImage = image === DEFAULT_OG_IMAGE;
 
   return (
     <Head>
@@ -27,19 +48,22 @@ export default function SEO({
       <meta property="og:type" content={type} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
-      <meta property="og:url" content={url} />
+      <meta property="og:image" content={imageUrl} />
+      {isDefaultImage && <meta property="og:image:width" content="1200" />}
+      {isDefaultImage && <meta property="og:image:height" content="630" />}
+      <meta property="og:image:alt" content={fullTitle} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:site_name" content="Josh Lowe" />
 
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:image" content={imageUrl} />
 
       {/* Additional SEO */}
       <meta name="robots" content="index, follow" />
-      <link rel="canonical" href={url} />
+      <link rel="canonical" href={canonicalUrl} />
     </Head>
   );
 }
