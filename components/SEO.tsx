@@ -8,6 +8,8 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  /** Ask crawlers to skip the page (404/500, previews). Also drops the canonical. */
+  noindex?: boolean;
 }
 
 /** Default social card in public/ — a real 1200×630 asset with known dimensions. */
@@ -23,6 +25,7 @@ export default function SEO({
   image = DEFAULT_OG_IMAGE,
   url,
   type = "website",
+  noindex = false,
 }: SEOProps) {
   const router = useRouter();
   const fullTitle = title.includes("Josh Lowe") ? title : `${title} | Josh Lowe`;
@@ -61,9 +64,10 @@ export default function SEO({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
 
-      {/* Additional SEO */}
-      <meta name="robots" content="index, follow" />
-      <link rel="canonical" href={canonicalUrl} />
+      {/* Additional SEO — noindex pages render at arbitrary URLs (404/500),
+          so a canonical would be meaningless there. */}
+      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
+      {!noindex && <link rel="canonical" href={canonicalUrl} />}
     </Head>
   );
 }

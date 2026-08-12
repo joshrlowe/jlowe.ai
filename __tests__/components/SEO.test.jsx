@@ -140,6 +140,13 @@ describe("SEO", () => {
     expect(robots).toHaveAttribute("content", "index, follow");
   });
 
+  it("renders noindex robots meta and drops the canonical when noindex is set", () => {
+    render(<SEO noindex />);
+    const robots = document.querySelector('meta[name="robots"]');
+    expect(robots).toHaveAttribute("content", "noindex, nofollow");
+    expect(document.querySelector('link[rel="canonical"]')).toBeNull();
+  });
+
   it("renders canonical link from explicit url prop", () => {
     render(<SEO url="https://jlowe.ai/page" />);
     const canonical = document.querySelector('link[rel="canonical"]');
