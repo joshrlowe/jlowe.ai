@@ -48,6 +48,9 @@ export interface ProjectLike {
   longDescription?: string | null;
   status?: string;
   featured?: boolean;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  ogImage?: string | null;
   startDate?: string | Date | null;
   releaseDate?: string | Date | null;
   repositoryLink?: string | null;

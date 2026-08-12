@@ -15,7 +15,17 @@ const config = {
   changefreq: "weekly",
   priority: 0.7,
   sitemapSize: 5000,
-  exclude: ["/admin/*", "/api/*", "/design/*", "/articles/new", "/articles/[topic]/[slug]/preview"],
+  // Globs don't cover the bare segment itself, so /admin and /design are
+  // listed alongside their /* variants.
+  exclude: [
+    "/admin",
+    "/admin/*",
+    "/api/*",
+    "/design",
+    "/design/*",
+    "/articles/new",
+    "/articles/[topic]/[slug]/preview",
+  ],
   robotsTxtOptions: {
     policies: [
       {

@@ -271,7 +271,7 @@ describe("FeaturedProjects Component", () => {
 
       fireEvent.click(projectCard);
 
-      expect(mockRouter.push).toHaveBeenCalledWith("/projects#project-1");
+      expect(mockRouter.push).toHaveBeenCalledWith("/projects/project-1");
     });
 
     it("should navigate on Enter key press", () => {
@@ -280,7 +280,7 @@ describe("FeaturedProjects Component", () => {
 
       fireEvent.keyDown(projectCard, { key: "Enter" });
 
-      expect(mockRouter.push).toHaveBeenCalledWith("/projects#project-1");
+      expect(mockRouter.push).toHaveBeenCalledWith("/projects/project-1");
     });
 
     it("should not navigate on other key press", () => {
@@ -302,7 +302,7 @@ describe("FeaturedProjects Component", () => {
 
       fireEvent.click(projectCard);
 
-      expect(mockRouter.push).toHaveBeenCalledWith("/projects#1");
+      expect(mockRouter.push).toHaveBeenCalledWith("/projects/1");
     });
   });
 

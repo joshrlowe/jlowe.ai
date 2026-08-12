@@ -23,6 +23,8 @@ import {
 } from "@/lib/utils/constants";
 import { getPrefersReducedMotion } from "@/lib/hooks";
 import SEO from "@/components/SEO";
+import JsonLd from "@/components/JsonLd";
+import { collectionPageSchema } from "@/lib/seo/schema";
 import ProjectCard from "@/components/Project/ProjectCard";
 import ProjectFilters from "@/components/Project/ProjectFilters";
 import ProjectsEmptyState from "@/components/Project/ProjectsEmptyState";
@@ -236,6 +238,21 @@ export default function ProjectsPage({ projects: initialProjects }: ProjectsPage
       <SEO
         title="Projects - Josh Lowe"
         description="Explore my portfolio of AI, machine learning, and full-stack development projects."
+      />
+      <JsonLd
+        data={collectionPageSchema({
+          title: "Projects",
+          description:
+            "Explore my portfolio of AI, machine learning, and full-stack development projects.",
+          path: "/projects",
+          items: projects
+            .filter((project) => project.slug || project.id)
+            .map((project) => ({
+              name: project.title,
+              path: `/projects/${project.slug || project.id}`,
+            })),
+        })}
+        id="projects-collection"
       />
 
       <div className="section relative z-10">

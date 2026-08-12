@@ -12,7 +12,7 @@ import remarkGfm from "remark-gfm";
 import Image from "next/image";
 import { useReadingAnalytics } from "@/lib/hooks/useReadingAnalytics";
 import { formatDate } from "@/lib/utils/dateUtils";
-import { blogPostingSchema } from "@/lib/seo/schema";
+import { blogPostingSchema, breadcrumbSchema } from "@/lib/seo/schema";
 import type { Post } from "@/lib/types";
 
 type ArticlePost = Post & {
@@ -108,6 +108,17 @@ export default function ArticleDetailPage({ post: initialPost }: ArticleDetailPa
           image: post.ogImage || post.coverImage || undefined,
         })}
         id="blog-posting"
+      />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Articles", path: "/articles" },
+          // No standalone /articles/[topic] route exists; the topic crumb
+          // deep-links the listing page's topic filter instead.
+          { name: post.topic, path: `/articles?topic=${encodeURIComponent(post.topic)}` },
+          { name: post.title, path: `/articles/${post.topic}/${post.slug}` },
+        ])}
+        id="breadcrumbs"
       />
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-4xl">

@@ -5,9 +5,27 @@
  * stays declarative and the Person / WebSite definitions don't drift
  * between routes.
  */
-import type { BlogPosting, CreativeWork, Person, WebSite, WithContext } from "schema-dts";
+import type {
+  BlogPosting,
+  BreadcrumbList,
+  CollectionPage,
+  CreativeWork,
+  ListItem,
+  Person,
+  WebSite,
+  WithContext,
+} from "schema-dts";
 
 export const SITE_URL = "https://jlowe.ai";
+
+/**
+ * Prefix site-relative paths with SITE_URL; absolute URLs pass through.
+ * "/" maps to the bare SITE_URL so home links match the homepage canonical.
+ */
+const toAbsoluteUrl = (pathOrUrl: string): string => {
+  if (pathOrUrl === "/") return SITE_URL;
+  return pathOrUrl.startsWith("/") ? `${SITE_URL}${pathOrUrl}` : pathOrUrl;
+};
 
 /**
  * Sitewide Person schema. Reflects current bio: MS CS at UCF + tech lead
@@ -125,6 +143,73 @@ export function projectSchema(args: CreativeWorkArgs): WithContext<CreativeWork>
       "@type": "Person",
       name: "Josh Lowe",
       url: SITE_URL,
+    },
+  };
+}
+
+interface BreadcrumbItem {
+  name: string;
+  /** Site-relative path ("/projects") or absolute URL. Must resolve — Google
+   * requires `item` on every crumb except (optionally) the last one. */
+  path: string;
+}
+
+/**
+ * BreadcrumbList schema for detail pages (Home › … › current page).
+ * Items are emitted in the order given; positions are 1-based. Crumb URLs use
+ * the `item: { "@id": … }` form — the variant schema-dts can type (`item`
+ * expects Thing | IdReference, not a bare URL string).
+ */
+export function breadcrumbSchema(items: BreadcrumbItem[]): WithContext<BreadcrumbList> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map(
+      (item, index): ListItem => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        item: { "@id": toAbsoluteUrl(item.path) },
+      })
+    ),
+  };
+}
+
+/** Cap ItemList entries so listing pages don't ship unbounded JSON-LD. */
+const COLLECTION_ITEM_LIMIT = 20;
+
+interface CollectionPageArgs {
+  title: string;
+  description: string;
+  /** Site-relative path of the listing page, e.g. "/projects". */
+  path: string;
+  items: { name: string; path: string }[];
+}
+
+/**
+ * CollectionPage + ItemList schema for listing pages (/projects, /articles).
+ * Entries beyond COLLECTION_ITEM_LIMIT are dropped and numberOfItems reflects
+ * the emitted list, so the payload never claims more than it shows.
+ */
+export function collectionPageSchema(args: CollectionPageArgs): WithContext<CollectionPage> {
+  const capped = args.items.slice(0, COLLECTION_ITEM_LIMIT);
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: args.title,
+    description: args.description,
+    url: toAbsoluteUrl(args.path),
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: capped.length,
+      itemListElement: capped.map(
+        (item, index): ListItem => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: item.name,
+          url: toAbsoluteUrl(item.path),
+        })
+      ),
     },
   };
 }

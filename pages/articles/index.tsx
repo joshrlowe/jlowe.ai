@@ -1,7 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { GetStaticProps } from "next";
+import { useRouter } from "next/router";
 import prisma from "../../lib/prisma";
 import SEO from "@/components/SEO";
+import JsonLd from "@/components/JsonLd";
+import { collectionPageSchema } from "@/lib/seo/schema";
 import Link from "next/link";
 import Image from "next/image";
 import NewsletterSubscription from "@/components/Articles/NewsletterSubscription";
@@ -18,12 +21,24 @@ interface ArticlesPageProps {
 }
 
 export default function ArticlesPage({ recentPosts, allTopics, allTags }: ArticlesPageProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
   const [sortBy, setSortBy] = useState("datePublished");
   const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Support /articles?topic=X deep links (used by article breadcrumbs):
+  // preselect the topic filter once the query string is hydrated.
+  useEffect(() => {
+    if (!router.isReady) return;
+    const topic = router.query.topic;
+    if (typeof topic === "string" && topic) {
+      setSelectedTopic(topic);
+      setCurrentPage(1);
+    }
+  }, [router.isReady, router.query.topic]);
 
   const filteredPosts = useMemo(() => {
     return filterAndSortPosts(recentPosts as any, {
@@ -47,6 +62,21 @@ export default function ArticlesPage({ recentPosts, allTopics, allTags }: Articl
         title="Articles - Josh Lowe"
         description="Read my latest articles on web development, full-stack engineering, and technology insights."
         url="https://jlowe.ai/articles"
+      />
+      <JsonLd
+        data={collectionPageSchema({
+          title: "Articles",
+          description:
+            "Read my latest articles on web development, full-stack engineering, and technology insights.",
+          path: "/articles",
+          items: recentPosts
+            .filter((post) => post.topic && post.slug)
+            .map((post) => ({
+              name: post.title,
+              path: `/articles/${post.topic}/${post.slug}`,
+            })),
+        })}
+        id="articles-collection"
       />
       <div className="pt-28 pb-12 px-4 sm:px-6 lg:px-8 w-full">
         <div className="w-full max-w-6xl mx-auto">
