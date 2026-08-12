@@ -29,7 +29,7 @@ export function FixtureScene() {
         >
           <RoundedBox args={[2, 0.8, 3.4]} radius={0.18} smoothness={4}>
             <meshStandardMaterial
-              color="#e85d04"
+              color="#2a63ff"
               metalness={0.5}
               roughness={0.35}
             />

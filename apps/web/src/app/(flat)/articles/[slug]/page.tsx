@@ -91,7 +91,7 @@ export default async function ArticleDetailPage({
 
       <Link
         href="/articles"
-        className="text-sm text-muted-foreground transition-colors hover:text-primary"
+        className="text-sm text-muted-foreground transition-colors hover:text-starlight"
       >
         ← All articles
       </Link>

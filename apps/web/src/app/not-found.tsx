@@ -1,12 +1,16 @@
 import Link from "next/link";
 
+import { Starfield } from "@/components/starfield";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4 py-32 text-center">
-      <p className="text-sm font-medium text-primary">404</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+      <Starfield />
+      <p className="font-mono text-xs tracking-[0.35em] text-starlight uppercase">
+        404
+      </p>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight">
         This page drifted off the map
       </h1>
       <p className="mt-3 max-w-md text-sm text-muted-foreground">

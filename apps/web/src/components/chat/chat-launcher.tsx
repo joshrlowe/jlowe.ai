@@ -22,7 +22,7 @@ export function ChatLauncher() {
     <>
       <Button
         size="icon-lg"
-        className="fixed right-4 bottom-4 z-50 rounded-full shadow-lg"
+        className="fixed right-4 bottom-4 z-50 rounded-full shadow-glow"
         onClick={() => chatStore.getState().toggle()}
         aria-label={open ? "Close chat" : "Ask Josh's digital twin"}
         aria-expanded={open}

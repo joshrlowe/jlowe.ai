@@ -60,7 +60,12 @@ export function TypingTagline({ phrases }: TypingTaglineProps) {
   }, [phrases]);
 
   return (
-    <span aria-live="off" className="text-primary">
+    // Pure film cobalt with a soft bloom — large display text only (the
+    // 4.24:1 ratio on the page bg clears the large-text bar, not small).
+    <span
+      aria-live="off"
+      className="text-cobalt [text-shadow:0_0_24px_rgb(42_99_255/0.55)]"
+    >
       {text}
       {phrases.length > 1 ? (
         // Stateless cursor: CSS handles blink + reduced-motion, so SSR and

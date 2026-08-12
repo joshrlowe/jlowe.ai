@@ -16,8 +16,8 @@ export function InputReadout() {
   return (
     <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-background/80 px-3 py-2 font-mono text-xs text-muted-foreground backdrop-blur">
       <div>
-        thr <span className="text-primary">{state.throttle.toFixed(2)}</span> ·
-        brk {state.brake.toFixed(2)}
+        thr <span className="text-starlight">{state.throttle.toFixed(2)}</span>{" "}
+        · brk {state.brake.toFixed(2)}
       </div>
       <div>
         steer {state.steer.toFixed(2)} {state.handbrake ? "· ⊘hb" : ""}

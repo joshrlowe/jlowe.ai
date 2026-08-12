@@ -77,7 +77,7 @@ export default async function ProjectDetailPage({
 
       <Link
         href="/projects"
-        className="text-sm text-muted-foreground transition-colors hover:text-primary"
+        className="text-sm text-muted-foreground transition-colors hover:text-starlight"
       >
         ← All projects
       </Link>

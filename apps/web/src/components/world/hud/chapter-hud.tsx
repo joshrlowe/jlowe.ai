@@ -27,7 +27,7 @@ export function ChapterHud() {
     <>
       {phase === "intro" && chapter ? (
         <div className="pointer-events-none absolute inset-x-0 top-1/3 flex flex-col items-center gap-2 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.4em] text-primary">
+          <p className="font-mono text-xs uppercase tracking-[0.4em] text-starlight">
             Chapter {chapter.index}
           </p>
           <h1 className="text-4xl font-semibold tracking-tight">
