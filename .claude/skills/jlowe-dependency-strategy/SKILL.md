@@ -1,6 +1,6 @@
 ---
 name: jlowe-dependency-strategy
-description: Sequenced, tiered dependency upgrade playbook for the jlowe.ai repo. Activate when the user is working in /Users/jlowe/Documents/jlowe.ai and asks to "upgrade deps in jlowe.ai", invokes "/jlowe-dependency-strategy", says "run dep upgrade", "tier 1 bumps", "bump dependencies", "patch sweep", or otherwise asks for a coordinated npm package upgrade pass. Do NOT activate in other repositories.
+description: Sequenced, tiered dependency upgrade playbook for the jlowe.ai repo. Activate when the user is working in /Users/jlowe/Projects/jlowe.ai and asks to "upgrade deps in jlowe.ai", invokes "/jlowe-dependency-strategy", says "run dep upgrade", "tier 1 bumps", "bump dependencies", "patch sweep", or otherwise asks for a coordinated npm package upgrade pass. Do NOT activate in other repositories.
 ---
 
 # jlowe-dependency-strategy
@@ -9,8 +9,8 @@ A tiered, risk-ordered playbook for upgrading npm dependencies in the jlowe.ai p
 
 ## Pre-flight (always run first)
 
-1. Confirm working directory is `/Users/jlowe/Documents/jlowe.ai`. If not, abort.
-2. Confirm a baseline exists at `.audit-post-phase1/` (contains `audit.json`, `outdated.json`, `lint.txt`, `tsc.txt`, `coverage.txt`). If missing, ask the user before continuing — every tier compares its post-bump state against this baseline.
+1. Confirm working directory is `/Users/jlowe/Projects/jlowe.ai`. If not, abort.
+2. Establish a baseline: if no `.audit-baseline-*/` directory exists, snapshot `npm outdated --json` and `npm audit --json` into a fresh `.audit-baseline-<date>/` (e.g. `.audit-baseline-2026-08-11/`) before touching anything — every tier compares its post-bump state against this baseline.
 3. Confirm the working tree is clean (`git status --porcelain` returns empty). Stash or commit local changes first.
 4. Capture the current state of locks:
    - `npm outdated --json > /tmp/outdated.before.json`
@@ -29,10 +29,10 @@ Apply this loop **for every package** in the chosen tier. Never batch multiple p
 3. If all three pass, commit per package with the message:
    - `chore(deps): bump <pkg> from <old> to <new>`
    - Body should reference the changelog URL and call out any notable behavioral changes you observed.
-4. Diff the package's audit/outdated delta against `.audit-post-phase1/` to confirm the bump removed the entry (and did not regress another).
+4. Diff the package's audit/outdated delta against the pre-flight baseline directory to confirm the bump removed the entry (and did not regress another).
 5. On test failure (or any verification step failing): **abort the tier immediately**, investigate the failure, then either fix-forward in the same commit or pin-and-defer (revert the bump, document why under `docs/decisions/` or in the user-facing report).
 
-## TIER 1 — Low risk, do first (7 packages)
+## TIER 1 — Low risk, do first (6 packages)
 
 Sweep + safe majors. Run these in the listed order. Commit each separately.
 
@@ -41,8 +41,7 @@ Sweep + safe majors. Run these in the listed order. Commit each separately.
 3. **`dotenv` 16 → 17** — scripts-only impact (no Next.js runtime usage). Smoke test by running `npm run seed:admin` against a throwaway DB. Watch for the v17 quiet-mode default change in CLI output.
 4. **`@testing-library/react` 14 → 16** — touches ~172 test files. After bump, the full `npm test` is mandatory (not just affected suites). If breakage is widespread (>10 failing suites), **pin at 15.x interim** (`npm install -E @testing-library/react@15`) and document under `docs/decisions/` for follow-up. v16's removal of legacy fake-timer semantics is the most common breakage source — check `jest.setup.js` for any `jest.useFakeTimers({ legacyFakeTimers: true })`.
 5. **`react-markdown` 9 → 10** — 4 call sites only. Module is **already mocked in `jest.config.js`**, so test failures here are almost certainly a real runtime regression. After bump, manually render a comment + an article body in dev to spot-check.
-6. **`marked` 13 → 18** — used **only** as `marked.lexer()` in `lib/rag/chunker.ts:9` for RAG ingestion. **NOT** used for article rendering. The blast radius is the embedding pipeline. After bump, run `npm run build:embeddings:legacy --dry-run` (or the smallest equivalent slice) to confirm chunker output schema is unchanged. Lower risk than typical 5-major-version jump because of the narrow surface area.
-7. **`three` 0.x patch bumps** — version is `0.x` so all bumps are technically "minor" in semver terms but treat each as its own commit. Background scene + WebGL shaders are load-bearing; after each bump, manually load `/` in dev and confirm `SpaceBackground` + `FluidHeatShader` initialize.
+6. **`three` 0.x patch bumps** — version is `0.x` so all bumps are technically "minor" in semver terms but treat each as its own commit. Background scene + WebGL shaders are load-bearing; after each bump, manually load `/` in dev and confirm `SpaceBackground` + `FluidHeatShader` initialize.
 
 ## TIER 2 — Medium risk (3 packages)
 
@@ -66,6 +65,7 @@ Run only after Tier 1 is complete and merged. Get user confirmation before start
 - `eslint` 9 → 10, `@eslint/js` 9 → 10 — flat-config breaking changes; lint rules in `eslint.config.mjs` need a full re-audit.
 - `undici` 7 → 8 — transitive in most cases; only direct-bump if a security advisory forces it.
 - `typescript` 5 → 6 — risk of cascading type errors across the freshly TS-migrated codebase (commit `357d857`).
+- `marked` 15 → 16+ — **pinned at v15 per `docs/decisions/0003-pin-marked-v15.md`**: v16+ is ESM-only and jest 29 cannot transform it, so the unpin is gated on the jest 30 upgrade. Only import is `marked.lexer()` in `lib/rag/chunker.ts:9` (RAG ingestion, not rendering); when the pin is lifted, verify chunker output via `npm run build:embeddings:legacy` on a small slice.
 
 If a user explicitly asks for one of these, **do not silently start the loop** — first surface the ADR/deferral, confirm the user wants to override the deferral, and treat the upgrade as a multi-commit migration project (not a routine bump).
 
@@ -89,6 +89,6 @@ After completing one or more tiers, produce a short report:
 
 1. Packages bumped this session, with old → new versions and commit SHAs.
 2. Packages attempted but reverted, with the reason.
-3. Audit/outdated delta vs `.audit-post-phase1/` baseline (count of resolved findings, any new findings).
+3. Audit/outdated delta vs the pre-flight baseline directory (count of resolved findings, any new findings).
 4. Tier(s) remaining and recommended next session timing.
 5. Any package the user should consider re-tiering (e.g., a Tier 2 package whose ecosystem has stabilized enough to move to Tier 1 next pass).

@@ -13,20 +13,27 @@ transform ESM-only packages without significant `transformIgnorePatterns`
 and `extensionsToTreatAsEsm` configuration that would risk other test
 suites.
 
-marked is used in:
-
-- `lib/rag/` chat citations rendering
-- Article body rendering via `react-markdown` (which uses `remark-gfm`,
-  not marked directly — marked is for the admin preview path)
-- `components/admin/MarkdownEditor.tsx` preview
+marked is used in exactly one place: `lib/rag/chunker.ts:9`, where
+`marked.lexer()` tokenizes markdown for structure-aware RAG chunking. It
+is not part of any rendering path — article bodies and the
+`components/admin/MarkdownEditor.tsx` preview both render with
+`react-markdown` + `remark-gfm`, which do not depend on marked. The
+blast radius of a marked upgrade is therefore the embedding pipeline,
+not the public site.
 
 v15 is the latest version that supports CommonJS require/import patterns
 compatible with our jest 29 + babel + nextjs setup.
 
 ## Decision
 
-Pin `marked` at `~15.x.x` in `package.json`. Do not auto-upgrade across
+Pin `marked` at v15 in `package.json`. Do not auto-upgrade across
 this boundary via Dependabot or `npm update`.
+
+As implemented, the `package.json` entry is `"marked": "^15.0.12"`
+(caret, not the tilde range this ADR originally prescribed). That still
+satisfies the pin — a caret range cannot cross a major, so neither
+`npm update` nor Dependabot minor bumps can promote to the ESM-only
+v16+. The caret range is intentionally left as-is.
 
 ## Consequences
 
