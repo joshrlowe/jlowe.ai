@@ -311,13 +311,6 @@ jest.mock("@react-three/fiber", () => ({
   extend: jest.fn(),
 }));
 
-// Mock @react-three/drei
-jest.mock("@react-three/drei", () => ({
-  OrbitControls: () => null,
-  Stars: () => null,
-  useTexture: jest.fn(() => null),
-}));
-
 // ============================================================================
 // ANIMATION LIBRARY MOCKS
 // ============================================================================
