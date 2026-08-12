@@ -45,7 +45,6 @@ const config = {
     // Three.js and related - prevent WebGL errors
     "^three$": "<rootDir>/__mocks__/three.js",
     "^@react-three/fiber$": "<rootDir>/__mocks__/@react-three/fiber.jsx",
-    "^@react-three/drei$": "<rootDir>/__mocks__/@react-three/drei.jsx",
 
     // Animation libraries
     "^gsap$": "<rootDir>/__mocks__/gsap.js",
