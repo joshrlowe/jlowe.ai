@@ -108,7 +108,7 @@ Lazy-imported singleton with frozen no-op handles when `LANGFUSE_PUBLIC_KEY` / `
 
 ## Critical gotchas
 
-- **Prisma migrations are tracked in git.** `prisma/migrations/` is committed so production state and migration history are captured in source control. Vercel runs `prisma migrate deploy` at build via `postinstall`. When you create a new migration via `npm run prisma:migrate`, commit the generated migration files alongside the schema change.
+- **Prisma migrations are tracked in git but nothing auto-applies them.** `prisma/migrations/` is committed so migration history is captured in source control, yet neither `postinstall` nor `build` runs `prisma migrate deploy` — production schema changes are applied via `prisma db push` + manual ops (see `docs/decisions/0004-db-push-workflow-and-migration-baseline.md`). When you change the schema, still commit a matching migration alongside it so history stays replayable.
 - **`postinstall` runs `prisma generate`** and `npm run build` runs it again — don't `cp` `node_modules` between machines without re-generating.
 - **TypeScript migration is complete** (commit `357d857`). The `lint:nocheck` script greps for `@ts-nocheck` in `components/`, `pages/`, `lib/`, and `middleware.ts` and fails if any reappear. Don't reintroduce them.
 - **Jest's `moduleNameMapper` strips explicit `.js` extensions** (`'^@/(.*)\\.js$' → '<rootDir>/$1'`). This is a workaround because source files were migrated to `.ts` while many call sites still write `from "./foo.js"`. If a test fails with "module not found" for a relative import, check the extension mapping.
