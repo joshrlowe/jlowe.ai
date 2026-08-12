@@ -27,6 +27,25 @@ export const CORPUS: Record<string, CorpusEntry> = {
     ],
     "body": "AI engineer and consultant. I help teams ship AI systems that hold up in\nproduction — and occasionally rebuild my own site as a drivable 3D world. Reach\nout if you have an AI problem worth solving well."
   },
+  "apr-benchmark": {
+    "slug": "apr-benchmark",
+    "title": "Can LLMs fix each other's bugs?",
+    "kind": "project",
+    "role": "Researcher",
+    "stack": [
+      "Python",
+      "SWE-bench",
+      "Docker",
+      "LiteLLM",
+      "pytest"
+    ],
+    "outcomes": [
+      "An injector-by-repairer matrix — every model attempts every model's bugs — measuring self-bias alongside pass@k",
+      "Injected bugs earn their place only when the official SWE-bench Docker harness confirms the tests now fail",
+      "Cost-conscious by construction — dry runs, no-call cost estimates, and resumable phases that never pay twice for a finished evaluation"
+    ],
+    "body": "How well can a language model repair a bug written by a different model — or\nby a human? This automated-program-repair benchmark puts models on both sides\nof the problem. Each model injects faults into twenty curated SWE-bench Lite\ninstances, singly or compounded on top of the existing human-written bug, and\nthen every model — including the injector — attempts the repair, producing an\ninjector-by-repairer matrix that measures self-bias alongside standard pass@k.\n\nThe bugs are generated at run time and have to earn their place: an injection\nonly counts if its patch applies and the official SWE-bench Docker harness\nconfirms the tests now fail, and each repair is re-diffed against the original\nrepository so the unmodified harness can judge it. Around that sits the\nunglamorous machinery of a multi-provider LLM experiment — defensive patch\nextraction from free-form model output, per-model cost accounting with a\nno-API-call estimate mode, and resumable phases that skip work already paid\nfor. An earlier arm of the same design runs on QuixBugs, with bootstrap\nconfidence intervals and significance tests built in for publication-grade\nanalysis."
+  },
   "bidops": {
     "slug": "bidops",
     "title": "Tech Lead, BidOps AI",
@@ -63,6 +82,84 @@ export const CORPUS: Record<string, CorpusEntry> = {
       "Schema-validated, turn-capped requests bound both the prompt and the Bedrock bill"
     ],
     "body": "The site answers questions about Josh in his own words — a digital twin that\nspeaks _about_ him, never _as_ him. It streams responses from Claude on AWS\nBedrock through a Lambda response stream, grounded in a fixed persona plus the\nsame public corpus that powers the rest of the site, so the twin and the\nportfolio can never drift apart.\n\nThe guardrails are the design. The twin answers only from the corpus, declines\nto invent employers, dates, or metrics, and points hiring questions to the\ncontact page. Requests are schema-validated and turn-capped to bound both the\nprompt and the Bedrock bill, and every failure path ends the stream with a\nfriendly line instead of hanging. When a visitor has explored beacons in the 3D\nworld, what they saw is passed along as a grounding hint."
+  },
+  "jarvis": {
+    "slug": "jarvis",
+    "title": "Jarvis — a self-hosted AI assistant",
+    "kind": "project",
+    "role": "AI Engineer",
+    "stack": [
+      "Python",
+      "TypeScript",
+      "LangGraph",
+      "FastAPI",
+      "pgvector",
+      "Ollama"
+    ],
+    "outcomes": [
+      "Contract-first monorepo — Pydantic models generate TypeScript, and one test suite must pass against both the mock and the real service",
+      "Human-in-the-loop approval gates that survive a process restart and resolve over WebSocket or REST, first answer wins",
+      "Local-first by design — models, memory, voice, and a code sandbox run on a home Mac Mini behind a private tailnet"
+    ],
+    "body": "Jarvis is a self-hosted personal AI assistant split between a home Mac Mini —\nthe brain: gateway, memory, local models, voice, code sandbox, skills — and a\nVPS for public ingress, connected over a private Tailscale network. Local-first\nis the point: a Qwen3 model served through Ollama, a pgvector memory store with\nbi-temporal corrections (facts are superseded, never deleted), and a\nwake-word-to-speech voice loop with barge-in all run on hardware at home.\n\nThe keystone is the contracts package. Every cross-service boundary is a\ntyped, versioned Pydantic model with generated TypeScript, a runnable\ndeterministic mock, and a contract test suite that any real implementation\nmust pass — so seven service tracks build in parallel against mocks and swap\nin one at a time. The trickiest machinery is the approval gate: a LangGraph\ninterrupt pauses a streaming turn for a human decision, resolvable over\nWebSocket or REST with first resolution winning, and durable enough to\nsurvive a process restart mid-approval."
+  },
+  "mailsweep": {
+    "slug": "mailsweep",
+    "title": "Mailsweep — Gmail cleanup you can undo",
+    "kind": "project",
+    "role": "Engineer",
+    "stack": [
+      "TypeScript",
+      "Next.js",
+      "Gmail API",
+      "BullMQ",
+      "PostgreSQL",
+      "Claude Haiku"
+    ],
+    "outcomes": [
+      "Sender-level cleanup — tens of thousands of messages collapse into a reviewable list of senders",
+      "Every sweep snapshots prior state per message, so undo restores exactly what was — and no permanent-delete code path exists",
+      "Deterministic scoring with hard safety rails does the suggesting; an LLM appears only in the consent-gated command bar"
+    ],
+    "body": "Mailsweep is sender-level bulk cleanup for Gmail that treats reversibility as\nthe product invariant. It indexes metadata only — headers and a snippet, never\nbodies — groups the mailbox by sender, explains what looks cleanable and why,\nand executes reviewed sweeps as invertible label arithmetic. Every action\nsnapshots each message's prior state, so undo restores it exactly, down to not\nun-archiving mail that was already archived before it was trashed.\n\nThe intelligence is deliberately layered. A deterministic scorer with hard\nrails makes the suggestions — protected senders, anything you have replied to,\nand security-looking mail are never suggested, and transactional mail caps at\narchive instead of trash. Claude Haiku appears only to compile natural-language\ncommands into a fixed action schema (the schema is the allowlist), gated\nbehind explicit consent. Underneath, a quota-budgeted token bucket keeps a\nfull-mailbox backfill inside Gmail's rate cap, one-click unsubscribes pass\nthrough an SSRF guard that pins DNS-resolved addresses, and a crashed sweep\nresumes from its last completed chunk instead of re-applying finished work."
+  },
+  "mia-federated-learning": {
+    "slug": "mia-federated-learning",
+    "title": "Membership inference in federated learning",
+    "kind": "project",
+    "role": "Graduate Researcher",
+    "stack": [
+      "PyTorch",
+      "Flower",
+      "Opacus",
+      "Adversarial Robustness Toolbox"
+    ],
+    "outcomes": [
+      "Federated Wide ResNet 28-4 training on CIFAR-100, simulated across ten non-IID clients",
+      "Black-box membership inference attacks quantify what the trained model leaks",
+      "Differential privacy as a toggleable defense, so leakage is compared like-for-like"
+    ],
+    "body": "Federated learning keeps raw data on the device, but the trained model can\nstill betray who was in the training set. This graduate research project\n(M.S. CS, University of Central Florida) builds the full loop — a Wide\nResNet 28-4 trained on CIFAR-100 with Flower across ten simulated clients\nunder a non-IID Dirichlet partition, then attacked with black-box membership\ninference from the Adversarial Robustness Toolbox to measure that leakage\ndirectly.\n\nDifferential privacy is the defense under evaluation. Opacus adds gradient\nclipping and calibrated noise, toggled per run, and the attack model reports\naccuracy, precision, recall, and F1 against held-out members and non-members.\nSame architecture, same partitions, same attack either way — so any drop in\nattack success is attributable to the privacy noise, not a changed setup."
+  },
+  "nutrillava": {
+    "slug": "nutrillava",
+    "title": "NutriLLaVA — recipes from a photo of your fridge",
+    "kind": "project",
+    "role": "ML Engineer",
+    "stack": [
+      "LLaVA",
+      "PyTorch",
+      "QLoRA",
+      "TRL",
+      "AWS SageMaker",
+      "Gradio"
+    ],
+    "outcomes": [
+      "Two-turn vision pipeline — name the ingredients in the photo, then write a recipe against the user's dietary goals",
+      "Fully synthetic training data — 1,000 FLUX-generated kitchen scenes paired with 4,000 GPT-4o instruction responses — after public food datasets proved unobtainable",
+      "QLoRA fine-tuning on SageMaker under hard cost and runtime guardrails enforced in code"
+    ],
+    "body": "NutriLLaVA generates personalized recipe suggestions from a photo of the\ningredients you have — a multimodal pipeline on LLaVA 1.6 that first names\nwhat it sees, then feeds that back with the user's dietary goals to produce\na recipe. The zero-shot version runs the 34-billion-parameter model behind a\nGradio interface.\n\nThe deeper work is the fine-tuning experiment. Public food datasets turned\nout to be dead links, gated downloads, and unlabeled images, so the training\nset is fully synthetic — a thousand photorealistic kitchen scenes from\nFLUX.1-dev, each paired with GPT-4o instruction–response pairs across four\ndietary profiles, split so no image leaks between train and eval. A QLoRA\npipeline (4-bit, LoRA on the attention projections of LLaVA-NeXT 13B) trains\non SageMaker under a hard budget cap — and the honest ledger so far is that\nthe guardrails have outworked the training runs. The deliverable is the\npipeline and the debugging, not a benchmark number."
   },
   "rag": {
     "slug": "rag",
@@ -121,4 +218,4 @@ export const CORPUS: Record<string, CorpusEntry> = {
   }
 };
 
-export const CORPUS_SLUGS = ["about","bidops","digital-twin","rag","reliability","velocity"] as const;
+export const CORPUS_SLUGS = ["about","apr-benchmark","bidops","digital-twin","jarvis","mailsweep","mia-federated-learning","nutrillava","rag","reliability","velocity"] as const;
