@@ -193,7 +193,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -250,13 +250,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        # pgvector image: the schema declares a vector(1024) column, so plain
+        # postgres:15 fails `prisma db push` with `type "vector" does not exist`.
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -278,6 +280,14 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Enable pgvector extension
+        # `prisma db push` reads schema.prisma and ignores the migrations dir,
+        # so the hand-written `CREATE EXTENSION vector` in the knowledge-chunks
+        # migration never runs. Create it here so the vector(1024) column pushes.
+        run: echo 'CREATE EXTENSION IF NOT EXISTS vector;' | npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Setup database schema
         run: npx prisma db push --skip-generate
@@ -328,13 +338,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        # pgvector image: the schema declares a vector(1024) column, so plain
+        # postgres:15 fails `prisma db push` with `type "vector" does not exist`.
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -362,6 +374,14 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Enable pgvector extension
+        # `prisma db push` reads schema.prisma and ignores the migrations dir,
+        # so the hand-written `CREATE EXTENSION vector` in the knowledge-chunks
+        # migration never runs. Create it here so the vector(1024) column pushes.
+        run: echo 'CREATE EXTENSION IF NOT EXISTS vector;' | npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Setup database schema
         run: npx prisma db push --skip-generate
@@ -470,13 +490,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        # pgvector image: the schema declares a vector(1024) column, so plain
+        # postgres:15 fails `prisma db push` with `type "vector" does not exist`.
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -498,6 +520,14 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Enable pgvector extension
+        # `prisma db push` reads schema.prisma and ignores the migrations dir,
+        # so the hand-written `CREATE EXTENSION vector` in the knowledge-chunks
+        # migration never runs. Create it here so the vector(1024) column pushes.
+        run: echo 'CREATE EXTENSION IF NOT EXISTS vector;' | npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Setup database schema
         run: npx prisma db push --skip-generate
@@ -549,13 +579,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        # pgvector image: the schema declares a vector(1024) column, so plain
+        # postgres:15 fails `prisma db push` with `type "vector" does not exist`.
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -577,6 +609,14 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Enable pgvector extension
+        # `prisma db push` reads schema.prisma and ignores the migrations dir,
+        # so the hand-written `CREATE EXTENSION vector` in the knowledge-chunks
+        # migration never runs. Create it here so the vector(1024) column pushes.
+        run: echo 'CREATE EXTENSION IF NOT EXISTS vector;' | npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Setup database schema
         run: npx prisma db push --skip-generate
@@ -628,13 +668,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        # pgvector image: the schema declares a vector(1024) column, so plain
+        # postgres:15 fails `prisma db push` with `type "vector" does not exist`.
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -656,6 +698,14 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Enable pgvector extension
+        # `prisma db push` reads schema.prisma and ignores the migrations dir,
+        # so the hand-written `CREATE EXTENSION vector` in the knowledge-chunks
+        # migration never runs. Create it here so the vector(1024) column pushes.
+        run: echo 'CREATE EXTENSION IF NOT EXISTS vector;' | npx prisma db execute --stdin --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Setup database schema
         run: npx prisma db push --skip-generate
@@ -735,15 +785,17 @@ jobs:
           echo "| Performance | ${{ needs.performance.result }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail if any critical test failed
+        # != 'success' (not == 'failure') so cancelled/skipped upstream jobs
+        # can't slip through the gate as green.
         if: |
-          needs.lint.result == 'failure' ||
-          needs.build.result == 'failure' ||
-          needs.lighthouse.result == 'failure' ||
-          needs.unit-tests.result == 'failure' ||
-          needs.e2e-tests.result == 'failure' ||
-          needs.visual-regression.result == 'failure' ||
-          needs.accessibility.result == 'failure' ||
-          needs.performance.result == 'failure'
+          needs.lint.result != 'success' ||
+          needs.build.result != 'success' ||
+          needs.lighthouse.result != 'success' ||
+          needs.unit-tests.result != 'success' ||
+          needs.e2e-tests.result != 'success' ||
+          needs.visual-regression.result != 'success' ||
+          needs.accessibility.result != 'success' ||
+          needs.performance.result != 'success'
         run: exit 1
 
       - name: Warn if security scan failed
