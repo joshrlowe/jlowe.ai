@@ -357,7 +357,11 @@ describe("Navigation Flow Integration", () => {
       render(<Header style={customStyle} />);
 
       const header = screen.getByRole("banner");
-      expect(header).toHaveStyle(customStyle);
+      // Computed style serializes named colors as rgb() under jsdom 26.
+      expect(header).toHaveStyle({
+        backgroundColor: "rgb(255, 0, 0)",
+        padding: "20px",
+      });
     });
   });
 

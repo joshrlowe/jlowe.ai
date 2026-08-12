@@ -368,9 +368,8 @@ describe("HeroSection Component", () => {
     it("should apply gradient to main title", () => {
       render(<HeroSection data={mockData} />);
       const h1 = screen.getByRole("heading", { level: 1 });
-      expect(h1).toHaveStyle({
-        background: expect.stringContaining("linear-gradient"),
-      });
+      // toHaveStyle can't take asymmetric matchers; read the inline style.
+      expect(h1.style.background).toContain("linear-gradient");
     });
 
     it("should render name with ember color", () => {

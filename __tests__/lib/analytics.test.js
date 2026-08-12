@@ -32,19 +32,9 @@ jest.mock("@vercel/analytics");
 describe("Analytics Utility", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Ensure we're in a browser-like environment
-    Object.defineProperty(global, "window", {
-      value: {},
-      writable: true,
-    });
-  });
-
-  afterEach(() => {
-    // Reset window
-    Object.defineProperty(global, "window", {
-      value: global.window,
-      writable: true,
-    });
+    // jsdom provides window; jsdom 26 makes the global non-configurable, so
+    // the SSR (no-window) case lives in analytics.ssr.test.js under the node
+    // environment instead of redefining `global.window` here.
   });
 
   describe("ANALYTICS_EVENTS", () => {
@@ -81,17 +71,6 @@ describe("Analytics Utility", () => {
 
     it("should not call track for invalid event names", () => {
       trackEvent("invalid_event", {});
-
-      expect(track).not.toHaveBeenCalled();
-    });
-
-    it("should be SSR-safe and not call track when window is undefined", () => {
-      Object.defineProperty(global, "window", {
-        value: undefined,
-        writable: true,
-      });
-
-      trackEvent(ANALYTICS_EVENTS.CTA_CLICK, {});
 
       expect(track).not.toHaveBeenCalled();
     });

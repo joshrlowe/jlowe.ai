@@ -428,29 +428,39 @@ class MockResizeObserver {
 
 global.ResizeObserver = MockResizeObserver;
 
-// Mock matchMedia
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+// Browser-global mocks — guarded so suites running under the node test
+// environment (e.g. *.ssr.test.js) can share this setup file.
+if (typeof window !== "undefined") {
+  // Mock matchMedia
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
 
-// Mock scrollTo
-Object.defineProperty(window, "scrollTo", {
-  writable: true,
-  value: jest.fn(),
-});
+  // Mock scrollTo
+  Object.defineProperty(window, "scrollTo", {
+    writable: true,
+    value: jest.fn(),
+  });
 
-// Mock scrollIntoView
-Element.prototype.scrollIntoView = jest.fn();
+  // Mock scrollIntoView
+  Element.prototype.scrollIntoView = jest.fn();
+
+  // Mock getComputedStyle
+  const originalGetComputedStyle = window.getComputedStyle;
+  window.getComputedStyle = jest.fn((element) => {
+    return originalGetComputedStyle(element);
+  });
+}
 
 // Mock requestAnimationFrame
 global.requestAnimationFrame = jest.fn((callback) => {
@@ -459,12 +469,6 @@ global.requestAnimationFrame = jest.fn((callback) => {
 
 global.cancelAnimationFrame = jest.fn((id) => {
   clearTimeout(id);
-});
-
-// Mock getComputedStyle
-const originalGetComputedStyle = window.getComputedStyle;
-window.getComputedStyle = jest.fn((element) => {
-  return originalGetComputedStyle(element);
 });
 
 // Mock crypto.randomUUID

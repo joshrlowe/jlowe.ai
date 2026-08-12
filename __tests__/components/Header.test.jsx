@@ -63,7 +63,8 @@ describe("Header Component", () => {
       const customStyle = { backgroundColor: "red" };
       const { container } = render(<Header style={customStyle} />);
       const header = container.querySelector("header");
-      expect(header).toHaveStyle({ backgroundColor: "red" });
+      // Computed style serializes named colors as rgb() under jsdom 26.
+      expect(header).toHaveStyle({ backgroundColor: "rgb(255, 0, 0)" });
     });
   });
 
