@@ -1,8 +1,8 @@
 # jlowe.ai
 
-[![Test Suite](https://github.com/OWNER/jlowe.ai/actions/workflows/test.yml/badge.svg)](https://github.com/OWNER/jlowe.ai/actions/workflows/test.yml)
+[![Test Suite](https://github.com/joshrlowe/jlowe.ai/actions/workflows/test.yml/badge.svg)](https://github.com/joshrlowe/jlowe.ai/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![codecov](https://codecov.io/gh/OWNER/jlowe.ai/branch/main/graph/badge.svg)](https://codecov.io/gh/OWNER/jlowe.ai)
+[![codecov](https://codecov.io/gh/joshrlowe/jlowe.ai/branch/main/graph/badge.svg)](https://codecov.io/gh/joshrlowe/jlowe.ai)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
 
@@ -19,7 +19,7 @@ Personal AI consultancy portfolio built with Next.js, featuring a bold "Supernov
 | **3D Graphics** | Three.js + @react-three/fiber              |
 | **Animations**  | GSAP (scroll-triggered, entrance)          |
 | **Analytics**   | @vercel/analytics (custom events)          |
-| **Content**     | Markdown with syntax highlighting          |
+| **Content**     | Markdown (react-markdown + GFM)            |
 | **Deployment**  | Vercel                                     |
 
 ## Features
@@ -122,14 +122,19 @@ Visit `http://localhost:3000`
 
 ### Environment Variables
 
-| Variable          | Required | Description                              |
-| ----------------- | -------- | ---------------------------------------- |
-| `DATABASE_URL`    | Yes      | PostgreSQL connection string             |
-| `NEXTAUTH_SECRET` | Yes      | Auth secret (`openssl rand -base64 32`)  |
-| `NEXTAUTH_URL`    | Yes      | Base URL (e.g., `http://localhost:3000`) |
-| `ADMIN_EMAIL`     | Yes      | Admin login email                        |
-| `ADMIN_PASSWORD`  | Yes      | Admin login password                     |
-| `MONGODB_URL`     | No       | For legacy data migration only           |
+`.env.example` documents every supported variable and is the source of
+truth — copy it to `.env` and fill in what you need. Only these are
+hard-required to boot (`lib/config.ts` throws without them):
+
+| Variable                                | Description                              |
+| --------------------------------------- | ---------------------------------------- |
+| `DATABASE_URL` (or `PRISMA_DATABASE_URL`) | PostgreSQL connection string (either works) |
+| `NEXTAUTH_SECRET`                        | Auth secret (`openssl rand -base64 32`)  |
+
+Everything else (admin seed credentials, AWS/Bedrock, Upstash rate limiting,
+Inngest, Langfuse, Resend, Cal.com, cron auth) is optional — those features
+degrade gracefully when their keys are unset. See `.env.example` for the
+full list with grouping comments.
 
 ## Project Structure
 
@@ -143,12 +148,12 @@ Visit `http://localhost:3000`
 │   ├── Articles/        # Blog components
 │   ├── Project/         # Project components
 │   ├── ui/              # Shared UI components (Button, Card, Badge)
-│   └── SpaceBackground.jsx  # Three.js hero animation
+│   └── SpaceBackground/ # Three.js hero animation (index.tsx + shaders)
 ├── lib/
-│   ├── analytics.js     # Event tracking utility
+│   ├── analytics.ts     # Event tracking utility
 │   ├── hooks/           # Custom React hooks
 │   ├── utils/           # API handlers, validators, helpers
-│   └── prisma.js        # Database client
+│   └── prisma.ts        # Database client
 ├── pages/
 │   ├── api/             # API routes
 │   │   ├── admin/       # Protected admin endpoints
@@ -233,14 +238,20 @@ function ArticlePage({ slug, topic, readingTime }) {
 # Development
 npm run dev              # Start dev server
 npm run build            # Production build
+npm run postbuild        # Sitemap via next-sitemap (runs automatically after build)
 npm run start            # Production server
 npm run lint             # ESLint
+npm run lint:nocheck     # Fail if any @ts-nocheck reappears in source
 
 # Database
 npm run prisma:generate  # Generate Prisma client
 npm run prisma:migrate   # Run migrations
 npm run prisma:studio    # Database GUI
 npm run seed:admin       # Create admin user
+npm run seed:content     # Seed example site content
+npm run seed:all         # seed:admin + seed:content
+npm run prisma:migrate-data                 # One-off legacy MongoDB → Postgres migration
+npm run prisma:migrate-resources-to-posts  # One-off legacy resources → posts conversion
 
 # Background jobs (Inngest)
 npm run jobs:dev         # Start the Inngest dev server (pair with `npm run dev`)
@@ -339,7 +350,7 @@ Automated testing runs on every push and pull request:
 # Workflow: .github/workflows/test.yml
 jobs:
   - lint # Code quality (ESLint)
-  - unit-tests # Jest with coverage
+  - unit-tests # Jest, plain run (no coverage gate — see ADR-0002)
   - e2e-tests # Playwright (3 browsers × 2 shards)
   - visual-regression # Screenshot comparison
   - accessibility # WCAG 2.1 AA compliance
@@ -355,7 +366,8 @@ jobs:
 # Run tests exactly as CI does
 npm ci
 npm run lint
-npm run test:coverage
+npm run lint:nocheck
+npm test
 npm run test:e2e
 ```
 
@@ -374,10 +386,12 @@ See `.github/BRANCH_PROTECTION.md` for setup instructions.
 
 ### Coverage Reporting
 
-- **Current**: ~50% coverage (unit tests)
-- **Target**: 70%+ coverage
-- **CI Threshold**: 50% minimum (statements, branches, lines)
-- **Reports**: Uploaded to Codecov on every run
+- **Local threshold**: 70% (statements, branches, lines) via `jest.config.js`
+- **CI**: currently runs the plain suite (`npm test`) with **no coverage
+  gate** — `npm run test:coverage` is broken by the `minimatch` override
+  (see `docs/decisions/0002-defer-coverage-tooling-fix.md`)
+- **Enforcement**: the 70% threshold will be enforced in CI once the
+  jest 30 upgrade lands (tracked in ADR-0001/ADR-0002)
 
 ### Artifacts
 
@@ -446,13 +460,15 @@ Follows Martin Fowler's refactoring principles:
 
 1. Connect repository to Vercel
 2. Add environment variables
-3. Deploy (auto-runs migrations)
+3. Deploy — the build only runs `prisma generate`; it never applies
+   migrations. Schema changes reach production via `prisma db push`
+   (see `docs/decisions/0004-db-push-workflow-and-migration-baseline.md`)
 
 ### Post-Deployment
 
 ```bash
-npx prisma migrate deploy  # If needed
-npm run seed:admin         # Create admin user
+npx prisma db push  # Apply schema changes (see ADR-0004)
+npm run seed:admin  # Create admin user
 ```
 
 ## Troubleshooting
