@@ -21,6 +21,9 @@ export default [
       "**/*.config.mjs",
       "**/jest.polyfills.js",
       "**/jest.setup.js",
+      // Agent worktrees + local build output of sibling projects — never lint
+      "**/.claude/**",
+      "services/**",
     ],
   },
   // Next.js recommended config (flat config format)
@@ -68,6 +71,8 @@ export default [
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
       "no-unused-vars": "off",
+      // Allow anonymous default exports for API routes (same as the js/jsx block)
+      "import/no-anonymous-default-export": "off",
       // Disable React Compiler rules (same rationale as js/jsx block:
       // too strict for existing codebase patterns). eslint-plugin-react-hooks
       // 7.1+ applies these to .ts/.tsx where 7.0 did not.

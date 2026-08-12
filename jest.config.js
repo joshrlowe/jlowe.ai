@@ -22,8 +22,14 @@ const config = {
   // Test file patterns
   testMatch: ["**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)", "**/*.(test|spec).(js|jsx|ts|tsx)"],
 
-  // Ignore patterns
-  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/", "<rootDir>/e2e/"],
+  // Ignore patterns (.claude/ holds agent worktrees of other projects — without
+  // the ignore, local `npm test` globs their vitest suites and fails)
+  testPathIgnorePatterns: [
+    "<rootDir>/node_modules/",
+    "<rootDir>/.next/",
+    "<rootDir>/e2e/",
+    "<rootDir>/.claude/",
+  ],
 
   // Module path aliases (matching jsconfig.json) and manual mocks
   moduleNameMapper: {
