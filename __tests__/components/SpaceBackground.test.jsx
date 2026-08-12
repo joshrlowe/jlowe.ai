@@ -390,8 +390,7 @@ describe("SpaceBackground Component", () => {
       // The vignette element has pointer-events-none class
       const vignette = container.querySelector(".pointer-events-none");
       expect(vignette).toBeInTheDocument();
-      // Check that it has a background style (either inline or via CSS)
-      expect(vignette).toHaveStyle({ background: expect.any(String) });
+      expect(vignette.style.background).toContain("radial-gradient");
     });
   });
 });

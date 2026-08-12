@@ -123,17 +123,12 @@ describe("shareHelpers", () => {
     it("should use window.location.href when URL is falsy", async () => {
       mockWriteText.mockResolvedValue(undefined);
 
-      // Mock window.location.href
-      const originalLocation = window.location;
-      delete window.location;
-      window.location = { href: "https://current-page.com/path" };
-
+      // jsdom 26 makes window.location unforgeable, so assert against the
+      // real environment URL instead of swapping the location object.
       const result = await copyToClipboard(null);
 
-      expect(mockWriteText).toHaveBeenCalledWith("https://current-page.com/path");
+      expect(mockWriteText).toHaveBeenCalledWith(window.location.href);
       expect(result).toEqual({ success: true });
-
-      window.location = originalLocation;
     });
 
     it("should use fallback URL when provided and URL is falsy", async () => {
@@ -166,16 +161,10 @@ describe("shareHelpers", () => {
     it("should handle empty string URL", async () => {
       mockWriteText.mockResolvedValue(undefined);
 
-      const originalLocation = window.location;
-      delete window.location;
-      window.location = { href: "https://default.com" };
-
       const result = await copyToClipboard("");
 
-      expect(mockWriteText).toHaveBeenCalledWith("https://default.com");
+      expect(mockWriteText).toHaveBeenCalledWith(window.location.href);
       expect(result).toEqual({ success: true });
-
-      window.location = originalLocation;
     });
   });
 });

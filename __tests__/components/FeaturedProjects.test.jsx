@@ -511,9 +511,8 @@ describe("FeaturedProjects Component", () => {
     it("should apply gradient to section title", () => {
       render(<FeaturedProjects projects={mockProjects} />);
       const title = screen.getByRole("heading", { level: 2 });
-      expect(title).toHaveStyle({
-        background: expect.stringContaining("linear-gradient"),
-      });
+      // toHaveStyle can't take asymmetric matchers; read the inline style.
+      expect(title.style.background).toContain("linear-gradient");
     });
 
     it("should have glow effect container", () => {

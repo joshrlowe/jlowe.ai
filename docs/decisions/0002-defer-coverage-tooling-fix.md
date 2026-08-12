@@ -2,6 +2,25 @@
 
 ## Status
 
+**Resolved, 2026-08-12** — the jest 30 upgrade landed and coverage works again.
+Two premises of the original decision turned out wrong in practice:
+
+1. Jest 30 does **not** drop the old callable-minimatch dependency:
+   `babel-plugin-istanbul@7.0.1` (bundled with jest 30) still depends on
+   `test-exclude@6`, which calls `minimatch()` as a function. The blanket
+   `minimatch: ^9` override therefore still broke instrumentation.
+2. The nested-override route this ADR rejected is what actually fixed it —
+   `"test-exclude": { "minimatch": "^3.1.2" }` resolves reliably under the
+   repo's npm (verified via `npm ls minimatch`: test-exclude gets 3.1.5,
+   everything else stays on 9). The 3.1.x line contains the ReDoS fixes, so
+   NPM-11 stays remediated.
+
+The predicted "26 jsdom-window-mock failures" materialized exactly and were
+fixed alongside the bump (jsdom 26 makes `window`/`location` non-configurable
+and serializes named colors as `rgb()` in computed styles; see the jest-30
+upgrade commit). Coverage baseline on resolution day: statements 68.03%,
+branches 64.02%, functions 65.27%, lines 69.91%.
+
 Accepted, 2026-05-16
 
 ## Context
