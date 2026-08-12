@@ -9,7 +9,7 @@ export default function ServerErrorPage() {
   return (
     <>
       <SEO
-        title="Something Went Wrong"
+        title="500 — Something Went Wrong"
         description="An unexpected error occurred. Please try again shortly."
         noindex
       />

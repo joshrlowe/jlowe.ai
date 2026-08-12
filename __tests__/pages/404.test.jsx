@@ -15,7 +15,7 @@ describe("404 page", () => {
 
   it("sets the page title", () => {
     render(<NotFoundPage />);
-    expect(document.title).toBe("Page Not Found | Josh Lowe");
+    expect(document.title).toBe("404 — Page Not Found | Josh Lowe");
   });
 
   it("asks crawlers not to index the page", () => {

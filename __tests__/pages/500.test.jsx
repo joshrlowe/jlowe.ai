@@ -15,7 +15,7 @@ describe("500 page", () => {
 
   it("sets the page title", () => {
     render(<ServerErrorPage />);
-    expect(document.title).toBe("Something Went Wrong | Josh Lowe");
+    expect(document.title).toBe("500 — Something Went Wrong | Josh Lowe");
   });
 
   it("asks crawlers not to index the page", () => {

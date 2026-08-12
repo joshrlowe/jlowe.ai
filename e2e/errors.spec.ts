@@ -14,8 +14,9 @@ test.describe("Error Handling - 404 Page", () => {
     // Should return 404 status
     expect(response?.status()).toBe(404);
 
-    // Should display 404 message
-    await expect(page.locator("text=/404|not found|page not found/i")).toBeVisible();
+    // Should display 404 message (.first() — the styled page shows both a
+    // "404" numeral and a "Page Not Found" heading)
+    await expect(page.locator("text=/404|not found|page not found/i").first()).toBeVisible();
   });
 
   test("should have link back to home from 404 page", async ({ page }) => {
