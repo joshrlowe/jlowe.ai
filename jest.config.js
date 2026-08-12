@@ -31,6 +31,11 @@ const config = {
     "<rootDir>/.claude/",
   ],
 
+  // testPathIgnorePatterns only filters test discovery — haste-map still crawls
+  // .claude/ worktrees and their __mocks__/ copies collide with ours ("duplicate
+  // manual mock found"), silently swapping which mock instance tests receive.
+  modulePathIgnorePatterns: ["<rootDir>/.claude/"],
+
   // Module path aliases (matching jsconfig.json) and manual mocks
   moduleNameMapper: {
     // Strip explicit .js extension from @/ alias imports
