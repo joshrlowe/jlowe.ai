@@ -7,7 +7,7 @@ import { transformProjectToApiFormat } from "../../lib/utils/projectTransformer"
 import SEO from "@/components/SEO";
 import JsonLd from "@/components/JsonLd";
 import ProjectDetail from "@/components/Project/ProjectDetail";
-import { projectSchema } from "@/lib/seo/schema";
+import { breadcrumbSchema, projectSchema } from "@/lib/seo/schema";
 import type { ProjectLike } from "@/components/Project/types";
 import Link from "next/link";
 
@@ -93,6 +93,14 @@ const ProjectDetailPage = ({ project, error }: ProjectDetailPageProps) => {
           dateCreated: project.startDate ?? undefined,
         })}
         id="project"
+      />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Projects", path: "/projects" },
+          { name: project.title, path: `/projects/${project.slug || project.id || ""}` },
+        ])}
+        id="breadcrumbs"
       />
       <ProjectDetail project={project} />
     </>
