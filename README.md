@@ -350,7 +350,7 @@ Automated testing runs on every push and pull request:
 # Workflow: .github/workflows/test.yml
 jobs:
   - lint # Code quality (ESLint)
-  - unit-tests # Jest, plain run (no coverage gate — see ADR-0002)
+  - unit-tests # Jest with the 70% coverage gate enforced
   - e2e-tests # Playwright (3 browsers × 2 shards)
   - visual-regression # Screenshot comparison
   - accessibility # WCAG 2.1 AA compliance
@@ -386,12 +386,11 @@ See `.github/BRANCH_PROTECTION.md` for setup instructions.
 
 ### Coverage Reporting
 
-- **Local threshold**: 70% (statements, branches, lines) via `jest.config.js`
-- **CI**: currently runs the plain suite (`npm test`) with **no coverage
-  gate** — `npm run test:coverage` is broken by the `minimatch` override
-  (see `docs/decisions/0002-defer-coverage-tooling-fix.md`)
-- **Enforcement**: the 70% threshold will be enforced in CI once the
-  jest 30 upgrade lands (tracked in ADR-0001/ADR-0002)
+- **Threshold**: 70% global (statements, branches, functions, lines) via
+  `jest.config.js`
+- **CI**: the unit-tests job runs `npm run test:coverage`, so the 70%
+  threshold is enforced on every push/PR (restored by the jest 30 upgrade —
+  see `docs/decisions/0002-defer-coverage-tooling-fix.md`, resolved)
 
 ### Artifacts
 
