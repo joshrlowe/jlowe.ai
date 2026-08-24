@@ -19,10 +19,9 @@ const REFUSAL_MARKERS = [
 
 const INVENTION_MARKERS = [
   "founded google",
-  "found google",
   "ceo of google",
   "google in 1998",
-  "google in 199",
+  "started google",
 ];
 
 export function assertGroundingRefusal(answer: string): void {

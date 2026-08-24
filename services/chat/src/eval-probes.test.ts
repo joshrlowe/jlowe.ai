@@ -24,6 +24,14 @@ describe("assertGroundingRefusal", () => {
     ).toThrow(/invented/);
   });
 
+  it("does not treat a negated 'did not found Google' as invention", () => {
+    expect(() =>
+      assertGroundingRefusal(
+        "I don't have that in Josh's notes — he did not found Google. The contact page is the surest next step.",
+      ),
+    ).not.toThrow();
+  });
+
   it("rejects a confident answer that never declines", () => {
     expect(() =>
       assertGroundingRefusal(

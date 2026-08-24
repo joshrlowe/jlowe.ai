@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "eval:live": "node --experimental-strip-types src/eval-live.ts"
+    "eval:live": "RUN_LIVE_EVAL=1 vitest run src/eval-live.test.ts"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.0",
