@@ -35,6 +35,9 @@ module "cdn" {
 
   # Edge WAF association (CLOUDFRONT-scope Web ACL ARN).
   waf_web_acl_arn = module.waf.web_acl_arn
+
+  # Bump in <env>.tfvars to force a fresh ACM certificate.
+  cert_serial = var.cert_serial
 }
 
 module "chat" {

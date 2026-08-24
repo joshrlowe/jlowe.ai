@@ -216,8 +216,30 @@ resource "aws_cloudfront_function" "url_rewrite" {
 }
 
 # --- ACM certificate (gated on delegation) ----------------------------------
+#
+# Keyed on `cert_serial` rather than a bare count, so bumping the serial changes
+# the resource ADDRESS and terraform issues a brand-new certificate.
+#
+# Why that lever has to exist: a DNS-validated ACM certificate can land in a
+# TERMINAL failure state — most often CAA_ERROR, when a CAA record on the name
+# (or on a CNAME it points at, since CAA resolution follows CNAMEs) does not
+# authorize `amazon.com`. ACM never re-validates a FAILED certificate; the only
+# recovery is to request a different one. Terraform cannot detect this on its
+# own, because the `status` it stored is whatever it read at create time
+# (PENDING_VALIDATION) — so a plain re-apply just re-waits on a certificate that
+# can never issue, and fails the whole stack again.
+#
+# Bumping the serial in <env>.tfvars is therefore the documented recovery, and
+# it stays inside the normal gated CI apply: no console clicking, no
+# `terraform state` surgery, and the reason lands in version control next to the
+# value. create_before_destroy means the replacement is issued and attached to
+# the distribution before the old object goes away, so there is no TLS gap.
+locals {
+  cert_key = tostring(var.cert_serial)
+}
+
 resource "aws_acm_certificate" "site" {
-  count       = var.dns_delegated ? 1 : 0
+  for_each    = var.dns_delegated ? toset([local.cert_key]) : toset([])
   domain_name = var.domain_name
   # www SAN so TLS for www.<domain> validates (it 301s to the apex — see the
   # url-rewrite function + www_alias records). create_before_destroy means
@@ -232,7 +254,7 @@ resource "aws_acm_certificate" "site" {
 
 resource "aws_route53_record" "cert_validation" {
   for_each = var.dns_delegated ? {
-    for o in aws_acm_certificate.site[0].domain_validation_options : o.domain_name => {
+    for o in aws_acm_certificate.site[local.cert_key].domain_validation_options : o.domain_name => {
       name   = o.resource_record_name
       type   = o.resource_record_type
       record = o.resource_record_value
@@ -249,7 +271,7 @@ resource "aws_route53_record" "cert_validation" {
 
 resource "aws_acm_certificate_validation" "site" {
   count                   = var.dns_delegated ? 1 : 0
-  certificate_arn         = aws_acm_certificate.site[0].arn
+  certificate_arn         = aws_acm_certificate.site[local.cert_key].arn
   validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
 }
 

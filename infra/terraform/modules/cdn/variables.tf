@@ -69,3 +69,17 @@ variable "waf_web_acl_arn" {
   type        = string
   default     = null
 }
+
+variable "cert_serial" {
+  description = <<-EOT
+    Serial that keys the ACM certificate resource. Bump it to make terraform
+    request a brand-new certificate on the next apply. Needed when a certificate
+    is stuck in a TERMINAL state (FAILED / CAA_ERROR), which ACM never
+    re-validates and terraform cannot detect on its own -- see the comment above
+    aws_acm_certificate.site. Replacement is create-before-destroy, so there is
+    no TLS gap. Record the reason for each bump alongside the value in the
+    environment's tfvars.
+  EOT
+  type        = number
+  default     = 1
+}

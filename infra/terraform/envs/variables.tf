@@ -99,3 +99,12 @@ variable "chat_rate_limit" {
   type        = number
   default     = 1000
 }
+
+variable "cert_serial" {
+  description = <<-EOT
+    Bump to force a fresh ACM certificate request. See
+    modules/cdn/variables.tf for the full rationale.
+  EOT
+  type        = number
+  default     = 1
+}
