@@ -26,7 +26,7 @@ jobs:
       - run: pnpm --filter @velocity/chat exec vitest run src/eval-grounding.test.ts
 
   tier3:
-    name: live Titan retrieval
+    name: live Titan + model probes
     if: vars.GHA_EVAL_ROLE_ARN != ''
     runs-on: ubuntu-latest
     permissions:
@@ -46,4 +46,9 @@ jobs:
           role-to-assume: ${{ vars.GHA_EVAL_ROLE_ARN }}
           aws-region: us-east-1
       - name: Live retrieval against Titan v2
-        run: pnpm --filter @velocity/corpus-index exec node --experimental-strip-types src/golden/live.ts
+        run: pnpm --filter @velocity/corpus-index eval:live
+      - name: Live grounding refusal + citation integrity
+        run: pnpm --filter @velocity/chat eval:live
+        env:
+          AWS_REGION: us-east-1
+          BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0

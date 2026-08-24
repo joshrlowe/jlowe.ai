@@ -9,7 +9,8 @@
     "build:digest": "esbuild src/digest-handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/digest.mjs --sourcemap \"--banner:js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval:live": "node --experimental-strip-types src/eval-live.ts"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.0",
