@@ -186,6 +186,9 @@ importers:
 
   packages/corpus-index:
     dependencies:
+      '@aws-sdk/client-bedrock-runtime':
+        specifier: ^3.1068.0
+        version: 3.1068.0
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -211,6 +214,9 @@ importers:
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.1068.0
         version: 3.1068.0
+      '@velocity/corpus-index':
+        specifier: workspace:*
+        version: link:../../packages/corpus-index
       zod:
         specifier: ^3.25.76
         version: 3.25.76

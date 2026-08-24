@@ -1,4 +1,5 @@
-export { chunkMarkdown, type Chunk, type ChunkOptions } from "./chunker.js";
+// Runtime surface only. The index builder (gray-matter / marked / fs) is not
+// re-exported so it stays out of the chat Lambda bundle.
 export { rrfMerge, type RankedItem, type FusedScore } from "./rrf.js";
 export {
   tokenize,
@@ -10,15 +11,17 @@ export {
   type Bm25Hit,
 } from "./bm25.js";
 export { contentSha256 } from "./hash.js";
+export { cosine } from "./cosine.js";
 export {
-  buildIndex,
-  loadPublicCorpus,
-  hashesFromDocs,
-  renderIndexModule,
-  hashSetFingerprint,
-  type CorpusDoc,
-} from "./build-index.js";
-export { checkFreshness, FRESHNESS_HINT } from "./freshness.js";
+  generateQueryEmbedding,
+  TITAN_EMBED_MODEL_ID,
+  EMBEDDING_DIMENSIONS,
+} from "./embed.js";
+export {
+  searchKnowledge,
+  type RetrievedChunk,
+  type SearchKnowledgeOptions,
+} from "./search.js";
 export { CORPUS_INDEX } from "./index.generated.js";
 export {
   INDEX_VERSION,
