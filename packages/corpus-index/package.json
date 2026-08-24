@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "eval:live": "node --experimental-strip-types src/golden/live.ts"
+    "eval:live": "RUN_LIVE_EVAL=1 vitest run src/golden/live.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1068.0",

@@ -47,8 +47,12 @@ jobs:
           aws-region: us-east-1
       - name: Live retrieval against Titan v2
         run: pnpm --filter @velocity/corpus-index eval:live
+        env:
+          AWS_REGION: us-east-1
+          RUN_LIVE_EVAL: "1"
       - name: Live grounding refusal + citation integrity
         run: pnpm --filter @velocity/chat eval:live
         env:
           AWS_REGION: us-east-1
           BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
+          RUN_LIVE_EVAL: "1"
