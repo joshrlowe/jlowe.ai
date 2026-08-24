@@ -156,6 +156,57 @@ resource "aws_iam_role_policy" "deploy_contact" {
   policy = data.aws_iam_policy_document.deploy_contact.json
 }
 
+# --- gha-eval: nightly golden evals (Bedrock only) --------------------------
+# Trust matches gha-deploy-chat (environment:dev|prod) so eval-nightly.yml
+# can assume it from the `prod` GitHub environment. No Lambda/Dynamo/SES —
+# this role exists to re-embed and to Converse two probes, nothing else.
+resource "aws_iam_role" "eval" {
+  name               = "gha-eval"
+  assume_role_policy = data.aws_iam_policy_document.deploy_chat_trust.json
+}
+
+locals {
+  eval_bedrock_regions = ["us-east-1", "us-east-2", "us-west-2"]
+  eval_haiku_id        = "anthropic.claude-haiku-4-5-20251001-v1:0"
+  eval_haiku_profile   = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+}
+
+data "aws_iam_policy_document" "eval" {
+  statement {
+    sid    = "BedrockInvokeHaiku"
+    effect = "Allow"
+    actions = [
+      "bedrock:InvokeModel",
+      "bedrock:InvokeModelWithResponseStream",
+    ]
+    resources = concat(
+      [
+        "arn:aws:bedrock:us-east-1:${var.aws_account_id}:inference-profile/${local.eval_haiku_profile}",
+      ],
+      [
+        for region in local.eval_bedrock_regions :
+        "arn:aws:bedrock:${region}::foundation-model/${local.eval_haiku_id}"
+      ],
+    )
+  }
+
+  statement {
+    sid     = "BedrockInvokeTitanEmbed"
+    effect  = "Allow"
+    actions = ["bedrock:InvokeModel"]
+    resources = [
+      for region in local.eval_bedrock_regions :
+      "arn:aws:bedrock:${region}::foundation-model/amazon.titan-embed-text-v2:0"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "eval" {
+  name   = "eval"
+  role   = aws_iam_role.eval.id
+  policy = data.aws_iam_policy_document.eval.json
+}
+
 # --- gha-terraform: gated apply (AdministratorAccess) -----------------------
 data "aws_iam_policy_document" "terraform_trust" {
   statement {

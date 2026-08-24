@@ -27,3 +27,8 @@ output "terraform_role_arn" {
 output "terraform_plan_role_arn" {
   value = aws_iam_role.terraform_plan.arn
 }
+
+output "eval_role_arn" {
+  description = "OIDC role for nightly golden evals. Set repo var GHA_EVAL_ROLE_ARN to this after apply."
+  value       = aws_iam_role.eval.arn
+}
