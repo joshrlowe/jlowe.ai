@@ -37,3 +37,14 @@ lambda_concurrent_executions_threshold = 50
 # reputation, common, known-bad-inputs) run with their native BLOCK actions.
 # The /api/chat per-IP rate-limit rule always BLOCKs in every env (cost
 # guardrail; chat_rate_limit default = 1000 req / 5 min / IP).
+
+# --- ACM certificate serial -------------------------------------------------
+# 1 -> 2 on 2026-08-24. The apply that first added the `www.jlowe.ai` SAN failed
+# with CAA_ERROR: www still resolved to cname.vercel-dns.com, and CAA resolution
+# follows CNAMEs, so ACM read Vercel's CAA set (globalsign, sectigo,
+# letsencrypt, pki.goog -- no amazon.com) and failed the SAN. That left cert
+# f8da7245 permanently FAILED while terraform still held it as the current
+# object with a stale PENDING_VALIDATION status, so a plain re-apply would
+# re-wait on a certificate that can never issue. The legacy CNAME is now gone
+# (#157) and CAA is unrestricted; this bump requests a clean replacement.
+cert_serial = 2
