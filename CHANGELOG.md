@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/joshrlowe/jlowe.ai/compare/v1.0.0...v1.0.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **v1:** noindex vercel.app host and split ADMIN_PASSWORD from NEXTAUTH_SECRET ([#163](https://github.com/joshrlowe/jlowe.ai/issues/163)) ([25ca28a](https://github.com/joshrlowe/jlowe.ai/commit/25ca28a72b806699bc5fe905890561c4460d691c))
+
 ## 1.0.0 (2026-08-12)
 
 
