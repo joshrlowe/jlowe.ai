@@ -29,12 +29,13 @@ lambda_duration_p99_threshold_ms       = 30000
 lambda_concurrent_executions_threshold = 50
 
 # --- Contact form (modules/contact) -----------------------------------------
-# Prod owns the SES *address* identity for the recipient inbox (an account+region
-# singleton — dev must leave this false and inherits the verification). The owner
-# clicks the AWS verification email once after the first apply; until then, while
-# the account is in the SES sandbox, sends to that address are rejected.
+# The recipient address identity is an account+region singleton. It already
+# exists and is verified (SESv2 VerificationStatus=SUCCESS as of 2026-08-24),
+# so creating it again fails with AlreadyExistsException. Leave this false;
+# sandbox sends to joshlowe.cs@gmail.com are already allowed. Dev must also
+# leave this false.
 contact_recipient_email           = "joshlowe.cs@gmail.com"
-verify_contact_recipient_identity = true
+verify_contact_recipient_identity = false
 
 # --- Edge WAF (modules/waf) — BLOCK mode on prod ----------------------------
 # The Web ACL is always created and associated with CloudFront (see
