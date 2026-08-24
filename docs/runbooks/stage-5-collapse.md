@@ -12,17 +12,17 @@ flip `CUTOVER_ENABLED`, does not apply Terraform, and does not force-push
 
 ## Current wiring (verified 2026-08-24)
 
-| Thing | Value |
-| ----- | ----- |
-| Apex `jlowe.ai` A/AAAA | CloudFront alias → `d2dbtqktp8rb4p.cloudfront.net` (dist `E1EQ9YM5AH6RFG`) |
-| `www.jlowe.ai` A/AAAA | Same distribution; viewer-request **301 → `https://jlowe.ai/`** (PR #159 applied) |
-| `CUTOVER_ENABLED` | `false` (deploys are manual `workflow_dispatch` + env gates) |
-| `dns_delegated` in `envs/prod.tfvars` | `true` |
-| Route53 hosted zone | `Z0012698VM2JOIRL7K4K` (`jlowe.ai.`) |
-| Git rollback snapshot | branch `v1-legacy` = tag `v1.0.0` = `ef74fe7` (`chore(main): release 1.0.0 (#109)`) |
-| `origin/main` | `074c371` — still the v1 tree, one dependabot commit past `v1.0.0` (#156) |
-| Last-good Vercel | `https://jlowe-ai.vercel.app` — HTTP/2 200, `server: Vercel` |
-| Divergence | `v2` is **172** unique commits ahead of `main`; `main` is **76** unique commits ahead of `v2` |
+| Thing                                 | Value                                                                                         |
+| ------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Apex `jlowe.ai` A/AAAA                | CloudFront alias → `d2dbtqktp8rb4p.cloudfront.net` (dist `E1EQ9YM5AH6RFG`)                    |
+| `www.jlowe.ai` A/AAAA                 | Same distribution; viewer-request **301 → `https://jlowe.ai/`** (PR #159 applied)             |
+| `CUTOVER_ENABLED`                     | `false` (deploys are manual `workflow_dispatch` + env gates)                                  |
+| `dns_delegated` in `envs/prod.tfvars` | `true`                                                                                        |
+| Route53 hosted zone                   | `Z0012698VM2JOIRL7K4K` (`jlowe.ai.`)                                                          |
+| Git rollback snapshot                 | branch `v1-legacy` = tag `v1.0.0` = `ef74fe7` (`chore(main): release 1.0.0 (#109)`)           |
+| `origin/main`                         | `074c371` — still the v1 tree, one dependabot commit past `v1.0.0` (#156)                     |
+| Last-good Vercel                      | `https://jlowe-ai.vercel.app` — HTTP/2 200, `server: Vercel`                                  |
+| Divergence                            | `v2` is **172** unique commits ahead of `main`; `main` is **76** unique commits ahead of `v2` |
 
 Hosted zone id, from a command that was actually run:
 
@@ -155,7 +155,7 @@ v1. The live record is already correct (→ Vercel); state is just wrong.
 
 ### 1.4 Git fallback (not the live switch)
 
-Live traffic is DNS. Git is how you *read* or *re-deploy* v1:
+Live traffic is DNS. Git is how you _read_ or _re-deploy_ v1:
 
 ```bash
 git fetch origin v1-legacy
@@ -181,7 +181,7 @@ as a drill against production.
       `76.76.21.21`).
 - [ ] AAAA delete path is either `jq` against the live record or the
       verified AliasTarget above.
-- [ ] `gh variable set CUTOVER_ENABLED … -b false` is the *next* command,
+- [ ] `gh variable set CUTOVER_ENABLED … -b false` is the _next_ command,
       not a Terraform apply.
 - [ ] `v1-legacy` / `v1.0.0` / `https://jlowe-ai.vercel.app` are all known
       reachable.
@@ -240,10 +240,10 @@ git merge --ff-only v2
 
 Why this works:
 
-| Step | Parents | Tree | Effect |
-| ---- | ------- | ---- | ------ |
-| `merge -s ours origin/main` on `v2` | `(old v2, main)` | **v2** | `main`'s unique commits become ancestors; none of their files enter the tree |
-| `merge --ff-only v2` on `main` | fast-forward to that commit | **v2** | `main` now points at the same commit; both histories are reachable |
+| Step                                | Parents                     | Tree   | Effect                                                                       |
+| ----------------------------------- | --------------------------- | ------ | ---------------------------------------------------------------------------- |
+| `merge -s ours origin/main` on `v2` | `(old v2, main)`            | **v2** | `main`'s unique commits become ancestors; none of their files enter the tree |
+| `merge --ff-only v2` on `main`      | fast-forward to that commit | **v2** | `main` now points at the same commit; both histories are reachable           |
 
 **Do not squash. Do not rebase `v2` onto `main`. Do not force-push `main`.**
 A GitHub "Squash and merge" of `v2` → `main` would drop the history join
@@ -271,15 +271,15 @@ on `main` and content-merges files that exist on both. That is the trap.
 
 On `origin/main` today:
 
-| File | Where | After a naive merge |
-| ---- | ----- | ------------------- |
-| `test.yml` | main only (v1 "Test Suite": lint/build/e2e/jest/pgvector) | **kept** — must delete |
-| `release.yml` | main only (release-please on push to `main`) | **kept** — must delete |
-| `stale.yml` | main only (cron stale issues/PRs) | **kept** — must delete |
-| `ci.yml` | v2 only | added |
-| `lighthouse.yml` | v2 only | added |
-| `deploy-contact.yml` | v2 only | added |
-| `deploy-web.yml`, `deploy-chat.yml`, `terraform.yml` | **both** (inert copies landed on main in #115 / 3886e48) | **content-merge**, likely conflicts |
+| File                                                 | Where                                                     | After a naive merge                 |
+| ---------------------------------------------------- | --------------------------------------------------------- | ----------------------------------- |
+| `test.yml`                                           | main only (v1 "Test Suite": lint/build/e2e/jest/pgvector) | **kept** — must delete              |
+| `release.yml`                                        | main only (release-please on push to `main`)              | **kept** — must delete              |
+| `stale.yml`                                          | main only (cron stale issues/PRs)                         | **kept** — must delete              |
+| `ci.yml`                                             | v2 only                                                   | added                               |
+| `lighthouse.yml`                                     | v2 only                                                   | added                               |
+| `deploy-contact.yml`                                 | v2 only                                                   | added                               |
+| `deploy-web.yml`, `deploy-chat.yml`, `terraform.yml` | **both** (inert copies landed on main in #115 / 3886e48)  | **content-merge**, likely conflicts |
 
 v2's `ci.yml` / `lighthouse.yml` / `terraform.yml` / `deploy-*` take over.
 Delete `test.yml`, `release.yml`, and `stale.yml` **after** the merge if
@@ -304,12 +304,12 @@ gh variable set CUTOVER_ENABLED -R joshrlowe/jlowe.ai -b true
 Flipping the flag does not deploy by itself. The next `push` to `main`
 does, per workflow:
 
-| Workflow | `on.push` | Job `if` | What a push to `main` does when the flag is `true` |
-| -------- | --------- | -------- | -------------------------------------------------- |
-| [`deploy-web.yml`](../../.github/workflows/deploy-web.yml) | `branches: [main]` | `workflow_dispatch` **or** `vars.CUTOVER_ENABLED == 'true'` | `environment: prod`. Builds `@velocity/web` static export, two-tier `s3 sync` to `vars.SITE_BUCKET`, CloudFront `/*` invalidation. |
-| [`deploy-chat.yml`](../../.github/workflows/deploy-chat.yml) | `branches: [main]` | same | `environment: prod`. `pnpm corpus` + bundle + `aws lambda update-function-code` on `jlowe-ai-chat-prod`. |
-| [`deploy-contact.yml`](../../.github/workflows/deploy-contact.yml) | `branches: [main]` | same | `environment: prod`. Bundle + `update-function-code` on `jlowe-ai-contact-prod`. |
-| [`terraform.yml`](../../.github/workflows/terraform.yml) | `branches: [main]`, `paths: [infra/**]` | apply job: `workflow_dispatch && action=apply` **or** `push && CUTOVER_ENABLED == 'true'` | **Armed, but not prod-safe as written.** The apply job still reads `inputs.stack` / `inputs.environment` (dispatch-only). On `push` those are empty: `environment` becomes `terraform-`, `STACK=""`, `DIR=infra/terraform/`. Manual `workflow_dispatch` apply remains the working path. Do not treat a push-to-`main` infra change as a prod apply until this job is taught to select `envs`/`prod` (or to skip apply on push). |
+| Workflow                                                           | `on.push`                               | Job `if`                                                                                  | What a push to `main` does when the flag is `true`                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`deploy-web.yml`](../../.github/workflows/deploy-web.yml)         | `branches: [main]`                      | `workflow_dispatch` **or** `vars.CUTOVER_ENABLED == 'true'`                               | `environment: prod`. Builds `@velocity/web` static export, two-tier `s3 sync` to `vars.SITE_BUCKET`, CloudFront `/*` invalidation.                                                                                                                                                                                                                                                                                              |
+| [`deploy-chat.yml`](../../.github/workflows/deploy-chat.yml)       | `branches: [main]`                      | same                                                                                      | `environment: prod`. `pnpm corpus` + bundle + `aws lambda update-function-code` on `jlowe-ai-chat-prod`.                                                                                                                                                                                                                                                                                                                        |
+| [`deploy-contact.yml`](../../.github/workflows/deploy-contact.yml) | `branches: [main]`                      | same                                                                                      | `environment: prod`. Bundle + `update-function-code` on `jlowe-ai-contact-prod`.                                                                                                                                                                                                                                                                                                                                                |
+| [`terraform.yml`](../../.github/workflows/terraform.yml)           | `branches: [main]`, `paths: [infra/**]` | apply job: `workflow_dispatch && action=apply` **or** `push && CUTOVER_ENABLED == 'true'` | **Armed, but not prod-safe as written.** The apply job still reads `inputs.stack` / `inputs.environment` (dispatch-only). On `push` those are empty: `environment` becomes `terraform-`, `STACK=""`, `DIR=infra/terraform/`. Manual `workflow_dispatch` apply remains the working path. Do not treat a push-to-`main` infra change as a prod apply until this job is taught to select `envs`/`prod` (or to skip apply on push). |
 
 `ci.yml` and `lighthouse.yml` are not gated on `CUTOVER_ENABLED`.
 
@@ -345,18 +345,18 @@ Decisions already made in the handoff. This table is the working copy for
 the digital-twin port (task D) and for what we are willing to lose when
 `main`'s tree becomes v2.
 
-| Capability | v1 (on `origin/main`) | v2 today | Decision |
-| ---------- | --------------------- | -------- | -------- |
-| **Admin CMS** (articles/projects CRUD, NextAuth credentials) | `pages/admin/**`, `pages/api/admin/**`, `pages/api/auth/[...nextauth].ts`, Prisma `AdminUser` + bcrypt, 1h JWT | No `/admin`. Public content is `corpus/**/*.md` → committed `apps/web/src/data/corpus.generated.ts` (`pnpm corpus`) | **retire** — static corpus is the CMS |
-| **Comments + LLM moderation** | `pages/api/comments/**`, `lib/moderation/*`. Model `anthropic.claude-haiku-4-5-20251001-v1:0`. Classifier timeout/error **fail-open to `held`** (never auto-reject on infra failure); public GET only returns `moderationStatus: approved` | No comments | **retire** |
-| **Inngest background jobs** | `pages/api/inngest.ts` serves `regenerateEmbeddings` (`lib/jobs/regenerate-embeddings.ts`): fan-out `knowledge/reindex.requested` + per-source Titan upsert on publish/update/delete | No Inngest. Corpus change → rebuild + Lambda redeploy | **retire** |
-| **Contact API** | `pages/api/contact` is a **GET of CMS contact details** (email, socials) used to render `mailto:` on `pages/contact.tsx`. No visitor form POST. Digest mail goes through Resend | `services/contact` Lambda + SES v2, CloudFront `/api/contact`, WAF rate-limit (PR #158) | **replace** (PR #158 already did) |
-| **Nightly qualified-lead digest** | Vercel Cron `0 12 * * *` → `pages/api/cron/qualified-leads-digest.ts`, `Authorization: Bearer ${CRON_SECRET}`, Prisma `ChatSession` where `qualified && !emailedToOwner`, send via Resend | Not built yet. Replacement is EventBridge → Lambda → SES v2 (no Function URL, no shared secret; EventBridge is the only invoker). `CRON_SECRET` is a Vercel artifact | **replace** with EventBridge + SES v2 |
-| **Prisma / pgvector RAG store** | `KnowledgeChunk` (`vector(1024)` + `tsvector`), hybrid retrieval in `lib/rag/vector-search.ts` (Titan embed, RRF k=60 top-20, optional Cohere rerank) | `packages/corpus-index` (#160): build-time BM25 + RRF, committed index, CI freshness gate. `modules/knowledge_base` is still a skeleton and must stay unimplemented | **replace** with the build-time embedded index — **not** OpenSearch, **not** a Bedrock Knowledge Base |
-| **Chat funnel: sessions, intent, `book_meeting`, citations, Langfuse** | `pages/api/chat.ts` + `lib/chat/intent.ts` + `lib/chat/tools.ts` (`book_meeting` → Cal.com) + Prisma `ChatSession` / `ChatMessageRow` + `lib/observability/langfuse.ts`. Citations from retrieved chunks. v1 fires `void trace.flush()` | Lambda streams persona-grounded text from a baked `SYSTEM_PROMPT`. No retrieval-on-request, no sessions, no tools, no citations, no Langfuse | **port** to Lambda (task D). On Lambda, `await trace.flush()` **before** the handler returns — v1's fire-and-forget flush would be lost when the execution environment freezes |
-| **Upstash rate limit** | `lib/utils/rateLimit.ts` (`@upstash/ratelimit` sliding window). **Fails open** if `UPSTASH_REDIS_REST_URL` / `_TOKEN` are unset | Edge WAFv2 `rate-limit-api-chat` (1000 / 5 min / IP, BLOCK) and `rate-limit-api-contact`. Per-session limiter in task D is DynamoDB, not Upstash | **retire** |
-| **MongoDB leftover** | Unused: `MONGODB_URI` / `MONGODB_URL` in `.env.example`, `cleanMongoFields`, `npm run prisma:migrate-data` (Mongo → Postgres one-off). Production data path is Prisma | Nothing | **retire** |
-| **Design sandbox `/design` and `/admin` UI** | `/design/comp` — Liquid Heat preview, `noindex`, no chrome (`pages/_app.tsx` `isDesignPage`). `/admin/*` is the authenticated CMS, also `noindex` | No `/design`, no `/admin` | **retire** |
+| Capability                                                             | v1 (on `origin/main`)                                                                                                                                                                                                                      | v2 today                                                                                                                                                             | Decision                                                                                                                                                                       |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Admin CMS** (articles/projects CRUD, NextAuth credentials)           | `pages/admin/**`, `pages/api/admin/**`, `pages/api/auth/[...nextauth].ts`, Prisma `AdminUser` + bcrypt, 1h JWT                                                                                                                             | No `/admin`. Public content is `corpus/**/*.md` → committed `apps/web/src/data/corpus.generated.ts` (`pnpm corpus`)                                                  | **retire** — static corpus is the CMS                                                                                                                                          |
+| **Comments + LLM moderation**                                          | `pages/api/comments/**`, `lib/moderation/*`. Model `anthropic.claude-haiku-4-5-20251001-v1:0`. Classifier timeout/error **fail-open to `held`** (never auto-reject on infra failure); public GET only returns `moderationStatus: approved` | No comments                                                                                                                                                          | **retire**                                                                                                                                                                     |
+| **Inngest background jobs**                                            | `pages/api/inngest.ts` serves `regenerateEmbeddings` (`lib/jobs/regenerate-embeddings.ts`): fan-out `knowledge/reindex.requested` + per-source Titan upsert on publish/update/delete                                                       | No Inngest. Corpus change → rebuild + Lambda redeploy                                                                                                                | **retire**                                                                                                                                                                     |
+| **Contact API**                                                        | `pages/api/contact` is a **GET of CMS contact details** (email, socials) used to render `mailto:` on `pages/contact.tsx`. No visitor form POST. Digest mail goes through Resend                                                            | `services/contact` Lambda + SES v2, CloudFront `/api/contact`, WAF rate-limit (PR #158)                                                                              | **replace** (PR #158 already did)                                                                                                                                              |
+| **Nightly qualified-lead digest**                                      | Vercel Cron `0 12 * * *` → `pages/api/cron/qualified-leads-digest.ts`, `Authorization: Bearer ${CRON_SECRET}`, Prisma `ChatSession` where `qualified && !emailedToOwner`, send via Resend                                                  | Not built yet. Replacement is EventBridge → Lambda → SES v2 (no Function URL, no shared secret; EventBridge is the only invoker). `CRON_SECRET` is a Vercel artifact | **replace** with EventBridge + SES v2                                                                                                                                          |
+| **Prisma / pgvector RAG store**                                        | `KnowledgeChunk` (`vector(1024)` + `tsvector`), hybrid retrieval in `lib/rag/vector-search.ts` (Titan embed, RRF k=60 top-20, optional Cohere rerank)                                                                                      | `packages/corpus-index` (#160): build-time BM25 + RRF, committed index, CI freshness gate. `modules/knowledge_base` is still a skeleton and must stay unimplemented  | **replace** with the build-time embedded index — **not** OpenSearch, **not** a Bedrock Knowledge Base                                                                          |
+| **Chat funnel: sessions, intent, `book_meeting`, citations, Langfuse** | `pages/api/chat.ts` + `lib/chat/intent.ts` + `lib/chat/tools.ts` (`book_meeting` → Cal.com) + Prisma `ChatSession` / `ChatMessageRow` + `lib/observability/langfuse.ts`. Citations from retrieved chunks. v1 fires `void trace.flush()`    | Lambda streams persona-grounded text from a baked `SYSTEM_PROMPT`. No retrieval-on-request, no sessions, no tools, no citations, no Langfuse                         | **port** to Lambda (task D). On Lambda, `await trace.flush()` **before** the handler returns — v1's fire-and-forget flush would be lost when the execution environment freezes |
+| **Upstash rate limit**                                                 | `lib/utils/rateLimit.ts` (`@upstash/ratelimit` sliding window). **Fails open** if `UPSTASH_REDIS_REST_URL` / `_TOKEN` are unset                                                                                                            | Edge WAFv2 `rate-limit-api-chat` (1000 / 5 min / IP, BLOCK) and `rate-limit-api-contact`. Per-session limiter in task D is DynamoDB, not Upstash                     | **retire**                                                                                                                                                                     |
+| **MongoDB leftover**                                                   | Unused: `MONGODB_URI` / `MONGODB_URL` in `.env.example`, `cleanMongoFields`, `npm run prisma:migrate-data` (Mongo → Postgres one-off). Production data path is Prisma                                                                      | Nothing                                                                                                                                                              | **retire**                                                                                                                                                                     |
+| **Design sandbox `/design` and `/admin` UI**                           | `/design/comp` — Liquid Heat preview, `noindex`, no chrome (`pages/_app.tsx` `isDesignPage`). `/admin/*` is the authenticated CMS, also `noindex`                                                                                          | No `/design`, no `/admin`                                                                                                                                            | **retire**                                                                                                                                                                     |
 
 Task D consumes the **port** and **replace** rows; the **retire** rows are
 accepted losses of the collapse. Do not re-open them on the merge PR.
