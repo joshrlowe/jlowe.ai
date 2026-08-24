@@ -1,0 +1,63 @@
+name: Deploy Contact
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, prod]
+        default: dev
+  push:
+    branches: [main] # activates at cutover (guarded by CUTOVER_ENABLED)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-contact-${{ github.event_name == 'push' && 'prod' || inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Manual dispatch always; push-to-main only once cutover is enabled.
+    if: github.event_name == 'workflow_dispatch' || vars.CUTOVER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC
+      contents: read
+    environment:
+      name: ${{ github.event_name == 'push' && 'prod' || inputs.environment }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build handler (bundle → zip)
+        run: |
+          # esbuild bundles the AWS SDK; zip it for update-function-code. No
+          # corpus step — unlike chat, this handler has no generated prompt.
+          pnpm --filter @velocity/contact build
+          cd services/contact/dist && zip -q handler.zip handler.mjs handler.mjs.map
+
+      - uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_CONTACT_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Update function code
+        run: |
+          FN="jlowe-ai-contact-${{ github.event_name == 'push' && 'prod' || inputs.environment }}"
+          aws lambda update-function-code \
+            --function-name "$FN" \
+            --zip-file fileb://services/contact/dist/handler.zip \
+            --publish >/dev/null
+          aws lambda wait function-updated --function-name "$FN"
+          echo "Deployed $FN"

@@ -28,6 +28,14 @@ cloudfront_5xx_rate_threshold          = 3
 lambda_duration_p99_threshold_ms       = 30000
 lambda_concurrent_executions_threshold = 50
 
+# --- Contact form (modules/contact) -----------------------------------------
+# Prod owns the SES *address* identity for the recipient inbox (an account+region
+# singleton — dev must leave this false and inherits the verification). The owner
+# clicks the AWS verification email once after the first apply; until then, while
+# the account is in the SES sandbox, sends to that address are rejected.
+contact_recipient_email           = "joshlowe.cs@gmail.com"
+verify_contact_recipient_identity = true
+
 # --- Edge WAF (modules/waf) — BLOCK mode on prod ----------------------------
 # The Web ACL is always created and associated with CloudFront (see
 # envs/main.tf: module "waf" has no enable flag, and module.cdn receives

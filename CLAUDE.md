@@ -6,7 +6,7 @@ Rebuild of jlowe.ai into a game-quality 3D explorable journey with a Bedrock-pow
 
 ## Standing rules
 
-- Monorepo: `apps/web` (Next.js App Router, strict TS), `packages/asset-pipeline`, `services/chat` (Lambda, TS), `infra/terraform`, `corpus/`.
+- Monorepo: `apps/web` (Next.js App Router, strict TS), `packages/asset-pipeline`, `services/chat` + `services/contact` (Lambdas, TS), `infra/terraform`, `corpus/`.
 - TypeScript strict; no `any`; ESLint + Prettier enforced in CI.
 - 3D: React Three Fiber + drei + three/webgpu + TSL. Physics: @react-three/rapier. State: zustand + a chapter finite-state machine. (Later phases — nothing 3D ships in Phase 0.)
 - **Progressive enhancement is sacred**: WebGPU → WebGL2 fallback → 2D shadcn/ui mode. The 2D mode is the SEO/accessibility surface. Never ship a feature that breaks a lower tier.
@@ -25,7 +25,8 @@ apps/web/                 Next 16 App Router, static export (output: 'export')
   src/app/(world)/        client-only host for the future 3D canvas
   src/lib/capabilities.ts WebGPU/WebGL2/2D tier detection (?mode= override)
 packages/asset-pipeline/  future glTF/KTX2/Draco pipeline (stub)
-services/chat/            Lambda chat backend (stub; typed handler, esbuild)
+services/chat/            Lambda chat backend (streaming; typed handler, esbuild)
+services/contact/         Lambda contact-form backend (SES v2 send; same tooling)
 infra/terraform/          global/ (zone, CI IAM) + envs/ (dev|prod tfvars) + modules/
 corpus/                   digital-twin source content (not a workspace package)
 scripts/                  repo tooling (bundle budget gate)
@@ -46,7 +47,8 @@ node scripts/check-bundle-budget.mjs   # gzip first-load JS vs budgets.json (aft
 
 - Web deploys: `.github/workflows/deploy-web.yml` (workflow_dispatch env dev|prod) — OIDC role, two-tier `s3 sync` (immutable `_next/static` + `assets/`, no-cache HTML), CloudFront invalidation.
 - Terraform: `.github/workflows/terraform.yml` — fmt/validate/plan on PRs touching `infra/**`; applies via dispatch behind `terraform-dev`/`terraform-prod` reviewer gates.
-- Static-export constraints: no middleware/ISR/Server Actions/headers()/redirects()/Image optimization. CDN owns headers, 404 mapping, and URL rewrites (`infra/terraform/modules/cdn`).
+- Chat + contact deploys: `.github/workflows/deploy-chat.yml` / `deploy-contact.yml` — same shape (OIDC role scoped to `lambda:UpdateFunctionCode` on that one function; Terraform owns config).
+- Static-export constraints: no middleware/ISR/Server Actions/headers()/redirects()/Image optimization. CDN owns headers, 404 mapping, and URL rewrites (`infra/terraform/modules/cdn`). **Anything dynamic is a Lambda behind an `/api/*` CloudFront behavior** — and every client fetch to one MUST send `x-amz-content-sha256` (the hex SHA-256 of the body), or CloudFront's OAC SigV4 signature omits the payload hash and the Function URL rejects the request.
 - dev environment serves at https://dev.jlowe.ai with `X-Robots-Tag: noindex` (header set by the dev CloudFront distribution — app code ships prod-true SEO).
 - Full runbook: `infra/terraform/bootstrap/README.md`.
 

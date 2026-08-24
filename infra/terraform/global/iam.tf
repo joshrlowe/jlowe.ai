@@ -128,6 +128,34 @@ resource "aws_iam_role_policy" "deploy_chat" {
   policy = data.aws_iam_policy_document.deploy_chat.json
 }
 
+# --- gha-deploy-contact: lambda code push -----------------------------------
+# Same shape as gha-deploy-chat, separate role so each deploy workflow can only
+# ship its own function's code. Reuses the chat role's trust document (identical
+# environment-scoped OIDC conditions).
+resource "aws_iam_role" "deploy_contact" {
+  name               = "gha-deploy-contact"
+  assume_role_policy = data.aws_iam_policy_document.deploy_chat_trust.json
+}
+
+data "aws_iam_policy_document" "deploy_contact" {
+  statement {
+    sid    = "UpdateContactFunctionCode"
+    effect = "Allow"
+    actions = [
+      "lambda:UpdateFunctionCode",
+      "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
+    ]
+    resources = ["arn:aws:lambda:us-east-1:${var.aws_account_id}:function:jlowe-ai-contact-*"]
+  }
+}
+
+resource "aws_iam_role_policy" "deploy_contact" {
+  name   = "deploy-contact"
+  role   = aws_iam_role.deploy_contact.id
+  policy = data.aws_iam_policy_document.deploy_contact.json
+}
+
 # --- gha-terraform: gated apply (AdministratorAccess) -----------------------
 data "aws_iam_policy_document" "terraform_trust" {
   statement {

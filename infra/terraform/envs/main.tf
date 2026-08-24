@@ -7,8 +7,9 @@ data "aws_route53_zone" "primary" {
 module "waf" {
   source = "../modules/waf"
 
-  environment = var.environment
-  rate_limit  = var.chat_rate_limit
+  environment        = var.environment
+  rate_limit         = var.chat_rate_limit
+  contact_rate_limit = var.contact_rate_limit
 
   # dev observes managed-rule hits in COUNT mode (no false-positive risk while
   # the site is under active development); prod blocks. The /api/chat rate limit
@@ -33,6 +34,10 @@ module "cdn" {
   chat_function_url_host = module.chat.function_url_host
   chat_function_name     = module.chat.function_name
 
+  # Same arrangement for /api/contact* → the buffered contact Lambda.
+  contact_function_url_host = module.contact.function_url_host
+  contact_function_name     = module.contact.function_name
+
   # Edge WAF association (CLOUDFRONT-scope Web ACL ARN).
   waf_web_acl_arn = module.waf.web_acl_arn
 
@@ -46,6 +51,21 @@ module "chat" {
   environment      = var.environment
   bedrock_model_id = var.bedrock_model_id
   lambda_zip_path  = "${path.module}/../../../services/chat/dist/handler.zip"
+}
+
+module "contact" {
+  source = "../modules/contact"
+
+  environment     = var.environment
+  domain_name     = var.domain_name
+  zone_id         = data.aws_route53_zone.primary.zone_id
+  recipient_email = var.contact_recipient_email
+
+  # Account+region singleton — prod owns the recipient address identity and dev
+  # inherits its verification. See modules/contact/variables.tf.
+  verify_recipient_identity = var.verify_contact_recipient_identity
+
+  lambda_zip_path = "${path.module}/../../../services/contact/dist/handler.zip"
 }
 
 # Cost guardrails (Stage 2.4) — optional per env, gated by enable_* flags so a

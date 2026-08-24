@@ -70,6 +70,14 @@ resource "aws_cloudfront_origin_access_control" "chat" {
   signing_protocol                  = "sigv4"
 }
 
+# Same arrangement for the contact-form Lambda Function URL.
+resource "aws_cloudfront_origin_access_control" "contact" {
+  name                              = "jlowe-ai-${var.environment}-contact-oac"
+  origin_access_control_origin_type = "lambda"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 data "aws_iam_policy_document" "bucket" {
   statement {
     sid       = "AllowCloudFrontRead"
@@ -309,6 +317,18 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+  origin {
+    domain_name              = var.contact_function_url_host
+    origin_id                = "lambda-contact-${var.environment}"
+    origin_access_control_id = aws_cloudfront_origin_access_control.contact.id
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
   default_cache_behavior {
     target_origin_id           = "s3-${local.bucket_name}"
     viewer_protocol_policy     = "redirect-to-https"
@@ -357,6 +377,23 @@ resource "aws_cloudfront_distribution" "site" {
     allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods             = ["GET", "HEAD"]
     compress                   = false
+    cache_policy_id            = data.aws_cloudfront_cache_policy.disabled.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.site.id
+  }
+
+  # Contact form → the buffered contact Lambda Function URL. Same-origin (so CSP
+  # connect-src 'self' covers the fetch), never cached, and the url-rewrite
+  # function stays off this behavior so /api/contact is never rewritten to
+  # append index.html. Compression is on: unlike the chat stream this is a
+  # single small JSON body, so there is nothing to buffer badly.
+  ordered_cache_behavior {
+    path_pattern               = "/api/contact*"
+    target_origin_id           = "lambda-contact-${var.environment}"
+    viewer_protocol_policy     = "https-only"
+    allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods             = ["GET", "HEAD"]
+    compress                   = true
     cache_policy_id            = data.aws_cloudfront_cache_policy.disabled.id
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.site.id
@@ -429,6 +466,26 @@ resource "aws_lambda_permission" "chat_invoke_function" {
   statement_id  = "AllowCloudFrontInvokeChatFunction"
   action        = "lambda:InvokeFunction"
   function_name = var.chat_function_name
+  principal     = "cloudfront.amazonaws.com"
+  source_arn    = aws_cloudfront_distribution.site.arn
+}
+
+# The same two-statement "dual auth" pair for the contact Function URL. Both are
+# required: InvokeFunctionUrl alone validates the OAC signature and then fails
+# authorization with AccessDeniedException.
+resource "aws_lambda_permission" "contact_invoke_url" {
+  statement_id           = "AllowCloudFrontInvokeContactUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = var.contact_function_name
+  principal              = "cloudfront.amazonaws.com"
+  source_arn             = aws_cloudfront_distribution.site.arn
+  function_url_auth_type = "AWS_IAM"
+}
+
+resource "aws_lambda_permission" "contact_invoke_function" {
+  statement_id  = "AllowCloudFrontInvokeContactFunction"
+  action        = "lambda:InvokeFunction"
+  function_name = var.contact_function_name
   principal     = "cloudfront.amazonaws.com"
   source_arn    = aws_cloudfront_distribution.site.arn
 }
