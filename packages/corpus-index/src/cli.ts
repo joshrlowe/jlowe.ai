@@ -4,6 +4,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { buildIndex, renderIndexModule } from "./build-index.js";
+import { generateQueryEmbedding } from "./embed.js";
+import {
+  applyEmbeddings,
+  embedMissingChunks,
+  embeddingsByHash,
+} from "./embeddings.js";
 import { checkFreshness } from "./freshness.js";
 import { CORPUS_INDEX } from "./index.generated.js";
 
@@ -32,9 +38,27 @@ if (cmd !== "write") {
   process.exit(2);
 }
 
-const index = buildIndex(repoRoot);
-mkdirSync(dirname(generated), { recursive: true });
-writeFileSync(generated, renderIndexModule(index));
-console.log(
-  `corpus-index: ${index.chunks.length} chunks from public corpus → packages/corpus-index/src/index.generated.ts`,
-);
+async function writeIndex(): Promise<void> {
+  const index = buildIndex(repoRoot);
+  const previous = embeddingsByHash(CORPUS_INDEX.chunks);
+  const { byHash, embedded, reused, omitted, awsFailed } =
+    await embedMissingChunks(index.chunks, previous, generateQueryEmbedding);
+  const chunks = applyEmbeddings(index.chunks, byHash);
+  mkdirSync(dirname(generated), { recursive: true });
+  writeFileSync(generated, renderIndexModule({ ...index, chunks }));
+  console.log(
+    `corpus-index: ${chunks.length} chunks from public corpus → packages/corpus-index/src/index.generated.ts`,
+  );
+  console.log(
+    `  embeddings: ${reused} reused, ${embedded} embedded, ${omitted} omitted${
+      awsFailed ? " (AWS unavailable)" : ""
+    }`,
+  );
+}
+
+try {
+  await writeIndex();
+} catch (error) {
+  console.error(error);
+  process.exit(1);
+}

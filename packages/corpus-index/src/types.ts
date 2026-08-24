@@ -31,6 +31,8 @@ export interface IndexedChunk {
   chunkIndex: number;
   termFreqs: Record<string, number>;
   docLength: number;
+  /** Titan v2 1024-dim vector. Omitted when AWS was unavailable at index time. */
+  embedding?: number[];
 }
 
 export interface Bm25Stats {

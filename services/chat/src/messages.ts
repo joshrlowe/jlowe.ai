@@ -38,6 +38,15 @@ export function buildConverseMessages(
   }));
 }
 
+/** Last user turn, used as the retrieval query. */
+export function lastUserText(messages: ChatRequest["messages"]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message?.role === "user") return message.content.trim();
+  }
+  return "";
+}
+
 /** A grounding hint appended to the system prompt: what the visitor has seen. */
 export function beaconContext(context: ChatRequest["context"]): string {
   const beacons = context?.collectedBeacons;

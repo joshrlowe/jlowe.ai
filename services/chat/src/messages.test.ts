@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   beaconContext,
   buildConverseMessages,
+  lastUserText,
   parseChatRequest,
 } from "./messages.js";
 
@@ -37,6 +38,22 @@ describe("buildConverseMessages", () => {
     expect(buildConverseMessages([{ role: "user", content: "hello" }])).toEqual(
       [{ role: "user", content: [{ text: "hello" }] }],
     );
+  });
+});
+
+describe("lastUserText", () => {
+  it("returns the trimmed last user turn", () => {
+    expect(
+      lastUserText([
+        { role: "user", content: "first" },
+        { role: "assistant", content: "ok" },
+        { role: "user", content: "  latest  " },
+      ]),
+    ).toBe("latest");
+  });
+
+  it("is empty when no user turn exists", () => {
+    expect(lastUserText([{ role: "assistant", content: "hi" }])).toBe("");
   });
 });
 

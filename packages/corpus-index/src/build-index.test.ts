@@ -3,7 +3,12 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { buildIndex, hashesFromDocs, loadPublicCorpus } from "./build-index.js";
+import {
+  buildIndex,
+  hashesFromDocs,
+  loadPublicCorpus,
+  renderIndexModule,
+} from "./build-index.js";
 import { FRESHNESS_HINT, checkFreshness } from "./freshness.js";
 import { CORPUS_INDEX } from "./index.generated.js";
 
@@ -39,6 +44,19 @@ describe("buildIndex", () => {
       expect(chunk.docLength).toBeGreaterThan(0);
       expect(chunk.id).toMatch(/^(project|article|faq):[a-z0-9-]+:\d+$/);
     }
+  });
+
+  it("renders embedding arrays on one line and omits missing ones", () => {
+    const index = buildIndex(repoRoot);
+    const first = index.chunks[0];
+    if (!first) throw new Error("expected chunks");
+    const withEmb = {
+      ...index,
+      chunks: [{ ...first, embedding: [0.1, 0.2] }, ...index.chunks.slice(1)],
+    };
+    const src = renderIndexModule(withEmb);
+    expect(src).toContain('"embedding": [0.1,0.2]');
+    expect([...src.matchAll(/"embedding":/g)]).toHaveLength(1);
   });
 });
 

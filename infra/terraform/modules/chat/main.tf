@@ -23,6 +23,11 @@ locals {
     "arn:aws:bedrock:${region}::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
   ]
   bedrock_inference_profile_arn = "arn:aws:bedrock:us-east-1:${local.account_id}:inference-profile/${var.bedrock_model_id}"
+
+  titan_embed_model_arns = [
+    for region in local.bedrock_model_regions :
+    "arn:aws:bedrock:${region}::foundation-model/amazon.titan-embed-text-v2:0"
+  ]
 }
 
 # --- IAM role + least-privilege policy --------------------------------------
@@ -65,6 +70,15 @@ data "aws_iam_policy_document" "chat" {
       [local.bedrock_inference_profile_arn],
       local.bedrock_model_arns,
     )
+  }
+
+  # Query-time Titan v2 embed for hybrid retrieval. InvokeModel only — the
+  # embed API is not streamed. Same region list as Haiku; do not broaden Haiku.
+  statement {
+    sid       = "BedrockInvokeTitanEmbed"
+    effect    = "Allow"
+    actions   = ["bedrock:InvokeModel"]
+    resources = local.titan_embed_model_arns
   }
 }
 
