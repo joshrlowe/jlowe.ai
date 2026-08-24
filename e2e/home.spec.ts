@@ -139,14 +139,15 @@ test.describe("Home Page", () => {
   test("should have proper semantic HTML structure", async ({ page }) => {
     await expect(page.locator("header")).toBeVisible();
     await expect(page.locator('main, [role="main"]').first()).toBeVisible();
-    await expect(page.locator("footer")).toBeVisible();
+    // react-activity-calendar also emits a <footer>; the site footer is contentinfo.
+    await expect(page.getByRole("contentinfo")).toBeVisible();
   });
 
   test("should display footer with social links", async ({ page }) => {
     // Scroll to footer
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
-    const footer = page.locator("footer");
+    const footer = page.getByRole("contentinfo");
     await expect(footer).toBeVisible();
   });
 
