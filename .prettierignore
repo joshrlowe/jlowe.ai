@@ -6,6 +6,7 @@ dist/
 coverage/
 corpus/
 apps/web/src/data/corpus.generated.ts
+packages/corpus-index/src/index.generated.ts
 apps/web/public/draco/
 services/chat/src/system-prompt.ts
 infra/terraform/**/.terraform/

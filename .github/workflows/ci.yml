@@ -33,6 +33,9 @@ jobs:
       - name: Corpus up-to-date
         run: pnpm corpus && git diff --exit-code apps/web/src/data/corpus.generated.ts services/chat/src/system-prompt.ts
 
+      - name: Corpus index up-to-date
+        run: pnpm index:check
+
       - name: Typecheck
         run: pnpm typecheck
 

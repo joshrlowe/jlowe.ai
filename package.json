@@ -14,7 +14,9 @@
     "test": "pnpm -r run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "corpus": "node scripts/build-corpus.mjs && node scripts/build-chat-prompt.mjs"
+    "corpus": "node scripts/build-corpus.mjs && node scripts/build-chat-prompt.mjs",
+    "index": "pnpm --filter @velocity/corpus-index index",
+    "index:check": "pnpm --filter @velocity/corpus-index index:check"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
