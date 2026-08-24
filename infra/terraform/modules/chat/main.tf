@@ -169,8 +169,10 @@ resource "aws_lambda_function" "chat" {
 
   environment {
     variables = {
-      BEDROCK_MODEL_ID    = var.bedrock_model_id
-      CHAT_SESSIONS_TABLE = aws_dynamodb_table.sessions.name
+      BEDROCK_MODEL_ID       = var.bedrock_model_id
+      CHAT_SESSIONS_TABLE    = aws_dynamodb_table.sessions.name
+      CALCOM_USERNAME        = var.calcom_username
+      CALCOM_EVENT_TYPE_SLUG = var.calcom_event_type_slug
     }
   }
 

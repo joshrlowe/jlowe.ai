@@ -17,3 +17,19 @@ variable "lambda_zip_path" {
   description = "Path to the bundled handler zip (services/chat/dist/handler.zip)."
   type        = string
 }
+
+variable "calcom_username" {
+  description = <<-EOT
+    Cal.com username used to build booking URLs. Empty (the default) means the
+    book_meeting tool is never exposed — the handler fails closed rather than
+    inventing a URL.
+  EOT
+  type        = string
+  default     = ""
+}
+
+variable "calcom_event_type_slug" {
+  description = "Cal.com event-type slug (v1 default: 30min)."
+  type        = string
+  default     = "30min"
+}
