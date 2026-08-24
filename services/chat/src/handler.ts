@@ -34,6 +34,7 @@ import {
   type SessionStore,
   type StoredMessage,
 } from "./sessions.js";
+import { startTrace, type TraceHandle } from "./langfuse.js";
 import { defaultSessionStore } from "./store.js";
 import { SYSTEM_PROMPT } from "./system-prompt.js";
 import { IDLE, reduceStreamItem, type ToolCall } from "./tool-assembler.js";
@@ -94,6 +95,11 @@ export interface ChatRuntime {
   ) => Promise<Intent>;
   calcomConfigured?: boolean;
   bookingUrl?: (input: CalcomUrlInput) => string | null;
+  startTrace?: (params: {
+    name: string;
+    sessionId?: string;
+    metadata?: Record<string, unknown>;
+  }) => Promise<TraceHandle>;
 }
 
 async function* bedrockTokens(args: TokenArgs): AsyncIterable<string> {
@@ -158,17 +164,27 @@ export async function handleChatEvent(
   const framed = wantsFrames(accept);
   const sessionId = getOrMintSessionId(event);
   const sessions = runtime.sessions ?? defaultSessionStore();
+  const ipHashed = hashIp(viewerIp(event));
+  const beginTrace = runtime.startTrace ?? startTrace;
+  const trace = await beginTrace({
+    name: "chat",
+    sessionId,
+    metadata: { ipHash: ipHashed, userAgent: viewerUserAgent(event) },
+  });
 
   let allowed = true;
   let session: ChatSession | undefined;
+  const rlSpan = trace.span("rate-limit");
   try {
     const result = await sessions.checkRateLimit(sessionId, {
-      ipHash: hashIp(viewerIp(event)),
+      ipHash: ipHashed,
       userAgent: viewerUserAgent(event),
     });
     allowed = result.allowed;
     session = result.session;
+    rlSpan.end({ allowed });
   } catch (error) {
+    rlSpan.fail(error as Error);
     log({
       level: "warn",
       msg: "session_rate_limit_failed",
@@ -183,38 +199,41 @@ export async function handleChatEvent(
       "content-type": framed ? CHAT_FRAMES_CONTENT_TYPE : CHAT_RAW_CONTENT_TYPE,
       "cache-control": "no-store",
       "set-cookie": sessionCookieHeader(sessionId),
+      ...(trace.id ? { "x-trace-id": trace.id } : {}),
     },
   });
 
-  if (!allowed) {
-    if (framed) {
-      for (const frame of closingFrames(RATE_LIMIT_TEXT, [])) {
-        stream.write(encodeFrame(frame));
-      }
-    } else {
-      stream.write(RATE_LIMIT_TEXT);
-    }
-    stream.end();
-    return;
-  }
-
-  const search = runtime.search ?? searchKnowledge;
-  const tokens = runtime.tokens ?? bedrockTokens;
-  const classify = runtime.classifyIntent ?? classifyIntent;
-  const calcomConfigured = runtime.calcomConfigured ?? isCalcomConfigured();
-  const bookingUrl = runtime.bookingUrl ?? getCalcomBookingUrl;
-
   try {
+    if (!allowed) {
+      if (framed) {
+        for (const frame of closingFrames(RATE_LIMIT_TEXT, [])) {
+          stream.write(encodeFrame(frame));
+        }
+      } else {
+        stream.write(RATE_LIMIT_TEXT);
+      }
+      trace.end({ status: "rate_limited" });
+      return;
+    }
+
+    const search = runtime.search ?? searchKnowledge;
+    const tokens = runtime.tokens ?? bedrockTokens;
+    const classify = runtime.classifyIntent ?? classifyIntent;
+    const calcomConfigured = runtime.calcomConfigured ?? isCalcomConfigured();
+    const bookingUrl = runtime.bookingUrl ?? getCalcomBookingUrl;
+
     const req = parseChatRequest(event.body);
     const query = lastUserText(req.messages);
     const history: ConversationTurn[] = req.messages.slice(0, -1);
 
     const started = Date.now();
+    const retrievalSpan = trace.span("retrieval");
     const [intent, chunks] = await Promise.all([
       classify(query, history),
       search(query, { topK: TOP_K }),
     ]);
     const retrievalMs = Date.now() - started;
+    retrievalSpan.end({ chunkCount: chunks.length, retrievalMs, intent });
 
     const userMessage: StoredMessage = {
       role: "user",
@@ -257,28 +276,41 @@ export async function handleChatEvent(
       | undefined;
 
     let assistantText = "";
-    for await (const text of tokens({
-      system,
-      messages: buildConverseMessages(req.messages),
-      tools: exposeTool ? [bookMeetingTool] : undefined,
-      onToolUse: (call) => {
-        if (!exposeTool) return;
-        if (call.name !== "book_meeting" || booking) return;
-        const input = asCalcomInput(call.input);
-        if (!input) return;
-        const url = bookingUrl(input);
-        if (!url) return;
-        booking = {
-          url,
-          message: BOOKING_CTA,
-          name: input.name,
-          email: input.email,
-        };
-      },
-    })) {
-      assistantText += text;
-      if (framed) stream.write(encodeFrame({ type: "text", content: text }));
-      else stream.write(text);
+    const generation = trace.generation({
+      name: "haiku",
+      model: MODEL_ID,
+      input: { toolsExposed: exposeTool },
+      modelParameters: { maxTokens: 800, temperature: 0.4 },
+    });
+    try {
+      for await (const text of tokens({
+        system,
+        messages: buildConverseMessages(req.messages),
+        tools: exposeTool ? [bookMeetingTool] : undefined,
+        onToolUse: (call) => {
+          if (!exposeTool) return;
+          if (call.name !== "book_meeting" || booking) return;
+          const input = asCalcomInput(call.input);
+          if (!input) return;
+          const url = bookingUrl(input);
+          if (!url) return;
+          booking = {
+            url,
+            message: BOOKING_CTA,
+            name: input.name,
+            email: input.email,
+          };
+        },
+      })) {
+        if (!assistantText) generation.recordFirstToken();
+        assistantText += text;
+        if (framed) stream.write(encodeFrame({ type: "text", content: text }));
+        else stream.write(text);
+      }
+      generation.end(assistantText);
+    } catch (error) {
+      generation.fail(error as Error);
+      throw error;
     }
 
     if (framed && booking) {
@@ -318,8 +350,14 @@ export async function handleChatEvent(
         stream.write(encodeFrame(frame));
       }
     }
+    trace.end({
+      status: "ok",
+      intent,
+      bookingOffered: Boolean(booking),
+    });
   } catch (error) {
     log({ level: "error", msg: "chat_failed", error: String(error) });
+    trace.end({ status: "error", error: String(error) });
     if (framed) {
       for (const frame of closingFrames(FAIL_OPEN_TEXT, [])) {
         stream.write(encodeFrame(frame));
@@ -328,7 +366,10 @@ export async function handleChatEvent(
       stream.write(`\n\n${FAIL_OPEN_TEXT}`);
     }
   } finally {
+    // Flush AFTER end: Lambda freezes the environment when this function
+    // returns, so a fire-and-forget flush would drop the trace.
     stream.end();
+    await trace.flush();
   }
 }
 

@@ -93,6 +93,38 @@ data "aws_iam_policy_document" "chat" {
     ]
     resources = [aws_dynamodb_table.sessions.arn]
   }
+
+  statement {
+    sid     = "LangfuseSsm"
+    effect  = "Allow"
+    actions = ["ssm:GetParameter", "ssm:GetParameters"]
+    resources = [
+      aws_ssm_parameter.langfuse_public.arn,
+      aws_ssm_parameter.langfuse_secret.arn,
+    ]
+  }
+}
+
+# Placeholder SecureStrings. Real keys are written out-of-band; terraform will
+# not clobber them (ignore_changes on value). "unset" keeps the SDK a no-op.
+resource "aws_ssm_parameter" "langfuse_public" {
+  name  = "/jlowe-ai/${var.environment}/langfuse/public-key"
+  type  = "SecureString"
+  value = var.langfuse_public_key
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "aws_ssm_parameter" "langfuse_secret" {
+  name  = "/jlowe-ai/${var.environment}/langfuse/secret-key"
+  type  = "SecureString"
+  value = var.langfuse_secret_key
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 # --- Sessions table ---------------------------------------------------------
@@ -169,10 +201,12 @@ resource "aws_lambda_function" "chat" {
 
   environment {
     variables = {
-      BEDROCK_MODEL_ID       = var.bedrock_model_id
-      CHAT_SESSIONS_TABLE    = aws_dynamodb_table.sessions.name
-      CALCOM_USERNAME        = var.calcom_username
-      CALCOM_EVENT_TYPE_SLUG = var.calcom_event_type_slug
+      BEDROCK_MODEL_ID          = var.bedrock_model_id
+      CHAT_SESSIONS_TABLE       = aws_dynamodb_table.sessions.name
+      CALCOM_USERNAME           = var.calcom_username
+      CALCOM_EVENT_TYPE_SLUG    = var.calcom_event_type_slug
+      LANGFUSE_PUBLIC_KEY_PARAM = aws_ssm_parameter.langfuse_public.name
+      LANGFUSE_SECRET_KEY_PARAM = aws_ssm_parameter.langfuse_secret.name
     }
   }
 
