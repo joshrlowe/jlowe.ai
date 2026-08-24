@@ -1,0 +1,49 @@
+name: Golden eval (nightly)
+
+# Tier 3 live model/retrieval eval. Never on pull_request — committed query
+# vectors already cover recall/MRR in CI without AWS credentials.
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tier12:
+    name: credential-free retrieval + grounding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @velocity/corpus-index exec vitest run src/golden/eval.test.ts
+      - run: pnpm --filter @velocity/chat exec vitest run src/eval-grounding.test.ts
+
+  tier3:
+    name: live Titan retrieval
+    if: vars.GHA_EVAL_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: prod
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: ${{ vars.GHA_EVAL_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: Live retrieval against Titan v2
+        run: pnpm --filter @velocity/corpus-index exec node --experimental-strip-types src/golden/live.ts

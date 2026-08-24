@@ -16,7 +16,8 @@
     "index:check": "tsc -p tsconfig.json && node dist/cli.js check",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval:live": "node --experimental-strip-types src/golden/live.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1068.0",
