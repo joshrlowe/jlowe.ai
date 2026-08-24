@@ -13,6 +13,9 @@ permissions:
 jobs:
   tier12:
     name: credential-free retrieval + grounding
+    # Schedule only fires from the default branch. Until cutover that is v1
+    # `main`, so skip cron there; workflow_dispatch --ref v2 still runs.
+    if: github.event_name == 'workflow_dispatch' || vars.CUTOVER_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -27,7 +30,9 @@ jobs:
 
   tier3:
     name: live Titan + model probes
-    if: vars.GHA_EVAL_ROLE_ARN != ''
+    if: >-
+      vars.GHA_EVAL_ROLE_ARN != '' &&
+      (github.event_name == 'workflow_dispatch' || vars.CUTOVER_ENABLED == 'true')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
