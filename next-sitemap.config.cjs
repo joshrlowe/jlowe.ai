@@ -5,11 +5,18 @@
  * slugs are pulled from Prisma at build time so they reflect what
  * pages/articles/[topic]/[slug].tsx and pages/projects/[slug].tsx will
  * actually serve.
+ *
+ * This file is shared across hosts (canonical https://jlowe.ai and the leftover
+ * jlowe-ai.vercel.app deployment). Host-specific crawler control lives in
+ * vercel.json as an X-Robots-Tag header — changing robots.txt here would also
+ * noindex the apex. robotsTxtOptions.additionalSitemaps is intentionally
+ * unchanged.
  */
 
 /** @type {import('next-sitemap').IConfig} */
 const config = {
   siteUrl: "https://jlowe.ai",
+  host: "https://jlowe.ai",
   generateRobotsTxt: true,
   generateIndexSitemap: false,
   changefreq: "weekly",
