@@ -15,6 +15,7 @@ import {
   type ChatRuntime,
   type TokenArgs,
 } from "./handler.js";
+import { NOOP_TRACE, type TraceHandle } from "./langfuse.js";
 import { BOOKING_CTA } from "./tools.js";
 import { MemorySessionStore } from "./memory-store.js";
 import {
@@ -464,5 +465,37 @@ describe("handleChatEvent book_meeting gating", () => {
       }),
     );
     expect(tools).toBeUndefined();
+  });
+});
+
+describe("handleChatEvent langfuse flush", () => {
+  it("awaits trace.flush() after stream.end()", async () => {
+    const events: string[] = [];
+    const trace: TraceHandle = {
+      ...NOOP_TRACE,
+      span: () => ({
+        end: () => {},
+        fail: () => {},
+      }),
+      generation: () => ({
+        end: () => {},
+        fail: () => {},
+        recordFirstToken: () => {},
+        recordUsage: () => {},
+      }),
+      end: () => {
+        events.push("trace.end");
+      },
+      flush: async () => {
+        expect(captured.ended).toBe(true);
+        events.push("flush");
+      },
+    };
+    await run(
+      makeEvent({ messages: [{ role: "user", content: "hi" }] }),
+      okRuntime({ startTrace: async () => trace }),
+    );
+    expect(captured.ended).toBe(true);
+    expect(events).toEqual(["trace.end", "flush"]);
   });
 });

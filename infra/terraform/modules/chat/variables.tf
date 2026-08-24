@@ -28,6 +28,24 @@ variable "calcom_username" {
   default     = ""
 }
 
+variable "langfuse_public_key" {
+  description = <<-EOT
+    Initial value for the Langfuse public-key SSM parameter. Leave the default
+    ("unset") so the SDK stays a no-op; after apply, put the real key in SSM
+    (terraform ignores subsequent value drift).
+  EOT
+  type        = string
+  default     = "unset"
+  sensitive   = true
+}
+
+variable "langfuse_secret_key" {
+  description = "Initial value for the Langfuse secret-key SSM parameter. See langfuse_public_key."
+  type        = string
+  default     = "unset"
+  sensitive   = true
+}
+
 variable "calcom_event_type_slug" {
   description = "Cal.com event-type slug (v1 default: 30min)."
   type        = string
