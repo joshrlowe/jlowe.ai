@@ -53,6 +53,10 @@ module "chat" {
   lambda_zip_path        = "${path.module}/../../../services/chat/dist/handler.zip"
   calcom_username        = var.calcom_username
   calcom_event_type_slug = var.calcom_event_type_slug
+
+  digest_from_address = module.contact.from_address
+  digest_to_address   = var.contact_recipient_email
+  ses_identity_arn    = module.contact.sender_identity_arn
 }
 
 module "contact" {

@@ -46,7 +46,7 @@ jobs:
           # (esbuild bundles the AWS SDK), and zip it for update-function-code.
           pnpm corpus
           pnpm --filter @velocity/chat build
-          cd services/chat/dist && zip -q handler.zip handler.mjs handler.mjs.map
+          cd services/chat/dist && zip -q handler.zip handler.mjs handler.mjs.map digest.mjs digest.mjs.map
 
       - uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
@@ -55,10 +55,13 @@ jobs:
 
       - name: Update function code
         run: |
-          FN="jlowe-ai-chat-${{ github.event_name == 'push' && 'prod' || inputs.environment }}"
-          aws lambda update-function-code \
-            --function-name "$FN" \
-            --zip-file fileb://services/chat/dist/handler.zip \
-            --publish >/dev/null
-          aws lambda wait function-updated --function-name "$FN"
-          echo "Deployed $FN"
+          ENV="${{ github.event_name == 'push' && 'prod' || inputs.environment }}"
+          ZIP="fileb://services/chat/dist/handler.zip"
+          for FN in "jlowe-ai-chat-$ENV" "jlowe-ai-chat-digest-$ENV"; do
+            aws lambda update-function-code \
+              --function-name "$FN" \
+              --zip-file "$ZIP" \
+              --publish >/dev/null
+            aws lambda wait function-updated --function-name "$FN"
+            echo "Deployed $FN"
+          done

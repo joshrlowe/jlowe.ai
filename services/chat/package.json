@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --sourcemap \"--banner:js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "build": "pnpm run build:chat && pnpm run build:digest",
+    "build:chat": "esbuild src/handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/handler.mjs --sourcemap \"--banner:js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "build:digest": "esbuild src/digest-handler.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/digest.mjs --sourcemap \"--banner:js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run"
@@ -19,6 +21,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1068.0",
     "@aws-sdk/client-dynamodb": "^3.1068.0",
+    "@aws-sdk/client-sesv2": "^3.1068.0",
     "@aws-sdk/lib-dynamodb": "^3.1068.0",
     "@velocity/corpus-index": "workspace:*",
     "zod": "^3.25.76"

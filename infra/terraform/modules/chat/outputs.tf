@@ -31,3 +31,8 @@ output "sessions_table_arn" {
   description = "ARN of the chat-sessions table, including for GSI IAM in the digest function."
   value       = aws_dynamodb_table.sessions.arn
 }
+
+output "digest_function_name" {
+  description = "Nightly digest Lambda name (deploy-chat updates this alongside chat)."
+  value       = aws_lambda_function.digest.function_name
+}
