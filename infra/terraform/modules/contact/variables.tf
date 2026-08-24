@@ -40,9 +40,11 @@ variable "verify_recipient_identity" {
     link once).
 
     An address identity is an account+region singleton, so exactly ONE
-    environment may own it — leave this false on dev and true on prod, and dev
-    inherits the verification. Flipping it on in both stacks makes the second
-    apply fail with AlreadyExistsException.
+    environment may own it — and only if it does not already exist in the
+    account. If AWS already has the identity (VerifiedForSendingStatus true),
+    leave this false in every environment; creating it again fails with
+    AlreadyExistsException. The 2026-08-24 prod apply hit that trap for
+    joshlowe.cs@gmail.com.
   EOT
   type        = bool
   default     = false
