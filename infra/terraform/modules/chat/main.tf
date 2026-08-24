@@ -80,6 +80,64 @@ data "aws_iam_policy_document" "chat" {
     actions   = ["bedrock:InvokeModel"]
     resources = local.titan_embed_model_arns
   }
+
+  # Session row + message list. Query on the digest GSI is the digest Lambda
+  # (PR 6), not this function — so the index ARN is not in this policy.
+  statement {
+    sid    = "ChatSessions"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+    ]
+    resources = [aws_dynamodb_table.sessions.arn]
+  }
+}
+
+# --- Sessions table ---------------------------------------------------------
+# PK sessionId. Sparse GSI `digest` whose keys (digestPk / digestSk) are
+# written only while qualified && !emailedToOwner, so the nightly digest is a
+# Query with no filter and no scan. TTL on expiresAt (epoch seconds).
+resource "aws_dynamodb_table" "sessions" {
+  name         = "jlowe-ai-chat-sessions-${var.environment}"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "sessionId"
+
+  attribute {
+    name = "sessionId"
+    type = "S"
+  }
+
+  attribute {
+    name = "digestPk"
+    type = "S"
+  }
+
+  attribute {
+    name = "digestSk"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name = "digest"
+    key_schema {
+      attribute_name = "digestPk"
+      key_type       = "HASH"
+    }
+    key_schema {
+      attribute_name = "digestSk"
+      key_type       = "RANGE"
+    }
+    projection_type = "ALL"
+  }
+
+  ttl {
+    attribute_name = "expiresAt"
+    enabled        = true
+  }
+
+  deletion_protection_enabled = var.environment == "prod"
 }
 
 resource "aws_iam_role_policy" "chat" {
@@ -111,7 +169,8 @@ resource "aws_lambda_function" "chat" {
 
   environment {
     variables = {
-      BEDROCK_MODEL_ID = var.bedrock_model_id
+      BEDROCK_MODEL_ID    = var.bedrock_model_id
+      CHAT_SESSIONS_TABLE = aws_dynamodb_table.sessions.name
     }
   }
 

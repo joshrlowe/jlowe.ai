@@ -7,6 +7,7 @@ import { searchKnowledge, type RetrievedChunk } from "@velocity/corpus-index";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 
 import { buildCitations, formatContext } from "./citations.js";
+import { getOrMintSessionId, sessionCookieHeader } from "./cookie.js";
 import {
   CHAT_FRAMES_CONTENT_TYPE,
   CHAT_RAW_CONTENT_TYPE,
@@ -14,12 +15,19 @@ import {
   encodeFrame,
   wantsFrames,
 } from "./frames.js";
+import { hashIp, viewerIp, viewerUserAgent } from "./ip.js";
 import {
   beaconContext,
   buildConverseMessages,
   lastUserText,
   parseChatRequest,
 } from "./messages.js";
+import {
+  RATE_LIMIT_TEXT,
+  type SessionStore,
+  type StoredMessage,
+} from "./sessions.js";
+import { defaultSessionStore } from "./store.js";
 import { SYSTEM_PROMPT } from "./system-prompt.js";
 
 const MODEL_ID =
@@ -35,6 +43,21 @@ function getClient(): BedrockRuntimeClient {
   return (client ??= new BedrockRuntimeClient({}));
 }
 
+function log(fields: Record<string, unknown>): void {
+  console.error(JSON.stringify(fields));
+}
+
+async function persistSafely(
+  label: string,
+  fn: () => Promise<unknown>,
+): Promise<void> {
+  try {
+    await fn();
+  } catch (error) {
+    log({ level: "warn", msg: label, error: String(error) });
+  }
+}
+
 export interface ChatRuntime {
   search?: (
     query: string,
@@ -44,6 +67,7 @@ export interface ChatRuntime {
     system: string;
     messages: Message[];
   }) => AsyncIterable<string>;
+  sessions?: SessionStore;
 }
 
 async function* bedrockTokens(args: {
@@ -73,8 +97,10 @@ async function* bedrockTokens(args: {
  *
  * Accept negotiation: `application/x-jlowe-chat-frames` or `text/event-stream`
  * → framed `application/x-ndjson`; otherwise today's raw `text/plain` deltas.
- * Headers (including the negotiated content-type) are set on
- * `HttpResponseStream.from` before the first write.
+ *
+ * Session cookie + HTTP status are set on `HttpResponseStream.from` **before
+ * the first write**. On a streaming Function URL the prelude is frozen at
+ * that call; a later `Set-Cookie` would be dropped.
  */
 export async function handleChatEvent(
   event: APIGatewayProxyEventV2,
@@ -83,13 +109,45 @@ export async function handleChatEvent(
 ): Promise<void> {
   const accept = event.headers?.accept ?? event.headers?.Accept;
   const framed = wantsFrames(accept);
+  const sessionId = getOrMintSessionId(event);
+  const sessions = runtime.sessions ?? defaultSessionStore();
+
+  let allowed = true;
+  try {
+    const result = await sessions.checkRateLimit(sessionId, {
+      ipHash: hashIp(viewerIp(event)),
+      userAgent: viewerUserAgent(event),
+    });
+    allowed = result.allowed;
+  } catch (error) {
+    log({
+      level: "warn",
+      msg: "session_rate_limit_failed",
+      error: String(error),
+    });
+    allowed = true;
+  }
+
   const stream = awslambda.HttpResponseStream.from(responseStream, {
-    statusCode: 200,
+    statusCode: allowed ? 200 : 429,
     headers: {
       "content-type": framed ? CHAT_FRAMES_CONTENT_TYPE : CHAT_RAW_CONTENT_TYPE,
       "cache-control": "no-store",
+      "set-cookie": sessionCookieHeader(sessionId),
     },
   });
+
+  if (!allowed) {
+    if (framed) {
+      for (const frame of closingFrames(RATE_LIMIT_TEXT, [])) {
+        stream.write(encodeFrame(frame));
+      }
+    } else {
+      stream.write(RATE_LIMIT_TEXT);
+    }
+    stream.end();
+    return;
+  }
 
   const search = runtime.search ?? searchKnowledge;
   const tokens = runtime.tokens ?? bedrockTokens;
@@ -97,6 +155,16 @@ export async function handleChatEvent(
   try {
     const req = parseChatRequest(event.body);
     const query = lastUserText(req.messages);
+    const nowIso = new Date().toISOString();
+
+    const userMessage: StoredMessage = {
+      role: "user",
+      content: query,
+      createdAt: nowIso,
+    };
+    await persistSafely("session_append_user_failed", () =>
+      sessions.appendMessage(sessionId, userMessage),
+    );
 
     const started = Date.now();
     const chunks = await search(query, { topK: TOP_K });
@@ -119,12 +187,24 @@ export async function handleChatEvent(
       "\n\n" +
       formatContext(chunks);
 
+    let assistantText = "";
     for await (const text of tokens({
       system,
       messages: buildConverseMessages(req.messages),
     })) {
+      assistantText += text;
       if (framed) stream.write(encodeFrame({ type: "text", content: text }));
       else stream.write(text);
+    }
+
+    if (assistantText) {
+      await persistSafely("session_append_assistant_failed", () =>
+        sessions.appendMessage(sessionId, {
+          role: "assistant",
+          content: assistantText,
+          createdAt: new Date().toISOString(),
+        }),
+      );
     }
 
     if (framed) {
@@ -133,13 +213,7 @@ export async function handleChatEvent(
       }
     }
   } catch (error) {
-    console.error(
-      JSON.stringify({
-        level: "error",
-        msg: "chat_failed",
-        error: String(error),
-      }),
-    );
+    log({ level: "error", msg: "chat_failed", error: String(error) });
     if (framed) {
       for (const frame of closingFrames(FAIL_OPEN_TEXT, [])) {
         stream.write(encodeFrame(frame));
