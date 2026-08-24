@@ -7,7 +7,7 @@ import { createStore } from "zustand/vanilla";
 
 import { chapterStore } from "@/components/world/state/chapter-store";
 
-import { type ChatMessage, streamChat } from "./stream";
+import { type ChatMessage, type ChatStreamEvent, streamChat } from "./stream";
 
 export type ChatStatus = "idle" | "streaming" | "error";
 
@@ -36,9 +36,40 @@ const noopStorage: StateStorage = {
 const PERSISTED_MESSAGES = 20;
 
 /**
+ * Fold a stream event into the live assistant turn. Text concatenates; citations
+ * and a booking CTA attach as structured fields (never invent a Cal.com URL —
+ * that arrives on the `meeting_booking` frame). An `error` frame keeps any
+ * partial text already streamed, otherwise uses the server message.
+ */
+export function foldAssistantEvent(
+  message: ChatMessage,
+  event: ChatStreamEvent,
+): ChatMessage {
+  switch (event.type) {
+    case "text":
+      return { ...message, content: message.content + event.content };
+    case "citations":
+      return { ...message, citations: event.items };
+    case "meeting_booking":
+      return {
+        ...message,
+        meetingBooking: { url: event.url, message: event.message },
+      };
+    case "error":
+      return {
+        ...message,
+        content: message.content || event.message || ERROR_FALLBACK,
+      };
+    case "meta":
+    case "done":
+      return message;
+  }
+}
+
+/**
  * Vanilla store for the docked digital-twin chat. Mirrors `chapter-store.ts`:
  * the panel subscribes via `useChat`, while `send()` drives a same-origin
- * streaming POST and appends each text delta to the live assistant message.
+ * streaming POST and folds each framed event into the live assistant message.
  * Only the last ~20 `messages` persist (key `velocity-chat`) — the open/input/
  * status are session UI, not history.
  */
@@ -93,29 +124,33 @@ export const chatStore = createStore<ChatState>()(
           const collectedBeacons = chapterStore.getState().collectedBeacons;
 
           try {
-            for await (const delta of streamChat(
+            let failed = false;
+            for await (const event of streamChat(
               {
-                messages: [...get().messages.slice(0, -1)],
+                // Role + content only — citations/booking are UI, not prompt.
+                messages: get()
+                  .messages.slice(0, -1)
+                  .map((m) => ({ role: m.role, content: m.content })),
                 context: { collectedBeacons },
               },
               signal,
             )) {
               if (signal.aborted) return;
-              // Append the delta to the live (last) assistant message.
+              if (event.type === "error") failed = true;
               set((s) => {
                 const messages = s.messages.slice();
                 const last = messages[messages.length - 1];
                 if (last && last.role === "assistant") {
-                  messages[messages.length - 1] = {
-                    role: "assistant",
-                    content: last.content + delta,
-                  };
+                  messages[messages.length - 1] = foldAssistantEvent(
+                    last,
+                    event,
+                  );
                 }
                 return { messages };
               });
             }
             if (signal.aborted) return;
-            set({ status: "idle" });
+            set({ status: failed ? "error" : "idle" });
           } catch {
             if (signal.aborted) return;
             // Replace the (possibly empty) assistant turn with a fallback line.
