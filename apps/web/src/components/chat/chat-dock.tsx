@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+import { ChatBubble } from "./chat-message";
 import { chatStore } from "./chat-store";
 import { useChat } from "./use-chat";
 
@@ -94,31 +95,10 @@ export function ChatDock() {
           </p>
         ) : (
           messages.map((m, i) => {
-            const isUser = m.role === "user";
             const isLast = i === messages.length - 1;
-            const streaming = !isUser && isLast && status === "streaming";
-            return (
-              <div
-                key={i}
-                data-role={m.role}
-                className={cn(
-                  "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap",
-                  isUser
-                    ? "self-end bg-primary text-primary-foreground"
-                    : "self-start bg-muted text-foreground",
-                )}
-              >
-                {m.content}
-                {streaming ? (
-                  <span
-                    aria-hidden
-                    className="ml-0.5 inline-block w-1.5 animate-pulse"
-                  >
-                    ▋
-                  </span>
-                ) : null}
-              </div>
-            );
+            const streaming =
+              m.role === "assistant" && isLast && status === "streaming";
+            return <ChatBubble key={i} message={m} streaming={streaming} />;
           })
         )}
       </div>
