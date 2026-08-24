@@ -301,6 +301,9 @@ describe("handleChatEvent sessions", () => {
         throw new Error("dynamo down");
       },
       update: async () => null,
+      listPending: async () => {
+        throw new Error("dynamo down");
+      },
     };
     await run(
       makeEvent({ messages: [{ role: "user", content: "hi" }] }),

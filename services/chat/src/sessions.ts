@@ -73,6 +73,8 @@ export interface SessionStore {
   get(sessionId: string): Promise<ChatSession | null>;
   appendMessage(sessionId: string, message: StoredMessage): Promise<void>;
   update(sessionId: string, patch: SessionPatch): Promise<ChatSession | null>;
+  /** Sparse GSI query: every row currently qualified && !emailedToOwner. */
+  listPending(): Promise<ChatSession[]>;
 }
 
 export function ttlEpoch(nowMs: number): number {

@@ -33,3 +33,18 @@ variable "calcom_event_type_slug" {
   type        = string
   default     = "30min"
 }
+
+variable "digest_from_address" {
+  description = "Verified From address for the nightly qualified-leads digest (same identity as contact)."
+  type        = string
+}
+
+variable "digest_to_address" {
+  description = "Owner inbox that receives the digest."
+  type        = string
+}
+
+variable "ses_identity_arn" {
+  description = "SES domain-identity ARN the digest SendEmail permission is scoped to."
+  type        = string
+}

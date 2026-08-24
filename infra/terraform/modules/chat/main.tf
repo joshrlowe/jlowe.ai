@@ -197,3 +197,107 @@ resource "aws_lambda_function_url" "chat" {
 
 # The CloudFront → Function URL invoke permission lives in the cdn module (it
 # needs the distribution ARN locally — defining it there avoids a cdn↔chat cycle).
+
+# --- Nightly digest ---------------------------------------------------------
+# EventBridge is the only invoker: no Function URL, no shared-secret. The
+# sparse GSI on the sessions table is the query surface (PR 4).
+locals {
+  digest_function_name = "jlowe-ai-chat-digest-${var.environment}"
+  digest_log_group     = "/aws/lambda/jlowe-ai-chat-digest-${var.environment}"
+}
+
+resource "aws_iam_role" "digest" {
+  name               = "jlowe-ai-chat-digest-${var.environment}"
+  assume_role_policy = data.aws_iam_policy_document.lambda_trust.json
+}
+
+data "aws_iam_policy_document" "digest" {
+  statement {
+    sid       = "Logs"
+    effect    = "Allow"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.digest.arn}:*"]
+  }
+
+  statement {
+    sid    = "DigestSessions"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:Query",
+    ]
+    resources = [
+      aws_dynamodb_table.sessions.arn,
+      "${aws_dynamodb_table.sessions.arn}/index/digest",
+    ]
+  }
+
+  statement {
+    sid       = "SendDigestEmail"
+    effect    = "Allow"
+    actions   = ["ses:SendEmail"]
+    resources = [var.ses_identity_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "ses:FromAddress"
+      values   = [var.digest_from_address]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "digest" {
+  name   = "digest"
+  role   = aws_iam_role.digest.id
+  policy = data.aws_iam_policy_document.digest.json
+}
+
+resource "aws_cloudwatch_log_group" "digest" {
+  name              = local.digest_log_group
+  retention_in_days = 14
+}
+
+resource "aws_lambda_function" "digest" {
+  function_name    = local.digest_function_name
+  role             = aws_iam_role.digest.arn
+  runtime          = "nodejs22.x"
+  handler          = "digest.handler"
+  filename         = var.lambda_zip_path
+  source_code_hash = filebase64sha256(var.lambda_zip_path)
+  timeout          = 30
+  memory_size      = 256
+
+  environment {
+    variables = {
+      CHAT_SESSIONS_TABLE = aws_dynamodb_table.sessions.name
+      DIGEST_FROM_ADDRESS = var.digest_from_address
+      DIGEST_TO_ADDRESS   = var.digest_to_address
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [filename, source_code_hash]
+  }
+
+  depends_on = [aws_cloudwatch_log_group.digest]
+}
+
+# 12:00 UTC — same wall-clock as v1's Vercel cron (`0 12 * * *`).
+resource "aws_cloudwatch_event_rule" "digest" {
+  name                = "jlowe-ai-chat-digest-${var.environment}"
+  schedule_expression = "cron(0 12 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "digest" {
+  rule = aws_cloudwatch_event_rule.digest.name
+  arn  = aws_lambda_function.digest.arn
+}
+
+resource "aws_lambda_permission" "digest_events" {
+  statement_id  = "AllowEventBridgeInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.digest.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.digest.arn
+}

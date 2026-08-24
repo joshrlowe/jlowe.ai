@@ -72,4 +72,10 @@ export class MemorySessionStore implements SessionStore {
     row.updatedAt = new Date().toISOString();
     return structuredClone(row);
   }
+
+  async listPending(): Promise<ChatSession[]> {
+    return [...this.rows.values()]
+      .filter((row) => row.digestPk !== undefined)
+      .map((row) => structuredClone(row));
+  }
 }

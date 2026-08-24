@@ -3,10 +3,12 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
+  QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 import {
   applyPatch,
+  DIGEST_PK_VALUE,
   newSession,
   nextRateLimitState,
   ttlEpoch,
@@ -170,6 +172,18 @@ export class DynamoSessionStore implements SessionStore {
     existing.updatedAt = new Date().toISOString();
     await this.put(existing);
     return existing;
+  }
+
+  async listPending(): Promise<ChatSession[]> {
+    const res = await this.doc.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        IndexName: "digest",
+        KeyConditionExpression: "digestPk = :pk",
+        ExpressionAttributeValues: { ":pk": DIGEST_PK_VALUE },
+      }),
+    );
+    return (res.Items ?? []).map((item) => fromItem(item));
   }
 
   private async put(session: ChatSession): Promise<void> {
