@@ -130,6 +130,52 @@ describe("config", () => {
 
       expect(config.mongodbUrl).toBeNull();
     });
+
+    it("should warn (not throw) when ADMIN_PASSWORD equals NEXTAUTH_SECRET", () => {
+      process.env.DATABASE_URL = "postgresql://test";
+      process.env.NEXTAUTH_SECRET = "shared-secret";
+      process.env.ADMIN_PASSWORD = "shared-secret";
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+      expect(() => getConfig()).not.toThrow();
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringMatching(/ADMIN_PASSWORD[\s\S]*NEXTAUTH_SECRET/)
+      );
+
+      warn.mockRestore();
+    });
+
+    it("should not warn when ADMIN_PASSWORD differs from NEXTAUTH_SECRET", () => {
+      process.env.DATABASE_URL = "postgresql://test";
+      process.env.NEXTAUTH_SECRET = "test-secret";
+      process.env.ADMIN_PASSWORD = "different-password";
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+      getConfig();
+
+      const adminWarns = warn.mock.calls.filter(
+        ([msg]) => typeof msg === "string" && msg.includes("ADMIN_PASSWORD")
+      );
+      expect(adminWarns).toHaveLength(0);
+
+      warn.mockRestore();
+    });
+
+    it("should not warn when ADMIN_PASSWORD is unset", () => {
+      process.env.DATABASE_URL = "postgresql://test";
+      process.env.NEXTAUTH_SECRET = "test-secret";
+      delete process.env.ADMIN_PASSWORD;
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+      getConfig();
+
+      const adminWarns = warn.mock.calls.filter(
+        ([msg]) => typeof msg === "string" && msg.includes("ADMIN_PASSWORD")
+      );
+      expect(adminWarns).toHaveLength(0);
+
+      warn.mockRestore();
+    });
   });
 
   describe("getConfigValue", () => {

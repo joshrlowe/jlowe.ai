@@ -53,6 +53,13 @@ export function getConfig(): Config {
     throw new Error("NEXTAUTH_SECRET must be set in environment variables");
   }
 
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminPassword && adminPassword === nextAuthSecret) {
+    console.warn(
+      "[config] ADMIN_PASSWORD MUST differ from NEXTAUTH_SECRET. They are currently identical, so a leaked NextAuth secret is also the admin login password. Rotate ADMIN_PASSWORD independently. This is a warning only — the process will continue so the Vercel rollback target stays up."
+    );
+  }
+
   // Optional environment variables with defaults
   const nextAuthUrl =
     process.env.NEXTAUTH_URL ||

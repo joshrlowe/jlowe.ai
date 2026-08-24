@@ -15,6 +15,13 @@ async function main() {
     process.exit(1);
   }
 
+  if (password === process.env.NEXTAUTH_SECRET) {
+    console.error(
+      "❌ ADMIN_PASSWORD must differ from NEXTAUTH_SECRET. Refusing to seed an admin whose password is the NextAuth secret."
+    );
+    process.exit(1);
+  }
+
   // Check if admin user already exists
   const existingAdmin = await prisma.adminUser.findUnique({
     where: { email },
