@@ -122,6 +122,18 @@ variable "contact_recipient_email" {
   default     = "joshlowe.cs@gmail.com"
 }
 
+variable "calcom_username" {
+  description = "Cal.com username for the chat book_meeting tool. Empty = tool stays dark."
+  type        = string
+  default     = ""
+}
+
+variable "calcom_event_type_slug" {
+  description = "Cal.com event-type slug appended to cal.com/{username}/{slug}."
+  type        = string
+  default     = "30min"
+}
+
 variable "verify_contact_recipient_identity" {
   description = <<-EOT
     Create the SES address identity for contact_recipient_email in this env.

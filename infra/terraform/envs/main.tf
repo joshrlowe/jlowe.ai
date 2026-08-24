@@ -48,9 +48,11 @@ module "cdn" {
 module "chat" {
   source = "../modules/chat"
 
-  environment      = var.environment
-  bedrock_model_id = var.bedrock_model_id
-  lambda_zip_path  = "${path.module}/../../../services/chat/dist/handler.zip"
+  environment            = var.environment
+  bedrock_model_id       = var.bedrock_model_id
+  lambda_zip_path        = "${path.module}/../../../services/chat/dist/handler.zip"
+  calcom_username        = var.calcom_username
+  calcom_event_type_slug = var.calcom_event_type_slug
 }
 
 module "contact" {

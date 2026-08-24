@@ -2,7 +2,7 @@ import {
   BedrockRuntimeClient,
   ConverseStreamCommand,
 } from "@aws-sdk/client-bedrock-runtime";
-import type { Message } from "@aws-sdk/client-bedrock-runtime";
+import type { Message, Tool } from "@aws-sdk/client-bedrock-runtime";
 import { searchKnowledge, type RetrievedChunk } from "@velocity/corpus-index";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 
@@ -17,6 +17,12 @@ import {
 } from "./frames.js";
 import { hashIp, viewerIp, viewerUserAgent } from "./ip.js";
 import {
+  classifyIntent,
+  highestPriorityIntent,
+  type ConversationTurn,
+  type Intent,
+} from "./intent.js";
+import {
   beaconContext,
   buildConverseMessages,
   lastUserText,
@@ -24,11 +30,21 @@ import {
 } from "./messages.js";
 import {
   RATE_LIMIT_TEXT,
+  type ChatSession,
   type SessionStore,
   type StoredMessage,
 } from "./sessions.js";
 import { defaultSessionStore } from "./store.js";
 import { SYSTEM_PROMPT } from "./system-prompt.js";
+import { IDLE, reduceStreamItem, type ToolCall } from "./tool-assembler.js";
+import {
+  BOOKING_CTA,
+  bookMeetingTool,
+  getCalcomBookingUrl,
+  isCalcomConfigured,
+  shouldExposeBookingTool,
+  type CalcomUrlInput,
+} from "./tools.js";
 
 const MODEL_ID =
   process.env.BEDROCK_MODEL_ID ?? "us.anthropic.claude-haiku-4-5-20251001-v1:0";
@@ -58,35 +74,63 @@ async function persistSafely(
   }
 }
 
+export interface TokenArgs {
+  system: string;
+  messages: Message[];
+  tools?: Tool[];
+  onToolUse?: (call: ToolCall) => void;
+}
+
 export interface ChatRuntime {
   search?: (
     query: string,
     options?: { topK?: number; sourceTypes?: string[] },
   ) => Promise<RetrievedChunk[]>;
-  tokens?: (args: {
-    system: string;
-    messages: Message[];
-  }) => AsyncIterable<string>;
+  tokens?: (args: TokenArgs) => AsyncIterable<string>;
   sessions?: SessionStore;
+  classifyIntent?: (
+    message: string,
+    history: ConversationTurn[],
+  ) => Promise<Intent>;
+  calcomConfigured?: boolean;
+  bookingUrl?: (input: CalcomUrlInput) => string | null;
 }
 
-async function* bedrockTokens(args: {
-  system: string;
-  messages: Message[];
-}): AsyncIterable<string> {
+async function* bedrockTokens(args: TokenArgs): AsyncIterable<string> {
   const command = new ConverseStreamCommand({
     modelId: MODEL_ID,
     system: [{ text: args.system }],
     messages: args.messages,
     inferenceConfig: { maxTokens: 800, temperature: 0.4 },
+    ...(args.tools && args.tools.length > 0
+      ? { toolConfig: { tools: args.tools } }
+      : {}),
   });
   const response = await getClient().send(command);
+  let state = IDLE;
   for await (const item of response.stream ?? []) {
-    if ("contentBlockDelta" in item) {
-      const text = item.contentBlockDelta?.delta?.text;
-      if (text) yield text;
-    }
+    const out = reduceStreamItem(state, item);
+    state = out.state;
+    if (out.text) yield out.text;
+    if (out.toolCall) args.onToolUse?.(out.toolCall);
   }
+}
+
+function asCalcomInput(input: Record<string, unknown>): CalcomUrlInput | null {
+  if (
+    typeof input.topicSummary !== "string" ||
+    input.topicSummary.trim() === ""
+  ) {
+    return null;
+  }
+  const parsed: CalcomUrlInput = { topicSummary: input.topicSummary };
+  if (typeof input.name === "string" && input.name.trim() !== "") {
+    parsed.name = input.name;
+  }
+  if (typeof input.email === "string" && input.email.trim() !== "") {
+    parsed.email = input.email;
+  }
+  return parsed;
 }
 
 /**
@@ -101,6 +145,9 @@ async function* bedrockTokens(args: {
  * Session cookie + HTTP status are set on `HttpResponseStream.from` **before
  * the first write**. On a streaming Function URL the prelude is frozen at
  * that call; a later `Set-Cookie` would be dropped.
+ *
+ * `book_meeting` is gated on `(qualified || intent === "evaluating") &&
+ * !bookingOffered` and fails closed when Cal.com is not configured.
  */
 export async function handleChatEvent(
   event: APIGatewayProxyEventV2,
@@ -113,12 +160,14 @@ export async function handleChatEvent(
   const sessions = runtime.sessions ?? defaultSessionStore();
 
   let allowed = true;
+  let session: ChatSession | undefined;
   try {
     const result = await sessions.checkRateLimit(sessionId, {
       ipHash: hashIp(viewerIp(event)),
       userAgent: viewerUserAgent(event),
     });
     allowed = result.allowed;
+    session = result.session;
   } catch (error) {
     log({
       level: "warn",
@@ -151,24 +200,31 @@ export async function handleChatEvent(
 
   const search = runtime.search ?? searchKnowledge;
   const tokens = runtime.tokens ?? bedrockTokens;
+  const classify = runtime.classifyIntent ?? classifyIntent;
+  const calcomConfigured = runtime.calcomConfigured ?? isCalcomConfigured();
+  const bookingUrl = runtime.bookingUrl ?? getCalcomBookingUrl;
 
   try {
     const req = parseChatRequest(event.body);
     const query = lastUserText(req.messages);
-    const nowIso = new Date().toISOString();
+    const history: ConversationTurn[] = req.messages.slice(0, -1);
+
+    const started = Date.now();
+    const [intent, chunks] = await Promise.all([
+      classify(query, history),
+      search(query, { topK: TOP_K }),
+    ]);
+    const retrievalMs = Date.now() - started;
 
     const userMessage: StoredMessage = {
       role: "user",
       content: query,
-      createdAt: nowIso,
+      createdAt: new Date().toISOString(),
+      intent,
     };
     await persistSafely("session_append_user_failed", () =>
       sessions.appendMessage(sessionId, userMessage),
     );
-
-    const started = Date.now();
-    const chunks = await search(query, { topK: TOP_K });
-    const retrievalMs = Date.now() - started;
 
     if (framed) {
       stream.write(
@@ -187,14 +243,52 @@ export async function handleChatEvent(
       "\n\n" +
       formatContext(chunks);
 
+    const exposeTool = session
+      ? shouldExposeBookingTool({
+          qualified: session.qualified,
+          bookingOffered: session.bookingOffered,
+          intent,
+          calcomConfigured,
+        })
+      : false;
+
+    let booking:
+      | { url: string; message: string; name?: string; email?: string }
+      | undefined;
+
     let assistantText = "";
     for await (const text of tokens({
       system,
       messages: buildConverseMessages(req.messages),
+      tools: exposeTool ? [bookMeetingTool] : undefined,
+      onToolUse: (call) => {
+        if (!exposeTool) return;
+        if (call.name !== "book_meeting" || booking) return;
+        const input = asCalcomInput(call.input);
+        if (!input) return;
+        const url = bookingUrl(input);
+        if (!url) return;
+        booking = {
+          url,
+          message: BOOKING_CTA,
+          name: input.name,
+          email: input.email,
+        };
+      },
     })) {
       assistantText += text;
       if (framed) stream.write(encodeFrame({ type: "text", content: text }));
       else stream.write(text);
+    }
+
+    if (framed && booking) {
+      stream.write(
+        encodeFrame({
+          type: "meeting_booking",
+          url: booking.url,
+          message: booking.message,
+        }),
+      );
     }
 
     if (assistantText) {
@@ -203,6 +297,18 @@ export async function handleChatEvent(
           role: "assistant",
           content: assistantText,
           createdAt: new Date().toISOString(),
+        }),
+      );
+    }
+
+    if (session) {
+      await persistSafely("session_update_failed", () =>
+        sessions.update(sessionId, {
+          qualified: session.qualified || intent === "evaluating",
+          bookingOffered: session.bookingOffered || Boolean(booking),
+          topIntent: highestPriorityIntent(session.topIntent, intent),
+          ...(booking?.name ? { capturedName: booking.name } : {}),
+          ...(booking?.email ? { capturedEmail: booking.email } : {}),
         }),
       );
     }

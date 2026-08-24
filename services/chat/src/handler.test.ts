@@ -13,7 +13,9 @@ import {
   FAIL_OPEN_TEXT,
   handleChatEvent,
   type ChatRuntime,
+  type TokenArgs,
 } from "./handler.js";
+import { BOOKING_CTA } from "./tools.js";
 import { MemorySessionStore } from "./memory-store.js";
 import {
   RATE_LIMIT_MAX,
@@ -103,6 +105,8 @@ function okRuntime(extras: Partial<ChatRuntime> = {}): ChatRuntime {
       yield "Hello";
       yield " world";
     },
+    classifyIntent: async () => "researching",
+    calcomConfigured: false,
     ...extras,
   };
 }
@@ -169,13 +173,16 @@ describe("handleChatEvent Accept negotiation", () => {
 
 describe("handleChatEvent fail-open", () => {
   it("writes the friendly line in raw mode when the model throws", async () => {
-    await run(makeEvent({ messages: [{ role: "user", content: "hi" }] }), {
-      search: async () => [],
-      tokens: async function* () {
-        yield* [];
-        throw new Error("bedrock down");
-      },
-    });
+    await run(
+      makeEvent({ messages: [{ role: "user", content: "hi" }] }),
+      okRuntime({
+        search: async () => [],
+        tokens: async function* () {
+          yield* [];
+          throw new Error("bedrock down");
+        },
+      }),
+    );
     expect(captured.headers?.["content-type"]).toBe(CHAT_RAW_CONTENT_TYPE);
     expect(captured.writes.join("")).toBe(`\n\n${FAIL_OPEN_TEXT}`);
     expect(captured.ended).toBe(true);
@@ -192,13 +199,13 @@ describe("handleChatEvent fail-open", () => {
         { messages: [{ role: "user", content: "hi" }] },
         { accept: CHAT_FRAMES_ACCEPT },
       ),
-      {
+      okRuntime({
         search: async () => [jarvis],
         tokens: async function* () {
           yield "partial";
           throw new Error("stream died");
         },
-      },
+      }),
     );
     const body = captured.writes.join("");
     expect(body).toContain('"type":"meta"');
@@ -304,5 +311,155 @@ describe("handleChatEvent sessions", () => {
     expect(
       captured.headers?.["set-cookie"]?.startsWith(`${COOKIE_NAME}=`),
     ).toBe(true);
+  });
+});
+
+describe("handleChatEvent book_meeting gating", () => {
+  const SESSION = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
+  const framedHeaders = { accept: CHAT_FRAMES_ACCEPT };
+  const framedCookies = [`${COOKIE_NAME}=${SESSION}`];
+
+  it("does not pass tools when intent is researching", async () => {
+    let tools: TokenArgs["tools"];
+    const store = new MemorySessionStore();
+    await run(
+      makeEvent(
+        { messages: [{ role: "user", content: "who is josh" }] },
+        framedHeaders,
+        framedCookies,
+      ),
+      okRuntime({
+        sessions: store,
+        calcomConfigured: true,
+        classifyIntent: async () => "researching",
+        tokens: async function* (args) {
+          tools = args.tools;
+          yield "Hi";
+        },
+      }),
+    );
+    expect(tools).toBeUndefined();
+    expect(captured.writes.join("")).not.toContain("meeting_booking");
+  });
+
+  it("passes book_meeting when evaluating and Cal.com is configured", async () => {
+    let tools: TokenArgs["tools"];
+    const store = new MemorySessionStore();
+    await run(
+      makeEvent(
+        { messages: [{ role: "user", content: "I need a RAG funnel built" }] },
+        framedHeaders,
+        framedCookies,
+      ),
+      okRuntime({
+        sessions: store,
+        calcomConfigured: true,
+        classifyIntent: async () => "evaluating",
+        bookingUrl: () => "https://cal.com/joshlowe/30min?notes=RAG",
+        tokens: async function* (args) {
+          tools = args.tools;
+          yield "Let's talk. ";
+          args.onToolUse?.({
+            name: "book_meeting",
+            input: { topicSummary: "RAG funnel", name: "Ada" },
+          });
+        },
+      }),
+    );
+    expect(tools?.[0]?.toolSpec?.name).toBe("book_meeting");
+    const body = captured.writes.join("");
+    expect(body).toContain('"type":"meeting_booking"');
+    expect(body).toContain("https://cal.com/joshlowe/30min?notes=RAG");
+    expect(body).toContain(BOOKING_CTA);
+    const idxBook = body.indexOf('"type":"meeting_booking"');
+    const idxCite = body.indexOf('"type":"citations"');
+    expect(idxBook).toBeGreaterThan(-1);
+    expect(idxCite).toBeGreaterThan(idxBook);
+    const row = store.snapshot(SESSION);
+    expect(row?.qualified).toBe(true);
+    expect(row?.bookingOffered).toBe(true);
+    expect(row?.digestPk).toBe("PENDING");
+    expect(row?.capturedName).toBe("Ada");
+    expect(row?.topIntent).toBe("evaluating");
+  });
+
+  it("fails closed: evaluating but no Cal.com means no tools and no booking frame", async () => {
+    let tools: TokenArgs["tools"];
+    const store = new MemorySessionStore();
+    await run(
+      makeEvent(
+        { messages: [{ role: "user", content: "hire me a twin" }] },
+        framedHeaders,
+        framedCookies,
+      ),
+      okRuntime({
+        sessions: store,
+        calcomConfigured: false,
+        classifyIntent: async () => "evaluating",
+        bookingUrl: () => "https://cal.com/should-not-run",
+        tokens: async function* (args) {
+          tools = args.tools;
+          yield "Hi";
+          args.onToolUse?.({
+            name: "book_meeting",
+            input: { topicSummary: "x" },
+          });
+        },
+      }),
+    );
+    expect(tools).toBeUndefined();
+    expect(captured.writes.join("")).not.toContain("meeting_booking");
+    expect(store.snapshot(SESSION)?.bookingOffered).toBe(false);
+    expect(store.snapshot(SESSION)?.qualified).toBe(true);
+  });
+
+  it("fails closed: tool fired but bookingUrl returns null — no frame", async () => {
+    const store = new MemorySessionStore();
+    await run(
+      makeEvent(
+        { messages: [{ role: "user", content: "hire" }] },
+        framedHeaders,
+        framedCookies,
+      ),
+      okRuntime({
+        sessions: store,
+        calcomConfigured: true,
+        classifyIntent: async () => "evaluating",
+        bookingUrl: () => null,
+        tokens: async function* (args) {
+          yield "Hi";
+          args.onToolUse?.({
+            name: "book_meeting",
+            input: { topicSummary: "x" },
+          });
+        },
+      }),
+    );
+    expect(captured.writes.join("")).not.toContain("meeting_booking");
+    expect(store.snapshot(SESSION)?.bookingOffered).toBe(false);
+  });
+
+  it("does not re-expose the tool once bookingOffered is set", async () => {
+    const store = new MemorySessionStore();
+    await store.checkRateLimit(SESSION, { ipHash: "x", userAgent: "t" }, 1);
+    await store.update(SESSION, { qualified: true, bookingOffered: true });
+    let tools: TokenArgs["tools"];
+    await run(
+      makeEvent(
+        { messages: [{ role: "user", content: "still evaluating" }] },
+        framedHeaders,
+        framedCookies,
+      ),
+      okRuntime({
+        sessions: store,
+        calcomConfigured: true,
+        classifyIntent: async () => "evaluating",
+        tokens: async function* (args) {
+          tools = args.tools;
+          yield "Hi";
+        },
+      }),
+    );
+    expect(tools).toBeUndefined();
   });
 });
