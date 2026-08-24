@@ -30,15 +30,20 @@ resource "aws_sesv2_email_identity" "sender" {
 }
 
 resource "aws_route53_record" "dkim" {
-  # Exactly three tokens per Easy DKIM identity; keyed by token so a key
-  # rotation replaces records cleanly instead of churning on index shifts.
-  for_each = toset(aws_sesv2_email_identity.sender.dkim_signing_attributes[0].tokens)
+  # Easy DKIM always returns exactly three tokens, and `count` (not `for_each`)
+  # is the pattern that works here: the tokens are only known after apply, and a
+  # for_each keyed on them fails the plan outright with "Invalid for_each
+  # argument ... known only after apply". A fixed count is known at plan time and
+  # leaves just the record names/values as "known after apply".
+  count = 3
 
-  zone_id         = var.zone_id
-  name            = "${each.value}._domainkey.${var.domain_name}"
-  type            = "CNAME"
-  ttl             = 1800
-  records         = ["${each.value}.dkim.amazonses.com"]
+  zone_id = var.zone_id
+  name    = "${aws_sesv2_email_identity.sender.dkim_signing_attributes[0].tokens[count.index]}._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 1800
+  records = ["${aws_sesv2_email_identity.sender.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
+  # A re-verified identity reissues tokens; UPSERT rather than failing on a
+  # record set that already exists.
   allow_overwrite = true
 }
 

@@ -97,6 +97,10 @@ jobs:
       - run: terraform -chdir=infra/terraform/${{ matrix.dir }} init -reconfigure ${{ matrix.backend }}
       - name: Plan
         run: |
+          # pipefail is load-bearing: without it `terraform plan | tee` reports
+          # tee's exit status, so a plan that *errored* still passed the job.
+          # (A `for_each` over unknown values slipped through exactly this way.)
+          set -o pipefail
           terraform -chdir=infra/terraform/${{ matrix.dir }} plan -lock=false ${{ matrix.varfile }} -no-color \
             | tee -a "$GITHUB_STEP_SUMMARY"
 
