@@ -21,3 +21,13 @@ output "function_arn" {
   description = "Lambda function ARN."
   value       = aws_lambda_function.chat.arn
 }
+
+output "sessions_table_name" {
+  description = "DynamoDB table for chat sessions (digest Lambda reads the sparse GSI)."
+  value       = aws_dynamodb_table.sessions.name
+}
+
+output "sessions_table_arn" {
+  description = "ARN of the chat-sessions table, including for GSI IAM in the digest function."
+  value       = aws_dynamodb_table.sessions.arn
+}
