@@ -108,3 +108,26 @@ variable "cert_serial" {
   type        = number
   default     = 1
 }
+
+variable "contact_rate_limit" {
+  description = "Per-IP WAF rate limit for /api/contact* over 5 minutes (see modules/waf)"
+  type        = number
+  default     = 100
+}
+
+# --- Contact form (modules/contact) -----------------------------------------
+variable "contact_recipient_email" {
+  description = "Inbox that receives contact-form submissions."
+  type        = string
+  default     = "joshlowe.cs@gmail.com"
+}
+
+variable "verify_contact_recipient_identity" {
+  description = <<-EOT
+    Create the SES address identity for contact_recipient_email in this env.
+    It is an account+region singleton, so exactly ONE environment may set it —
+    prod does; dev inherits the verification. See modules/contact/variables.tf.
+  EOT
+  type        = bool
+  default     = false
+}

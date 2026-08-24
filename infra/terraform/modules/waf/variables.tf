@@ -19,6 +19,23 @@ variable "rate_limit" {
   }
 }
 
+variable "contact_rate_limit" {
+  description = <<-EOT
+    Max requests to /api/contact* per originating IP over a rolling 5-minute
+    window before that IP is blocked. WAFv2's floor is 100, which is already ~2
+    orders of magnitude above a human filling in a contact form, so the floor is
+    the default — it stops an SES-cost / inbox-flood loop without ever tripping
+    on real use.
+  EOT
+  type        = number
+  default     = 100
+
+  validation {
+    condition     = var.contact_rate_limit >= 100
+    error_message = "WAFv2 rate-based statements require a limit of at least 100."
+  }
+}
+
 variable "managed_rules_count_only" {
   description = <<-EOT
     Run the AWS managed rule groups (IP reputation, common, known-bad-inputs) in

@@ -8,6 +8,14 @@ robots_noindex = true
 # noindex'd dev host; prod keeps the default (true).
 mask_origin_403_as_404 = false
 
+# --- Contact form (modules/contact) -----------------------------------------
+# dev sends from contact@dev.jlowe.ai (its own SES domain identity). The
+# recipient *address* identity is an account+region singleton owned by prod, so
+# this stays false here — flipping it on would make the second apply fail with
+# AlreadyExistsException.
+contact_recipient_email           = "joshlowe.cs@gmail.com"
+verify_contact_recipient_identity = false
+
 # --- Cost guardrails (Stage 2.4) --------------------------------------------
 # Flip enable_* to true and supply real emails at a gated apply; false keeps the
 # plan a no-op. Dev thresholds are deliberately loose (low traffic, noisy).

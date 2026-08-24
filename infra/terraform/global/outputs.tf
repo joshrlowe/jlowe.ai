@@ -16,6 +16,10 @@ output "deploy_chat_role_arn" {
   value = aws_iam_role.deploy_chat.arn
 }
 
+output "deploy_contact_role_arn" {
+  value = aws_iam_role.deploy_contact.arn
+}
+
 output "terraform_role_arn" {
   value = aws_iam_role.terraform.arn
 }

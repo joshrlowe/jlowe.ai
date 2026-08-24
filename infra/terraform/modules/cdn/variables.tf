@@ -46,6 +46,16 @@ variable "chat_function_name" {
   type        = string
 }
 
+variable "contact_function_url_host" {
+  description = "Hostname of the contact Lambda Function URL — the origin for /api/contact*."
+  type        = string
+}
+
+variable "contact_function_name" {
+  description = "Contact Lambda function name (for the CloudFront invoke permissions)."
+  type        = string
+}
+
 variable "mask_origin_403_as_404" {
   description = <<-EOT
     When true (default, prod-safe), a distribution-wide custom error response

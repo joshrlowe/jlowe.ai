@@ -12,6 +12,12 @@
 #                             BLOCK, in every env — this is a cost guardrail, not
 #                             a content filter, and 1000 req / 5 min per IP is far
 #                             above any legitimate human usage.
+#   1  rate-limit-api-contact — rate-based, scoped to /api/contact*. The contact
+#                             endpoint sends real email on an unauthenticated
+#                             POST, so an unbounded loop is both an SES-cost and
+#                             an inbox-flood vector. Tighter than chat's limit
+#                             because a human submits the form a handful of
+#                             times, not hundreds. Always BLOCK, in every env.
 #   10 ip-reputation        — AmazonIpReputationList (known malicious sources).
 #   20 common               — AWSManagedRulesCommonRuleSet (OWASP-ish baseline).
 #   30 known-bad-inputs     — AWSManagedRulesKnownBadInputsRuleSet.
@@ -78,6 +84,44 @@ resource "aws_wafv2_web_acl" "this" {
     visibility_config {
       cloudwatch_metrics_enabled = true
       metric_name                = "${local.name_prefix}-rate-limit-api-chat"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # --- 1: rate limit /api/contact* (per-IP spam + SES-cost guardrail) -------
+  rule {
+    name     = "rate-limit-api-contact"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit                 = var.contact_rate_limit
+        aggregate_key_type    = "IP"
+        evaluation_window_sec = 300 # 5 minutes
+
+        scope_down_statement {
+          byte_match_statement {
+            search_string         = "/api/contact"
+            positional_constraint = "STARTS_WITH"
+            field_to_match {
+              uri_path {}
+            }
+            text_transformation {
+              priority = 0
+              type     = "NONE"
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-rate-limit-api-contact"
       sampled_requests_enabled   = true
     }
   }

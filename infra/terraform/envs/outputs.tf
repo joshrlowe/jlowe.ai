@@ -20,6 +20,21 @@ output "chat_function_name" {
   value       = module.chat.function_name
 }
 
+output "contact_endpoint" {
+  description = "Function URL for the contact Lambda (reached in production via /api/contact)"
+  value       = module.contact.function_url
+}
+
+output "contact_function_name" {
+  description = "Contact Lambda name (gha-deploy-contact targets this)"
+  value       = module.contact.function_name
+}
+
+output "contact_from_address" {
+  description = "Verified SES address the contact form sends from"
+  value       = module.contact.from_address
+}
+
 output "budget_id" {
   description = "Monthly cost budget id (null when budgets are disabled)."
   value       = var.enable_budgets ? module.budgets[0].budget_id : null
