@@ -39,7 +39,7 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
@@ -51,7 +51,7 @@ jobs:
       matrix:
         stack: [global, envs]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TF_VERSION }}
@@ -80,7 +80,7 @@ jobs:
               varfile: "-var-file=dev.tfvars",
             }
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.GHA_TERRAFORM_PLAN_ROLE_ARN }}
@@ -105,7 +105,7 @@ jobs:
     # Account singletons (global) get the strictest reviewer gate.
     environment: ${{ inputs.stack == 'global' && 'terraform-prod' || format('terraform-{0}', inputs.environment) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.GHA_TERRAFORM_ROLE_ARN }}
