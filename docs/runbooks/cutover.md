@@ -1,5 +1,15 @@
 # Stage 4 — Production cutover runbook
 
+> **Status (2026-09-28): do not execute this file from a feature PR.** A live
+> request that day found `https://jlowe.ai` already answering from CloudFront/S3
+> with the Velocity flat shell, and `https://www.jlowe.ai` 301ing to the apex.
+> `https://jlowe-ai.vercel.app` still serves v1. Git `main` (`cb45fe4`) is still
+> the v1 tree, and `CUTOVER_ENABLED` is not flipped by this document. The
+> “Current wiring” table below still says the apex A record is Vercel
+> `76.76.21.21` — that line is stale relative to the 2026-09-28 response.
+> Re-verify DNS and both branches before any step. Do not change records, merge
+> `v2` into `main`, or set `CUTOVER_ENABLED` because you read this page.
+
 Move `jlowe.ai` (apex) from the **v1 Vercel** deployment to the **v2 CloudFront**
 stack, activate push-to-`main` deploys, and retire the v1 pipeline — **without a
 window where the apex is unresolvable**, and with a tested one-move rollback.

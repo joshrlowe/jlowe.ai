@@ -1,0 +1,5 @@
+# Review requests only. This file does not grant Terraform apply, DNS changes,
+# or a merge to `main`. No other CODEOWNERS file exists in this repo.
+
+/infra/ @joshrlowe
+/docs/runbooks/ @joshrlowe
