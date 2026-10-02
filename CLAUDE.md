@@ -46,7 +46,7 @@ node scripts/check-bundle-budget.mjs   # gzip first-load JS vs budgets.json (aft
 ## Deploy / infra
 
 - Web deploys: `.github/workflows/deploy-web.yml` (workflow_dispatch env dev|prod) — OIDC role, two-tier `s3 sync` (immutable `_next/static` + `assets/`, no-cache HTML), CloudFront invalidation.
-- Terraform: `.github/workflows/terraform.yml` — fmt/validate/plan on PRs touching `infra/**`; applies via dispatch behind `terraform-dev`/`terraform-prod` reviewer gates.
+- Terraform: `.github/workflows/terraform.yml` — fmt/validate/plan on PRs touching `infra/**`; applies via dispatch behind `terraform-dev`/`terraform-prod` reviewer gates. `gha-terraform` is a scoped inline policy (service allow-list, `jlowe-ai-*`/`gha-*` prefixes, explicit IAM denials) — not `AdministratorAccess`.
 - Chat + contact deploys: `.github/workflows/deploy-chat.yml` / `deploy-contact.yml` — same shape (OIDC role scoped to `lambda:UpdateFunctionCode` on that one function; Terraform owns config).
 - Static-export constraints: no middleware/ISR/Server Actions/headers()/redirects()/Image optimization. CDN owns headers, 404 mapping, and URL rewrites (`infra/terraform/modules/cdn`). **Anything dynamic is a Lambda behind an `/api/*` CloudFront behavior** — and every client fetch to one MUST send `x-amz-content-sha256` (the hex SHA-256 of the body), or CloudFront's OAC SigV4 signature omits the payload hash and the Function URL rejects the request.
 - dev environment serves at https://dev.jlowe.ai with `X-Robots-Tag: noindex` (header set by the dev CloudFront distribution — app code ships prod-true SEO).

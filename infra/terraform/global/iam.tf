@@ -10,6 +10,15 @@ data "aws_iam_openid_connect_provider" "github" {
 locals {
   oidc_arn = data.aws_iam_openid_connect_provider.github.arn
   repo     = var.github_repo
+
+  # gha-terraform may manage (and PassRole) only these role-name prefixes.
+  # Covers Lambda exec roles (jlowe-ai-chat, -digest, -contact) and CI roles
+  # (gha-deploy-*, gha-eval, gha-terraform*). First apply of the scoped
+  # policy is lock-in — a missing prefix cannot be created afterwards.
+  terraform_iam_role_arns = [
+    "arn:aws:iam::${var.aws_account_id}:role/jlowe-ai-*",
+    "arn:aws:iam::${var.aws_account_id}:role/gha-*",
+  ]
 }
 
 # --- gha-deploy-web: s3 sync + CloudFront invalidation ----------------------
@@ -207,7 +216,7 @@ resource "aws_iam_role_policy" "eval" {
   policy = data.aws_iam_policy_document.eval.json
 }
 
-# --- gha-terraform: gated apply (AdministratorAccess) -----------------------
+# --- gha-terraform: gated apply (scoped, not AdministratorAccess) -----------
 data "aws_iam_policy_document" "terraform_trust" {
   statement {
     effect  = "Allow"
@@ -237,13 +246,344 @@ resource "aws_iam_role" "terraform" {
   assume_role_policy = data.aws_iam_policy_document.terraform_trust.json
 }
 
-# TODO(later-phase): scope down from AdministratorAccess once the resource
-# surface (Lambda/Bedrock IAM, WAF, budgets) stabilizes. The real boundary
-# today is the trust policy (single repo, exact environment subs) plus the
-# required-reviewer environment gate on applies.
-resource "aws_iam_role_policy_attachment" "terraform_admin" {
-  role       = aws_iam_role.terraform.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+# Service allow-list for what the stacks actually manage. Twin resources as of
+# 2026-08-25 are covered by the named wildcards, not extra statements:
+#   DynamoDB  table/jlowe-ai-*            (sessions + digest GSI)
+#   Lambda    function/jlowe-ai-*         (chat, digest, contact)
+#   events    rule/jlowe-ai-*             (digest cron)
+#   SSM       parameter/jlowe-ai*         (Langfuse SecureStrings)
+#   SES       identity/*                  (domain + sandbox recipient)
+#   gha-eval  role/gha-*
+# Still broad: CloudFront, ACM, and WAFv2 ARNs are opaque IDs so those writes
+# stay account-scoped. A step down from AdministratorAccess — no EC2/RDS/
+# Organizations/IAM users — not a substitute for the OIDC trust + reviewer gate.
+data "aws_iam_policy_document" "terraform_apply" {
+  statement {
+    sid    = "ReadForRefresh"
+    effect = "Allow"
+    actions = [
+      "acm:Describe*",
+      "acm:Get*",
+      "acm:List*",
+      "budgets:Describe*",
+      "budgets:View*",
+      "cloudfront:Describe*",
+      "cloudfront:Get*",
+      "cloudfront:List*",
+      "cloudwatch:Describe*",
+      "cloudwatch:Get*",
+      "cloudwatch:List*",
+      "dynamodb:Describe*",
+      "dynamodb:List*",
+      "events:Describe*",
+      "events:List*",
+      "iam:Get*",
+      "iam:List*",
+      "lambda:Describe*",
+      "lambda:Get*",
+      "lambda:List*",
+      "logs:Describe*",
+      "logs:Get*",
+      "logs:List*",
+      "route53:Get*",
+      "route53:List*",
+      "s3:Describe*",
+      "s3:Get*",
+      "s3:List*",
+      "ses:Describe*",
+      "ses:Get*",
+      "ses:List*",
+      "sns:Get*",
+      "sns:List*",
+      "ssm:Describe*",
+      "ssm:Get*",
+      "ssm:List*",
+      "wafv2:Describe*",
+      "wafv2:Get*",
+      "wafv2:List*",
+      "tag:GetResources",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "S3NamedBuckets"
+    effect = "Allow"
+    actions = [
+      "s3:*",
+    ]
+    resources = [
+      "arn:aws:s3:::jlowe-ai-*",
+      "arn:aws:s3:::jlowe-ai-*/*",
+    ]
+  }
+
+  statement {
+    sid    = "IamNamedRolesAndPolicies"
+    effect = "Allow"
+    actions = [
+      "iam:AttachRolePolicy",
+      "iam:CreatePolicy",
+      "iam:CreatePolicyVersion",
+      "iam:CreateRole",
+      "iam:DeletePolicy",
+      "iam:DeletePolicyVersion",
+      "iam:DeleteRole",
+      "iam:DeleteRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:PutRolePolicy",
+      "iam:SetDefaultPolicyVersion",
+      "iam:TagPolicy",
+      "iam:TagRole",
+      "iam:UntagPolicy",
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:UpdateRole",
+      "iam:UpdateRoleDescription",
+    ]
+    resources = concat(local.terraform_iam_role_arns, [
+      "arn:aws:iam::${var.aws_account_id}:policy/jlowe-ai-*",
+      "arn:aws:iam::${var.aws_account_id}:policy/gha-*",
+    ])
+  }
+
+  statement {
+    sid    = "PassNamedRoles"
+    effect = "Allow"
+    actions = [
+      "iam:PassRole",
+    ]
+    resources = local.terraform_iam_role_arns
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values = [
+        "lambda.amazonaws.com",
+        "events.amazonaws.com",
+      ]
+    }
+  }
+
+  statement {
+    sid    = "ServiceLinkedRoles"
+    effect = "Allow"
+    actions = [
+      "iam:CreateServiceLinkedRole",
+    ]
+    resources = [
+      "arn:aws:iam::${var.aws_account_id}:role/aws-service-role/delivery.logs.amazonaws.com/*",
+      "arn:aws:iam::${var.aws_account_id}:role/aws-service-role/budgets.amazonaws.com/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:AWSServiceName"
+      values = [
+        "delivery.logs.amazonaws.com",
+        "budgets.amazonaws.com",
+      ]
+    }
+  }
+
+  statement {
+    sid    = "LambdaNamedFunctions"
+    effect = "Allow"
+    actions = [
+      "lambda:*",
+    ]
+    resources = [
+      "arn:aws:lambda:us-east-1:${var.aws_account_id}:function:jlowe-ai-*",
+      "arn:aws:lambda:us-east-1:${var.aws_account_id}:function:jlowe-ai-*:*",
+    ]
+  }
+
+  statement {
+    sid    = "CloudWatchAlarms"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:*",
+    ]
+    resources = [
+      "arn:aws:cloudwatch:us-east-1:${var.aws_account_id}:alarm:jlowe-ai-*",
+    ]
+  }
+
+  statement {
+    sid    = "SnsNamedTopics"
+    effect = "Allow"
+    actions = [
+      "sns:*",
+    ]
+    resources = [
+      "arn:aws:sns:us-east-1:${var.aws_account_id}:jlowe-ai-*",
+    ]
+  }
+
+  statement {
+    sid    = "Budgets"
+    effect = "Allow"
+    actions = [
+      "budgets:*",
+    ]
+    resources = [
+      "arn:aws:budgets::${var.aws_account_id}:budget/jlowe-ai-*",
+    ]
+  }
+
+  statement {
+    sid    = "Route53"
+    effect = "Allow"
+    actions = [
+      "route53:ChangeResourceRecordSets",
+      "route53:ChangeTagsForResource",
+      "route53:CreateHostedZone",
+      "route53:DeleteHostedZone",
+      "route53:UpdateHostedZoneComment",
+    ]
+    resources = ["*"]
+  }
+
+  # CloudFront / ACM / WAFv2 identifiers are random, so writes stay
+  # account-scoped. Service prefixes still exclude unrelated APIs.
+  statement {
+    sid    = "CloudFrontAcmWaf"
+    effect = "Allow"
+    actions = [
+      "acm:*",
+      "cloudfront:*",
+      "wafv2:*",
+    ]
+    resources = ["*"]
+  }
+
+  # CloudFront standard logging v2 (delivery source/destination/delivery) plus
+  # Lambda log groups. Delivery APIs require Resource "*".
+  statement {
+    sid    = "Logs"
+    effect = "Allow"
+    actions = [
+      "logs:*",
+    ]
+    resources = ["*"]
+  }
+
+  # SES v2 identities are domain names (jlowe.ai / dev.jlowe.ai) and a sandbox
+  # recipient address — not the jlowe-ai-* prefix.
+  statement {
+    sid    = "SesIdentities"
+    effect = "Allow"
+    actions = [
+      "ses:*",
+    ]
+    resources = [
+      "arn:aws:ses:us-east-1:${var.aws_account_id}:identity/*",
+      "arn:aws:ses:us-east-1:${var.aws_account_id}:configuration-set/jlowe-ai-*",
+    ]
+  }
+
+  statement {
+    sid    = "DynamoDbNamedTables"
+    effect = "Allow"
+    actions = [
+      "dynamodb:*",
+    ]
+    resources = [
+      "arn:aws:dynamodb:us-east-1:${var.aws_account_id}:table/jlowe-ai-*",
+      "arn:aws:dynamodb:us-east-1:${var.aws_account_id}:table/jlowe-ai-*/*",
+    ]
+  }
+
+  statement {
+    sid    = "EventBridge"
+    effect = "Allow"
+    actions = [
+      "events:*",
+    ]
+    resources = [
+      "arn:aws:events:us-east-1:${var.aws_account_id}:event-bus/default",
+      "arn:aws:events:us-east-1:${var.aws_account_id}:event-bus/jlowe-ai-*",
+      "arn:aws:events:us-east-1:${var.aws_account_id}:rule/jlowe-ai-*",
+      "arn:aws:events:us-east-1:${var.aws_account_id}:rule/jlowe-ai-*/*",
+      "arn:aws:events:us-east-1:${var.aws_account_id}:rule/*/jlowe-ai-*",
+    ]
+  }
+
+  statement {
+    sid    = "SsmNamedParameters"
+    effect = "Allow"
+    actions = [
+      "ssm:*",
+    ]
+    resources = [
+      "arn:aws:ssm:us-east-1:${var.aws_account_id}:parameter/jlowe-ai*",
+    ]
+  }
+
+  statement {
+    sid    = "KmsForSsmSecureString"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+    ]
+    resources = [
+      "arn:aws:kms:us-east-1:${var.aws_account_id}:key/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = ["ssm.us-east-1.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid    = "DenyIamUserPrivilegeEscalation"
+    effect = "Deny"
+    actions = [
+      "iam:AttachUserPolicy",
+      "iam:CreateAccessKey",
+      "iam:CreateUser",
+      "iam:PutUserPolicy",
+      "iam:*LoginProfile*",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "DenyUpdateAssumeRolePolicyOutsidePrefixes"
+    effect = "Deny"
+    actions = [
+      "iam:UpdateAssumeRolePolicy",
+    ]
+    not_resources = local.terraform_iam_role_arns
+  }
+
+  statement {
+    sid    = "DenyAttachHighPrivilegeManagedPolicies"
+    effect = "Deny"
+    actions = [
+      "iam:AttachGroupPolicy",
+      "iam:AttachRolePolicy",
+      "iam:AttachUserPolicy",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "ArnEquals"
+      variable = "iam:PolicyARN"
+      values = [
+        "arn:aws:iam::aws:policy/AdministratorAccess",
+        "arn:aws:iam::aws:policy/IAMFullAccess",
+        "arn:aws:iam::aws:policy/PowerUserAccess",
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "terraform_apply" {
+  name   = "terraform-apply"
+  role   = aws_iam_role.terraform.id
+  policy = data.aws_iam_policy_document.terraform_apply.json
 }
 
 # --- gha-terraform-plan: PR plans (read-only, reviewer-free) ----------------
