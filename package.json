@@ -33,6 +33,9 @@
     "jobs:dev": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest",
     "postbuild": "next-sitemap --config next-sitemap.config.cjs"
   },
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1110.0",
     "@prisma/client": "^5.20.0",
