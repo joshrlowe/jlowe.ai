@@ -101,6 +101,31 @@ const nextConfig = {
         destination: "/admin/articles/new",
         permanent: true,
       },
+      // The apex served the Velocity (v2) site from 2026-07-27 to 2026-10,
+      // so search engines indexed its project URLs. Map the ones v1 also
+      // has to v1's slugs for good.
+      {
+        source: "/projects/apr-benchmark",
+        destination: "/projects/cross-model-apr-benchmark",
+        permanent: true,
+      },
+      {
+        source: "/projects/mia-federated-learning",
+        destination: "/projects/mia-mitigation-in-fed-learning",
+        permanent: true,
+      },
+      // v2-only case studies may be ported later, so these stay temporary
+      // rather than teaching crawlers a permanent move to the index.
+      {
+        source: "/projects/:slug(jarvis|mailsweep|bidops|digital-twin|rag|reliability|velocity)",
+        destination: "/projects",
+        permanent: false,
+      },
+      {
+        source: "/world",
+        destination: "/",
+        permanent: false,
+      },
     ];
   },
 };
