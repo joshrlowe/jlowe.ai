@@ -9,7 +9,7 @@ data "aws_iam_openid_connect_provider" "github" {
 
 locals {
   oidc_arn = data.aws_iam_openid_connect_provider.github.arn
-  repo     = var.github_repo
+  repos    = var.github_repos
 }
 
 # --- gha-deploy-web: s3 sync + CloudFront invalidation ----------------------
@@ -29,10 +29,9 @@ data "aws_iam_policy_document" "deploy_web_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        "repo:${local.repo}:environment:dev",
-        "repo:${local.repo}:environment:prod",
-      ]
+      values = flatten([
+        for r in local.repos : ["repo:${r}:environment:dev", "repo:${r}:environment:prod"]
+      ])
     }
   }
 }
@@ -91,10 +90,9 @@ data "aws_iam_policy_document" "deploy_chat_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        "repo:${local.repo}:environment:dev",
-        "repo:${local.repo}:environment:prod",
-      ]
+      values = flatten([
+        for r in local.repos : ["repo:${r}:environment:dev", "repo:${r}:environment:prod"]
+      ])
     }
   }
 }
@@ -224,10 +222,9 @@ data "aws_iam_policy_document" "terraform_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        "repo:${local.repo}:environment:terraform-dev",
-        "repo:${local.repo}:environment:terraform-prod",
-      ]
+      values = flatten([
+        for r in local.repos : ["repo:${r}:environment:terraform-dev", "repo:${r}:environment:terraform-prod"]
+      ])
     }
   }
 }
@@ -264,11 +261,9 @@ data "aws_iam_policy_document" "terraform_plan_trust" {
       # PR plans must not be reviewer-gated; fork PRs can't mint OIDC tokens.
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values = [
-        "repo:${local.repo}:pull_request",
-        "repo:${local.repo}:ref:refs/heads/v2",
-        "repo:${local.repo}:ref:refs/heads/main",
-      ]
+      values = flatten([
+        for r in local.repos : ["repo:${r}:pull_request", "repo:${r}:ref:refs/heads/v2", "repo:${r}:ref:refs/heads/main"]
+      ])
     }
   }
 }
