@@ -4,6 +4,7 @@ import CosmicStarfield from "./CosmicStarfield";
 import CameraController from "./CameraController";
 import SupernovaFlash from "./SupernovaFlash";
 import ReducedMotionFallback from "./ReducedMotionFallback";
+import CanvasErrorBoundary from "./CanvasErrorBoundary";
 import { STAR_COUNT, CAMERA_POSITION_Z, CAMERA_FOV } from "./constants";
 
 interface SpaceSceneProps {
@@ -77,7 +78,9 @@ export default function SpaceBackground() {
   }
 
   return (
-    <>
+    // Without WebGL the intro can never finish, so a canvas failure also
+    // releases the page content the same way a finished intro does.
+    <CanvasErrorBoundary fallback={<ReducedMotionFallback />} onError={handleAnimationComplete}>
       {!animationComplete && (
         <SupernovaFlash onFlash={handleFlash} onComplete={handleAnimationComplete} />
       )}
@@ -104,6 +107,6 @@ export default function SpaceBackground() {
           }}
         />
       </div>
-    </>
+    </CanvasErrorBoundary>
   );
 }
