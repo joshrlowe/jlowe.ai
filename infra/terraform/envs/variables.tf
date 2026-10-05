@@ -14,6 +14,12 @@ variable "dns_delegated" {
   default     = false
 }
 
+variable "apex_external_ipv4" {
+  description = "See modules/cdn — point the apex + www A records at an outside host (v1 on Vercel) instead of CloudFront"
+  type        = string
+  default     = ""
+}
+
 variable "robots_noindex" {
   description = "Emit X-Robots-Tag: noindex (true for dev)"
   type        = bool

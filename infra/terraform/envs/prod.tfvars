@@ -7,6 +7,12 @@ domain_name    = "jlowe.ai"
 dns_delegated  = true
 robots_noindex = false
 
+# 2026-10: jlowe.ai goes back to the v1 site on Vercel; Velocity moves to its
+# own repo. The apex + www A records point at Vercel (the value `vercel
+# domains inspect jlowe.ai` recommends) and the AAAA aliases are dropped. The
+# distribution and cert stay up, so rollback is deleting this line + apply.
+apex_external_ipv4 = "76.76.21.21"
+
 # --- Cost guardrails (Stage 2.4) — ENABLED for cutover ----------------------
 # Budgets: a monthly COST budget ($50) with 50/80/100% notifications fanned out
 # through an SNS topic. The owner email must confirm the AWS SNS subscription
