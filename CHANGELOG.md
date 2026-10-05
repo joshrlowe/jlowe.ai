@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/joshrlowe/jlowe.ai/compare/v1.0.0...v1.0.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **security:** close public /articles/new route ([#191](https://github.com/joshrlowe/jlowe.ai/issues/191)) ([9003c04](https://github.com/joshrlowe/jlowe.ai/commit/9003c0470a8f48f47c5fc115da9c91d21dd9d876))
+* **seo:** canonicalize ISR-rendered /index to the site root ([#199](https://github.com/joshrlowe/jlowe.ai/issues/199)) ([498ea0f](https://github.com/joshrlowe/jlowe.ai/commit/498ea0fe635bf75312c461efe06191da0e0a6586))
+* **v1:** noindex vercel.app host and split ADMIN_PASSWORD from NEXTAUTH_SECRET ([#163](https://github.com/joshrlowe/jlowe.ai/issues/163)) ([25ca28a](https://github.com/joshrlowe/jlowe.ai/commit/25ca28a72b806699bc5fe905890561c4460d691c))
+
 ## 1.0.0 (2026-08-12)
 
 
