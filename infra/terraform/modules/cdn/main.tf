@@ -1,6 +1,11 @@
 locals {
   bucket_name = "jlowe-ai-site-${var.environment}"
   logs_bucket = "jlowe-ai-cdn-logs-${var.environment}"
+
+  # apex_external_ipv4 hands the domain to an outside host (v1 on Vercel): keep
+  # only the A records and point them at that IP; AAAA aliases are dropped.
+  serve_external      = var.apex_external_ipv4 != ""
+  domain_record_types = var.dns_delegated ? (local.serve_external ? ["A"] : ["A", "AAAA"]) : []
 }
 
 data "aws_caller_identity" "current" {}
@@ -623,7 +628,7 @@ resource "aws_cloudwatch_log_delivery" "cf_access" {
 
 # --- Alias records (gated on delegation) ------------------------------------
 resource "aws_route53_record" "alias" {
-  for_each = var.dns_delegated ? toset(["A", "AAAA"]) : toset([])
+  for_each = toset(local.domain_record_types)
   zone_id  = var.zone_id
   name     = var.domain_name
   type     = each.key
@@ -639,10 +644,16 @@ resource "aws_route53_record" "alias" {
   # docs/runbooks/cutover.md, Stage 4.2b.
   allow_overwrite = true
 
-  alias {
-    name                   = aws_cloudfront_distribution.site.domain_name
-    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
-    evaluate_target_health = false
+  ttl     = local.serve_external ? 300 : null
+  records = local.serve_external ? [var.apex_external_ipv4] : null
+
+  dynamic "alias" {
+    for_each = local.serve_external ? [] : [1]
+    content {
+      name                   = aws_cloudfront_distribution.site.domain_name
+      zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+      evaluate_target_health = false
+    }
   }
 }
 
@@ -660,14 +671,20 @@ resource "aws_route53_record" "alias" {
 # with a brief low-TTL www blip (the apex swap itself stays atomic). See
 # docs/runbooks/cutover.md, "The www decision".
 resource "aws_route53_record" "www_alias" {
-  for_each = var.dns_delegated ? toset(["A", "AAAA"]) : toset([])
+  for_each = toset(local.domain_record_types)
   zone_id  = var.zone_id
   name     = "www.${var.domain_name}"
   type     = each.key
 
-  alias {
-    name                   = aws_cloudfront_distribution.site.domain_name
-    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
-    evaluate_target_health = false
+  ttl     = local.serve_external ? 300 : null
+  records = local.serve_external ? [var.apex_external_ipv4] : null
+
+  dynamic "alias" {
+    for_each = local.serve_external ? [] : [1]
+    content {
+      name                   = aws_cloudfront_distribution.site.domain_name
+      zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+      evaluate_target_health = false
+    }
   }
 }

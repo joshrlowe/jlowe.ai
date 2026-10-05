@@ -20,11 +20,12 @@ module "waf" {
 module "cdn" {
   source = "../modules/cdn"
 
-  environment    = var.environment
-  domain_name    = var.domain_name
-  zone_id        = data.aws_route53_zone.primary.zone_id
-  dns_delegated  = var.dns_delegated
-  robots_noindex = var.robots_noindex
+  environment        = var.environment
+  domain_name        = var.domain_name
+  zone_id            = data.aws_route53_zone.primary.zone_id
+  dns_delegated      = var.dns_delegated
+  apex_external_ipv4 = var.apex_external_ipv4
+  robots_noindex     = var.robots_noindex
 
   # dev sets this false to un-mask the chat origin's real 403 while debugging.
   mask_origin_403_as_404 = var.mask_origin_403_as_404
