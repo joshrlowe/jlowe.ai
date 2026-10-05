@@ -175,6 +175,22 @@ describe("SEO", () => {
     expect(canonical).toHaveAttribute("href", "https://jlowe.ai/projects");
   });
 
+  it("canonicalizes the ISR-regenerated home route /index to the site root", () => {
+    useRouter.mockReturnValueOnce({ asPath: "/index" });
+    render(<SEO />);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    expect(canonical).toHaveAttribute("href", "https://jlowe.ai");
+    expect(ogUrl).toHaveAttribute("content", "https://jlowe.ai");
+  });
+
+  it("drops a trailing /index from nested index routes", () => {
+    useRouter.mockReturnValueOnce({ asPath: "/articles/index" });
+    render(<SEO />);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    expect(canonical).toHaveAttribute("href", "https://jlowe.ai/articles");
+  });
+
   it("prefers an explicit url prop over the current route", () => {
     useRouter.mockReturnValueOnce({ asPath: "/projects" });
     render(<SEO url="https://jlowe.ai/custom" />);
