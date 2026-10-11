@@ -1,16 +1,24 @@
 # Stage 5 — Collapse `v2` into `main`
 
+> **Status (2026-09-28): do not execute.** Collapse is not done.
+> `origin/main` is `cb45fe4` and is still the v1 tree. A request that day
+> found the apex serving the Velocity flat shell from CloudFront/S3 and
+> `https://jlowe-ai.vercel.app` still serving v1 (`server: Vercel`, noindex).
+> Serving Velocity HTML at the apex is not authorization to merge branches,
+> flip `CUTOVER_ENABLED`, change DNS, or delete v1. The SHA table below is a
+> 2026-08-24 snapshot (`origin/main` recorded there as `264a0e3`); those git
+> SHAs are stale. Re-verify before any step.
+> [`cutover.md`](./cutover.md) is still the Stage 4 procedure; its wiring table
+> is also stale. Do not execute Stage 4.2/4.3 from either file.
+
 Make `main` the Velocity tree, turn push-to-`main` deploys back on, and keep a
 rehearsed DNS rollback to the frozen v1 Vercel deployment.
 
 This file is **the doc, not the switch.** It does not merge branches, does not
 flip `CUTOVER_ENABLED`, does not apply Terraform, and does not force-push
-`main`. Stage 4 (apex cutover) already happened; its runbook
-([`cutover.md`](./cutover.md)) is kept as history and is **stale in places**
-(it still talks about www staying on Vercel, a first prod apply, and
-`dns_delegated = false`). Do not execute Stage 4.2/4.3 from that file.
+`main`.
 
-## Current wiring (verified 2026-08-24)
+## Historical snapshot (2026-08-24) — not current git state
 
 | Thing                                 | Value                                                                                           |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------- |

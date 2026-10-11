@@ -24,6 +24,19 @@ variable "dns_delegated" {
   default     = false
 }
 
+variable "apex_external_ipv4" {
+  description = <<-EOT
+    When set, the apex and www A records point at this IPv4 address instead of
+    aliasing the distribution, and the AAAA aliases are dropped. Used to hand
+    jlowe.ai back to the v1 site on Vercel (76.76.21.21). Each A record changes
+    in place, so the switch is one apply with no window where the name has no A
+    record. The distribution, cert, and its aliases stay up, so rollback is
+    clearing this value. Empty = serve the domain from CloudFront.
+  EOT
+  type        = string
+  default     = ""
+}
+
 variable "robots_noindex" {
   description = "Emit X-Robots-Tag: noindex,nofollow (true for dev)"
   type        = bool

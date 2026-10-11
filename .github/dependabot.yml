@@ -1,0 +1,48 @@
+# Version updates open against `v2` (the Velocity integration branch).
+# The repo default branch is `main`, which is still the v1 app — do not retarget
+# these at `main`. Dependabot security updates ignore `target-branch` and still
+# follow the default branch; that split is a GitHub limitation, not a cutover.
+#
+# package-ecosystem "npm" is the Dependabot name that reads pnpm-lock.yaml.
+# One root entry covers every pnpm workspace. Do not add apps/*, packages/*,
+# or services/* directories: Dependabot would try to update a workspace
+# subdirectory that has no lockfile.
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "v2"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "v2"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

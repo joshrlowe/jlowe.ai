@@ -2,7 +2,8 @@
 
 The running record of third-party asset licensing for jlowe.ai 2.0. Any future
 asset (audio, texture, model, font) must be listed here with its source and
-license **before it ships**.
+license **before it ships**. The MIT license for the source tree is
+[`LICENSE`](LICENSE); this file does not replace it.
 
 > The retired Chapter 1 driving world (hero night vignette, drivable circuit,
 > and their CC0-sourced models/textures) now lives in the standalone
