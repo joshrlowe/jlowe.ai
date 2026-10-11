@@ -347,6 +347,24 @@ data "aws_iam_policy_document" "terraform_apply" {
     ])
   }
 
+  # The Vercel OIDC provider (global/vercel.tf) lets the v1 site on Vercel
+  # assume jlowe-ai-vercel-v1 for Bedrock. Scoped to Vercel's issuer only; the
+  # GitHub provider stays outside Terraform (bootstrap.sh).
+  statement {
+    sid    = "VercelOidcProvider"
+    effect = "Allow"
+    actions = [
+      "iam:AddClientIDToOpenIDConnectProvider",
+      "iam:CreateOpenIDConnectProvider",
+      "iam:DeleteOpenIDConnectProvider",
+      "iam:RemoveClientIDFromOpenIDConnectProvider",
+      "iam:TagOpenIDConnectProvider",
+      "iam:UntagOpenIDConnectProvider",
+      "iam:UpdateOpenIDConnectProviderThumbprint",
+    ]
+    resources = ["arn:aws:iam::${var.aws_account_id}:oidc-provider/oidc.vercel.com/*"]
+  }
+
   statement {
     sid    = "PassNamedRoles"
     effect = "Allow"
