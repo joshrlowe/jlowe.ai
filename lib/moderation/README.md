@@ -78,7 +78,7 @@ same decision, which is exactly what we want.
 
 ## Model
 
-`anthropic.claude-haiku-4-5-20251001-v1:0` on Bedrock. Configured at
+`us.anthropic.claude-haiku-4-5-20251001-v1:0` (US inference profile) on Bedrock. Configured at
 `lib/bedrock/client.ts:MODERATION_MODEL_ID`. Requires
 `bedrock:InvokeModel` IAM permission and the model to be enabled in
 the region's Bedrock model access list.

@@ -23,7 +23,7 @@ const baseInput = {
 const validToolResult = (input: Record<string, unknown>) => ({
   input,
   usage: { inputTokens: 10, outputTokens: 5 },
-  modelId: "anthropic.claude-haiku-4-5-20251001-v1:0",
+  modelId: "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 });
 
 describe("scoreComment", () => {
