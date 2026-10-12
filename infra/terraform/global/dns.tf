@@ -23,3 +23,24 @@ resource "aws_route53_zone" "primary" {
 # sectigo, letsencrypt, pki.goog -- no amazon.com) for `www.jlowe.ai` and
 # failed the SAN with CAA_ERROR, taking the whole prod apply down with it.
 # Delete here and apply `global` BEFORE applying `envs` prod.
+
+# ACME DNS-01 challenges so Vercel can issue the jlowe.ai + www.jlowe.ai
+# certificate BEFORE the prod `envs` apply points both names back at Vercel
+# (#196). Vercel's last certificate expired while DNS pointed at CloudFront,
+# and HTTP-01 can't pass until the A records move, so without these the switch
+# would serve certificate errors until a re-issue. Values come from
+# `vercel certs issue --challenge-only jlowe.ai www.jlowe.ai`; finish with
+# `vercel certs issue jlowe.ai www.jlowe.ai`. Vercel renews over HTTP-01 once
+# the A records point at it, so delete these after the switch.
+resource "aws_route53_record" "vercel_acme_challenge" {
+  for_each = {
+    "_acme-challenge.jlowe.ai"     = "t5etiGnDnQWAxHVfcYo-PTZaIT-WW57mTdNcK2OCbzA"
+    "_acme-challenge.www.jlowe.ai" = "P416LjbrsP_JkT_xcFw_cwIA-3vUHNh4uHw04SeLZrw"
+  }
+
+  zone_id = aws_route53_zone.primary.zone_id
+  name    = each.key
+  type    = "TXT"
+  ttl     = 60
+  records = [each.value]
+}
