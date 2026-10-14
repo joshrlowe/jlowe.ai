@@ -22,6 +22,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "db:copy-prod": "bash scripts/db-copy-prod.sh",
     "prisma:test-connection": "node scripts/test-prisma-connection.js",
     "prisma:migrate-data": "node scripts/migrate-data.js",
     "prisma:migrate-resources-to-posts": "node scripts/migrate-resources-to-posts.js",

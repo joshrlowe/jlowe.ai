@@ -1,0 +1,27 @@
+# Local Postgres for `npm run dev`. Same major version and pgvector release as
+# production (Prisma Postgres: PostgreSQL 17, vector 0.8.1); knowledge_chunks
+# needs the vector extension. Bound to localhost only, on 54329 so it never
+# collides with a Postgres already listening on 5432.
+#
+#   docker compose up -d --wait   # start (data persists in the named volume)
+#   docker compose down           # stop; add -v to wipe the database
+services:
+  db:
+    image: pgvector/pgvector:0.8.1-pg17
+    container_name: jlowe-ai-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jlowe_dev
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jlowe_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:

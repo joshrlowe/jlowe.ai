@@ -36,9 +36,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files — ignore every .env variant except the example
+# local env files — ignore every .env variant except the example and the
+# test env (a localhost-only URL that keeps Jest off the dev database)
 .env*
 !.env.example
+!.env.test
 
 # credential-shaped files that must never be committed
 secrets.json
