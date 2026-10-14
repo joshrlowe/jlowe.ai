@@ -94,8 +94,9 @@ View analytics in the [Vercel Dashboard](https://vercel.com) under Analytics > C
 
 ### Prerequisites
 
-- Node.js 18+
-- PostgreSQL database
+- Node.js 24 (`.nvmrc`)
+- Docker, for the local Postgres 17 + pgvector in `docker-compose.yml`
+- Optional: an AWS CLI profile with Bedrock access, for chat and embeddings
 
 ### Installation
 
@@ -103,22 +104,49 @@ View analytics in the [Vercel Dashboard](https://vercel.com) under Analytics > C
 # Clone and install
 git clone <repository-url>
 cd jlowe.ai
-npm install
+npm ci
 
-# Configure environment
+# Configure environment: DATABASE_URL already points at the compose database
 cp .env.example .env
-# Edit .env with your values
+# Set NEXTAUTH_SECRET (openssl rand -base64 32); for chat, AWS_PROFILE=default
 
-# Setup database
-npm run prisma:generate
-npm run prisma:migrate
-npm run seed:admin
+# Start the local database (127.0.0.1:54329) and build the schema
+docker compose up -d --wait
+npx prisma migrate deploy
+
+# Content: a copy of production (see below) or the example seed
+npm run seed:all
 
 # Start development
 npm run dev
 ```
 
 Visit `http://localhost:3000`
+
+### Copy production data locally
+
+`npm run db:copy-prod` replaces the local `jlowe_dev` database with a copy of
+production, then applies any migrations production hasn't had yet. It only
+reads from production (`pg_dump` runs in a read-only snapshot) and deletes the
+dump when it finishes, because it includes visitor data such as chat logs and
+contact messages. Pass the production connection string for that one command
+only; never put it in `.env`:
+
+```bash
+PROD_DATABASE_URL='postgres://…' npm run db:copy-prod
+```
+
+### Tests and the local database
+
+Jest loads `.env.test` over `.env`, so database-backed suites use a separate
+`jlowe_test` database and never touch `jlowe_dev`. Create it once, the same way
+CI does:
+
+```bash
+psql postgresql://postgres:postgres@127.0.0.1:54329/postgres -c 'create database jlowe_test'
+psql postgresql://postgres:postgres@127.0.0.1:54329/jlowe_test -c 'create extension if not exists vector'
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/jlowe_test npx prisma db push --skip-generate
+```
 
 ### Environment Variables
 

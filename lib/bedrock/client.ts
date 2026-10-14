@@ -66,7 +66,7 @@ export interface StreamChatParams {
 function assertCredentials(): void {
   if (!hasAwsCredentials()) {
     throw new Error(
-      "AWS credentials not configured. Set AWS_ROLE_ARN (Vercel OIDC) or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+      "AWS credentials not configured. Set AWS_ROLE_ARN (Vercel OIDC), AWS_PROFILE, or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
     );
   }
 }

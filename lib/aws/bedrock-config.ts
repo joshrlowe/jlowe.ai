@@ -4,8 +4,8 @@
  * On Vercel, AWS_ROLE_ARN switches the SDK to OIDC federation: the function's
  * Vercel-issued token is exchanged for short-lived credentials on that role,
  * so no long-lived AWS keys live in the project. Locally, leave AWS_ROLE_ARN
- * unset and the SDK's default chain picks up AWS_ACCESS_KEY_ID /
- * AWS_SECRET_ACCESS_KEY or a named profile.
+ * unset and set AWS_PROFILE (a profile from ~/.aws) or AWS_ACCESS_KEY_ID /
+ * AWS_SECRET_ACCESS_KEY; the SDK's default chain picks either up.
  */
 
 import type { BedrockRuntimeClientConfig } from "@aws-sdk/client-bedrock-runtime";
@@ -28,9 +28,11 @@ export function bedrockClientConfig(): BedrockRuntimeClientConfig {
   };
 }
 
-/** True when either OIDC federation or static keys are configured. */
+/** True when OIDC federation, a named profile, or static keys are configured. */
 export function hasAwsCredentials(): boolean {
   return Boolean(
-    process.env.AWS_ROLE_ARN || (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
+    process.env.AWS_ROLE_ARN ||
+    process.env.AWS_PROFILE ||
+    (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
   );
 }
