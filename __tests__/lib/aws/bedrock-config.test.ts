@@ -14,6 +14,7 @@ const ORIGINAL_ENV = { ...process.env };
 beforeEach(() => {
   process.env = { ...ORIGINAL_ENV };
   delete process.env.AWS_ROLE_ARN;
+  delete process.env.AWS_PROFILE;
   delete process.env.AWS_ACCESS_KEY_ID;
   delete process.env.AWS_SECRET_ACCESS_KEY;
   delete process.env.AWS_REGION;
@@ -49,6 +50,11 @@ describe("bedrockClientConfig", () => {
 describe("hasAwsCredentials", () => {
   it("is true with only a role ARN", () => {
     process.env.AWS_ROLE_ARN = "arn:aws:iam::123456789012:role/r";
+    expect(hasAwsCredentials()).toBe(true);
+  });
+
+  it("is true with only a named profile (local dev via ~/.aws)", () => {
+    process.env.AWS_PROFILE = "default";
     expect(hasAwsCredentials()).toBe(true);
   });
 
