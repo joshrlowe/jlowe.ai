@@ -9,14 +9,19 @@ import {
   InvokeModelCommand,
   InvokeModelWithResponseStreamCommand,
 } from "@aws-sdk/client-bedrock-runtime";
+import {
+  bedrockClientConfig,
+  CLAUDE_HAIKU_45_PROFILE_ID,
+  hasAwsCredentials,
+} from "@/lib/aws/bedrock-config";
 
-const CLAUDE_MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0";
+const CLAUDE_MODEL_ID = CLAUDE_HAIKU_45_PROFILE_ID;
 
 /**
  * Default model id for the comment moderation pipeline. Cheap, fast,
  * good at multi-axis classification + tool use. See lib/moderation/README.md.
  */
-export const MODERATION_MODEL_ID = "anthropic.claude-haiku-4-5-20251001-v1:0";
+export const MODERATION_MODEL_ID = CLAUDE_HAIKU_45_PROFILE_ID;
 
 export interface Message {
   role: "user" | "assistant";
@@ -59,20 +64,14 @@ export interface StreamChatParams {
 }
 
 function assertCredentials(): void {
-  if (
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY ||
-    !process.env.AWS_REGION
-  ) {
+  if (!hasAwsCredentials()) {
     throw new Error(
-      "AWS credentials not configured. Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION."
+      "AWS credentials not configured. Set AWS_ROLE_ARN (Vercel OIDC) or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
     );
   }
 }
 
-export const bedrockClient = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION || "us-east-1",
-});
+export const bedrockClient = new BedrockRuntimeClient(bedrockClientConfig());
 
 /**
  * Stream chat response from Claude. Yields text chunks as they arrive.

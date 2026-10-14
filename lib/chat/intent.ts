@@ -10,9 +10,10 @@
  */
 
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import { bedrockClientConfig, CLAUDE_HAIKU_45_PROFILE_ID } from "@/lib/aws/bedrock-config";
 import type { TraceHandle } from "@/lib/observability/langfuse";
 
-const HAIKU_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0";
+const HAIKU_MODEL_ID = CLAUDE_HAIKU_45_PROFILE_ID;
 
 export type Intent = "researching" | "evaluating" | "technical_question" | "unrelated";
 
@@ -36,9 +37,7 @@ let _client: BedrockRuntimeClient | null = null;
 
 function getClient(): BedrockRuntimeClient {
   if (!_client) {
-    _client = new BedrockRuntimeClient({
-      region: process.env.AWS_REGION || "us-east-1",
-    });
+    _client = new BedrockRuntimeClient(bedrockClientConfig());
   }
   return _client;
 }

@@ -32,8 +32,9 @@ export default function SEO({
 
   // Canonical defaults to the current route (query string and hash stripped) so
   // pages that omit `url` don't all canonicalize to the homepage. An explicit
-  // `url` prop always wins.
-  const path = (router?.asPath ?? "/").split(/[?#]/)[0];
+  // `url` prop always wins. ISR regeneration renders index routes with an
+  // asPath of "/index" (or "/articles/index"), so strip that segment.
+  const path = (router?.asPath ?? "/").split(/[?#]/)[0].replace(/\/index$/, "") || "/";
   const canonicalUrl = url ?? (path === "/" ? SITE_URL : `${SITE_URL}${path}`);
 
   const imageUrl = toAbsoluteUrl(image);

@@ -6,6 +6,7 @@
  */
 
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import { bedrockClientConfig } from "@/lib/aws/bedrock-config";
 
 const TITAN_MODEL_ID = "amazon.titan-embed-text-v2:0";
 export const EMBEDDING_DIMENSIONS = 1024;
@@ -15,8 +16,7 @@ let _client: BedrockRuntimeClient | null = null;
 
 function getClient(): BedrockRuntimeClient {
   if (!_client) {
-    const region = process.env.AWS_REGION || "us-east-1";
-    _client = new BedrockRuntimeClient({ region });
+    _client = new BedrockRuntimeClient(bedrockClientConfig());
   }
   return _client;
 }

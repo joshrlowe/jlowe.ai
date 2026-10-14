@@ -106,6 +106,7 @@ const ORIGINAL_ENV = { ...process.env };
 
 beforeEach(() => {
   sendMock.mockReset();
+  delete process.env.AWS_ROLE_ARN;
   process.env.AWS_ACCESS_KEY_ID = "test-access-key-id";
   process.env.AWS_SECRET_ACCESS_KEY = "test-secret-access-key";
   process.env.AWS_REGION = "us-east-1";
@@ -168,7 +169,7 @@ describe("streamChatResponse", () => {
     expect(sendMock).toHaveBeenCalledTimes(1);
     const command = sentCommand();
     expect(command).toBeInstanceOf(InvokeModelWithResponseStreamCommand);
-    expect(command.input.modelId).toBe("anthropic.claude-3-5-sonnet-20241022-v2:0");
+    expect(command.input.modelId).toBe("us.anthropic.claude-haiku-4-5-20251001-v1:0");
     expect(command.input.contentType).toBe("application/json");
     expect(command.input.accept).toBe("application/json");
     const body = sentBody();
@@ -382,7 +383,10 @@ describe("streamChatResponse", () => {
     });
 
     it("falls back to a generic validationException message", async () => {
-      await expectStreamError({ validationException: {} }, "Bedrock validation error: Invalid request");
+      await expectStreamError(
+        { validationException: {} },
+        "Bedrock validation error: Invalid request"
+      );
     });
   });
 
@@ -435,18 +439,29 @@ describe("streamChatResponse", () => {
     });
   });
 
-  it.each(["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION"] as const)(
-    "throws before calling Bedrock when %s is missing",
+  it.each(["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"] as const)(
+    "throws before calling Bedrock when %s is missing and no role is set",
     async (envKey) => {
       delete process.env[envKey];
       await expect(
         collect(streamChatResponse({ messages: MESSAGES, systemPrompt: "s" }))
       ).rejects.toThrow(
-        "AWS credentials not configured. Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION."
+        "AWS credentials not configured. Set AWS_ROLE_ARN (Vercel OIDC) or AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
       );
       expect(sendMock).not.toHaveBeenCalled();
     }
   );
+
+  it("calls Bedrock with only AWS_ROLE_ARN configured (Vercel OIDC)", async () => {
+    delete process.env.AWS_ACCESS_KEY_ID;
+    delete process.env.AWS_SECRET_ACCESS_KEY;
+    process.env.AWS_ROLE_ARN = "arn:aws:iam::123456789012:role/jlowe-ai-vercel-v1";
+    sendMock.mockRejectedValueOnce(new Error("sent"));
+    await expect(
+      collect(streamChatResponse({ messages: MESSAGES, systemPrompt: "s" }))
+    ).rejects.toThrow("sent");
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("invokeJsonTool", () => {
@@ -519,7 +534,9 @@ describe("invokeJsonTool", () => {
     sendMock.mockRejectedValueOnce(
       Object.assign(new Error("denied"), { name: "AccessDeniedException" })
     );
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow(
       `Access denied to Bedrock model ${MODERATION_MODEL_ID}. Verify IAM permissions for bedrock:InvokeModel and that the model is enabled in the region.`
     );
   });
@@ -534,23 +551,23 @@ describe("invokeJsonTool", () => {
 
   it("throws on an empty response body", async () => {
     sendMock.mockResolvedValueOnce({ body: undefined });
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
-      "Empty response body from Bedrock"
-    );
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow("Empty response body from Bedrock");
   });
 
   it("propagates a SyntaxError when the response body is not JSON", async () => {
     sendMock.mockResolvedValueOnce({ body: new TextEncoder().encode("{oops") });
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
-      SyntaxError
-    );
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow(SyntaxError);
   });
 
   it("throws with the stop_reason when the model returns no tool call", async () => {
     mockJsonResponse({ content: [{ type: "text", text: "sorry" }], stop_reason: "end_turn" });
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
-      "Bedrock did not return a score_comment tool call (stop_reason=end_turn)"
-    );
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow("Bedrock did not return a score_comment tool call (stop_reason=end_turn)");
   });
 
   it("does not match a tool_use block carrying a different tool name", async () => {
@@ -558,23 +575,23 @@ describe("invokeJsonTool", () => {
       content: [{ type: "tool_use", name: "other_tool", input: {} }],
       stop_reason: "tool_use",
     });
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
-      "Bedrock did not return a score_comment tool call (stop_reason=tool_use)"
-    );
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow("Bedrock did not return a score_comment tool call (stop_reason=tool_use)");
   });
 
   it("reports stop_reason=unknown when the response has no content or stop_reason", async () => {
     mockJsonResponse({});
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
-      "Bedrock did not return a score_comment tool call (stop_reason=unknown)"
-    );
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow("Bedrock did not return a score_comment tool call (stop_reason=unknown)");
   });
 
   it("throws before calling Bedrock when credentials are missing", async () => {
     delete process.env.AWS_SECRET_ACCESS_KEY;
-    await expect(invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })).rejects.toThrow(
-      "AWS credentials not configured"
-    );
+    await expect(
+      invokeJsonTool({ systemPrompt: "s", userMessage: "u", tool: TOOL })
+    ).rejects.toThrow("AWS credentials not configured");
     expect(sendMock).not.toHaveBeenCalled();
   });
 });
@@ -586,9 +603,9 @@ describe("bedrockClient construction", () => {
     await jest.isolateModulesAsync(async () => {
       fresh = await import("../../../lib/bedrock/client");
     });
-    expect(
-      (fresh.bedrockClient as unknown as { config: { region: string } }).config.region
-    ).toBe("us-east-1");
+    expect((fresh.bedrockClient as unknown as { config: { region: string } }).config.region).toBe(
+      "us-east-1"
+    );
   });
 
   it("uses AWS_REGION when it is set at module load", async () => {
@@ -597,8 +614,8 @@ describe("bedrockClient construction", () => {
     await jest.isolateModulesAsync(async () => {
       fresh = await import("../../../lib/bedrock/client");
     });
-    expect(
-      (fresh.bedrockClient as unknown as { config: { region: string } }).config.region
-    ).toBe("eu-west-2");
+    expect((fresh.bedrockClient as unknown as { config: { region: string } }).config.region).toBe(
+      "eu-west-2"
+    );
   });
 });

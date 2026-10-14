@@ -35,7 +35,7 @@ concurrency:
 # GLOBAL ENVIRONMENT VARIABLES
 # =============================================================================
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
   NEXTAUTH_SECRET: test-secret-for-ci
   NEXTAUTH_URL: http://localhost:3000
